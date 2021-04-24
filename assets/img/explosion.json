@@ -1,0 +1,14 @@
+{
+ "img": "explosion.png",
+ "height": 48,
+ "width": 48,
+ "singleRow": true,
+ "sprites": [
+  {},
+  {},
+  {},
+  {},
+  {},
+  {}
+ ]
+}

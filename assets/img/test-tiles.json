@@ -1,0 +1,38 @@
+{
+ "img": "test-tiles.png",
+ "height": 16,
+ "width": 16,
+ "singleRow": true,
+ "sprites": [
+  {
+   "key": "block"
+  },
+  {
+   "key": "bomb"
+  },
+  {
+   "key": "one"
+  },
+  {
+   "key": "two"
+  },
+  {
+   "key": "three"
+  },
+  {
+   "key": "four"
+  },
+  {
+   "key": "five"
+  },
+  {
+   "key": "six"
+  },
+  {
+   "key": "seven"
+  },
+  {
+   "key": "eight"
+  }
+ ]
+}
