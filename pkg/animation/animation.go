@@ -24,10 +24,10 @@ type Animation struct {
 	dur   float64
 }
 
-func NewAnimation(spriteSheet *img.SpriteSheet, loop, hold bool, dur float64) *Animation {
+func NewAnimation(spriteSheet *img.SpriteSheet, start, end int, loop, hold bool, dur float64) *Animation {
 	var spr []*pixel.Sprite
-	for _, s := range spriteSheet.Sprites {
-		spr = append(spr, pixel.NewSprite(spriteSheet.Img, s))
+	for i := start; i < end; i++ {
+		spr = append(spr, pixel.NewSprite(spriteSheet.Img, spriteSheet.Sprites[i]))
 	}
 	return &Animation{
 		Loop:  loop,
@@ -76,4 +76,10 @@ func (a *AnimationInstance) Draw(target pixel.Target) {
 
 func (a *AnimationInstance) SetMatrix(mat pixel.Matrix) {
 	a.Matrix = mat
+}
+
+func (a *AnimationInstance) Reset() {
+	a.Done = false
+	a.inter = gween.New(0., float64(len(a.S)), a.dur, ease.Linear)
+	a.step = 0
 }

@@ -13,7 +13,7 @@ func Initialize() {
 	if err != nil {
 		panic(err)
 	}
-	explosion = animation.NewAnimation(expSheet, false, false, 0.5)
+	explosion = animation.NewAnimation(expSheet, 0, 6,false, false, 0.5)
 }
 
 func Update() {

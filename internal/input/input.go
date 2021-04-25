@@ -2,7 +2,6 @@ package input
 
 import (
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
@@ -40,9 +39,6 @@ func (i *Input) Update(win *pixelgl.Window) {
 
 	debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, i.World, 1.)
 
-	if win.JustPressed(pixelgl.KeyE) {
-		particles.PartBatcher.Sprites["b_8"].Draw(win, pixel.IM.Moved(i.World))
-	}
 	if win.Pressed(pixelgl.KeyEscape) {
 		win.SetClosed(true)
 	}

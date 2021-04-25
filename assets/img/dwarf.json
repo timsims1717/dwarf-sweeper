@@ -1,0 +1,14 @@
+{
+ "img": "dwarf.png",
+ "height": 16,
+ "width": 16,
+ "singleRow": true,
+ "sprites": [
+  {},
+  {},
+  {},
+  {},
+  {},
+  {}
+ ]
+}

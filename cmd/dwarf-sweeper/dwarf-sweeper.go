@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/cave"
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
+	"dwarf-sweeper/internal/dwarf"
 	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/vfx"
@@ -55,6 +56,8 @@ func run() {
 	cave.CurrCave = cave.NewCave(sheet)
 	//imd := imdraw.New(nil)
 
+	player := dwarf.NewDwarf()
+
 	timing.Reset()
 	for !win.Closed() {
 		timing.Update()
@@ -67,22 +70,12 @@ func run() {
 		cave.CurrCave.Update(in.World, in)
 		particles.Update()
 		vfx.Update()
+		player.Update(in)
+		
 		win.Clear(colornames.Black)
 
 		cave.CurrCave.Draw(win)
-		//imd.Clear()
-		//imd.Color = colornames.Blue
-		//imd.EndShape = imdraw.SharpEndShape
-		//imd.Push(pixel.V(0., 0.), in.World)
-		//imd.Polygon(8.)
-		//imd.Draw(win)
-		//worlds.Clear()
-		//fmt.Fprintf(worlds, "World (X,Y): (%d,%d)", int(in.World.X), int(in.World.Y))
-		//worlds.Draw(win, camera.Cam.UITransform(pixel.V(camera.WindowWidthF * 0.5, camera.WindowHeightF * 0.5), pixel.V(1., 1.), 0.))
-		//chunks.Clear()
-		//ch := cave.WorldToChunk(in.World)
-		//fmt.Fprintf(chunks, "Chunk (X,Y): (%d,%d)", ch.X, ch.Y)
-		//chunks.Draw(win, camera.Cam.UITransform(pixel.V(camera.WindowWidthF * 0.5, camera.WindowHeightF * 0.5), pixel.V(1., 1.), 0.))
+		player.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
 		debug.Draw(win)

@@ -1,7 +1,6 @@
 package particles
 
 import (
-	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/animation"
 	gween "dwarf-sweeper/pkg/gween64"
@@ -11,7 +10,6 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 	"image/color"
@@ -69,12 +67,13 @@ func Update() {
 func Draw(win *pixelgl.Window) {
 	PartBatcher.Clear()
 	for _, p := range particles {
-		p.Sprite.DrawColorMask(PartBatcher.Batch(), p.Transform.Mat, p.color)
+		//p.Sprite.DrawColorMask(PartBatcher.Batch(), p.Transform.Mat, p.color)
+		p.Sprite.Draw(PartBatcher.Batch(), p.Transform.Mat)
 	}
 	PartBatcher.Draw(win)
-	for _, p := range particles {
-		debug.AddLine(colornames.Green, imdraw.RoundEndShape, p.Transform.Pos, p.Transform.Pos, 2.)
-	}
+	//for _, p := range particles {
+	//	debug.AddLine(colornames.Green, imdraw.RoundEndShape, p.Transform.Pos, p.Transform.Pos, 2.)
+	//}
 }
 
 var blocks []string
