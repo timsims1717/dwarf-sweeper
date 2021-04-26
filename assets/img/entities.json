@@ -1,0 +1,17 @@
+{
+ "img": "entities.png",
+ "height": 16,
+ "width": 16,
+ "singleRow": true,
+ "sprites": [
+  {
+   "key": "bomb"
+  },
+  {
+   "key": "flag"
+  },
+  {
+   "key": "flag_c"
+  }
+ ]
+}

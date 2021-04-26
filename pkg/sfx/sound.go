@@ -39,12 +39,12 @@ func (p *soundPlayer) RegisterSound(path, key string) error {
 	return nil
 }
 
-func (p *soundPlayer) PlaySound(key string) {
+func (p *soundPlayer) PlaySound(key string, vol float64) {
 	if sound, ok := p.sounds[key]; ok {
 		volume := &effects.Volume{
 			Streamer: sound.Streamer(0, sound.Len()),
 			Base:     2,
-			Volume:   getSoundVolume(),
+			Volume:   getSoundVolume() + vol,
 			Silent:   false,
 		}
 		speaker.Play(volume)
@@ -54,5 +54,5 @@ func (p *soundPlayer) PlaySound(key string) {
 }
 
 func (p *soundPlayer) PlayRandomSound(keys []string) {
-	p.PlaySound(keys[rand.Intn(len(keys))])
+	p.PlaySound(keys[rand.Intn(len(keys))], 0.)
 }

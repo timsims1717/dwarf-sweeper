@@ -3,87 +3,118 @@ package input
 import (
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 )
 
-type Input struct {
-	Cursor  pixel.Vec
-	World   pixel.Vec
-	Coords  world.Coords
-	Select  toggle
-	Cancel  toggle
-	Scroll  float64
-	HotKeys map[pixelgl.Button]toggle
-	HotFunc map[pixelgl.Button]func()
-	Debug   bool
+var Input = &input{}
+
+type input struct {
+	Cursor    pixel.Vec
+	World     pixel.Vec
+	Click     bool
+	Scroll    float64
+	Debug     bool
+	XDir      XDirection
+	XDirC     bool
+	Jumping   bool
+	Jumped    bool
+	IsDig     bool
+	IsMark    bool
+	UpDown    int
+	LeftRight int
+	UseCursor bool
+	Back      bool
 }
 
-func NewInput() *Input {
-	return &Input{
-		HotKeys: make(map[pixelgl.Button]toggle),
-		HotFunc: make(map[pixelgl.Button]func()),
+type XDirection int
+
+const (
+	None = iota
+	Left
+	Right
+)
+
+func Restrict(win *pixelgl.Window, bl, tr pixel.Vec) {
+	world := camera.Cam.Mat.Unproject(win.MousePosition())
+	if bl.X <= tr.X {
+		if bl.X > world.X {
+			world.X = bl.X
+		} else if tr.X < world.X {
+			world.X = tr.X
+		}
 	}
+	if bl.Y <= tr.Y {
+		if bl.Y > world.Y {
+			world.Y = bl.Y
+		} else if tr.Y < world.Y {
+			world.Y = tr.Y
+		}
+	}
+	win.SetMousePosition(camera.Cam.Mat.Project(world))
 }
 
-func (i *Input) Update(win *pixelgl.Window) {
+func (i *input) Update(win *pixelgl.Window) {
 	i.Cursor = win.MousePosition()
+	i.Click = win.JustPressed(pixelgl.MouseButtonLeft)
+
+	if win.JustPressed(pixelgl.KeyKP1) || win.JustPressed(pixelgl.KeyKP4) || win.JustPressed(pixelgl.KeyKP7) {
+		i.LeftRight = -1
+		i.UseCursor = false
+	} else if win.JustPressed(pixelgl.KeyKP3) || win.JustPressed(pixelgl.KeyKP6) || win.JustPressed(pixelgl.KeyKP9) {
+		i.LeftRight = 1
+		i.UseCursor = false
+	} else if win.JustPressed(pixelgl.KeyKP2) || win.JustPressed(pixelgl.KeyKP8) {
+		i.LeftRight = 0
+		i.UseCursor = false
+	}
+	if win.JustPressed(pixelgl.KeyKP1) || win.JustPressed(pixelgl.KeyKP2) || win.JustPressed(pixelgl.KeyKP3) {
+		i.UpDown = -1
+		i.UseCursor = false
+	} else if win.JustPressed(pixelgl.KeyKP7) || win.JustPressed(pixelgl.KeyKP8) || win.JustPressed(pixelgl.KeyKP9) {
+		i.UpDown = 1
+		i.UseCursor = false
+	} else if win.JustPressed(pixelgl.KeyKP4) || win.JustPressed(pixelgl.KeyKP6) {
+		i.UpDown = 0
+		i.UseCursor = false
+	}
+
+	//if win.Pressed(pixelgl.KeyLeft) {
+	//	camera.Cam.Left()
+	//}
+	//if win.Pressed(pixelgl.KeyRight) {
+	//	camera.Cam.Right()
+	//}
+	//if win.Pressed(pixelgl.KeyDown) {
+	//	camera.Cam.Down()
+	//}
+	//if win.Pressed(pixelgl.KeyUp) {
+	//	camera.Cam.Up()
+	//}
+
 	i.World = camera.Cam.Mat.Unproject(win.MousePosition())
-	i.Coords.X, i.Coords.Y = world.WorldToMap(i.World.X, i.World.Y)
-	i.Select.Set(win, pixelgl.MouseButtonLeft)
-	i.Cancel.Set(win, pixelgl.MouseButtonRight)
 	i.Debug = win.JustPressed(pixelgl.KeyP)
 
 	debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, i.World, 1.)
 
-	if win.Pressed(pixelgl.KeyEscape) {
-		win.SetClosed(true)
-	}
-	if win.Pressed(pixelgl.KeyLeft) {
-		camera.Cam.Left()
-	}
-	if win.Pressed(pixelgl.KeyRight) {
-		camera.Cam.Right()
-	}
-	if win.Pressed(pixelgl.KeyDown) {
-		camera.Cam.Down()
-	}
-	if win.Pressed(pixelgl.KeyUp) {
-		camera.Cam.Up()
-	}
-	camera.Cam.ZoomIn(win.MouseScroll().Y)
+	i.Back = win.JustPressed(pixelgl.KeyEscape)
 
-	for key, tog := range i.HotKeys {
-		tog.Set(win, key)
-		if tog.JustPressed() {
-			tog.Consume()
-			if fn, ok := i.HotFunc[key]; ok && fn != nil {
-				fn()
-			}
-		}
+	if win.JustPressed(pixelgl.KeyD) {
+		i.XDir = Right
+		i.XDirC = true
+	} else if win.JustPressed(pixelgl.KeyA) {
+		i.XDir = Left
+		i.XDirC = true
+	} else if !win.Pressed(pixelgl.KeyD) && !win.Pressed(pixelgl.KeyA) {
+		i.XDir = None
+		i.XDirC = true
 	}
-}
-
-func (i *Input) SetHotKey(btn pixelgl.Button, fn func()) {
-	i.HotKeys[btn] = toggle{}
-	i.HotFunc[btn] = fn
-}
-
-func (i *Input) RemoveHotKey(btn pixelgl.Button) {
-	delete(i.HotKeys, btn)
-	delete(i.HotFunc, btn)
-}
-
-func (i *Input) RemoveHotKeys() {
-	for key := range i.HotKeys {
-		delete(i.HotKeys, key)
-	}
-	for key := range i.HotFunc {
-		delete(i.HotFunc, key)
-	}
+	i.IsDig = win.JustPressed(pixelgl.MouseButtonLeft) || win.JustPressed(pixelgl.KeyKP0) || win.JustPressed(pixelgl.KeyKPEnter)
+	i.IsMark = win.JustPressed(pixelgl.MouseButtonRight)
+	i.Jumping = win.Pressed(pixelgl.KeyW)
+	i.Jumped = win.JustPressed(pixelgl.KeyW)
 }
 
 type toggle struct {

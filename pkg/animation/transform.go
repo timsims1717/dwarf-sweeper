@@ -98,11 +98,11 @@ func (t *Transform) Update(r pixel.Rect) {
 	//} else {
 	t.Mat = pixel.IM
 	if t.Flip && t.Flop {
-		t.Mat.Scaled(pixel.ZV, -1.)
+		t.Mat = t.Mat.Scaled(pixel.ZV, -1.)
 	} else if t.Flip {
-		t.Mat.ScaledXY(pixel.ZV, pixel.V(-1., 1.))
+		t.Mat = t.Mat.ScaledXY(pixel.ZV, pixel.V(-1., 1.))
 	} else if t.Flop {
-		t.Mat.ScaledXY(pixel.ZV, pixel.V(1., -1.))
+		t.Mat = t.Mat.ScaledXY(pixel.ZV, pixel.V(1., -1.))
 	}
 	t.Mat = t.Mat.ScaledXY(pixel.ZV, t.Scalar)
 	t.Mat = t.Mat.Rotated(pixel.ZV, t.Rot)

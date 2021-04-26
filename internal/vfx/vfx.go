@@ -34,3 +34,7 @@ func Draw(win *pixelgl.Window) {
 		effect.Draw(win)
 	}
 }
+
+func Clear() {
+	effects = []*animation.AnimationInstance{}
+}

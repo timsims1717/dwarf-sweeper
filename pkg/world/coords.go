@@ -11,7 +11,8 @@ func (a Coords) Eq(b Coords) bool {
 	return a.X == b.X && a.Y == b.Y
 }
 
-// Neighbors returns the eight tiles surrounding the Coords
+// Neighbors returns the eight tiles surrounding the Coords, starting at the top and
+// moving clockwise
 func (a Coords) Neighbors() []Coords {
 	return []Coords{
 		{ a.X, a.Y+1 },

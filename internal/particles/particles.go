@@ -20,19 +20,29 @@ type particle struct {
 	Sprite      *pixel.Sprite
 	Transform   *physics.Physics
 	//ColorEffect animation.ColorEffect
+	Frame       bool
 	color       color.RGBA
 	fader       *gween.Tween
 	done        bool
+	frame       bool
+
 }
 
 func (p *particle) Update() {
 	if !p.done {
 		p.Transform.Update()
-		a, fin := p.fader.Update(timing.DT)
-		if fin {
+		if p.fader != nil {
+			a, fin := p.fader.Update(timing.DT)
+			if fin {
+				p.done = true
+			}
+			p.color.A = uint8(a)
+		}
+		if p.Frame && !p.frame {
+			p.frame = true
+		} else if p.frame {
 			p.done = true
 		}
-		p.color.A = uint8(a)
 	}
 }
 
@@ -76,6 +86,10 @@ func Draw(win *pixelgl.Window) {
 	//}
 }
 
+func Clear() {
+	particles = []*particle{}
+}
+
 var blocks []string
 
 func BlockParticles(pos pixel.Vec) {
@@ -110,4 +124,15 @@ func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
 		physicsT.Flop = true
 	}
 	return physicsT
+}
+
+func CreateStaticParticle(key string, orig pixel.Vec) {
+	transform := animation.NewTransform(true)
+	transform.Pos = orig
+	particles = append(particles, &particle{
+		Sprite:    PartBatcher.Sprites[key],
+		Transform: &physics.Physics{Transform: transform, Off: true},
+		color:     colornames.White,
+		Frame:     true,
+	})
 }

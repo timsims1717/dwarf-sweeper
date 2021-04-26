@@ -1,9 +1,11 @@
 package cave
 
 import (
-	"dwarf-sweeper/internal/input"
+	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/imdraw"
+	"golang.org/x/image/colornames"
 	"math/rand"
 )
 
@@ -45,11 +47,14 @@ func GenerateStart(cave *Cave) *Chunk {
 	x := 0
 	for _, b := range list {
 		tile := NewTile(x, y, world.Origin, b, chunk)
+		// starting room
 		if x > 6 && x < 26 && y > 2 && y < 10 {
 			tile.Solid = false
 			tile.destroyed = true
 			tile.bomb = false
 			tile.Sprite = nil
+		} else if x > 5 && x < 27 && y > 1 && y < 11 {
+			tile.bomb = false
 		}
 		chunk.Rows[y][x] = tile
 		x++
@@ -95,7 +100,7 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 	return chunk
 }
 
-func (chunk *Chunk) Update(input *input.Input) {
+func (chunk *Chunk) Update() {
 	if chunk.reload {
 		for _, row := range chunk.Rows {
 			for _, tile := range row {
@@ -107,7 +112,7 @@ func (chunk *Chunk) Update(input *input.Input) {
 	if chunk.display {
 		for _, row := range chunk.Rows {
 			for _, tile := range row {
-				tile.Update(input)
+				tile.Update()
 				tile.Transform.Update(pixel.Rect{})
 			}
 		}
@@ -123,6 +128,11 @@ func (chunk *Chunk) Draw(target pixel.Target) {
 				}
 			}
 		}
+		ul := chunk.Rows[0][0].Transform.Pos
+		dr := chunk.Rows[ChunkSize-1][ChunkSize-1].Transform.Pos
+		half := world.TileSize*0.5
+		debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(ul.X-half, ul.Y+half), pixel.V(dr.X+half, ul.Y+half), 1.0)
+		debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(dr.X+half, ul.Y+half), pixel.V(dr.X+half, dr.Y-half), 1.0)
 	}
 }
 

@@ -1,8 +1,8 @@
 package cave
 
 import (
-	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -44,7 +44,7 @@ func NewCave(spriteSheet *img.SpriteSheet) *Cave {
 	return cave
 }
 
-func (cave *Cave) Update(pos pixel.Vec, input *input.Input) {
+func (cave *Cave) Update(pos pixel.Vec) {
 	cave.batcher.Clear()
 	p := WorldToChunk(pos)
 	all := append([]world.Coords{p}, p.Neighbors()...)
@@ -65,7 +65,7 @@ func (cave *Cave) Update(pos pixel.Vec, input *input.Input) {
 			chunk.reload = true
 		}
 		chunk.display = dis
-		chunk.Update(input)
+		chunk.Update()
 	}
 	for i, chunk := range cave.LChunks {
 		dis := world.CoordsIn(i, all)
@@ -73,7 +73,7 @@ func (cave *Cave) Update(pos pixel.Vec, input *input.Input) {
 			chunk.reload = true
 		}
 		chunk.display = dis
-		chunk.Update(input)
+		chunk.Update()
 	}
 }
 
@@ -99,21 +99,26 @@ func (cave *Cave) Get(coords world.Coords) *Chunk {
 
 func (cave *Cave) GetTile(v pixel.Vec) *Tile {
 	ch := WorldToChunk(v)
-	tl := WorldToTile(v)
+	tl := WorldToTile(v, ch.X < 0)
 	chunk := cave.Get(ch)
 	return chunk.Get(tl)
 }
 
 func WorldToChunk(v pixel.Vec) world.Coords {
-	if v.X >= 0 {
-		return world.Coords{X: int(v.X / ChunkSize / world.TileSize), Y: int(-v.Y / ChunkSize / world.TileSize)}
+	if v.X >= 0 - world.TileSize * 0.5 {
+		return world.Coords{X: int((v.X+world.TileSize*0.5) / ChunkSize / world.TileSize), Y: int(-(v.Y-world.TileSize*0.5) / ChunkSize / world.TileSize)}
 	} else {
-		return world.Coords{X: int(v.X / ChunkSize / world.TileSize)-1, Y: int(-v.Y / ChunkSize / world.TileSize)}
+		return world.Coords{X: int((v.X+world.TileSize*0.5) / ChunkSize / world.TileSize)-1, Y: int(-(v.Y-world.TileSize*0.5) / ChunkSize / world.TileSize)}
 	}
 }
 
-func WorldToTile(v pixel.Vec) world.Coords {
-	x, y := world.WorldToMap(v.X, -v.Y)
+func WorldToTile(v pixel.Vec, left bool) world.Coords {
+	x, y := world.WorldToMap(v.X+world.TileSize*0.5, -(v.Y-world.TileSize*0.5))
+	x = x % ChunkSize
+	y = y % ChunkSize
+	if left {
+		x = (ChunkSize - (util.Abs(x) + 1)) % ChunkSize
+	}
 	return world.Coords{
 		X: x % ChunkSize,
 		Y: y % ChunkSize,

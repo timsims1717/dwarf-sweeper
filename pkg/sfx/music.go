@@ -1,15 +1,15 @@
 package sfx
 
 import (
+	gween "dwarf-sweeper/pkg/gween64"
+	"dwarf-sweeper/pkg/gween64/ease"
+	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/util"
 	"fmt"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/effects"
 	"github.com/faiface/beep/speaker"
 	"github.com/pkg/errors"
-	gween "github.com/timsims1717/cg_rogue_go/pkg/gween64"
-	"github.com/timsims1717/cg_rogue_go/pkg/gween64/ease"
-	"github.com/timsims1717/cg_rogue_go/pkg/timing"
-	"github.com/timsims1717/cg_rogue_go/pkg/util"
 	"math/rand"
 )
 

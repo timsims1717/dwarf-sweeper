@@ -9,3 +9,7 @@ func Initialize() {
 func Draw(win *pixelgl.Window) {
 	DrawLines(win)
 }
+
+func Clear() {
+	imd.Clear()
+}

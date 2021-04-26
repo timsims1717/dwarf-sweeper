@@ -111,6 +111,13 @@ func (c *Camera) MoveTo(v pixel.Vec, dur float64, lock bool) {
 	}
 }
 
+func (c *Camera) Follow(v pixel.Vec, spd float64) {
+	if !c.lock {
+		c.Pos.X += spd * timing.DT * (v.X - c.Pos.X)
+		c.Pos.Y += spd * timing.DT * (v.Y - c.Pos.Y)
+	}
+}
+
 func (c *Camera) CenterOn(points []pixel.Vec) {
 	if !c.lock {
 		if points == nil || len(points) == 0 {

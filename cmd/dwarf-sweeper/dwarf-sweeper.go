@@ -4,12 +4,11 @@ import (
 	"dwarf-sweeper/internal/cave"
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/dwarf"
-	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/internal/particles"
+	"dwarf-sweeper/internal/state"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
@@ -17,11 +16,12 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 	"math/rand"
+	"time"
 )
 
 func run() {
-	seed := int64(1619305348812219488)
-	//seed := time.Now().UnixNano()
+	//seed := int64(1619305348812219488)
+	seed := time.Now().UnixNano()
 	rand.Seed(seed)
 	fmt.Println("Seed:", seed)
 	world.SetTileSize(cfg.TileSize)
@@ -42,43 +42,36 @@ func run() {
 
 	debug.Initialize()
 
-	in := input.NewInput()
-	//worlds := text.New(pixel.ZV, typeface.BasicAtlas)
-	//chunks := text.New(pixel.ZV, typeface.BasicAtlas)
-
 	vfx.Initialize()
 	particles.Initialize()
+	cave.Entities.Initialize()
 
-	sheet, err := img.LoadSpriteSheet("assets/img/test-tiles.json")
-	if err != nil {
-		panic(err)
-	}
-	cave.CurrCave = cave.NewCave(sheet)
-	//imd := imdraw.New(nil)
-
-	player := dwarf.NewDwarf()
+	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
+	sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")
+	sfx.SoundPlayer.RegisterSound("assets/sound/impact2.wav", "impact2")
+	sfx.SoundPlayer.RegisterSound("assets/sound/impact3.wav", "impact3")
+	sfx.SoundPlayer.RegisterSound("assets/sound/impact4.wav", "impact4")
+	sfx.SoundPlayer.RegisterSound("assets/sound/rocks1.wav", "rocks1")
+	sfx.SoundPlayer.RegisterSound("assets/sound/rocks2.wav", "rocks2")
+	sfx.SoundPlayer.RegisterSound("assets/sound/rocks3.wav", "rocks3")
+	sfx.SoundPlayer.RegisterSound("assets/sound/rocks4.wav", "rocks4")
+	sfx.SoundPlayer.RegisterSound("assets/sound/rocks5.wav", "rocks5")
+	sfx.SoundPlayer.RegisterSound("assets/sound/shovel.wav", "shovel")
+	sfx.SoundPlayer.RegisterSound("assets/sound/step1.wav", "step1")
+	sfx.SoundPlayer.RegisterSound("assets/sound/step2.wav", "step2")
+	sfx.SoundPlayer.RegisterSound("assets/sound/step3.wav", "step3")
+	sfx.SoundPlayer.RegisterSound("assets/sound/step4.wav", "step4")
+	sfx.SetMasterVolume(25)
 
 	timing.Reset()
 	for !win.Closed() {
 		timing.Update()
+		debug.Clear()
+		state.Update(win)
 
-		in.Update(win)
-		if in.Debug {
-			fmt.Println("DEBUG PAUSE")
-		}
-		camera.Cam.Update(win)
-		cave.CurrCave.Update(in.World, in)
-		particles.Update()
-		vfx.Update()
-		player.Update(in)
-		
 		win.Clear(colornames.Black)
 
-		cave.CurrCave.Draw(win)
-		player.Draw(win)
-		particles.Draw(win)
-		vfx.Draw(win)
-		debug.Draw(win)
+		state.Draw(win)
 		win.Update()
 	}
 }
