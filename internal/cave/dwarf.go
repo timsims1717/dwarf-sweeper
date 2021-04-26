@@ -23,30 +23,32 @@ import (
 
 const (
 	Speed = 75.
+	JumpVel = 225.
 )
 
 var Player1 *Dwarf
 
 type Dwarf struct {
-	Transform  *physics.Physics
-	Animations map[string]*animation.AnimationInstance
-	currAnim   string
-	faceLeft   bool
-	walkTimer  time.Time
-	walking    bool
-	toJumpT    time.Time
-	toJump     bool
-	jumping    bool
-	digging    bool
-	marking    bool
-	selected   *Tile
-	distFell   float64
-	cursorV    pixel.Vec
-	relWorld   pixel.Vec
-	hurt       bool
-	dmg        float64
-	source     pixel.Vec
-	Dead       bool
+	Transform   *physics.Physics
+	Animations  map[string]*animation.AnimationInstance
+	currAnim    string
+	faceLeft    bool
+	selectLegal bool
+	walkTimer   time.Time
+	walking     bool
+	toJumpT     time.Time
+	toJump      bool
+	jumping     bool
+	digging     bool
+	marking     bool
+	selected    *Tile
+	distFell    float64
+	cursorV     pixel.Vec
+	relWorld    pixel.Vec
+	hurt        bool
+	dmg         float64
+	source      pixel.Vec
+	Dead        bool
 }
 
 func NewDwarf() *Dwarf {
@@ -123,44 +125,30 @@ func (d *Dwarf) Update() {
 			d.Dead = true
 		}
 	} else {
-		selectPos := d.Transform.Pos
-		if math.Abs(input.Input.Cursor.X-d.cursorV.X) > 20. || math.Abs(input.Input.Cursor.Y-d.cursorV.Y) > 20. {
-			selectPos = input.Input.World
-			d.relWorld = pixel.V(d.Transform.Pos.X-input.Input.World.X, d.Transform.Pos.Y-input.Input.World.Y)
-			d.cursorV = input.Input.Cursor
-			input.Input.UseCursor = true
-		} else if input.Input.UseCursor {
-			selectPos.X -= d.relWorld.X
-			selectPos.Y -= d.relWorld.Y
-		} else {
-			selectPos.X += float64(input.Input.LeftRight) * world.TileSize
-			selectPos.Y += float64(input.Input.UpDown) * world.TileSize
-			if d.faceLeft {
-				selectPos.X -= world.TileSize * 0.2
-			} else {
-				selectPos.X += world.TileSize * 0.2
+		d.selected = CurrCave.GetTile(input.Input.World)
+		if d.selected != nil {
+			d.selectLegal = math.Abs(d.Transform.Pos.X-d.selected.Transform.Pos.X) < world.TileSize*1.3 && math.Abs(d.Transform.Pos.Y-d.selected.Transform.Pos.Y) < world.TileSize*1.3
+			if input.Input.IsDig && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
+				d.digging = true
+				if d.selected.Transform.Pos.X < d.Transform.Pos.X {
+					d.faceLeft = true
+				} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
+					d.faceLeft = false
+				}
+				newAnim = "dig"
+				BlocksDug += 1
+				d.selected.Destroy()
+				sfx.SoundPlayer.PlaySound("shovel", 1.0)
+			} else if input.Input.IsMark && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
+				if d.selected.Transform.Pos.X < d.Transform.Pos.X {
+					d.faceLeft = true
+				} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
+					d.faceLeft = false
+				}
+				newAnim = "flag"
+				d.marking = true
+				d.selected.Mark(d.Transform.Pos)
 			}
-		}
-		d.selected = CurrCave.GetTile(selectPos)
-		if input.Input.IsDig && !d.digging && !d.marking && d.selected.Solid {
-			d.digging = true
-			if d.selected.Transform.Pos.X < d.Transform.Pos.X {
-				d.faceLeft = true
-			} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
-				d.faceLeft = false
-			}
-			newAnim = "dig"
-			BlocksDug += 1
-			d.selected.Destroy()
-			sfx.SoundPlayer.PlaySound("shovel", 1.0)
-		} else if input.Input.IsMark && !d.digging && !d.marking && d.selected.Solid {
-			if d.selected.Transform.Pos.X < d.Transform.Pos.X {
-				d.faceLeft = true
-			} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
-				d.faceLeft = false
-			}
-			newAnim = "flag"
-			d.selected.Mark(d.Transform.Pos)
 		}
 		if d.digging {
 			d.Transform.Velocity = pixel.ZV
@@ -195,7 +183,7 @@ func (d *Dwarf) Update() {
 					s := time.Since(d.toJumpT).Seconds()
 					if s >= 0.1 {
 						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4) + 1), 0.)
-						d.Transform.Velocity.Y = 215.
+						d.Transform.Velocity.Y = JumpVel
 						d.toJump = false
 						d.jumping = true
 						d.walking = false
@@ -229,7 +217,7 @@ func (d *Dwarf) Update() {
 				if d.jumping {
 					s := time.Since(d.toJumpT).Seconds()
 					if s >= 0.1 && s <= 0.2 {
-						d.Transform.Velocity.Y = 215.
+						d.Transform.Velocity.Y = JumpVel
 						//} else if s >= 0.2 && s <= 0.4 && input.Input.Jumping {
 						//	d.Transform.Velocity.Y = 200.
 					} else {
@@ -348,7 +336,7 @@ func (d *Dwarf) Draw(win *pixelgl.Window) {
 		d.walkTimer = time.Now()
 	}
 	if d.selected != nil && !d.hurt {
-		if d.selected.Solid {
+		if d.selected.Solid && d.selectLegal {
 			particles.CreateStaticParticle("target", d.selected.Transform.Pos)
 		} else {
 			particles.CreateStaticParticle("target_blank", d.selected.Transform.Pos)

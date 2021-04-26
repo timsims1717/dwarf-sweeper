@@ -9,7 +9,6 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/typeface"
-	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -35,13 +34,6 @@ func Update(win *pixelgl.Window) {
 				newState = 2
 			}
 		}
-		bl := cave.Player1.Transform.Pos
-		bl.X -= world.TileSize * 1.45
-		bl.Y -= world.TileSize * 1.45
-		tr := cave.Player1.Transform.Pos
-		tr.X += world.TileSize * 1.45
-		tr.Y += world.TileSize * 1.45
-		input.Restrict(win, bl, tr)
 		input.Input.Update(win)
 		if input.Input.Debug {
 			fmt.Println("DEBUG PAUSE")
