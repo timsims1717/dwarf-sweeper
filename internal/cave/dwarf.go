@@ -5,7 +5,7 @@ import (
 	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
@@ -30,7 +30,7 @@ var Player1 *Dwarf
 
 type Dwarf struct {
 	Transform   *physics.Physics
-	Animations  map[string]*animation.AnimationInstance
+	Animations  map[string]*img.Instance
 	currAnim    string
 	faceLeft    bool
 	selectLegal bool
@@ -56,16 +56,16 @@ func NewDwarf() *Dwarf {
 	if err != nil {
 		panic(err)
 	}
-	idle := animation.NewAnimation(dwarfSheet, 0, 2,true, false, 0.5)
-	run := animation.NewAnimation(dwarfSheet, 2, 6,true, false, 0.4)
-	jump := animation.NewAnimation(dwarfSheet, 6, 8,false, true, 0.2)
-	fall := animation.NewAnimation(dwarfSheet, 8, 9,false, true, 0.1)
-	dig := animation.NewAnimation(dwarfSheet, 9, 12,false, true, 0.4)
-	flag := animation.NewAnimation(dwarfSheet, 12, 13,false, true, 0.2)
-	hitfront := animation.NewAnimation(dwarfSheet, 13, 14,false, true, 0.1)
-	hitback := animation.NewAnimation(dwarfSheet, 14, 15,false, true, 0.1)
-	flat := animation.NewAnimation(dwarfSheet, 15, 16,false, true, 0.1)
-	animations := make(map[string]*animation.AnimationInstance)
+	idle := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[0], dwarfSheet.Sprites[1]},true, false, 0.5)
+	run := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[2], dwarfSheet.Sprites[3], dwarfSheet.Sprites[4], dwarfSheet.Sprites[5]},true, false, 0.4)
+	jump := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[6], dwarfSheet.Sprites[7]},false, true, 0.2)
+	fall := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[8]},false, true, 0.1)
+	dig := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[9], dwarfSheet.Sprites[10], dwarfSheet.Sprites[11]},false, true, 0.4)
+	flag := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[12]},false, true, 0.2)
+	hitfront := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[13]},false, true, 0.1)
+	hitback := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[14]},false, true, 0.1)
+	flat := img.NewAnimation(dwarfSheet, []pixel.Rect{dwarfSheet.Sprites[15]},false, true, 0.1)
+	animations := make(map[string]*img.Instance)
 	animations["idle"] = idle.NewInstance()
 	animations["run"] = run.NewInstance()
 	animations["jump"] = jump.NewInstance()
@@ -75,7 +75,7 @@ func NewDwarf() *Dwarf {
 	animations["hit-front"] = hitfront.NewInstance()
 	animations["hit-back"] = hitback.NewInstance()
 	animations["flat"] = flat.NewInstance()
-	transform := animation.NewTransform(true)
+	transform := transform.NewTransform(true)
 	physicsT := &physics.Physics{
 		Transform: transform,
 	}

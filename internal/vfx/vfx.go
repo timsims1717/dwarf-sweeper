@@ -1,19 +1,18 @@
 package vfx
 
 import (
-	"dwarf-sweeper/pkg/animation"
 	"dwarf-sweeper/pkg/img"
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var effects []*animation.AnimationInstance
+var effects []*img.Instance
 
 func Initialize() {
 	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
 	if err != nil {
 		panic(err)
 	}
-	explosion = animation.NewAnimation(expSheet, 0, 6,false, false, 0.5)
+	explosion = img.NewAnimation(expSheet, expSheet.Sprites,false, false, 0.5)
 }
 
 func Update() {
@@ -36,5 +35,5 @@ func Draw(win *pixelgl.Window) {
 }
 
 func Clear() {
-	effects = []*animation.AnimationInstance{}
+	effects = []*img.Instance{}
 }

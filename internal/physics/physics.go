@@ -1,7 +1,7 @@
 package physics
 
 import (
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
@@ -10,7 +10,7 @@ import (
 )
 
 type Physics struct {
-	*animation.Transform
+	*transform.Transform
 	Velocity pixel.Vec
 	interX   *gween.Tween
 	Off      bool

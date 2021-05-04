@@ -2,7 +2,7 @@ package particles
 
 import (
 	"dwarf-sweeper/internal/physics"
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/img"
@@ -19,7 +19,7 @@ import (
 type particle struct {
 	Sprite      *pixel.Sprite
 	Transform   *physics.Physics
-	//ColorEffect animation.ColorEffect
+	//ColorEffect transform.ColorEffect
 	Frame       bool
 	color       color.RGBA
 	fader       *gween.Tween
@@ -105,7 +105,7 @@ func BlockParticles(pos pixel.Vec) {
 }
 
 func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
-	transform := animation.NewTransform(true)
+	transform := transform.NewTransform(true)
 	physicsT := &physics.Physics{Transform: transform}
 	physicsT.Pos = orig
 	actVar := variance * world.TileSize
@@ -127,7 +127,7 @@ func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
 }
 
 func CreateStaticParticle(key string, orig pixel.Vec) {
-	transform := animation.NewTransform(true)
+	transform := transform.NewTransform(true)
 	transform.Pos = orig
 	particles = append(particles, &particle{
 		Sprite:    PartBatcher.Sprites[key],

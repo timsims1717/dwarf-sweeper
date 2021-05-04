@@ -17,8 +17,9 @@ var (
 )
 
 type Batcher struct {
-	Sprites map[string]*pixel.Sprite
-	batch   *pixel.Batch
+	Sprites    map[string]*pixel.Sprite
+	Animations map[string]*Animation
+	batch      *pixel.Batch
 }
 
 func NewBatcher(sheet *SpriteSheet) *Batcher {
@@ -30,8 +31,12 @@ func NewBatcher(sheet *SpriteSheet) *Batcher {
 func (b *Batcher) SetSpriteSheet(sheet *SpriteSheet) {
 	b.batch = pixel.NewBatch(&pixel.TrianglesData{}, sheet.Img)
 	b.Sprites = make(map[string]*pixel.Sprite)
+	b.Animations = make(map[string]*Animation)
 	for k, r := range sheet.SpriteMap {
 		b.Sprites[k] = pixel.NewSprite(sheet.Img, r)
+	}
+	for k, a := range sheet.AnimMap {
+		b.Animations[k] = NewAnimation(sheet, a.Sprites, a.Loop, a.Hold, a.dur)
 	}
 }
 
@@ -56,6 +61,14 @@ type SpriteSheet struct {
 	Img       pixel.Picture
 	Sprites   []pixel.Rect
 	SpriteMap map[string]pixel.Rect
+	AnimMap   map[string]AnimDef
+}
+
+type AnimDef struct {
+	Loop    bool
+	Hold    bool
+	Sprites []pixel.Rect
+	dur     float64
 }
 
 type spriteFile struct {
@@ -72,6 +85,10 @@ type sprite struct {
 	Y float64 `json:"y"`
 	W float64 `json:"w"`
 	H float64 `json:"h"`
+
+	Loop bool    `json:"loop"`
+	Hold bool    `json:"hold"`
+	Dur  float64 `json:"dur"`
 }
 
 func LoadSpriteSheet(path string) (*SpriteSheet, error) {
@@ -95,6 +112,7 @@ func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 		Img:       img,
 		Sprites:   make([]pixel.Rect, 0),
 		SpriteMap: make(map[string]pixel.Rect, 0),
+		AnimMap: make(map[string]AnimDef, 0),
 	}
 	x := 0.0
 	for _, r := range fileSheet.Sprites {
@@ -115,7 +133,21 @@ func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 		}
 		sheet.Sprites = append(sheet.Sprites, rect)
 		if r.K != "" {
-			sheet.SpriteMap[r.K] = rect
+			if def, ok := sheet.AnimMap[r.K]; ok {
+				def.Sprites = append(def.Sprites, rect)
+				sheet.AnimMap[r.K] = def
+			} else {
+				if r.Dur != 0.0 {
+					sheet.AnimMap[r.K] = AnimDef{
+						Loop:    r.Loop,
+						Hold:    r.Hold,
+						Sprites: []pixel.Rect{rect},
+						dur:     r.Dur,
+					}
+				} else {
+					sheet.SpriteMap[r.K] = rect
+				}
+			}
 		}
 	}
 	return sheet, nil

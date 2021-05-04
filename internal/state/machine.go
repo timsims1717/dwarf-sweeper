@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/menu"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/vfx"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/typeface"
@@ -66,9 +67,6 @@ func Update(win *pixelgl.Window) {
 		}
 	} else if state == 2 {
 		input.Input.Update(win)
-		if input.Input.Back {
-			newState = 1
-		}
 		camera.Cam.Update(win)
 		cave.CurrCave.Update(cave.Player1.Transform.Pos)
 		cave.Entities.Update()
@@ -80,6 +78,13 @@ func Update(win *pixelgl.Window) {
 		cave.BombsMarkedItem.Update()
 		cave.BlocksMarkedItem.Update()
 		cave.TotalScore.Update()
+		menu.Retry.Update()
+		menu.Menu.Update()
+		if menu.Menu.Clicked || input.Input.Back {
+			newState = 1
+		} else if menu.Retry.Clicked {
+			newState = 0
+		}
 	} else if state == 3 {
 		input.Input.Update(win)
 		if input.Input.Back {
@@ -115,6 +120,8 @@ func Draw(win *pixelgl.Window) {
 		cave.BombsMarkedItem.Draw(win)
 		cave.BlocksMarkedItem.Draw(win)
 		cave.TotalScore.Draw(win)
+		menu.Retry.Draw(win)
+		menu.Menu.Draw(win)
 	} else if state == 3 {
 		credits.Draw(win, camera.Cam.UITransform(pixel.V(camera.WindowWidthF * 0.5, camera.WindowHeightF - 200.), pixel.V(3., 3.), 0.))
 	}
@@ -155,18 +162,33 @@ func updateState() {
 			line := "DwarfSweeper"
 			title.Dot.X -= title.BoundsOf(line).W() * 0.5
 			fmt.Fprintln(title, line)
+			menu.Start.Transform = &transform.Transform{
+				Pos: pixel.V(camera.WindowWidthF*0.5, camera.WindowHeightF*0.5-30.),
+			}
+			menu.Exit.Transform = &transform.Transform{
+				Pos: pixel.V(camera.WindowWidthF*0.5, camera.WindowHeightF*0.5-180.),
+			}
+			menu.Credits.Transform = &transform.Transform{
+				Pos: pixel.V(camera.WindowWidthF*0.5, camera.WindowHeightF*0.5-330.),
+			}
 		case 2:
-			cave.BlocksDugItem    = cave.NewScore(fmt.Sprintf("Blocks Dug:      %d x 10", cave.BlocksDug), pixel.V(200., camera.WindowHeightF * 0.5 + 200.), 1.)
-			cave.LowestLevelItem  = cave.NewScore(fmt.Sprintf("Lowest Level:    %d x 1", cave.LowestLevel), pixel.V(200., camera.WindowHeightF * 0.5 + 150.), 1.2)
-			cave.BombsMarkedItem  = cave.NewScore(fmt.Sprintf("Bombs Marked:    %d x 50", cave.BombsMarked), pixel.V(200., camera.WindowHeightF * 0.5 + 100.), 1.4)
-			cave.BlocksMarkedItem = cave.NewScore(fmt.Sprintf("Incorrect Marks: %d x -20", cave.BlocksMarked), pixel.V(200., camera.WindowHeightF * 0.5 + 50.), 1.6)
+			cave.BlocksDugItem    = cave.NewScore(fmt.Sprintf("Blocks Dug:      %d x 10", cave.BlocksDug), pixel.V(200., camera.WindowHeightF * 0.5 + 200.), 0.4)
+			cave.LowestLevelItem  = cave.NewScore(fmt.Sprintf("Lowest Level:    %d x 5", cave.LowestLevel), pixel.V(200., camera.WindowHeightF * 0.5 + 150.), 0.6)
+			cave.BombsMarkedItem  = cave.NewScore(fmt.Sprintf("Bombs Marked:    %d x 25", cave.BombsMarked), pixel.V(200., camera.WindowHeightF * 0.5 + 100.), 0.8)
+			cave.BlocksMarkedItem = cave.NewScore(fmt.Sprintf("Incorrect Marks: %d x -10", cave.BlocksMarked), pixel.V(200., camera.WindowHeightF * 0.5 + 50.), 1.0)
 			score := 0
 			score += cave.BlocksDug * 10
-			score += cave.LowestLevel
-			score += cave.BombsMarked * 50
-			score -= cave.BlocksMarked * 20
-			cave.TotalScore       = cave.NewScore(fmt.Sprintf("Total Score:     %d", score), pixel.V(200., camera.WindowHeightF * 0.5 - 100.), 1.8)
+			score += cave.LowestLevel * 5
+			score += cave.BombsMarked * 25
+			score -= cave.BlocksMarked * 10
+			cave.TotalScore       = cave.NewScore(fmt.Sprintf("Total Score:     %d", score), pixel.V(200., camera.WindowHeightF * 0.5 - 100.), 1.2)
 			cave.ScoreTimer = time.Now()
+			menu.Retry.Transform =  &transform.Transform{
+				Pos:    pixel.V(camera.WindowWidthF*0.5-200., 200.),
+			}
+			menu.Menu.Transform =  &transform.Transform{
+				Pos:    pixel.V(camera.WindowWidthF*0.5+200., 200.),
+			}
 		case 3:
 			credits.Clear()
 			credits.Color = colornames.Aliceblue

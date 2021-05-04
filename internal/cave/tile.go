@@ -2,7 +2,7 @@ package cave
 
 import (
 	"dwarf-sweeper/internal/particles"
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
@@ -17,7 +17,7 @@ type Tile struct {
 	bomb       bool
 	destroyed  bool
 	Solid      bool
-	Transform  *animation.Transform
+	Transform  *transform.Transform
 	Chunk      *Chunk
 	revealT    time.Time
 	revealing  bool
@@ -28,7 +28,7 @@ type Tile struct {
 }
 
 func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
-	transform := animation.NewTransform(true)
+	transform := transform.NewTransform(true)
 	transform.Pos = pixel.V(float64(x + ch.X * ChunkSize) * world.TileSize, -(float64(y + ch.Y * ChunkSize) * world.TileSize))
 	spr := chunk.Cave.batcher.Sprites["block"]
 	return &Tile{
@@ -82,9 +82,15 @@ func (tile *Tile) Destroy() {
 			tile.bomb = false
 			tile.destroyed = true
 			tile.Sprite = nil
-			Entities.Add(&Bomb{
-				Tile:      tile,
-			}, tile.Transform.Pos)
+			if rand.Intn(2) == 0 {
+				Entities.Add(&Bomb{
+					Tile: tile,
+				}, tile.Transform.Pos)
+			} else {
+				Entities.Add(&Mine{
+					Tile: tile,
+				}, tile.Transform.Pos)
+			}
 		} else {
 			ns := tile.Coords.Neighbors()
 			c := 0

@@ -1,14 +1,14 @@
 package cave
 
 import (
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/img"
 	"github.com/faiface/pixel"
 	"math"
 )
 
 type Flag struct {
-	Transform *animation.Transform
+	Transform *transform.Transform
 	Tile      *Tile
 	created   bool
 	done      bool
@@ -32,7 +32,7 @@ func (f *Flag) Draw(target pixel.Target) {
 }
 
 func (f *Flag) Create(from pixel.Vec, batcher *img.Batcher) {
-	f.Transform = animation.NewTransform(true)
+	f.Transform = transform.NewTransform(true)
 	f.created = true
 	if f.Tile != nil {
 		f.Transform.Pos = f.Tile.Transform.Pos

@@ -2,30 +2,29 @@ package cave
 
 import (
 	"dwarf-sweeper/internal/vfx"
-	"dwarf-sweeper/pkg/animation"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
-	"golang.org/x/image/colornames"
-	"image/color"
 	"math"
 	"time"
 )
 
 type Bomb struct {
-	Transform *animation.Transform
+	Transform *transform.Transform
 	Timer     time.Time
 	Tile      *Tile
 	created   bool
 	done      bool
-	sprite    *pixel.Sprite
-	color     color.RGBA
+	animation *img.Instance
 }
 
 func (b *Bomb) Update() {
 	if b.created && !b.done {
 		b.Transform.Update(pixel.Rect{})
-		if time.Since(b.Timer).Seconds() > 0.25 {
+		b.animation.Update()
+		b.animation.SetMatrix(b.Transform.Mat)
+		if time.Since(b.Timer).Seconds() > 0.75 {
 			for _, n := range b.Tile.Coords.Neighbors() {
 				b.Tile.Chunk.Get(n).Destroy()
 			}
@@ -42,17 +41,16 @@ func (b *Bomb) Update() {
 
 func (b *Bomb) Draw(target pixel.Target) {
 	if b.created && !b.done {
-		b.sprite.DrawColorMask(target, b.Transform.Mat, b.color)
+		b.animation.Draw(target)
 	}
 }
 
 func (b *Bomb) Create(pos pixel.Vec, batcher *img.Batcher) {
-	b.Transform = animation.NewTransform(true)
+	b.Transform = transform.NewTransform(true)
 	b.Transform.Pos = pos
 	b.created = true
 	b.Timer = time.Now()
-	b.sprite = batcher.Sprites["bomb"]
-	b.color = colornames.White
+	b.animation = batcher.Animations["bomb"].NewInstance()
 }
 
 func (b *Bomb) Remove() bool {

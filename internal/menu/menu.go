@@ -2,7 +2,8 @@ package menu
 
 import (
 	"dwarf-sweeper/internal/input"
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/util"
@@ -16,68 +17,82 @@ import (
 
 var (
 	Start = MenuItem{
-		raw: "Start Game",
-		text: text.New(pixel.V(0., 0), typeface.BasicAtlas),
-		transform: &animation.Transform{
-			Pos:    pixel.V(0., -20.),
-			Scalar: pixel.V(2.35, 2.35),
-		},
+		raw:   "Start Game",
+		text:  text.New(pixel.V(0., 0), typeface.BasicAtlas),
 		color: colornames.Aliceblue,
+		small: pixel.V(8., 8.),
+		big:   pixel.V(9., 9.),
 	}
 	Exit = MenuItem{
-		raw: "Exit",
-		text: text.New(pixel.V(0., 0), typeface.BasicAtlas),
-		transform: &animation.Transform{
-			Pos:    pixel.V(0., -60.),
-			Scalar: pixel.V(2.35, 2.35),
-		},
+		raw:   "Exit",
+		text:  text.New(pixel.V(0., 0), typeface.BasicAtlas),
 		color: colornames.Aliceblue,
+		small: pixel.V(8., 8.),
+		big:   pixel.V(9., 9.),
 	}
 	Credits = MenuItem{
-		raw: "Credits",
-		text: text.New(pixel.V(0., 0), typeface.BasicAtlas),
-		transform: &animation.Transform{
-			Pos:    pixel.V(0., -100.),
-			Scalar: pixel.V(2.35, 2.35),
-		},
+		raw:   "Credits",
+		text:  text.New(pixel.V(0., 0), typeface.BasicAtlas),
 		color: colornames.Aliceblue,
+		small: pixel.V(8., 8.),
+		big:   pixel.V(9., 9.),
+	}
+	Retry = MenuItem{
+		raw:   "Retry",
+		text:  text.New(pixel.V(0., 0), typeface.BasicAtlas),
+		color: colornames.Aliceblue,
+		small: pixel.V(3., 3.),
+		big:   pixel.V(3.5, 3.5),
+	}
+	Menu = MenuItem{
+		raw:   "Menu",
+		text:  text.New(pixel.V(0., 0), typeface.BasicAtlas),
+		color: colornames.Aliceblue,
+		small: pixel.V(3., 3.),
+		big:   pixel.V(3.5, 3.5),
 	}
 )
 
 type MenuItem struct {
 	raw       string
 	text      *text.Text
-	transform *animation.Transform
+	Transform *transform.Transform
 	color     color.RGBA
 	Clicked   bool
 	hovered   bool
+	small     pixel.Vec
+	big       pixel.Vec
 }
 
 func (m *MenuItem) Update() {
 	m.Clicked = false
-	mat := m.transform.Mat.Moved(pixel.V(-m.text.BoundsOf(m.raw).W()*0.5, m.text.BoundsOf(m.raw).H()*0.5).Scaled(3.))
+	offset := m.Transform.RPos
+	offset.X -= m.text.BoundsOf(m.raw).W() * m.big.X * 0.5
+	offset.Y += m.text.BoundsOf(m.raw).H() * m.big.Y * 0.5
+	mat := camera.Cam.UITransform(offset, m.big, m.Transform.Rot)
 	if util.PointInside(input.Input.World, m.text.BoundsOf(m.raw), mat) {
 		if !m.hovered {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
 			m.hovered = true
 		}
 		m.color = colornames.Darkblue
-		m.transform.Scalar = pixel.V(3., 3.)
+		m.Transform.Scalar = m.big
 		if input.Input.Click {
 			m.Clicked = true
 		}
 	} else {
 		m.hovered = false
 		m.color = colornames.Aliceblue
-		m.transform.Scalar = pixel.V(2.35, 2.35)
+		m.Transform.Scalar = m.small
 	}
 	m.text.Clear()
 	m.text.Color = m.color
 	m.text.Dot.X -= m.text.BoundsOf(m.raw).W() * 0.5
 	fmt.Fprintf(m.text, m.raw)
-	m.transform.Update(pixel.Rect{})
+	m.Transform.Update(pixel.Rect{})
+	m.Transform.Mat = camera.Cam.UITransform(m.Transform.RPos, m.Transform.Scalar, m.Transform.Rot)
 }
 
 func (m *MenuItem) Draw(win *pixelgl.Window) {
-	m.text.Draw(win, m.transform.Mat)
+	m.text.Draw(win, m.Transform.Mat)
 }

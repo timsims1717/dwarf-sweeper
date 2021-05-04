@@ -1,7 +1,7 @@
 package cave
 
 import (
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/typeface"
 	"fmt"
@@ -29,7 +29,7 @@ var(
 type ScoreItem struct {
 	Raw       string
 	text      *text.Text
-	transform *animation.Transform
+	transform *transform.Transform
 	color     color.RGBA
 	timer     float64
 }
@@ -38,7 +38,7 @@ func NewScore(raw string, pos pixel.Vec, timer float64) ScoreItem {
 	return ScoreItem{
 		Raw:       raw,
 		text:      text.New(pixel.ZV, typeface.BasicAtlas),
-		transform: &animation.Transform{
+		transform: &transform.Transform{
 			Pos:    pos,
 			Scalar: pixel.V(3., 3.),
 		},

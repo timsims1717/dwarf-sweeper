@@ -1,11 +1,11 @@
 package vfx
 
 import (
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/img"
 	"github.com/faiface/pixel"
 )
 
-var explosion *animation.Animation
+var explosion *img.Animation
 
 func CreateExplosion(vec pixel.Vec) {
 	exp := explosion.NewInstance()
