@@ -31,7 +31,8 @@ func (b *Bomb) Update() {
 			p := Player1.Transform.Pos.Sub(b.Tile.Transform.Pos)
 			mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
 			if mag < world.TileSize*2. {
-				Player1.Damage(4.-mag/world.TileSize, b.Tile.Transform.Pos)
+				dmg := 4.-mag/world.TileSize
+				Player1.Damage(dmg, b.Tile.Transform.Pos, MineKnockback*dmg*world.TileSize)
 			}
 			vfx.CreateExplosion(b.Tile.Transform.Pos)
 			b.done = true

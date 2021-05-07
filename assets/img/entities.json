@@ -9,12 +9,12 @@
    "hold": false,
    "dur": 0.25,
    "x": 0,
-   "y": 48
+   "y": 64
   },
   {
    "key": "mine",
    "x": 16,
-   "y": 48
+   "y": 64
   },
   {
    "key": "bomb",
@@ -22,51 +22,94 @@
    "hold": false,
    "dur": 0.75,
    "x": 16,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 32,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 48,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 64,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 80,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 96,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 112,
-   "y": 32
+   "y": 48
   },
   {
    "key": "bomb",
    "x": 128,
-   "y": 32
+   "y": 48
   },
   {
    "key": "flag",
    "x": 0,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_c",
    "x": 0,
+   "y": 16
+  },
+  {
+   "key": "flag_hang",
+   "loop": true,
+   "hold": false,
+   "dur": 0.75,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 16,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 48,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 80,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 96,
+   "y": 0
+  },
+  {
+   "key": "flag_hang",
+   "x": 112,
    "y": 0
   }
  ]

@@ -1,10 +1,10 @@
 package camera
 
 import (
-	"dwarf-sweeper/pkg/transform"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
@@ -15,6 +15,8 @@ import (
 var Cam *Camera
 
 type Camera struct {
+	Height float64
+	Width  float64
 	Mat    pixel.Matrix
 	Pos    pixel.Vec
 	zoom   float64
@@ -22,6 +24,7 @@ type Camera struct {
 	Opt    Options
 	Mask   color.RGBA
 	Effect *transform.ColorEffect
+	IsWin  bool
 
 	interX *gween.Tween
 	interY *gween.Tween
@@ -33,9 +36,10 @@ type Options struct {
 	ScrollSpeed float64
 	ZoomStep    float64
 	ZoomSpeed   float64
+	WindowScale float64
 }
 
-func New() *Camera {
+func New(isWin bool) *Camera {
 	return &Camera{
 		Mat:   pixel.IM,
 		Pos:   pixel.ZV,
@@ -45,9 +49,16 @@ func New() *Camera {
 			ScrollSpeed: 500.0,
 			ZoomStep:    1.2,
 			ZoomSpeed:   0.2,
+			WindowScale: 900.,
 		},
-		Mask: colornames.White,
+		Mask:  colornames.White,
+		IsWin: isWin,
 	}
+}
+
+func (c *Camera) SetSize(width, height float64) {
+	c.Width = width
+	c.Height = height
 }
 
 func (c *Camera) Moving() bool {
@@ -55,6 +66,9 @@ func (c *Camera) Moving() bool {
 }
 
 func (c *Camera) Update(win *pixelgl.Window) {
+	if c.IsWin {
+		c.SetSize(win.Bounds().W(), win.Bounds().H())
+	}
 	fin := true
 	if c.interX != nil {
 		x, finX := c.interX.Update(timing.DT)
@@ -92,7 +106,7 @@ func (c *Camera) Update(win *pixelgl.Window) {
 			c.Effect = nil
 		}
 	}
-	c.Mat = pixel.IM.Scaled(c.Pos, c.zoom).Moved(win.Bounds().Center().Sub(c.Pos))
+	c.Mat = pixel.IM.Scaled(c.Pos, c.Height / c.Opt.WindowScale).Scaled(c.Pos, c.zoom).Moved(win.Bounds().Center().Sub(c.Pos))
 	win.SetMatrix(c.Mat)
 	win.SetColorMask(c.Mask)
 }
@@ -173,7 +187,7 @@ func (c *Camera) UITransform(pos, scalar pixel.Vec, rot float64) pixel.Matrix {
 	mat := pixel.IM.ScaledXY(pixel.ZV, scalar.Scaled(zoom))
 	mat = mat.Rotated(pixel.ZV, rot)
 	mat = mat.Moved(pixel.V(c.Pos.X, c.Pos.Y))
-	mat = mat.Moved(pixel.V(WindowWidthF, WindowHeightF).Scaled(-0.5 * zoom))
+	mat = mat.Moved(pixel.V(c.Width, c.Height).Scaled(-0.5 * zoom))
 	mat = mat.Moved(pos.Scaled(zoom))
 	return mat
 }

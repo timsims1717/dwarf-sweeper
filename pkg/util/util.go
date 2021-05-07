@@ -48,6 +48,10 @@ func PointInside(p pixel.Vec, r pixel.Rect, m pixel.Matrix) bool {
 // Normalize takes a pixel.Vec and returns a normalized vector, or
 // one with a magnitude of 1.0
 func Normalize(p pixel.Vec) pixel.Vec {
+	s := p.X*p.X+p.Y*p.Y
+	if s == 0 {
+		p.Y = 1.
+	}
 	return p.Scaled(1 / math.Sqrt(p.X*p.X+p.Y*p.Y))
 }
 

@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+const (
+	MineKnockback = 10.
+)
+
 type Mine struct {
 	Transform *transform.Transform
 	Timer     time.Time
@@ -31,7 +35,8 @@ func (m *Mine) Update() {
 			p := Player1.Transform.Pos.Sub(m.Tile.Transform.Pos)
 			mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
 			if mag < world.TileSize*2. {
-				Player1.Damage(4.-mag/world.TileSize, m.Tile.Transform.Pos)
+				dmg := 4.-mag/world.TileSize
+				Player1.Damage(dmg, m.Tile.Transform.Pos, MineKnockback*dmg*world.TileSize)
 			}
 			vfx.CreateExplosion(m.Tile.Transform.Pos)
 			m.done = true

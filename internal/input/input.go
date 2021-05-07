@@ -12,21 +12,20 @@ import (
 var Input = &input{}
 
 type input struct {
-	Cursor    pixel.Vec
-	World     pixel.Vec
-	Click     bool
-	Scroll    float64
-	Debug     bool
-	XDir      XDirection
-	XDirC     bool
-	Jumping   bool
-	Jumped    bool
-	IsDig     bool
-	IsMark    bool
-	UpDown    int
-	LeftRight int
-	UseCursor bool
-	Back      bool
+	Cursor     pixel.Vec
+	World      pixel.Vec
+	Click      Toggle
+	Scroll     float64
+	Debug      bool
+	XDir       XDirection
+	XDirC      bool
+	Jumping    bool
+	Jumped     bool
+	IsDig      bool
+	IsMark     bool
+	UseCursor  bool
+	Back       bool
+	Fullscreen bool
 }
 
 type XDirection int
@@ -58,28 +57,7 @@ func Restrict(win *pixelgl.Window, bl, tr pixel.Vec) {
 
 func (i *input) Update(win *pixelgl.Window) {
 	i.Cursor = win.MousePosition()
-	i.Click = win.JustPressed(pixelgl.MouseButtonLeft)
-
-	if win.JustPressed(pixelgl.KeyKP1) || win.JustPressed(pixelgl.KeyKP4) || win.JustPressed(pixelgl.KeyKP7) {
-		i.LeftRight = -1
-		i.UseCursor = false
-	} else if win.JustPressed(pixelgl.KeyKP3) || win.JustPressed(pixelgl.KeyKP6) || win.JustPressed(pixelgl.KeyKP9) {
-		i.LeftRight = 1
-		i.UseCursor = false
-	} else if win.JustPressed(pixelgl.KeyKP2) || win.JustPressed(pixelgl.KeyKP8) {
-		i.LeftRight = 0
-		i.UseCursor = false
-	}
-	if win.JustPressed(pixelgl.KeyKP1) || win.JustPressed(pixelgl.KeyKP2) || win.JustPressed(pixelgl.KeyKP3) {
-		i.UpDown = -1
-		i.UseCursor = false
-	} else if win.JustPressed(pixelgl.KeyKP7) || win.JustPressed(pixelgl.KeyKP8) || win.JustPressed(pixelgl.KeyKP9) {
-		i.UpDown = 1
-		i.UseCursor = false
-	} else if win.JustPressed(pixelgl.KeyKP4) || win.JustPressed(pixelgl.KeyKP6) {
-		i.UpDown = 0
-		i.UseCursor = false
-	}
+	i.Click.Set(win, pixelgl.MouseButtonLeft)
 
 	//if win.Pressed(pixelgl.KeyLeft) {
 	//	camera.Cam.Left()
@@ -107,7 +85,7 @@ func (i *input) Update(win *pixelgl.Window) {
 	} else if win.JustPressed(pixelgl.KeyA) {
 		i.XDir = Left
 		i.XDirC = true
-	} else if !win.Pressed(pixelgl.KeyD) && !win.Pressed(pixelgl.KeyA) {
+	} else if (i.XDir == Right && !win.Pressed(pixelgl.KeyD)) || (i.XDir == Left && !win.Pressed(pixelgl.KeyA)) {
 		i.XDir = None
 		i.XDirC = true
 	}
@@ -115,39 +93,40 @@ func (i *input) Update(win *pixelgl.Window) {
 	i.IsMark = win.JustPressed(pixelgl.MouseButtonRight)
 	i.Jumping = win.Pressed(pixelgl.KeyW)
 	i.Jumped = win.JustPressed(pixelgl.KeyW)
+	i.Fullscreen = win.JustPressed(pixelgl.KeyF)
 }
 
-type toggle struct {
+type Toggle struct {
 	justPressed  bool
 	pressed      bool
 	justReleased bool
 	consumed     bool
 }
 
-func (t *toggle) JustPressed() bool {
+func (t *Toggle) JustPressed() bool {
 	return t.justPressed && !t.consumed
 }
 
-func (t *toggle) Pressed() bool {
+func (t *Toggle) Pressed() bool {
 	return t.pressed && !t.consumed
 }
 
-func (t *toggle) JustReleased() bool {
+func (t *Toggle) JustReleased() bool {
 	return t.justReleased && !t.consumed
 }
 
-func (t *toggle) Consume() {
+func (t *Toggle) Consume() {
 	t.consumed = true
 }
 
-func (t *toggle) Set(win *pixelgl.Window, button pixelgl.Button) {
+func (t *Toggle) Set(win *pixelgl.Window, button pixelgl.Button) {
 	t.justPressed = win.JustPressed(button)
 	t.pressed = win.Pressed(button)
 	t.justReleased = win.JustReleased(button)
 	t.consumed = t.consumed && !t.justPressed && !t.pressed && !t.justReleased
 }
 
-func (t *toggle) SetBool(pressed bool) {
+func (t *Toggle) SetBool(pressed bool) {
 	if pressed {
 		if !t.pressed {
 			t.justPressed = true

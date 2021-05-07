@@ -25,11 +25,11 @@ func run() {
 	rand.Seed(seed)
 	fmt.Println("Seed:", seed)
 	world.SetTileSize(cfg.TileSize)
-	camera.SetWindowSize(1600, 900)
 	config := pixelgl.WindowConfig{
 		Title:  cfg.Title,
-		Bounds: pixel.R(0, 0, camera.WindowWidthF, camera.WindowHeightF),
+		Bounds: pixel.R(0, 0, 1600, 900),
 		//VSync: true,
+		Invisible: true,
 	}
 	win, err := pixelgl.NewWindow(config)
 	if err != nil {
@@ -37,10 +37,12 @@ func run() {
 	}
 	win.SetSmooth(false)
 
-	camera.Cam = camera.New()
-	camera.Cam.SetZoom(4.0)
+	camera.Cam = camera.New(true)
+	camera.Cam.SetZoom(5.0)
+	camera.Cam.SetSize(1600, 900)
 
 	debug.Initialize()
+	state.InitializeMenus()
 
 	vfx.Initialize()
 	particles.Initialize()
@@ -61,9 +63,11 @@ func run() {
 	sfx.SoundPlayer.RegisterSound("assets/sound/step2.wav", "step2")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step3.wav", "step3")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step4.wav", "step4")
-	sfx.SetMasterVolume(25)
+	sfx.SetMasterVolume(75)
+	sfx.SetSoundVolume(75)
 
 	timing.Reset()
+	win.Show()
 	for !win.Closed() {
 		timing.Update()
 		debug.Clear()
@@ -72,7 +76,46 @@ func run() {
 		win.Clear(colornames.Black)
 
 		state.Draw(win)
+		//debug.Draw(win)
 		win.Update()
+		if cfg.ChangeScreenSize {
+			cfg.ChangeScreenSize = false
+			if (cfg.FullScreen && win.Monitor() == nil) || (!cfg.FullScreen && win.Monitor() != nil) {
+				pos := win.GetPos()
+				pos.X += win.Bounds().W() * 0.5
+				pos.Y += win.Bounds().H() * 0.5
+				var picked *pixelgl.Monitor
+				if len(pixelgl.Monitors()) > 1 {
+					for _, m := range pixelgl.Monitors() {
+						x, y := m.Position()
+						w, h := m.Size()
+						if pos.X >= x && pos.X <= x+w && pos.Y >= y && pos.Y <= y+h {
+							picked = m
+							break
+						}
+					}
+					if picked == nil {
+						pos = win.GetPos()
+						for _, m := range pixelgl.Monitors() {
+							x, y := m.Position()
+							w, h := m.Size()
+							if pos.X >= x && pos.X <= x+w && pos.Y >= y && pos.Y <= y+h {
+								picked = m
+								break
+							}
+						}
+					}
+					if picked == nil {
+						picked = pixelgl.PrimaryMonitor()
+					}
+				}
+				if cfg.FullScreen {
+					win.SetMonitor(picked)
+				} else {
+					win.SetMonitor(nil)
+				}
+			}
+		}
 	}
 }
 

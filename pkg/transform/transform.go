@@ -32,17 +32,17 @@ type Anchor struct {
 
 type Transform struct {
 	//Cam    *camera.Camera
-	Anchor Anchor
-	Rect   pixel.Rect
-	Mat    pixel.Matrix
-	Pos    pixel.Vec
-	Offset pixel.Vec
-	RPos   pixel.Vec
-	Rot    float64
-	Scalar pixel.Vec
-	ocent  bool
-	Flip   bool
-	Flop   bool
+	Anchor  Anchor
+	Rect    pixel.Rect
+	Mat     pixel.Matrix
+	Pos     pixel.Vec
+	Offset  pixel.Vec
+	RPos    pixel.Vec
+	Rot     float64
+	Scalar  pixel.Vec
+	OCenter bool
+	Flip    bool
+	Flop    bool
 }
 
 func NewTransform(isOrigCentered bool) *Transform {
@@ -51,13 +51,13 @@ func NewTransform(isOrigCentered bool) *Transform {
 			X: 1.,
 			Y: 1.,
 		},
-		ocent: isOrigCentered,
+		OCenter: isOrigCentered,
 	}
 }
 
 func (t *Transform) Update(r pixel.Rect) {
 	t.RPos = t.Pos
-	if t.ocent {
+	if t.OCenter {
 		if t.Anchor.H == Left {
 			t.RPos.X += t.Rect.W() * t.Scalar.X / 2.
 		} else if t.Anchor.H == Center {
@@ -82,8 +82,10 @@ func (t *Transform) Update(r pixel.Rect) {
 		}
 		if t.Anchor.V == Center {
 			t.RPos.Y += r.H() / 2.
+			t.RPos.Y -= t.Rect.H() * t.Scalar.Y / 2.
 		} else if t.Anchor.V == Top {
 			t.RPos.Y += r.H()
+			t.RPos.Y -= t.Rect.H() * t.Scalar.Y
 		}
 	}
 	//if t.Anchor.V == Bottom {

@@ -105,8 +105,8 @@ func BlockParticles(pos pixel.Vec) {
 }
 
 func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
-	transform := transform.NewTransform(true)
-	physicsT := &physics.Physics{Transform: transform}
+	tran := transform.NewTransform(true)
+	physicsT := &physics.Physics{Transform: tran}
 	physicsT.Pos = orig
 	actVar := variance * world.TileSize
 	//if square {
@@ -127,11 +127,11 @@ func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
 }
 
 func CreateStaticParticle(key string, orig pixel.Vec) {
-	transform := transform.NewTransform(true)
-	transform.Pos = orig
+	tran := transform.NewTransform(true)
+	tran.Pos = orig
 	particles = append(particles, &particle{
 		Sprite:    PartBatcher.Sprites[key],
-		Transform: &physics.Physics{Transform: transform, Off: true},
+		Transform: &physics.Physics{Transform: tran, XOff: true, YOff: true},
 		color:     colornames.White,
 		Frame:     true,
 	})

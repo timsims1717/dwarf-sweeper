@@ -12,12 +12,14 @@ type Flag struct {
 	Tile      *Tile
 	created   bool
 	done      bool
-	sprite    *pixel.Sprite
+	animation *img.Instance
 }
 
 func (f *Flag) Update() {
 	if f.created && !f.done {
 		f.Transform.Update(pixel.Rect{})
+		f.animation.Update()
+		f.animation.SetMatrix(f.Transform.Mat)
 		if !f.Tile.Solid || f.Tile.destroyed || !f.Tile.marked {
 			f.done = true
 			// todo: particles?
@@ -27,11 +29,46 @@ func (f *Flag) Update() {
 
 func (f *Flag) Draw(target pixel.Target) {
 	if f.created && !f.done {
-		f.sprite.Draw(target, f.Transform.Mat)
+		f.animation.Draw(target)
 	}
 }
 
 func (f *Flag) Create(from pixel.Vec, batcher *img.Batcher) {
+	f.Transform = transform.NewTransform(true)
+	f.Transform.Pos = f.Tile.Transform.Pos
+	f.created = true
+	f.animation = batcher.Animations["flag_hang"].NewInstance()
+}
+
+func (f *Flag) Remove() bool {
+	return f.done
+}
+
+type OldFlag struct {
+	Transform *transform.Transform
+	Tile      *Tile
+	created   bool
+	done      bool
+	sprite    *pixel.Sprite
+}
+
+func (f *OldFlag) Update() {
+	if f.created && !f.done {
+		f.Transform.Update(pixel.Rect{})
+		if !f.Tile.Solid || f.Tile.destroyed || !f.Tile.marked {
+			f.done = true
+			// todo: particles?
+		}
+	}
+}
+
+func (f *OldFlag) Draw(target pixel.Target) {
+	if f.created && !f.done {
+		f.sprite.Draw(target, f.Transform.Mat)
+	}
+}
+
+func (f *OldFlag) Create(from pixel.Vec, batcher *img.Batcher) {
 	f.Transform = transform.NewTransform(true)
 	f.created = true
 	if f.Tile != nil {
@@ -97,6 +134,6 @@ func (f *Flag) Create(from pixel.Vec, batcher *img.Batcher) {
 	}
 }
 
-func (f *Flag) Remove() bool {
+func (f *OldFlag) Remove() bool {
 	return f.done
 }
