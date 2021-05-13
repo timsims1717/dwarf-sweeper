@@ -6,15 +6,6 @@ import (
 	"github.com/faiface/pixel"
 )
 
-//type Transformable interface {
-//	GetPos() pixel.Vec
-//	SetPos(pixel.Vec)
-//	GetRot() float64
-//	SetRot(float64)
-//	GetScaled() pixel.Vec
-//	SetScaled(pixel.Vec)
-//}
-
 type Alignment int
 
 const (
@@ -31,73 +22,64 @@ type Anchor struct {
 }
 
 type Transform struct {
-	//Cam    *camera.Camera
 	Anchor  Anchor
 	Rect    pixel.Rect
+	oRect   pixel.Rect
+	Parent  pixel.Rect
+	oPRect  pixel.Rect
 	Mat     pixel.Matrix
 	Pos     pixel.Vec
 	Offset  pixel.Vec
-	RPos    pixel.Vec
+	APos    pixel.Vec
 	Rot     float64
 	Scalar  pixel.Vec
-	OCenter bool
 	Flip    bool
 	Flop    bool
+
+	UIPos   pixel.Vec
+	UIZoom  float64
 }
 
-func NewTransform(isOrigCentered bool) *Transform {
+func NewTransform() *Transform {
 	return &Transform{
 		Scalar: pixel.Vec{
 			X: 1.,
 			Y: 1.,
 		},
-		OCenter: isOrigCentered,
+		UIZoom: 1.,
 	}
 }
 
-func (t *Transform) Update(r pixel.Rect) {
-	t.RPos = t.Pos
-	if t.OCenter {
-		if t.Anchor.H == Left {
-			t.RPos.X += t.Rect.W() * t.Scalar.X / 2.
-		} else if t.Anchor.H == Center {
-			t.RPos.X += r.W() / 2.
-		} else if t.Anchor.H == Right {
-			t.RPos.X += r.W()
-			t.RPos.X -= t.Rect.W() * t.Scalar.X / 2.
-		}
-		if t.Anchor.V == Bottom {
-			t.RPos.Y += t.Rect.H() * t.Scalar.Y / 2.
-		} else if t.Anchor.V == Center {
-			t.RPos.Y += r.H() / 2.
-		} else if t.Anchor.V == Top {
-			t.RPos.Y += r.H()
-			t.RPos.Y -= t.Rect.H() * t.Scalar.Y / 2.
-		}
-	} else {
-		if t.Anchor.H == Center {
-			t.RPos.X += r.W() / 2.
-		} else if t.Anchor.H == Right {
-			t.RPos.X += r.W()
-		}
-		if t.Anchor.V == Center {
-			t.RPos.Y += r.H() / 2.
-			t.RPos.Y -= t.Rect.H() * t.Scalar.Y / 2.
-		} else if t.Anchor.V == Top {
-			t.RPos.Y += r.H()
-			t.RPos.Y -= t.Rect.H() * t.Scalar.Y
-		}
+func (t *Transform) SetRect(r pixel.Rect) {
+	t.Rect = r
+	t.oRect = r
+}
+
+func (t *Transform) SetParent(r pixel.Rect) {
+	t.Parent = r
+	t.oPRect = r
+}
+
+func (t *Transform) Update() {
+	t.APos = t.Pos
+	if t.Anchor.H == Left {
+		t.APos.X += t.Rect.W() * t.Scalar.X / 2.
+	} else if t.Anchor.H == Center {
+		t.APos.X += t.Parent.W() / 2.
+	} else if t.Anchor.H == Right {
+		t.APos.X += t.Parent.W()
+		t.APos.X -= t.Rect.W() * t.Scalar.X / 2.
 	}
-	//if t.Anchor.V == Bottom {
-	//	t.RPos.Y += t.Rect.H() / 2.
-	//} else if t.Anchor.V == Top {
-	//	t.RPos.Y -= t.Rect.H() / 2.
-	//}
-	t.RPos.X += t.Offset.X
-	t.RPos.Y += t.Offset.Y
-	//if t.Cam != nil {
-	//	t.Mat = t.Cam.UITransform(t.RPos, t.Scalar, t.Rot)
-	//} else {
+	if t.Anchor.V == Bottom {
+		t.APos.Y += t.Rect.H() * t.Scalar.Y / 2.
+	} else if t.Anchor.V == Center {
+		t.APos.Y += t.Parent.H() / 2.
+	} else if t.Anchor.V == Top {
+		t.APos.Y += t.Parent.H()
+		t.APos.Y -= t.Rect.H() * t.Scalar.Y / 2.
+	}
+	t.APos.X += t.Offset.X
+	t.APos.Y += t.Offset.Y
 	t.Mat = pixel.IM
 	if t.Flip && t.Flop {
 		t.Mat = t.Mat.Scaled(pixel.ZV, -1.)
@@ -106,13 +88,19 @@ func (t *Transform) Update(r pixel.Rect) {
 	} else if t.Flop {
 		t.Mat = t.Mat.ScaledXY(pixel.ZV, pixel.V(1., -1.))
 	}
-	t.Mat = t.Mat.ScaledXY(pixel.ZV, t.Scalar)
+	if t.oRect.W() > 0. && t.oRect.H() > 0. {
+		t.Mat = t.Mat.ScaledXY(pixel.ZV, pixel.V(t.Rect.W()/t.oRect.W(), t.Rect.H()/t.oRect.H()))
+	}
+	if t.oPRect.W() > 0. && t.oPRect.H() > 0. {
+		t.Mat = t.Mat.ScaledXY(pixel.ZV, pixel.V(t.Parent.W()/t.oPRect.W(), t.Parent.H()/t.oPRect.H()))
+	}
+	t.Mat = t.Mat.ScaledXY(pixel.ZV, t.Scalar.Scaled(t.UIZoom))
 	t.Mat = t.Mat.Rotated(pixel.ZV, t.Rot)
-	t.Mat = t.Mat.Moved(t.RPos)
-	//}
+	t.Mat = t.Mat.Moved(t.APos.Scaled(t.UIZoom))
+	t.Mat = t.Mat.Moved(t.UIPos)
 }
 
-type TransformEffect struct {
+type Effect struct {
 	target  *Transform
 	interX  *gween.Tween
 	interY  *gween.Tween
@@ -122,7 +110,7 @@ type TransformEffect struct {
 	isDone  bool
 }
 
-func (e *TransformEffect) Update() {
+func (e *Effect) Update() {
 	isDone := true
 	pos := e.target.Pos
 	rot := e.target.Rot
@@ -178,7 +166,7 @@ func (e *TransformEffect) Update() {
 	e.isDone = isDone
 }
 
-func (e *TransformEffect) IsDone() bool {
+func (e *Effect) IsDone() bool {
 	return e.isDone
 }
 
@@ -191,8 +179,8 @@ type TransformBuilder struct {
 	InterSY   *gween.Tween
 }
 
-func (b *TransformBuilder) Build() *TransformEffect {
-	return &TransformEffect{
+func (b *TransformBuilder) Build() *Effect {
+	return &Effect{
 		target:  b.Transform,
 		interX:  b.InterX,
 		interY:  b.InterY,

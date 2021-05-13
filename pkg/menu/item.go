@@ -17,7 +17,7 @@ type Item struct {
 	Transform       *transform.Transform
 	Spr             *pixel.Sprite
 	Canvas          *pixelgl.Canvas
-	TransformEffect *transform.TransformEffect
+	TransformEffect *transform.Effect
 
 	Mask        color.RGBA
 	ColorEffect *transform.ColorEffect
@@ -38,19 +38,20 @@ type Item struct {
 	onEnabledFn    func()
 }
 
-func NewItem(t *ItemText, rect pixel.Rect) *Item {
-	tran := transform.NewTransform(true)
+func NewItem(t *ItemText, rect, parent pixel.Rect) *Item {
+	tran := transform.NewTransform()
 	tran.Anchor = transform.Anchor{
 		H: transform.Left,
 		V: transform.Bottom,
 	}
-	tran.Rect = rect
+	tran.SetRect(rect)
+	tran.SetParent(parent)
 	item := &Item{
-		Text:      t,
-		Transform: tran,
-		Canvas:    pixelgl.NewCanvas(rect),
-		Mask:      colornames.White,
-		Show:      true,
+		Text:       t,
+		Transform:  tran,
+		Canvas:     pixelgl.NewCanvas(rect),
+		Mask:       colornames.White,
+		Show:       true,
 
 		HoverDefault:   true,
 		UnHoverDefault: true,
@@ -58,7 +59,7 @@ func NewItem(t *ItemText, rect pixel.Rect) *Item {
 	return item
 }
 
-func (i *Item) Update(r pixel.Rect, cursor pixel.Vec, clicked input.Toggle) {
+func (i *Item) Update(r pixel.Rect, cursor pixel.Vec, clicked input.Button) {
 	if i.Show {
 		if i.Disabled {
 			if i.disabled && i.disabledFn != nil {
@@ -126,7 +127,8 @@ func (i *Item) Update(r pixel.Rect, cursor pixel.Vec, clicked input.Toggle) {
 			}
 		}
 		i.Transform.Rect = i.Canvas.Bounds()
-		i.Transform.Update(r)
+		i.Transform.Parent = r
+		i.Transform.Update()
 	}
 }
 
@@ -140,9 +142,7 @@ func (i *Item) Draw(target pixel.Target) {
 		if i.Text != nil {
 			i.Text.Draw(i.Canvas)
 		}
-		//i.Canvas.DrawColorMask(target, i.Mat, i.Mask)
 		i.Canvas.Draw(target, i.Transform.Mat)
-		//DebugDraw.Draw(target)
 	}
 }
 

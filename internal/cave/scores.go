@@ -52,8 +52,8 @@ func (i *ScoreItem) Update() {
 		i.text.Clear()
 		i.text.Color = i.color
 		fmt.Fprintf(i.text, i.Raw)
-		i.transform.Update(pixel.Rect{})
-		i.transform.Mat = camera.Cam.UITransform(i.transform.RPos, i.transform.Scalar, i.transform.Rot)
+		i.transform.Update()
+		i.transform.Mat = camera.Cam.UITransform(i.transform.APos, i.transform.Scalar, i.transform.Rot)
 	}
 }
 

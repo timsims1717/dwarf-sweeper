@@ -17,7 +17,7 @@ type Flag struct {
 
 func (f *Flag) Update() {
 	if f.created && !f.done {
-		f.Transform.Update(pixel.Rect{})
+		f.Transform.Update()
 		f.animation.Update()
 		f.animation.SetMatrix(f.Transform.Mat)
 		if !f.Tile.Solid || f.Tile.destroyed || !f.Tile.marked {
@@ -34,7 +34,7 @@ func (f *Flag) Draw(target pixel.Target) {
 }
 
 func (f *Flag) Create(from pixel.Vec, batcher *img.Batcher) {
-	f.Transform = transform.NewTransform(true)
+	f.Transform = transform.NewTransform()
 	f.Transform.Pos = f.Tile.Transform.Pos
 	f.created = true
 	f.animation = batcher.Animations["flag_hang"].NewInstance()
@@ -54,7 +54,7 @@ type OldFlag struct {
 
 func (f *OldFlag) Update() {
 	if f.created && !f.done {
-		f.Transform.Update(pixel.Rect{})
+		f.Transform.Update()
 		if !f.Tile.Solid || f.Tile.destroyed || !f.Tile.marked {
 			f.done = true
 			// todo: particles?
@@ -69,7 +69,7 @@ func (f *OldFlag) Draw(target pixel.Target) {
 }
 
 func (f *OldFlag) Create(from pixel.Vec, batcher *img.Batcher) {
-	f.Transform = transform.NewTransform(true)
+	f.Transform = transform.NewTransform()
 	f.created = true
 	if f.Tile != nil {
 		f.Transform.Pos = f.Tile.Transform.Pos

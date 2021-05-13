@@ -2,14 +2,18 @@ package debug
 
 import "github.com/faiface/pixel/pixelgl"
 
+var Debug = false
+
 func Initialize() {
 	InitializeLines()
 	InitializeText()
 }
 
 func Draw(win *pixelgl.Window) {
-	DrawLines(win)
-	DrawText(win)
+	if Debug {
+		DrawLines(win)
+		DrawText(win)
+	}
 }
 
 func Clear() {

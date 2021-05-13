@@ -25,7 +25,7 @@ type Mine struct {
 
 func (m *Mine) Update() {
 	if m.created && !m.done {
-		m.Transform.Update(pixel.Rect{})
+		m.Transform.Update()
 		m.animation.Update()
 		m.animation.SetMatrix(m.Transform.Mat)
 		if time.Since(m.Timer).Seconds() > 0.25 {
@@ -51,7 +51,7 @@ func (m *Mine) Draw(target pixel.Target) {
 }
 
 func (m *Mine) Create(pos pixel.Vec, batcher *img.Batcher) {
-	m.Transform = transform.NewTransform(true)
+	m.Transform = transform.NewTransform()
 	m.Transform.Pos = pos
 	m.created = true
 	m.Timer = time.Now()

@@ -38,10 +38,12 @@ func run() {
 	win.SetSmooth(false)
 
 	camera.Cam = camera.New(true)
+	camera.Cam.Opt.WindowScale = cfg.BaseH
 	camera.Cam.SetZoom(5.0)
 	camera.Cam.SetSize(1600, 900)
 
 	debug.Initialize()
+	//debug.Debug = true
 	state.InitializeMenus()
 
 	vfx.Initialize()
@@ -76,7 +78,7 @@ func run() {
 		win.Clear(colornames.Black)
 
 		state.Draw(win)
-		//debug.Draw(win)
+		debug.Draw(win)
 		win.Update()
 		if cfg.ChangeScreenSize {
 			cfg.ChangeScreenSize = false
@@ -115,6 +117,9 @@ func run() {
 					win.SetMonitor(nil)
 				}
 			}
+			res := cfg.Resolutions[cfg.ResIndex]
+			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
+			camera.Cam.SetSize(res.X, res.Y)
 		}
 	}
 }

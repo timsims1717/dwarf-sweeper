@@ -56,9 +56,17 @@ func New(isWin bool) *Camera {
 	}
 }
 
+func (c *Camera) GetScale() float64 {
+	return c.Height / c.Opt.WindowScale
+}
+
 func (c *Camera) SetSize(width, height float64) {
 	c.Width = width
 	c.Height = height
+}
+
+func (c *Camera) GetZoomScale() float64 {
+	return 1 / c.zoom
 }
 
 func (c *Camera) Moving() bool {
@@ -181,13 +189,13 @@ func (c *Camera) ZoomIn(zoom float64) {
 }
 
 // UITransform returns a pixel.Matrix that can move the center of a pixel.Rect
-// to the bottom left of the screen.
+// to the center of the screen.
 func (c *Camera) UITransform(pos, scalar pixel.Vec, rot float64) pixel.Matrix {
-	zoom := 1 / c.zoom
-	mat := pixel.IM.ScaledXY(pixel.ZV, scalar.Scaled(zoom))
+	zoom := c.GetZoomScale()
+	mat := pixel.IM
+	mat = mat.ScaledXY(pixel.ZV, scalar.Scaled(zoom))
 	mat = mat.Rotated(pixel.ZV, rot)
 	mat = mat.Moved(pixel.V(c.Pos.X, c.Pos.Y))
-	mat = mat.Moved(pixel.V(c.Width, c.Height).Scaled(-0.5 * zoom))
 	mat = mat.Moved(pos.Scaled(zoom))
 	return mat
 }

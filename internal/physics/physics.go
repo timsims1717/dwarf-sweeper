@@ -47,7 +47,7 @@ func (p *Physics) Update() {
 			p.Velocity.X += 10. * timing.DT
 		}
 	}
-	p.Transform.Update(pixel.Rect{})
+	p.Transform.Update()
 }
 
 func (p *Physics) SetVelX(vx, dur float64) {

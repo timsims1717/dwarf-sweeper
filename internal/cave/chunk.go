@@ -1,11 +1,8 @@
 package cave
 
 import (
-	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
-	"golang.org/x/image/colornames"
 	"math/rand"
 )
 
@@ -20,50 +17,6 @@ type Chunk struct {
 	display bool
 	reload  bool
 	Cave    *Cave
-}
-
-func GenerateStart(cave *Cave) *Chunk {
-	// Array of 1024 bools
-	list := [ChunkCnt]bool{}
-	// fill first 10-20% with true
-	bCount := rand.Intn(ChunkCnt / 10) + ChunkCnt / 10
-	for i := 0; i < bCount; i++ {
-		list[i] = true
-	}
-	// randomize list
-	for i := len(list) - 1; i > 0; i-- {
-		j := rand.Intn(i)
-		list[i], list[j] = list[j], list[i]
-	}
-	// create chunk, distribute bombs (trues), build tiles
-	chunk := &Chunk{
-		Coords:  world.Origin,
-		Rows:    [32][32]*Tile{},
-		display: true,
-		reload:  true,
-		Cave:    cave,
-	}
-	y := 0
-	x := 0
-	for _, b := range list {
-		tile := NewTile(x, y, world.Origin, b, chunk)
-		// starting room
-		if x > 6 && x < 26 && y > 2 && y < 10 {
-			tile.Solid = false
-			tile.destroyed = true
-			tile.bomb = false
-			tile.Sprite = nil
-		} else if x > 5 && x < 27 && y > 1 && y < 11 {
-			tile.bomb = false
-		}
-		chunk.Rows[y][x] = tile
-		x++
-		if x % ChunkSize == 0 {
-			x = 0
-			y++
-		}
-	}
-	return chunk
 }
 
 func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
@@ -113,7 +66,6 @@ func (chunk *Chunk) Update() {
 		for _, row := range chunk.Rows {
 			for _, tile := range row {
 				tile.Update()
-				tile.Transform.Update(pixel.Rect{})
 			}
 		}
 	}
@@ -124,15 +76,15 @@ func (chunk *Chunk) Draw(target pixel.Target) {
 		for _, row := range chunk.Rows {
 			for _, tile := range row {
 				if !tile.destroyed {
-					tile.Sprite.Draw(target, tile.Transform.Mat)
+					tile.Draw(target)
 				}
 			}
 		}
-		ul := chunk.Rows[0][0].Transform.Pos
-		dr := chunk.Rows[ChunkSize-1][ChunkSize-1].Transform.Pos
-		half := world.TileSize*0.5
-		debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(ul.X-half, ul.Y+half), pixel.V(dr.X+half, ul.Y+half), 1.0)
-		debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(dr.X+half, ul.Y+half), pixel.V(dr.X+half, dr.Y-half), 1.0)
+		//ul := chunk.Rows[0][0].Transform.Pos
+		//dr := chunk.Rows[ChunkSize-1][ChunkSize-1].Transform.Pos
+		//half := world.TileSize*0.5
+		//debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(ul.X-half, ul.Y+half), pixel.V(dr.X+half, ul.Y+half), 1.0)
+		//debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(dr.X+half, ul.Y+half), pixel.V(dr.X+half, dr.Y-half), 1.0)
 	}
 }
 

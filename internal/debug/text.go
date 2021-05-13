@@ -18,7 +18,7 @@ func InitializeText() {
 }
 
 func DrawText(win *pixelgl.Window) {
-	mat := camera.Cam.UITransform(pixel.V(20., camera.Cam.Height-40.), pixel.V(2., 2.), 0.)
+	mat := camera.Cam.UITransform(pixel.V(camera.Cam.Width * -0.5 + 20., camera.Cam.Height * 0.5-40.), pixel.V(2., 2.), 0.)
 	debugText.Draw(win, mat)
 	debugText.Clear()
 }

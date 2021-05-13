@@ -21,7 +21,7 @@ type Bomb struct {
 
 func (b *Bomb) Update() {
 	if b.created && !b.done {
-		b.Transform.Update(pixel.Rect{})
+		b.Transform.Update()
 		b.animation.Update()
 		b.animation.SetMatrix(b.Transform.Mat)
 		if time.Since(b.Timer).Seconds() > 0.75 {
@@ -47,7 +47,7 @@ func (b *Bomb) Draw(target pixel.Target) {
 }
 
 func (b *Bomb) Create(pos pixel.Vec, batcher *img.Batcher) {
-	b.Transform = transform.NewTransform(true)
+	b.Transform = transform.NewTransform()
 	b.Transform.Pos = pos
 	b.created = true
 	b.Timer = time.Now()

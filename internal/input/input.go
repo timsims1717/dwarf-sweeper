@@ -14,13 +14,13 @@ var Input = &input{}
 type input struct {
 	Cursor     pixel.Vec
 	World      pixel.Vec
-	Click      Toggle
+	Click      Button
 	Scroll     float64
 	Debug      bool
+	DebugPause bool
 	XDir       XDirection
 	XDirC      bool
-	Jumping    bool
-	Jumped     bool
+	Jumping    Button
 	IsDig      bool
 	IsMark     bool
 	UseCursor  bool
@@ -59,21 +59,23 @@ func (i *input) Update(win *pixelgl.Window) {
 	i.Cursor = win.MousePosition()
 	i.Click.Set(win, pixelgl.MouseButtonLeft)
 
-	//if win.Pressed(pixelgl.KeyLeft) {
-	//	camera.Cam.Left()
-	//}
-	//if win.Pressed(pixelgl.KeyRight) {
-	//	camera.Cam.Right()
-	//}
-	//if win.Pressed(pixelgl.KeyDown) {
-	//	camera.Cam.Down()
-	//}
-	//if win.Pressed(pixelgl.KeyUp) {
-	//	camera.Cam.Up()
-	//}
+	if win.Pressed(pixelgl.KeyLeft) {
+		camera.Cam.Left()
+	}
+	if win.Pressed(pixelgl.KeyRight) {
+		camera.Cam.Right()
+	}
+	if win.Pressed(pixelgl.KeyDown) {
+		camera.Cam.Down()
+	}
+	if win.Pressed(pixelgl.KeyUp) {
+		camera.Cam.Up()
+	}
+	camera.Cam.ZoomIn(win.MouseScroll().Y)
 
 	i.World = camera.Cam.Mat.Unproject(win.MousePosition())
-	i.Debug = win.JustPressed(pixelgl.KeyP)
+	i.DebugPause = win.JustPressed(pixelgl.KeyF9)
+	i.Debug = win.JustPressed(pixelgl.KeyF3)
 
 	debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, i.World, 1.)
 
@@ -91,42 +93,41 @@ func (i *input) Update(win *pixelgl.Window) {
 	}
 	i.IsDig = win.JustPressed(pixelgl.MouseButtonLeft) || win.JustPressed(pixelgl.KeyKP0) || win.JustPressed(pixelgl.KeyKPEnter)
 	i.IsMark = win.JustPressed(pixelgl.MouseButtonRight)
-	i.Jumping = win.Pressed(pixelgl.KeyW)
-	i.Jumped = win.JustPressed(pixelgl.KeyW)
+	i.Jumping.Set(win, pixelgl.KeyW)
 	i.Fullscreen = win.JustPressed(pixelgl.KeyF)
 }
 
-type Toggle struct {
+type Button struct {
 	justPressed  bool
 	pressed      bool
 	justReleased bool
 	consumed     bool
 }
 
-func (t *Toggle) JustPressed() bool {
+func (t *Button) JustPressed() bool {
 	return t.justPressed && !t.consumed
 }
 
-func (t *Toggle) Pressed() bool {
+func (t *Button) Pressed() bool {
 	return t.pressed && !t.consumed
 }
 
-func (t *Toggle) JustReleased() bool {
+func (t *Button) JustReleased() bool {
 	return t.justReleased && !t.consumed
 }
 
-func (t *Toggle) Consume() {
+func (t *Button) Consume() {
 	t.consumed = true
 }
 
-func (t *Toggle) Set(win *pixelgl.Window, button pixelgl.Button) {
+func (t *Button) Set(win *pixelgl.Window, button pixelgl.Button) {
 	t.justPressed = win.JustPressed(button)
 	t.pressed = win.Pressed(button)
 	t.justReleased = win.JustReleased(button)
 	t.consumed = t.consumed && !t.justPressed && !t.pressed && !t.justReleased
 }
 
-func (t *Toggle) SetBool(pressed bool) {
+func (t *Button) SetBool(pressed bool) {
 	if pressed {
 		if !t.pressed {
 			t.justPressed = true

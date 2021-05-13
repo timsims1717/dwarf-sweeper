@@ -82,7 +82,7 @@ func NewDwarf() *Dwarf {
 	animations["hit-front"] = hitfront.NewInstance()
 	animations["hit-back"] = hitback.NewInstance()
 	animations["flat"] = flat.NewInstance()
-	tran := transform.NewTransform(true)
+	tran := transform.NewTransform()
 	physicsT := &physics.Physics{
 		Transform: tran,
 	}
@@ -139,9 +139,17 @@ func (d *Dwarf) Update() {
 	} else {
 		d.selected = CurrCave.GetTile(input.Input.World)
 		if d.selected != nil {
+			if debug.Debug {
+				debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(input.Input.World.X), int(input.Input.World.Y)))
+				debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.Coords.X, d.selected.Coords.Y))
+				debug.AddText(fmt.Sprintf("tile code: '%s'", d.selected.GetTileCode()))
+			}
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.selected.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.selected.Transform.Pos.Y) < world.TileSize*DigRange
 			if input.Input.IsDig && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
 				d.digging = true
+				d.toJump = false
+				d.jumping = false
+				d.walking = false
 				if d.selected.Transform.Pos.X < d.Transform.Pos.X {
 					d.faceLeft = true
 				} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
@@ -171,8 +179,8 @@ func (d *Dwarf) Update() {
 			dwnrj := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
 			dwnlw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
 			dwnrw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
-			canJump := (dwn1 != nil && dwn1.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid) && d.Transform.Pos.Y < loc1.Transform.Pos.Y+1.0 && d.grounded
-			onGround := (dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid) && d.Transform.Pos.Y < loc1.Transform.Pos.Y+1.0
+			canJump := ((dwn1 != nil && dwn1.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid)) && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0 && d.grounded
+			onGround := ((dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid)) && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0
 			switch input.Input.XDir {
 			case input.Left:
 				if input.Input.XDirC || d.Transform.Velocity.X >= 0. {
@@ -197,12 +205,13 @@ func (d *Dwarf) Update() {
 			}
 			input.Input.XDirC = false
 			// Ground test, considered on the ground for jumping purposes until half a tile out
-			if (!d.jumping && loc1 != nil && canJump && input.Input.Jumped) || d.toJump {
+			if (!d.jumping && loc1 != nil && canJump && input.Input.Jumping.Pressed()) || d.toJump {
 				d.walking = false
 				if d.toJump && time.Since(d.toJumpT).Seconds() > 0.1 {
 					newAnim = "jump"
 					d.toJump = false
 					d.jumping = true
+					d.grounded = false
 					d.jumpOrigY = d.Transform.Pos.Y
 					d.jumpHeight = -1
 					sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4)+1), 0.)
@@ -211,6 +220,7 @@ func (d *Dwarf) Update() {
 					d.toJumpT = time.Now()
 					d.toJump = true
 				}
+				d.distFell = 0.
 			} else if !d.jumping && onGround {
 				d.grounded = true
 				if math.Abs(d.Transform.Velocity.X) < 20.0 {
@@ -238,11 +248,12 @@ func (d *Dwarf) Update() {
 				if d.jumping {
 					newAnim = "jump"
 					dist := int((d.Transform.Pos.Y - d.jumpOrigY) / world.TileSize)
-					if (dist < MaxJump - 2 && input.Input.Jumping) || dist == d.jumpHeight {
+					if (dist < MaxJump - 2 && input.Input.Jumping.Pressed()) || dist == d.jumpHeight {
 						d.Transform.Velocity.Y = JumpVel
 						d.jumpHeight = dist
 						d.Transform.YOff = true
 					} else {
+						input.Input.Jumping.Consume()
 						d.Transform.Velocity.Y = JumpVel
 						d.jumping = false
 					}
@@ -329,7 +340,7 @@ func (d *Dwarf) Update() {
 				}
 			}
 		}
-		d.Transform.Transform.Update(pixel.Rect{})
+		d.Transform.Transform.Update()
 	}
 	if newAnim != d.currAnim {
 		d.Animations[d.currAnim].Reset()
