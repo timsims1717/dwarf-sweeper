@@ -43,7 +43,29 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 	y := 0
 	x := 0
 	for _, b := range list {
-		chunk.Rows[y][x] = NewTile(x, y, coords, b, chunk)
+		var tile *Tile
+		if coords.Y == 0 && y == 0 {
+			tile = NewTile(x, y, coords, false, chunk)
+			tile.Type = Wall
+			tile.breakable = false
+		} else {
+			tile = NewTile(x, y, coords, b, chunk)
+		}
+		if b {
+			if rand.Intn(2) == 0 {
+				tile.AddEntity(&Bomb{
+					Tile: tile,
+				})
+			} else {
+				tile.AddEntity(&Mine{
+					Tile: tile,
+				})
+			}
+		}
+		//if !b && rand.Intn(20) == 0 {
+		//	tile.AddEntity(&Gem{})
+		//}
+		chunk.Rows[y][x] = tile
 		x++
 		if x % ChunkSize == 0 {
 			x = 0

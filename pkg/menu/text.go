@@ -150,6 +150,37 @@ func (t *ItemText) SetText(raw string) {
 	t.lines = append(t.lines, raw[b:])
 }
 
+func (t *ItemText) AddText(s string) {
+	b := 0
+	e := 0
+	cut := false
+	space := false
+	for i, r := range s {
+		switch r {
+		case '\n':
+			cut = true
+			e = i
+		case ' ', '\t':
+			space = true
+			e = i
+		}
+		if t.MaxWidth > 0. && t.Text.BoundsOf(s[b:i]).W() > t.MaxWidth && space {
+			cut = true
+		}
+		if cut {
+			if b >= e || e < 0 {
+				t.lines = append(t.lines, "")
+			} else {
+				t.lines = append(t.lines, s[b:e])
+			}
+			cut = false
+			space = false
+			b = e+1
+		}
+	}
+	t.lines = append(t.lines, s[b:])
+}
+
 func (t *ItemText) GetColor() color.RGBA {
 	return t.TextColor
 }

@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	Size1 = 6.
-	Size2 = 7.
-	Spacing = 100.
+	Size1 = 2.
+	Size2 = 2.
+	Spacing = 28.
 )
 
 var (
@@ -276,7 +276,7 @@ func InitializeResolutionOption() {
 }
 
 func InitializeOptionsMenu() {
-	Options.Transform.Pos.X = cfg.BaseW
+	Options.Transform.Pos.X = cfg.BaseW * 1.5
 
 	InitializeSoundOption()
 	InitializeFullscreenOption()
@@ -337,11 +337,11 @@ func SetOptionResolutionWidth() {
 
 func InitializePostGameMenu() {
 	retryS := "Retry"
-	retryText := menu.NewItemText(retryS, colornames.Aliceblue, pixel.V(4., 4.), menu.Center, menu.Center)
+	retryText := menu.NewItemText(retryS, colornames.Aliceblue, pixel.V(2., 2.), menu.Center, menu.Top)
 	retryText.HoverColor = colornames.Mediumblue
-	retryR := pixel.R(0., 0., retryText.Text.BoundsOf(retryS).W()*5., retryText.Text.BoundsOf(retryS).H()*5.)
+	retryR := pixel.R(0., 0., retryText.Text.BoundsOf(retryS).W() * 2.5, retryText.Text.BoundsOf(retryS).H() * 2.5)
 	retryItem := menu.NewItem(retryText, retryR, PostGame.Canvas.Bounds())
-	retryItem.Transform.Pos = pixel.V(-250., 200.)
+	retryItem.Transform.Pos = pixel.V(-75., 25.)
 	retryItem.Transform.Anchor = transform.Anchor{
 		H: transform.Center,
 		V: transform.Bottom,
@@ -355,11 +355,11 @@ func InitializePostGameMenu() {
 	PostGame.Items["retry"] = retryItem
 
 	menuS := "Main Menu"
-	menuText := menu.NewItemText(menuS, colornames.Aliceblue, pixel.V(4., 4.), menu.Center, menu.Center)
+	menuText := menu.NewItemText(menuS, colornames.Aliceblue, pixel.V(2., 2.), menu.Center, menu.Top)
 	menuText.HoverColor = colornames.Mediumblue
-	menuR := pixel.R(0., 0., menuText.Text.BoundsOf(menuS).W()*5., menuText.Text.BoundsOf(menuS).H()*5.)
+	menuR := pixel.R(0., 0., menuText.Text.BoundsOf(menuS).W() * 2.5, menuText.Text.BoundsOf(menuS).H() * 2.5)
 	menuItem := menu.NewItem(menuText, menuR, PostGame.Canvas.Bounds())
-	menuItem.Transform.Pos = pixel.V(250., 200.)
+	menuItem.Transform.Pos = pixel.V(75., 25.)
 	menuItem.Transform.Anchor = transform.Anchor{
 		H: transform.Center,
 		V: transform.Bottom,
@@ -372,12 +372,12 @@ func InitializePostGameMenu() {
 
 func SwitchToOptions() {
 	Options.Transform.Pos.X = 0.
-	MainMenu.Transform.Pos.X = cfg.BaseW
+	MainMenu.Transform.Pos.X = cfg.BaseW * 1.5
 	Current = 1
 }
 
 func SwitchToMain() {
-	Options.Transform.Pos.X = cfg.BaseW
+	Options.Transform.Pos.X = cfg.BaseW * 1.5
 	MainMenu.Transform.Pos.X = 0.
 	Current = 0
 }

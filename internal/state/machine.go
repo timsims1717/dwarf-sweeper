@@ -2,6 +2,7 @@ package state
 
 import (
 	"dwarf-sweeper/internal/cave"
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/internal/particles"
@@ -9,16 +10,17 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/menu"
-	"dwarf-sweeper/pkg/typeface"
+	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
-	"github.com/faiface/pixel/text"
 	"golang.org/x/image/colornames"
 	"time"
 )
 
 const (
+	titleString  = `DwarfSweeper`
 	creditString = `DwarfSweeper
 
 
@@ -42,8 +44,8 @@ var (
 	newState  = 1
 	timer     time.Time
 	timerKeys map[string]bool
-	credits   = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
-	title     = text.New(pixel.ZV, typeface.BasicAtlas)
+	credits   = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
+	title     = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
 )
 
 func Update(win *pixelgl.Window) {
@@ -51,32 +53,45 @@ func Update(win *pixelgl.Window) {
 	input.Input.Update(win)
 	if input.Input.Debug {
 		if debug.Debug {
-			fmt.Println("DEBUG ON")
-		} else {
 			fmt.Println("DEBUG OFF")
+		} else {
+			fmt.Println("DEBUG ON")
 		}
 		debug.Debug = !debug.Debug
 	}
-	camera.Cam.Update(win)
+	if debug.Debug {
+		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, input.Input.World, 1.)
+	}
 	if state == 0 {
-		if dead, ok := timerKeys["death"]; ok && dead {
-			if time.Since(timer).Seconds() > 1. {
-				newState = 2
+		if win.Focused() {
+			cave.CurrCave.Update(cave.Player1.Transform.Pos)
+			cave.Entities.Update()
+			particles.Update()
+			vfx.Update()
+			cave.Player1.Update()
+			if dead, ok := timerKeys["death"]; (!ok || !dead) && cave.Player1.Dead {
+				timer = time.Now()
+				timerKeys["death"] = true
 			}
-		}
-		if input.Input.Back {
-			newState = 1
-		}
-		cave.CurrCave.Update(cave.Player1.Transform.Pos)
-		cave.Entities.Update()
-		particles.Update()
-		vfx.Update()
-		cave.Player1.Update()
-		if dead, ok := timerKeys["death"]; (!ok || !dead) && cave.Player1.Dead {
-			timer = time.Now()
-			timerKeys["death"] = true
+			if dead, ok := timerKeys["death"]; ok && dead {
+				if time.Since(timer).Seconds() > 1. {
+					newState = 2
+				}
+			}
+			if input.Input.Back {
+				newState = 1
+			}
+			bl, tr := cave.CurrCave.CurrentBoundaries()
+			bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
+			bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
+			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
+			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
+			camera.Cam.Restrict(bl, tr)
 		}
 	} else if state == 1 {
+		title.Transform.UIPos = camera.Cam.Pos
+		title.Transform.UIZoom = camera.Cam.GetZoomScale()
+		title.Update(pixel.Rect{})
 		MainMenu.Update(input.Input.World, input.Input.Click)
 		if Current == 0 && (MainMenu.Items["exit"].IsClicked() || input.Input.Back) {
 			win.SetClosed(true)
@@ -91,11 +106,21 @@ func Update(win *pixelgl.Window) {
 		particles.Update()
 		vfx.Update()
 		cave.Player1.Update()
-		cave.BlocksDugItem.Update()
-		cave.LowestLevelItem.Update()
-		cave.BombsMarkedItem.Update()
-		cave.BlocksMarkedItem.Update()
-		cave.TotalScore.Update()
+		cave.BlocksDugItem.Transform.UIPos = camera.Cam.Pos
+		cave.LowestLevelItem.Transform.UIPos = camera.Cam.Pos
+		cave.BombsMarkedItem.Transform.UIPos = camera.Cam.Pos
+		cave.WrongMarksItem.Transform.UIPos = camera.Cam.Pos
+		cave.TotalScore.Transform.UIPos = camera.Cam.Pos
+		cave.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		cave.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		cave.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		cave.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		cave.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
+		cave.BlocksDugItem.Update(pixel.Rect{})
+		cave.LowestLevelItem.Update(pixel.Rect{})
+		cave.BombsMarkedItem.Update(pixel.Rect{})
+		cave.WrongMarksItem.Update(pixel.Rect{})
+		cave.TotalScore.Update(pixel.Rect{})
 		PostGame.Update(input.Input.World, input.Input.Click)
 		if PostGame.Items["menu"].IsClicked() || input.Input.Back {
 			newState = 1
@@ -109,6 +134,7 @@ func Update(win *pixelgl.Window) {
 			newState = 1
 		}
 	}
+	camera.Cam.Update(win)
 }
 
 func Draw(win *pixelgl.Window) {
@@ -118,24 +144,32 @@ func Draw(win *pixelgl.Window) {
 		cave.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
-		//debug.Draw(win)
 	} else if state == 1 {
 		MainMenu.Draw(win)
 		Options.Draw(win)
-		title.Draw(win, camera.Cam.UITransform(pixel.V(0., 200.), pixel.V(13., 13.), 0.))
-		//debug.Draw(win)
+		title.Draw(win)
 	} else if state == 2 {
 		cave.CurrCave.Draw(win)
 		cave.Player1.Draw(win)
 		cave.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
-		//debug.Draw(win)
-		cave.BlocksDugItem.Draw(win)
-		cave.LowestLevelItem.Draw(win)
-		cave.BombsMarkedItem.Draw(win)
-		cave.BlocksMarkedItem.Draw(win)
-		cave.TotalScore.Draw(win)
+		since := time.Since(cave.ScoreTimer).Seconds()
+		if since > cave.BlocksDugTimer {
+			cave.BlocksDugItem.Draw(win)
+		}
+		if since > cave.LowestLevelTimer {
+			cave.LowestLevelItem.Draw(win)
+		}
+		if since > cave.BombsMarkedTimer {
+			cave.BombsMarkedItem.Draw(win)
+		}
+		if since > cave.WrongMarksTimer {
+			cave.WrongMarksItem.Draw(win)
+		}
+		if since > cave.TotalScoreTimer {
+			cave.TotalScore.Draw(win)
+		}
 		PostGame.Draw(win)
 	} else if state == 3 {
 		credits.Draw(win)
@@ -165,32 +199,34 @@ func updateState() {
 			cave.BlocksDug = 0
 			cave.LowestLevel = 0
 			cave.BombsMarked = 0
-			cave.BlocksMarked = 0
+			cave.WrongMarks = 0
 
 			particles.Clear()
 			vfx.Clear()
 			cave.Entities.Clear()
 		case 1:
-			camera.Cam.MoveTo(pixel.ZV, 0.0, false)
-			title.Clear()
-			title.Color = colornames.Aliceblue
-			line := "DwarfSweeper"
-			title.Dot.X -= title.BoundsOf(line).W() * 0.5
-			fmt.Fprintln(title, line)
+			title.Transform.Pos = pixel.V(0., 75.)
+			camera.Cam.SnapTo(pixel.ZV)
 			InitializeMainMenu()
 			InitializeOptionsMenu()
 		case 2:
-			x := camera.Cam.Width * -0.5 + 200.
-			cave.BlocksDugItem    = cave.NewScore(fmt.Sprintf("Blocks Dug:      %d x 10", cave.BlocksDug), pixel.V(x, 200.), 0.4)
-			cave.LowestLevelItem  = cave.NewScore(fmt.Sprintf("Lowest Level:    %d x 5", cave.LowestLevel), pixel.V(x, 150.), 0.6)
-			cave.BombsMarkedItem  = cave.NewScore(fmt.Sprintf("Bombs Marked:    %d x 25", cave.BombsMarked), pixel.V(x, 100.), 0.8)
-			cave.BlocksMarkedItem = cave.NewScore(fmt.Sprintf("Incorrect Marks: %d x -10", cave.BlocksMarked), pixel.V(x, 50.), 1.0)
+			x := cfg.BaseW * -0.5 + 15.
+			yS := 16.
 			score := 0
 			score += cave.BlocksDug * 10
 			score += cave.LowestLevel * 5
-			score += cave.BombsMarked * 25
-			score -= cave.BlocksMarked * 10
-			cave.TotalScore       = cave.NewScore(fmt.Sprintf("Total Score:     %d", score), pixel.V(x, camera.Cam.Height * 0.5 - 100.), 1.2)
+			score += cave.BombsMarked * 50
+			score -= cave.WrongMarks * 20
+			cave.BlocksDugItem   = menu.NewItemText(fmt.Sprintf("Blocks Dug:      %d x 10", cave.BlocksDug), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+			cave.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", cave.LowestLevel), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+			cave.BombsMarkedItem = menu.NewItemText(fmt.Sprintf("Bombs Marked:    %d x 50", cave.BombsMarked), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+			cave.WrongMarksItem  = menu.NewItemText(fmt.Sprintf("Incorrect Marks: %d x -20", cave.WrongMarks), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+			cave.TotalScore      = menu.NewItemText(fmt.Sprintf("Total Score:     %d", score), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+			cave.BlocksDugItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 2.)
+			cave.LowestLevelItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 3.)
+			cave.BombsMarkedItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 4.)
+			cave.WrongMarksItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 5.)
+			cave.TotalScore.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 8.)
 			cave.ScoreTimer = time.Now()
 			InitializePostGameMenu()
 		case 3:

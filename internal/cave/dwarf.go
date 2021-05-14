@@ -7,6 +7,7 @@ import (
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
@@ -34,6 +35,7 @@ var Player1 *Dwarf
 type Dwarf struct {
 	Transform   *physics.Physics
 	Animations  map[string]*img.Instance
+	Reanimator  *reanimator.Tree
 	currAnim    string
 	faceLeft    bool
 	selectLegal bool
@@ -86,18 +88,44 @@ func NewDwarf() *Dwarf {
 	physicsT := &physics.Physics{
 		Transform: tran,
 	}
-	physicsT.Pos = pixel.V(16 * world.TileSize, -8 * world.TileSize)
-	return &Dwarf{
+	physicsT.Pos = pixel.V(16 * world.TileSize, -9 * world.TileSize)
+	d := &Dwarf{
 		Transform:  physicsT,
 		Animations: animations,
 		currAnim:   "idle",
 	}
+	d.Reanimator = &reanimator.Tree{
+		Root: &reanimator.Switch{
+			Elements: reanimator.NewElements(
+					reanimator.NewSwitch(),
+					reanimator.NewAnim(dwarfSheet, []int{9, 10, 11}, reanimator.Tran, func() {
+						d.digging = false
+					}),
+					reanimator.NewAnim(dwarfSheet, []int{12}, reanimator.Tran, func() {
+						d.marking = false
+					}),
+					reanimator.NewSwitch(),
+				),
+			Check:    func() int {
+				if d.hurt {
+					return 0
+				} else if d.digging {
+					return 1
+				} else if d.marking {
+					return 2
+				} else {
+					return 3
+				}
+			},
+		},
+	}
+	return d
 }
 
 func (d *Dwarf) Update() {
 	newAnim := d.currAnim
-	d.Transform.YOff = false
-	d.Transform.XOff = false
+	d.Transform.GravityOff = false
+	d.Transform.FrictionOff = false
 	if d.hurt {
 		if d.dmg > 0 {
 			// todo: damage to health
@@ -142,7 +170,8 @@ func (d *Dwarf) Update() {
 			if debug.Debug {
 				debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(input.Input.World.X), int(input.Input.World.Y)))
 				debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.Coords.X, d.selected.Coords.Y))
-				debug.AddText(fmt.Sprintf("tile code: '%s'", d.selected.GetTileCode()))
+				debug.AddText(fmt.Sprintf("tile type: '%s'", d.selected.Type))
+				debug.AddText(fmt.Sprintf("tile sprite: '%s'", d.selected.BGSpriteS))
 			}
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.selected.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.selected.Transform.Pos.Y) < world.TileSize*DigRange
 			if input.Input.IsDig && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
@@ -199,9 +228,7 @@ func (d *Dwarf) Update() {
 					d.faceLeft = false
 				}
 			case input.None:
-				if input.Input.XDirC {
-					d.Transform.SetVelX(0., 0.1)
-				}
+				d.Transform.SetVelX(0., 0.1)
 			}
 			input.Input.XDirC = false
 			// Ground test, considered on the ground for jumping purposes until half a tile out
@@ -229,6 +256,11 @@ func (d *Dwarf) Update() {
 					} else {
 						newAnim = "idle"
 					}
+					if input.Input.LookUp.Pressed() && !input.Input.LookDown.Pressed() {
+						camera.Cam.Up()
+					} else if input.Input.LookDown.Pressed() && !input.Input.LookUp.Pressed() {
+						camera.Cam.Down()
+					}
 					d.walking = false
 				} else if d.Transform.Velocity.X > 0. {
 					newAnim = "run"
@@ -251,7 +283,7 @@ func (d *Dwarf) Update() {
 					if (dist < MaxJump - 2 && input.Input.Jumping.Pressed()) || dist == d.jumpHeight {
 						d.Transform.Velocity.Y = JumpVel
 						d.jumpHeight = dist
-						d.Transform.YOff = true
+						d.Transform.GravityOff = true
 					} else {
 						input.Input.Jumping.Consume()
 						d.Transform.Velocity.Y = JumpVel
@@ -283,29 +315,31 @@ func (d *Dwarf) Update() {
 		dwnr := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
 		right := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize, d.Transform.Pos.Y))
 		left := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize, d.Transform.Pos.Y))
-		if up != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, up.Transform.Pos, up.Transform.Pos, 2.0)
-		}
-		if upl != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, upl.Transform.Pos, upl.Transform.Pos, 2.0)
-		}
-		if upr != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, upr.Transform.Pos, upr.Transform.Pos, 2.0)
-		}
-		if dwn != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, dwn.Transform.Pos, dwn.Transform.Pos, 2.0)
-		}
-		if dwnl != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, dwnl.Transform.Pos, dwnl.Transform.Pos, 2.0)
-		}
-		if dwnr != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, dwnr.Transform.Pos, dwnr.Transform.Pos, 2.0)
-		}
-		if right != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, right.Transform.Pos, right.Transform.Pos, 2.0)
-		}
-		if left != nil {
-			debug.AddLine(colornames.Green, imdraw.RoundEndShape, left.Transform.Pos, left.Transform.Pos, 2.0)
+		if debug.Debug {
+			if up != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, up.Transform.Pos, up.Transform.Pos, 2.0)
+			}
+			if upl != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, upl.Transform.Pos, upl.Transform.Pos, 2.0)
+			}
+			if upr != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, upr.Transform.Pos, upr.Transform.Pos, 2.0)
+			}
+			if dwn != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, dwn.Transform.Pos, dwn.Transform.Pos, 2.0)
+			}
+			if dwnl != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, dwnl.Transform.Pos, dwnl.Transform.Pos, 2.0)
+			}
+			if dwnr != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, dwnr.Transform.Pos, dwnr.Transform.Pos, 2.0)
+			}
+			if right != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, right.Transform.Pos, right.Transform.Pos, 2.0)
+			}
+			if left != nil {
+				debug.AddLine(colornames.Green, imdraw.RoundEndShape, left.Transform.Pos, left.Transform.Pos, 2.0)
+			}
 		}
 		if ((up != nil && up.Solid) || (upl != nil && upl.Solid) || (upr != nil && upr.Solid)) && d.Transform.Pos.Y > loc.Transform.Pos.Y {
 			d.Transform.Pos.Y = loc.Transform.Pos.Y
@@ -348,7 +382,7 @@ func (d *Dwarf) Update() {
 	}
 	d.Animations[d.currAnim].Update()
 	d.Animations[d.currAnim].SetMatrix(d.Transform.Mat)
-	camera.Cam.Follow(d.Transform.Pos, 5.)
+	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
 	debug.AddLine(colornames.White, imdraw.RoundEndShape, d.Transform.Pos, d.Transform.Pos, 2.0)
 	if d.selected != nil {
 		debug.AddLine(colornames.Yellow, imdraw.RoundEndShape, d.selected.Transform.Pos, d.selected.Transform.Pos, 3.0)

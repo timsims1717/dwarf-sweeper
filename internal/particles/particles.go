@@ -2,12 +2,11 @@ package particles
 
 import (
 	"dwarf-sweeper/internal/physics"
-	"dwarf-sweeper/pkg/transform"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
-	"dwarf-sweeper/pkg/world"
+	"dwarf-sweeper/pkg/transform"
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -95,35 +94,20 @@ var blocks []string
 func BlockParticles(pos pixel.Vec) {
 	c := rand.Intn(3) + 4
 	for i := 0; i < c; i++ {
+		phys := physics.RandomVelocity(pos, 1.0)
+		if rand.Intn(2) == 0 {
+			phys.Flip = true
+		}
+		if rand.Intn(2) == 0 {
+			phys.Flop = true
+		}
 		particles = append(particles, &particle{
 			Sprite:    PartBatcher.Sprites[blocks[rand.Intn(len(blocks))]],
-			Transform: randomParticleLocation(pos, 1.0),
+			Transform: phys,
 			color:     colornames.White,
 			fader:     gween.New(255., 0., 1.0, ease.Linear),
 		})
 	}
-}
-
-func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
-	tran := transform.NewTransform()
-	physicsT := &physics.Physics{Transform: tran}
-	physicsT.Pos = orig
-	actVar := variance * world.TileSize
-	//if square {
-	xVar := (rand.Float64() - 0.5) * actVar
-	yVar := (rand.Float64() - 0.5) * actVar
-	physicsT.Pos.X += xVar
-	physicsT.Pos.Y += yVar
-	physicsT.Velocity.X = xVar * 0.02
-	physicsT.Velocity.Y = 0.5
-	//}
-	if rand.Intn(2) == 0 {
-		physicsT.Flip = true
-	}
-	if rand.Intn(2) == 0 {
-		physicsT.Flop = true
-	}
-	return physicsT
 }
 
 func CreateStaticParticle(key string, orig pixel.Vec) {
@@ -131,7 +115,7 @@ func CreateStaticParticle(key string, orig pixel.Vec) {
 	tran.Pos = orig
 	particles = append(particles, &particle{
 		Sprite:    PartBatcher.Sprites[key],
-		Transform: &physics.Physics{Transform: tran, XOff: true, YOff: true},
+		Transform: &physics.Physics{Transform: tran, FrictionOff: true, GravityOff: true},
 		color:     colornames.White,
 		Frame:     true,
 	})

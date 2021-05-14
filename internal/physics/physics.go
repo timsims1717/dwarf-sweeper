@@ -5,17 +5,24 @@ import (
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 	"math"
+	"math/rand"
 )
 
 type Physics struct {
 	*transform.Transform
-	Velocity pixel.Vec
-	interX   *gween.Tween
-	interY   *gween.Tween
-	XOff     bool
-	YOff     bool
+	Velocity    pixel.Vec
+	interX      *gween.Tween
+	interY      *gween.Tween
+	XJustSet    bool
+	YJustSet    bool
+	FrictionOff bool
+	GravityOff  bool
+	RicochetX   bool
+	RicochetY   bool
+	Grounded    bool
 }
 
 func (p *Physics) Update() {
@@ -35,12 +42,12 @@ func (p *Physics) Update() {
 	}
 	p.Pos.X += timing.DT * p.Velocity.X
 	p.Pos.Y += timing.DT * p.Velocity.Y
-	if !p.YOff {
+	if !p.GravityOff {
 		if p.Velocity.Y > -500. {
 			p.Velocity.Y -= 750. * timing.DT
 		}
 	}
-	if !p.XOff {
+	if !p.FrictionOff {
 		if p.Velocity.X > 75. {
 			p.Velocity.X -= 10. * timing.DT
 		} else if p.Velocity.X < -75. {
@@ -67,4 +74,20 @@ func (p *Physics) SetVelY(vy, dur float64) {
 func (p *Physics) CancelMovement() {
 	p.interX = nil
 	p.Velocity = pixel.ZV
+}
+
+func RandomVelocity(orig pixel.Vec, variance float64) *Physics {
+	tran := transform.NewTransform()
+	physicsT := &Physics{Transform: tran}
+	physicsT.Pos = orig
+	actVar := variance * world.TileSize
+	//if square {
+	xVar := (rand.Float64() - 0.5) * actVar
+	yVar := (rand.Float64() - 0.5) * actVar
+	physicsT.Pos.X += xVar
+	physicsT.Pos.Y += yVar
+	physicsT.Velocity.X = xVar * 2.
+	physicsT.Velocity.Y = 10.
+	//}
+	return physicsT
 }

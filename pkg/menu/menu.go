@@ -1,7 +1,6 @@
 package menu
 
 import (
-	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/transform"
@@ -82,14 +81,4 @@ func (m *Menu) Draw(target pixel.Target) {
 		}
 	}
 	m.Canvas.Draw(target, m.Transform.Mat)
-	if debug.Debug {
-	//	lX := m.Transform.APos.X - m.Canvas.Bounds().W()
-	//	rX := m.Transform.APos.X
-	//	bY := m.Transform.Pos.Y-m.Canvas.Bounds().H()*0.5
-	//	tY := m.Transform.Pos.Y+m.Canvas.Bounds().H()*0.5
-	//	debug.AddLine(colornames.Green, imdraw.SharpEndShape, m.Transform.Mat.Project(pixel.V(lX, bY)), m.Transform.Mat.Project(pixel.V(lX, tY)), 2.)
-	//	debug.AddLine(colornames.Green, imdraw.SharpEndShape, m.Transform.Mat.Project(pixel.V(lX, tY)), m.Transform.Mat.Project(pixel.V(rX, tY)), 2.)
-	//	debug.AddLine(colornames.Green, imdraw.SharpEndShape, m.Transform.Mat.Project(pixel.V(rX, tY)), m.Transform.Mat.Project(pixel.V(rX, bY)), 2.)
-	//	debug.AddLine(colornames.Green, imdraw.SharpEndShape, m.Transform.Mat.Project(pixel.V(rX, bY)), m.Transform.Mat.Project(pixel.V(lX, bY)), 2.)
-	}
 }

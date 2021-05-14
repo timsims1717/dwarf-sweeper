@@ -18,5 +18,5 @@ func Draw(win *pixelgl.Window) {
 
 func Clear() {
 	imd.Clear()
-	debugText.Clear()
+	debugText.SetText("")
 }

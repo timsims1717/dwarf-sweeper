@@ -1,28 +1,30 @@
 package debug
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/typeface"
-	"fmt"
+	"dwarf-sweeper/pkg/menu"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"github.com/faiface/pixel/text"
+	"golang.org/x/image/colornames"
 )
 
 var (
-	debugText *text.Text
+	debugText *menu.ItemText
 )
 
 func InitializeText() {
-	debugText = text.New(pixel.ZV, typeface.BasicAtlas)
+	debugText = menu.NewItemText("", colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+	debugText.Transform.Pos = pixel.V(cfg.BaseW * -0.5, cfg.BaseH * 0.5)
 }
 
 func DrawText(win *pixelgl.Window) {
-	mat := camera.Cam.UITransform(pixel.V(camera.Cam.Width * -0.5 + 20., camera.Cam.Height * 0.5-40.), pixel.V(2., 2.), 0.)
-	debugText.Draw(win, mat)
-	debugText.Clear()
+	debugText.Transform.UIPos = camera.Cam.Pos
+	debugText.Transform.UIZoom = camera.Cam.GetZoomScale()
+	debugText.Update(pixel.Rect{})
+	debugText.Draw(win)
 }
 
 func AddText(s string) {
-	fmt.Fprintln(debugText, s)
+	debugText.AddText(s)
 }

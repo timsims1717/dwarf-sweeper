@@ -4,6 +4,7 @@ import (
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 type Alignment int
@@ -31,6 +32,7 @@ type Transform struct {
 	Pos     pixel.Vec
 	Offset  pixel.Vec
 	APos    pixel.Vec
+	LastPos pixel.Vec
 	Rot     float64
 	Scalar  pixel.Vec
 	Flip    bool
@@ -80,6 +82,8 @@ func (t *Transform) Update() {
 	}
 	t.APos.X += t.Offset.X
 	t.APos.Y += t.Offset.Y
+	t.APos.X = math.Floor(t.APos.X)
+	t.APos.Y = math.Floor(t.APos.Y)
 	t.Mat = pixel.IM
 	if t.Flip && t.Flop {
 		t.Mat = t.Mat.Scaled(pixel.ZV, -1.)

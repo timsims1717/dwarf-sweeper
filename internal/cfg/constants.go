@@ -4,8 +4,8 @@ import "github.com/faiface/pixel"
 
 const (
 	Title = "Dwarf Sweeper"
-	BaseW = 1600.
-	BaseH = 900.
+	BaseW = 320.
+	BaseH = 240.
 
 	// Tile Constants
 	TileSize = 16.0

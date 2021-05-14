@@ -28,7 +28,7 @@ func run() {
 	config := pixelgl.WindowConfig{
 		Title:  cfg.Title,
 		Bounds: pixel.R(0, 0, 1600, 900),
-		//VSync: true,
+		VSync: true,
 		Invisible: true,
 	}
 	win, err := pixelgl.NewWindow(config)
@@ -39,7 +39,8 @@ func run() {
 
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = cfg.BaseH
-	camera.Cam.SetZoom(5.0)
+	camera.Cam.SetZoom(1.6)
+	camera.Cam.SetILock(true)
 	camera.Cam.SetSize(1600, 900)
 
 	debug.Initialize()

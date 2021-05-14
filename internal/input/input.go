@@ -1,12 +1,9 @@
 package input
 
 import (
-	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/pkg/camera"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 )
 
 var Input = &input{}
@@ -23,6 +20,8 @@ type input struct {
 	Jumping    Button
 	IsDig      bool
 	IsMark     bool
+	LookUp     Button
+	LookDown   Button
 	UseCursor  bool
 	Back       bool
 	Fullscreen bool
@@ -77,8 +76,6 @@ func (i *input) Update(win *pixelgl.Window) {
 	i.DebugPause = win.JustPressed(pixelgl.KeyF9)
 	i.Debug = win.JustPressed(pixelgl.KeyF3)
 
-	debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, i.World, 1.)
-
 	i.Back = win.JustPressed(pixelgl.KeyEscape)
 
 	if win.JustPressed(pixelgl.KeyD) {
@@ -93,8 +90,10 @@ func (i *input) Update(win *pixelgl.Window) {
 	}
 	i.IsDig = win.JustPressed(pixelgl.MouseButtonLeft) || win.JustPressed(pixelgl.KeyKP0) || win.JustPressed(pixelgl.KeyKPEnter)
 	i.IsMark = win.JustPressed(pixelgl.MouseButtonRight)
-	i.Jumping.Set(win, pixelgl.KeyW)
+	i.Jumping.Set(win, pixelgl.KeySpace)
 	i.Fullscreen = win.JustPressed(pixelgl.KeyF)
+	i.LookUp.Set(win, pixelgl.KeyW)
+	i.LookDown.Set(win, pixelgl.KeyS)
 }
 
 type Button struct {
