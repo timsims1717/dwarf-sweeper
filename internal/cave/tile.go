@@ -148,13 +148,6 @@ func (tile *Tile) ToDestroy() {
 
 func (tile *Tile) Destroy() {
 	if tile != nil && !tile.destroyed && tile.breakable {
-		if tile.Type == Value {
-			if !tile.cracked {
-				tile.cracked = true
-				tile.UpdateSprites()
-				return
-			}
-		}
 		tile.destroying = false
 		tile.Solid = false
 		tile.Type = Empty

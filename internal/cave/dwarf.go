@@ -94,31 +94,109 @@ func NewDwarf() *Dwarf {
 		Animations: animations,
 		currAnim:   "idle",
 	}
-	d.Reanimator = &reanimator.Tree{
-		Root: &reanimator.Switch{
-			Elements: reanimator.NewElements(
-					reanimator.NewSwitch(),
-					reanimator.NewAnim(dwarfSheet, []int{9, 10, 11}, reanimator.Tran, func() {
-						d.digging = false
+	d.Reanimator = reanimator.New(&reanimator.Switch{
+		Elements: reanimator.NewElements(
+			reanimator.NewSwitch(&reanimator.Switch{
+				Elements: reanimator.NewElements(
+					reanimator.NewSwitch(&reanimator.Switch{
+						Elements: reanimator.NewElements(
+								reanimator.NewAnim("hit_front", dwarfSheet, []int{15}, reanimator.Hold, nil), // hit_front
+								reanimator.NewAnim("hit_back", dwarfSheet, []int{16}, reanimator.Hold, nil), // hit_back
+							),
+						Check: func() int {
+							if d.faceLeft {
+								if d.Transform.Velocity.X > 0 {
+									return 0
+								} else {
+									return 1
+								}
+							} else {
+								if d.Transform.Velocity.X > 0 {
+									return 1
+								} else {
+									return 0
+								}
+							}
+						},
 					}),
-					reanimator.NewAnim(dwarfSheet, []int{12}, reanimator.Tran, func() {
-						d.marking = false
-					}),
-					reanimator.NewSwitch(),
+					reanimator.NewAnim("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
 				),
-			Check:    func() int {
-				if d.hurt {
-					return 0
-				} else if d.digging {
-					return 1
-				} else if d.marking {
-					return 2
-				} else {
-					return 3
-				}
-			},
+				Check: func() int {
+					if !d.grounded || d.Transform.MovingX {
+						return 0
+					} else {
+						return 1
+					}
+				},
+			}),
+			reanimator.NewAnim("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, func() {
+				d.digging = false
+			}), // digging
+			reanimator.NewAnim("mark", dwarfSheet, []int{14}, reanimator.Tran, func() {
+				d.marking = false
+			}), // marking
+			reanimator.NewSwitch(&reanimator.Switch{
+				Elements: reanimator.NewElements(
+					reanimator.NewSwitch(&reanimator.Switch{
+						Elements: reanimator.NewElements(
+							reanimator.NewAnim("run", dwarfSheet, []int{4, 5, 6, 7}, reanimator.Loop, nil), // run
+							reanimator.NewSwitch(&reanimator.Switch{
+								Elements: reanimator.NewElements(
+									reanimator.NewAnim("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
+									reanimator.NewAnim("idle", dwarfSheet, []int{0, 1, 2, 3}, reanimator.Loop, nil), // idle
+								),
+								Check: func() int {
+									if d.distFell > 100. {
+										return 0
+									} else {
+										return 1
+									}
+								},
+							}),
+						),
+						Check: func() int {
+							if d.Transform.MovingX {
+								return 0
+							} else {
+								return 1
+							}
+						},
+					}),
+					reanimator.NewSwitch(&reanimator.Switch{
+						Elements: reanimator.NewElements(
+							reanimator.NewAnim("jump", dwarfSheet, []int{8, 9}, reanimator.Hold, nil), // jump
+							reanimator.NewAnim("fall", dwarfSheet, []int{10}, reanimator.Hold, nil), // fall
+						),
+						Check: func() int {
+							if d.Transform.Velocity.Y > 0. {
+								return 0
+							} else {
+								return 1
+							}
+						},
+					}),
+				),
+				Check: func() int {
+					if d.grounded {
+						return 0
+					} else {
+						return 1
+					}
+				},
+			}),
+		),
+		Check: func() int {
+			if d.hurt {
+				return 0
+			} else if d.digging {
+				return 1
+			} else if d.marking {
+				return 2
+			} else {
+				return 3
+			}
 		},
-	}
+	}, 10)
 	return d
 }
 
@@ -376,23 +454,24 @@ func (d *Dwarf) Update() {
 		}
 		d.Transform.Transform.Update()
 	}
-	if newAnim != d.currAnim {
-		d.Animations[d.currAnim].Reset()
-		d.currAnim = newAnim
-	}
-	d.Animations[d.currAnim].Update()
-	d.Animations[d.currAnim].SetMatrix(d.Transform.Mat)
+	//if newAnim != d.currAnim {
+	//	d.Animations[d.currAnim].Reset()
+	//	d.currAnim = newAnim
+	//}
+	//d.Animations[d.currAnim].Update()
+	//d.Animations[d.currAnim].SetMatrix(d.Transform.Mat)
+	d.Reanimator.Update()
 	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
 	debug.AddLine(colornames.White, imdraw.RoundEndShape, d.Transform.Pos, d.Transform.Pos, 2.0)
 	if d.selected != nil {
 		debug.AddLine(colornames.Yellow, imdraw.RoundEndShape, d.selected.Transform.Pos, d.selected.Transform.Pos, 3.0)
 	}
-	if d.digging && d.Animations[d.currAnim].Done {
-		d.digging = false
-	}
-	if d.marking && d.Animations[d.currAnim].Done {
-		d.marking = false
-	}
+	//if d.digging && d.Animations[d.currAnim].Done {
+	//	d.digging = false
+	//}
+	//if d.marking && d.Animations[d.currAnim].Done {
+	//	d.marking = false
+	//}
 	currLevel := int(-d.Transform.Pos.Y / world.TileSize)
 	if LowestLevel < currLevel && !d.hurt {
 		LowestLevel = currLevel
@@ -400,7 +479,8 @@ func (d *Dwarf) Update() {
 }
 
 func (d *Dwarf) Draw(win *pixelgl.Window) {
-	d.Animations[d.currAnim].Draw(win)
+	//d.Animations[d.currAnim].Draw(win)
+	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
 	if d.walking && time.Since(d.walkTimer).Seconds() > 0.4 {
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4) + 1), 0.)
 		d.walkTimer = time.Now()

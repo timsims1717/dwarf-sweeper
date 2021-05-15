@@ -16,6 +16,8 @@ type Physics struct {
 	Velocity    pixel.Vec
 	interX      *gween.Tween
 	interY      *gween.Tween
+	MovingX     bool
+	MovingY     bool
 	XJustSet    bool
 	YJustSet    bool
 	FrictionOff bool
@@ -42,18 +44,32 @@ func (p *Physics) Update() {
 	}
 	p.Pos.X += timing.DT * p.Velocity.X
 	p.Pos.Y += timing.DT * p.Velocity.Y
-	if !p.GravityOff {
+	if !p.GravityOff && !p.YJustSet {
 		if p.Velocity.Y > -500. {
 			p.Velocity.Y -= 750. * timing.DT
 		}
+		p.YJustSet = false
 	}
-	if !p.FrictionOff {
-		if p.Velocity.X > 75. {
-			p.Velocity.X -= 10. * timing.DT
-		} else if p.Velocity.X < -75. {
-			p.Velocity.X += 10. * timing.DT
+	if !p.FrictionOff && !p.XJustSet {
+		friction := 10.
+		if p.Grounded {
+			friction = 25.
 		}
+		if p.Velocity.X > 0. {
+			p.Velocity.X -= friction * timing.DT
+			if p.Velocity.X < 0. {
+				p.Velocity.X = 0
+			}
+		} else if p.Velocity.X < 0. {
+			p.Velocity.X += friction * timing.DT
+			if p.Velocity.X > 0. {
+				p.Velocity.X = 0
+			}
+		}
+		p.XJustSet = false
 	}
+	p.MovingX = p.Velocity.X != 0.
+	p.MovingY = p.Velocity.Y != 0.
 	p.Transform.Update()
 }
 
