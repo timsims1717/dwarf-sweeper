@@ -12,13 +12,16 @@ var(
 	LowestLevel      int
 	LowestLevelItem  *menu.ItemText
 	LowestLevelTimer = 0.6
+	GemsFound        int
+	GemsFoundItem    *menu.ItemText
+	GemsFoundTimer   = 0.8
 	BombsMarked      int
 	BombsMarkedItem  *menu.ItemText
-	BombsMarkedTimer = 0.8
+	BombsMarkedTimer = 1.0
 	WrongMarks       int
 	WrongMarksItem   *menu.ItemText
-	WrongMarksTimer  = 1.0
+	WrongMarksTimer  = 1.2
 	TotalScore       *menu.ItemText
-	TotalScoreTimer  = 1.2
+	TotalScoreTimer  = 1.4
 	ScoreTimer       time.Time
 )

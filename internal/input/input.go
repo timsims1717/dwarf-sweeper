@@ -123,7 +123,7 @@ func (t *Button) Set(win *pixelgl.Window, button pixelgl.Button) {
 	t.justPressed = win.JustPressed(button)
 	t.pressed = win.Pressed(button)
 	t.justReleased = win.JustReleased(button)
-	t.consumed = t.consumed && !t.justPressed && !t.pressed && !t.justReleased
+	t.consumed = t.consumed && (t.justPressed || t.pressed || t.justReleased)
 }
 
 func (t *Button) SetBool(pressed bool) {

@@ -6,32 +6,49 @@ import (
 	"time"
 )
 
+var (
+	Timer       time.Time
+	FRate       int
+	inter       float64
+	frameSwitch bool
+)
+
 type Tree struct {
 	Root    *Switch
 	spr     *pixel.Sprite
-	FRate   int
-	inter   float64
-	timer   time.Time
 	animKey string
 	update  bool
 }
 
-func New(root *Switch, fRate int) *Tree {
-	inter := 1. / float64(fRate)
-	return &Tree{
-		Root:  root,
-		FRate: fRate,
-		inter: inter,
+func SetFrameRate(fRate int) {
+	FRate = fRate
+	inter = 1. / float64(fRate)
+}
+
+func Reset() {
+	Timer = time.Now()
+}
+
+func Update() {
+	frameSwitch = time.Since(Timer).Seconds() > inter
+	if frameSwitch {
+		Reset()
 	}
 }
 
-func (t *Tree) Reset() {
-	t.timer = time.Now()
+func New(root *Switch) *Tree {
+	return &Tree{
+		Root:   root,
+		update: true,
+	}
+}
+
+func (t *Tree) ForceUpdate() {
+	t.update = true
 }
 
 func (t *Tree) Update() {
 	a := t.Root.Choose()
-	frameSwitch := time.Since(t.timer).Seconds() > t.inter
 	if frameSwitch || t.update {
 		t.update = false
 		if a.Key != t.animKey {
@@ -53,9 +70,6 @@ func (t *Tree) Update() {
 		}
 		t.spr = a.S[a.Step]
 		t.animKey = a.Key
-	}
-	if frameSwitch {
-		t.Reset()
 	}
 }
 

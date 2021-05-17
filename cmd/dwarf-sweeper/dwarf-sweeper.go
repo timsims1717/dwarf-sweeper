@@ -52,10 +52,10 @@ func run() {
 	cave.Entities.Initialize()
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
-	sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")
-	sfx.SoundPlayer.RegisterSound("assets/sound/impact2.wav", "impact2")
-	sfx.SoundPlayer.RegisterSound("assets/sound/impact3.wav", "impact3")
-	sfx.SoundPlayer.RegisterSound("assets/sound/impact4.wav", "impact4")
+	//sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")
+	//sfx.SoundPlayer.RegisterSound("assets/sound/impact2.wav", "impact2")
+	//sfx.SoundPlayer.RegisterSound("assets/sound/impact3.wav", "impact3")
+	//sfx.SoundPlayer.RegisterSound("assets/sound/impact4.wav", "impact4")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks1.wav", "rocks1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks2.wav", "rocks2")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks3.wav", "rocks3")
@@ -66,6 +66,7 @@ func run() {
 	sfx.SoundPlayer.RegisterSound("assets/sound/step2.wav", "step2")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step3.wav", "step3")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step4.wav", "step4")
+	sfx.SoundPlayer.RegisterSound("assets/sound/clink.wav", "clink")
 	sfx.SetMasterVolume(75)
 	sfx.SetSoundVolume(75)
 

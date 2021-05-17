@@ -19,12 +19,12 @@ func PhysicsSystem() {
 				if phys.Velocity.Y > -500. {
 					phys.Velocity.Y -= 750. * timing.DT
 				}
-				phys.YJustSet = false
 			}
+			phys.YJustSet = false
 			if !phys.FrictionOff && !phys.XJustSet {
-				friction := 10.
+				friction := 25.
 				if phys.Grounded {
-					friction = 25.
+					friction = 200.
 				}
 				if phys.Velocity.X > 0. {
 					phys.Velocity.X -= friction * timing.DT
@@ -37,8 +37,8 @@ func PhysicsSystem() {
 						phys.Velocity.X = 0
 					}
 				}
-				phys.XJustSet = false
 			}
+			phys.XJustSet = false
 		}
 	}
 }

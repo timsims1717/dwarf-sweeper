@@ -62,9 +62,9 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 				})
 			}
 		}
-		//if !b && rand.Intn(20) == 0 {
-		//	tile.AddEntity(&Gem{})
-		//}
+		if !b && rand.Intn(20) == 0 {
+			tile.AddEntity(&Gem{})
+		}
 		chunk.Rows[y][x] = tile
 		x++
 		if x % ChunkSize == 0 {

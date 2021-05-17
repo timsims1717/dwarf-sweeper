@@ -1,14 +1,10 @@
 package physics
 
 import (
-	"dwarf-sweeper/pkg/transform"
 	gween "dwarf-sweeper/pkg/gween64"
-	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
-	"dwarf-sweeper/pkg/world"
+	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
-	"math"
-	"math/rand"
 )
 
 type Physics struct {
@@ -16,8 +12,6 @@ type Physics struct {
 	Velocity    pixel.Vec
 	interX      *gween.Tween
 	interY      *gween.Tween
-	MovingX     bool
-	MovingY     bool
 	XJustSet    bool
 	YJustSet    bool
 	FrictionOff bool
@@ -48,8 +42,8 @@ func (p *Physics) Update() {
 		if p.Velocity.Y > -500. {
 			p.Velocity.Y -= 750. * timing.DT
 		}
-		p.YJustSet = false
 	}
+	p.YJustSet = false
 	if !p.FrictionOff && !p.XJustSet {
 		friction := 10.
 		if p.Grounded {
@@ -66,44 +60,38 @@ func (p *Physics) Update() {
 				p.Velocity.X = 0
 			}
 		}
-		p.XJustSet = false
 	}
-	p.MovingX = p.Velocity.X != 0.
-	p.MovingY = p.Velocity.Y != 0.
+	p.XJustSet = false
 	p.Transform.Update()
 }
 
-func (p *Physics) SetVelX(vx, dur float64) {
-	diff := math.Abs(p.Velocity.X - vx)
-	if diff != 0. {
-		p.interX = gween.New(p.Velocity.X, vx, dur, ease.Linear)
-	}
+func (p *Physics) IsMovingX() bool {
+	return p.Velocity.X > 0.01 || p.Velocity.X < -0.01
 }
 
-func (p *Physics) SetVelY(vy, dur float64) {
-	diff := math.Abs(p.Velocity.Y - vy)
-	if diff != 0. {
-		p.interY = gween.New(p.Velocity.Y, vy, dur, ease.Linear)
+func (p *Physics) IsMovingY() bool {
+	return p.Velocity.Y > 0.01 || p.Velocity.Y < -0.01
+}
+
+func (p *Physics) SetVelX(vx, spd float64) {
+	if spd == 0. {
+		p.Velocity.X = vx
+	} else {
+		p.Velocity.X += spd * timing.DT * (vx - p.Velocity.X)
 	}
+	p.XJustSet = true
+}
+
+func (p *Physics) SetVelY(vy, spd float64) {
+	if spd == 0. {
+		p.Velocity.Y = vy
+	} else {
+		p.Velocity.Y += spd * timing.DT * (vy - p.Velocity.Y)
+	}
+	p.YJustSet = true
 }
 
 func (p *Physics) CancelMovement() {
 	p.interX = nil
 	p.Velocity = pixel.ZV
-}
-
-func RandomVelocity(orig pixel.Vec, variance float64) *Physics {
-	tran := transform.NewTransform()
-	physicsT := &Physics{Transform: tran}
-	physicsT.Pos = orig
-	actVar := variance * world.TileSize
-	//if square {
-	xVar := (rand.Float64() - 0.5) * actVar
-	yVar := (rand.Float64() - 0.5) * actVar
-	physicsT.Pos.X += xVar
-	physicsT.Pos.Y += yVar
-	physicsT.Velocity.X = xVar * 2.
-	physicsT.Velocity.Y = 10.
-	//}
-	return physicsT
 }
