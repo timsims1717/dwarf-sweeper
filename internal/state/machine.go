@@ -1,9 +1,9 @@
 package state
 
 import (
-	"dwarf-sweeper/internal/cave"
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
+	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/systems"
@@ -61,23 +61,26 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Debug = !debug.Debug
 	}
+	if input.Input.DebugInv && dungeon.Player1 != nil {
+		dungeon.Player1.Inv = !dungeon.Player1.Inv
+	}
 	if debug.Debug {
 		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, input.Input.World, 1.)
 	}
 	if state == 0 {
 		if win.Focused() {
 			reanimator.Update()
-			cave.CurrCave.Update(cave.Player1.Transform.Pos)
+			dungeon.CurrCave.Update(dungeon.Player1.Transform.Pos)
 			systems.PhysicsSystem()
 			systems.TransformSystem()
 			systems.CollisionSystem()
 			systems.CollectSystem()
 			systems.AnimationSystem()
-			cave.Entities.Update()
+			dungeon.Entities.Update()
 			particles.Update()
 			vfx.Update()
-			cave.Player1.Update()
-			if dead, ok := timerKeys["death"]; (!ok || !dead) && cave.Player1.Dead {
+			dungeon.Player1.Update()
+			if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Player1.Dead {
 				timer = time.Now()
 				timerKeys["death"] = true
 			}
@@ -89,7 +92,7 @@ func Update(win *pixelgl.Window) {
 			if input.Input.Back {
 				newState = 1
 			}
-			bl, tr := cave.CurrCave.CurrentBoundaries()
+			bl, tr := dungeon.CurrCave.CurrentBoundaries()
 			bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
 			bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
 			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
@@ -97,7 +100,7 @@ func Update(win *pixelgl.Window) {
 			camera.Cam.Restrict(bl, tr)
 		}
 	} else if state == 1 {
-		title.Transform.UIPos = camera.Cam.Pos
+		title.Transform.UIPos = camera.Cam.APos
 		title.Transform.UIZoom = camera.Cam.GetZoomScale()
 		title.Update(pixel.Rect{})
 		MainMenu.Update(input.Input.World, input.Input.Click)
@@ -109,39 +112,39 @@ func Update(win *pixelgl.Window) {
 			SwitchToMain()
 		}
 	} else if state == 2 {
-		cave.CurrCave.Update(cave.Player1.Transform.Pos)
+		dungeon.CurrCave.Update(dungeon.Player1.Transform.Pos)
 		systems.PhysicsSystem()
 		systems.TransformSystem()
 		systems.CollisionSystem()
 		systems.AnimationSystem()
-		cave.Entities.Update()
+		dungeon.Entities.Update()
 		particles.Update()
 		vfx.Update()
-		cave.Player1.Update()
-		cave.BlocksDugItem.Transform.UIPos = camera.Cam.Pos
-		cave.LowestLevelItem.Transform.UIPos = camera.Cam.Pos
-		cave.GemsFoundItem.Transform.UIPos = camera.Cam.Pos
-		cave.BombsMarkedItem.Transform.UIPos = camera.Cam.Pos
-		cave.WrongMarksItem.Transform.UIPos = camera.Cam.Pos
-		cave.TotalScore.Transform.UIPos = camera.Cam.Pos
-		cave.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		cave.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		cave.GemsFoundItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		cave.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		cave.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		cave.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
-		cave.BlocksDugItem.Update(pixel.Rect{})
-		cave.LowestLevelItem.Update(pixel.Rect{})
-		cave.GemsFoundItem.Update(pixel.Rect{})
-		cave.BombsMarkedItem.Update(pixel.Rect{})
-		cave.WrongMarksItem.Update(pixel.Rect{})
-		cave.TotalScore.Update(pixel.Rect{})
+		dungeon.Player1.Update()
+		dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
+		dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
+		dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
+		dungeon.BombsMarkedItem.Transform.UIPos = camera.Cam.APos
+		dungeon.WrongMarksItem.Transform.UIPos = camera.Cam.APos
+		dungeon.TotalScore.Transform.UIPos = camera.Cam.APos
+		dungeon.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		dungeon.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		dungeon.GemsFoundItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		dungeon.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		dungeon.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		dungeon.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
+		dungeon.BlocksDugItem.Update(pixel.Rect{})
+		dungeon.LowestLevelItem.Update(pixel.Rect{})
+		dungeon.GemsFoundItem.Update(pixel.Rect{})
+		dungeon.BombsMarkedItem.Update(pixel.Rect{})
+		dungeon.WrongMarksItem.Update(pixel.Rect{})
+		dungeon.TotalScore.Update(pixel.Rect{})
 		PostGame.Update(input.Input.World, input.Input.Click)
 		if PostGame.Items["menu"].IsClicked() || input.Input.Back {
 			newState = 1
 		}
 	} else if state == 3 {
-		credits.Transform.UIPos = camera.Cam.Pos
+		credits.Transform.UIPos = camera.Cam.APos
 		credits.Transform.UIZoom = camera.Cam.GetZoomScale()
 		credits.Update(pixel.Rect{})
 		if input.Input.Back || input.Input.Click.JustPressed() {
@@ -154,39 +157,41 @@ func Update(win *pixelgl.Window) {
 
 func Draw(win *pixelgl.Window) {
 	if state == 0 {
-		cave.CurrCave.Draw(win)
-		cave.Player1.Draw(win)
-		cave.Entities.Draw(win)
+		dungeon.CurrCave.Draw(win)
+		dungeon.Player1.Draw(win)
+		dungeon.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
+		debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
+		debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
 	} else if state == 1 {
 		MainMenu.Draw(win)
 		Options.Draw(win)
 		title.Draw(win)
 	} else if state == 2 {
-		cave.CurrCave.Draw(win)
-		cave.Player1.Draw(win)
-		cave.Entities.Draw(win)
+		dungeon.CurrCave.Draw(win)
+		dungeon.Player1.Draw(win)
+		dungeon.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
-		since := time.Since(cave.ScoreTimer).Seconds()
-		if since > cave.BlocksDugTimer {
-			cave.BlocksDugItem.Draw(win)
+		since := time.Since(dungeon.ScoreTimer).Seconds()
+		if since > dungeon.BlocksDugTimer {
+			dungeon.BlocksDugItem.Draw(win)
 		}
-		if since > cave.LowestLevelTimer {
-			cave.LowestLevelItem.Draw(win)
+		if since > dungeon.LowestLevelTimer {
+			dungeon.LowestLevelItem.Draw(win)
 		}
-		if since > cave.GemsFoundTimer {
-			cave.GemsFoundItem.Draw(win)
+		if since > dungeon.GemsFoundTimer {
+			dungeon.GemsFoundItem.Draw(win)
 		}
-		if since > cave.BombsMarkedTimer {
-			cave.BombsMarkedItem.Draw(win)
+		if since > dungeon.BombsMarkedTimer {
+			dungeon.BombsMarkedItem.Draw(win)
 		}
-		if since > cave.WrongMarksTimer {
-			cave.WrongMarksItem.Draw(win)
+		if since > dungeon.WrongMarksTimer {
+			dungeon.WrongMarksItem.Draw(win)
 		}
-		if since > cave.TotalScoreTimer {
-			cave.TotalScore.Draw(win)
+		if since > dungeon.TotalScoreTimer {
+			dungeon.TotalScore.Draw(win)
 		}
 		PostGame.Draw(win)
 	} else if state == 3 {
@@ -209,19 +214,20 @@ func updateState() {
 			if err != nil {
 				panic(err)
 			}
-			cave.CurrCave = cave.NewCave(sheet)
+			dungeon.CurrCave = dungeon.NewRoomyCave(sheet, -1, 1, 1)
+			//dungeon.CurrCave = dungeon.NewInfiniteCave(sheet)
 
-			cave.Player1 = cave.NewDwarf()
-			camera.Cam.MoveTo(cave.Player1.Transform.Pos, 0.0, false)
+			dungeon.Player1 = dungeon.NewDwarf(dungeon.CurrCave.GetStart())
+			camera.Cam.SnapTo(dungeon.Player1.Transform.Pos)
 
-			cave.BlocksDug = 0
-			cave.LowestLevel = 0
-			cave.BombsMarked = 0
-			cave.WrongMarks = 0
+			dungeon.BlocksDug = 0
+			dungeon.LowestLevel = 0
+			dungeon.BombsMarked = 0
+			dungeon.WrongMarks = 0
 
 			particles.Clear()
 			vfx.Clear()
-			cave.Entities.Clear()
+			dungeon.Entities.Clear()
 
 			reanimator.SetFrameRate(10)
 			reanimator.Reset()
@@ -231,27 +237,27 @@ func updateState() {
 			InitializeMainMenu()
 			InitializeOptionsMenu()
 		case 2:
-			x := cfg.BaseW * -0.5 + 15.
+			x := cfg.BaseW * -0.5 + 8.
 			yS := 16.
 			score := 0
-			score += cave.BlocksDug * 10
-			score += cave.LowestLevel * 5
-			score += cave.GemsFound * 15
-			score += cave.BombsMarked * 50
-			score -= cave.WrongMarks * 20
-			cave.BlocksDugItem   = menu.NewItemText(fmt.Sprintf("Blocks Dug:      %d x 10", cave.BlocksDug), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
-			cave.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", cave.LowestLevel), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
-			cave.GemsFoundItem = menu.NewItemText(fmt.Sprintf("Gems Found:      %d x 15", cave.GemsFound), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
-			cave.BombsMarkedItem = menu.NewItemText(fmt.Sprintf("Bombs Marked:    %d x 50", cave.BombsMarked), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
-			cave.WrongMarksItem  = menu.NewItemText(fmt.Sprintf("Incorrect Marks: %d x -20", cave.WrongMarks), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
-			cave.TotalScore      = menu.NewItemText(fmt.Sprintf("Total Score:     %d", score), colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
-			cave.BlocksDugItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 2.)
-			cave.LowestLevelItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 3.)
-			cave.GemsFoundItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 4.)
-			cave.BombsMarkedItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 5.)
-			cave.WrongMarksItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 6.)
-			cave.TotalScore.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 9.)
-			cave.ScoreTimer = time.Now()
+			score += dungeon.BlocksDug * 10
+			score += dungeon.LowestLevel * 5
+			score += dungeon.GemsFound * 15
+			score += dungeon.BombsMarked * 50
+			score -= dungeon.WrongMarks * 20
+			dungeon.BlocksDugItem   = menu.NewItemText(fmt.Sprintf("Blocks Dug:      %d x 10", dungeon.BlocksDug), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", dungeon.LowestLevel), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.GemsFoundItem   = menu.NewItemText(fmt.Sprintf("Gems Found:      %d x 15", dungeon.GemsFound), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.BombsMarkedItem = menu.NewItemText(fmt.Sprintf("Bombs Marked:    %d x 50", dungeon.BombsMarked), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.WrongMarksItem  = menu.NewItemText(fmt.Sprintf("Incorrect Marks: %d x -20", dungeon.WrongMarks), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.TotalScore      = menu.NewItemText(fmt.Sprintf("Total Score:     %d", score), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.BlocksDugItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 2.)
+			dungeon.LowestLevelItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 3.)
+			dungeon.GemsFoundItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 4.)
+			dungeon.BombsMarkedItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 5.)
+			dungeon.WrongMarksItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 6.)
+			dungeon.TotalScore.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 9.)
+			dungeon.ScoreTimer = time.Now()
 			InitializePostGameMenu()
 		case 3:
 

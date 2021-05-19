@@ -19,7 +19,8 @@ type Camera struct {
 	Width  float64
 	Mat    pixel.Matrix
 	Pos    pixel.Vec
-	zoom   float64
+	APos   pixel.Vec
+	Zoom   float64
 	zStep  float64
 	Opt    Options
 	Mask   color.RGBA
@@ -44,10 +45,10 @@ func New(isWin bool) *Camera {
 	return &Camera{
 		Mat:   pixel.IM,
 		Pos:   pixel.ZV,
-		zoom:  1.0,
+		Zoom:  1.0,
 		zStep: 1.0,
 		Opt: Options{
-			ScrollSpeed: 100.0,
+			ScrollSpeed: 40.0,
 			ZoomStep:    1.2,
 			ZoomSpeed:   0.2,
 			WindowScale: 900.,
@@ -57,17 +58,13 @@ func New(isWin bool) *Camera {
 	}
 }
 
-func (c *Camera) GetScale() float64 {
-	return c.Opt.WindowScale / c.Height
-}
-
-func (c *Camera) SetSize(width, height float64) {
-	c.Width = width
+func (c *Camera) SetSize(ratio, height float64) {
+	c.Width = height * ratio
 	c.Height = height
 }
 
 func (c *Camera) GetZoomScale() float64 {
-	return 1 / c.zoom
+	return 1 / c.Zoom
 }
 
 func (c *Camera) Moving() bool {
@@ -118,7 +115,7 @@ func (c *Camera) Update(win *pixelgl.Window) {
 	}
 	if c.interZ != nil {
 		z, finZ := c.interZ.Update(timing.DT)
-		c.zoom = z
+		c.Zoom = z
 		if finZ {
 			c.interZ = nil
 		} else {
@@ -134,12 +131,12 @@ func (c *Camera) Update(win *pixelgl.Window) {
 			c.Effect = nil
 		}
 	}
-	aPos := c.Pos
+	c.APos = c.Pos
 	if c.iLock {
-		aPos.X = math.Floor(c.Pos.X)
-		aPos.Y = math.Floor(c.Pos.Y)
+		c.APos.X = math.Floor(c.Pos.X)
+		c.APos.Y = math.Floor(c.Pos.Y)
 	}
-	c.Mat = pixel.IM.Scaled(aPos, c.Height / c.Opt.WindowScale).Scaled(aPos, c.zoom).Moved(win.Bounds().Center().Sub(aPos))
+	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.Zoom).Moved(win.Bounds().Center().Sub(c.APos))
 	win.SetMatrix(c.Mat)
 	win.SetColorMask(c.Mask)
 }
@@ -224,14 +221,14 @@ func (c *Camera) Up() {
 }
 
 func (c *Camera) SetZoom(zoom float64) {
-	c.zoom = zoom
+	c.Zoom = zoom
 	c.zStep = zoom
 }
 
 func (c *Camera) ZoomIn(zoom float64) {
 	if !c.lock {
 		c.zStep *= math.Pow(c.Opt.ZoomStep, zoom)
-		c.interZ = gween.New(c.zoom, c.zStep, c.Opt.ZoomSpeed, ease.OutQuad)
+		c.interZ = gween.New(c.Zoom, c.zStep, c.Opt.ZoomSpeed, ease.OutQuad)
 	}
 }
 

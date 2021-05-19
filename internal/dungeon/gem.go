@@ -1,4 +1,4 @@
-package cave
+package dungeon
 
 import (
 	"dwarf-sweeper/internal/myecs"

@@ -1,4 +1,4 @@
-package cave
+package dungeon
 
 import (
 	"dwarf-sweeper/internal/vfx"
@@ -25,7 +25,7 @@ func (b *Bomb) Update() {
 		b.animation.Update()
 		b.animation.SetMatrix(b.Transform.Mat)
 		if time.Since(b.Timer).Seconds() > 0.75 {
-			for _, n := range b.Tile.Coords.Neighbors() {
+			for _, n := range b.Tile.SubCoords.Neighbors() {
 				b.Tile.Chunk.Get(n).Destroy()
 			}
 			p := Player1.Transform.Pos.Sub(b.Tile.Transform.Pos)

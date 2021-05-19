@@ -61,7 +61,7 @@ func (m *Menu) Update(world pixel.Vec, clicked input.Button) {
 		}
 		if m.Cam != nil {
 			m.Transform.UIZoom = m.Cam.GetZoomScale()
-			m.Transform.UIPos = m.Cam.Pos
+			m.Transform.UIPos = m.Cam.APos
 		}
 		m.Transform.Update()
 		for _, item := range m.Items {

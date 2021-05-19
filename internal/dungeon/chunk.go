@@ -1,4 +1,4 @@
-package cave
+package dungeon
 
 import (
 	"dwarf-sweeper/pkg/world"
@@ -44,9 +44,18 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 	x := 0
 	for _, b := range list {
 		var tile *Tile
-		if coords.Y == 0 && y == 0 {
+		if cave.finite &&
+			((coords.Y == cave.bottom && y == ChunkSize - 1) ||
+			(coords.X == cave.left && x == 0) ||
+			(coords.X == cave.right && x == ChunkSize - 1)) {
 			tile = NewTile(x, y, coords, false, chunk)
 			tile.Type = Wall
+			tile.neverChange = true
+			tile.breakable = false
+		} else if coords.Y == 0 && y == 0 {
+			tile = NewTile(x, y, coords, false, chunk)
+			tile.Type = Wall
+			tile.neverChange = true
 			tile.breakable = false
 		} else {
 			tile = NewTile(x, y, coords, b, chunk)
@@ -140,7 +149,7 @@ func (chunk *Chunk) Get(coords world.Coords) *Tile {
 			X: ax,
 			Y: ay,
 		}
-		return chunk.Cave.Get(cc).Get(ac)
+		return chunk.Cave.GetChunk(cc).Get(ac)
 	}
 	return chunk.Rows[coords.Y][coords.X]
 }

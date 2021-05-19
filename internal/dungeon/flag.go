@@ -1,4 +1,4 @@
-package cave
+package dungeon
 
 import (
 	"dwarf-sweeper/pkg/transform"
@@ -75,7 +75,7 @@ func (f *OldFlag) Create(from pixel.Vec, batcher *img.Batcher) {
 		f.Transform.Pos = f.Tile.Transform.Pos
 		mag := from.Sub(f.Tile.Transform.Pos)
 		angle := mag.Angle()
-		ns := f.Tile.Coords.Neighbors()
+		ns := f.Tile.SubCoords.Neighbors()
 		var is []int
 		if angle > math.Pi * 0.25 && angle < math.Pi * 0.75 {
 			// top

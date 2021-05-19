@@ -1,7 +1,7 @@
 package systems
 
 import (
-	"dwarf-sweeper/internal/cave"
+	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -20,17 +20,17 @@ func CollisionSystem() {
 		_, okC := result.Components[myecs.Collision].(myecs.Collider)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		if okT && okC && okP {
-			loc := cave.CurrCave.GetTile(tran.Pos)
+			loc := dungeon.CurrCave.GetTile(tran.Pos)
 			if loc != nil {
 				if math.Abs(loc.Transform.Pos.X-tran.Pos.X) > world.TileSize || math.Abs(loc.Transform.Pos.Y-tran.Pos.Y) > world.TileSize {
 					fmt.Println("Time to teleport")
 				}
-				up := cave.CurrCave.GetTile(pixel.V(tran.Pos.X, tran.Pos.Y+world.TileSize))
-				upl := cave.CurrCave.GetTile(pixel.V(tran.Pos.X-world.TileSize*0.3, tran.Pos.Y+world.TileSize))
-				upr := cave.CurrCave.GetTile(pixel.V(tran.Pos.X+world.TileSize*0.3, tran.Pos.Y+world.TileSize))
-				dwn := cave.CurrCave.GetTile(pixel.V(tran.Pos.X, tran.Pos.Y-world.TileSize*0.6))
-				dwnl := cave.CurrCave.GetTile(pixel.V(tran.Pos.X-world.TileSize*0.3, tran.Pos.Y-world.TileSize*0.6))
-				dwnr := cave.CurrCave.GetTile(pixel.V(tran.Pos.X+world.TileSize*0.3, tran.Pos.Y-world.TileSize*0.6))
+				up := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X, tran.Pos.Y+world.TileSize))
+				upl := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X-world.TileSize*0.3, tran.Pos.Y+world.TileSize))
+				upr := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X+world.TileSize*0.3, tran.Pos.Y+world.TileSize))
+				dwn := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X, tran.Pos.Y-world.TileSize*0.6))
+				dwnl := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X-world.TileSize*0.3, tran.Pos.Y-world.TileSize*0.6))
+				dwnr := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X+world.TileSize*0.3, tran.Pos.Y-world.TileSize*0.6))
 				if ((up != nil && up.Solid) || (upl != nil && upl.Solid) || (upr != nil && upr.Solid)) && tran.Pos.Y > loc.Transform.Pos.Y {
 					tran.Pos.Y = loc.Transform.Pos.Y
 					if phys.Velocity.Y > 0 {
@@ -46,8 +46,8 @@ func CollisionSystem() {
 				} else {
 					phys.Grounded = false
 				}
-				right := cave.CurrCave.GetTile(pixel.V(tran.Pos.X+world.TileSize, tran.Pos.Y))
-				left := cave.CurrCave.GetTile(pixel.V(tran.Pos.X-world.TileSize, tran.Pos.Y))
+				right := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X+world.TileSize, tran.Pos.Y))
+				left := dungeon.CurrCave.GetTile(pixel.V(tran.Pos.X-world.TileSize, tran.Pos.Y))
 				if right != nil && right.Solid && tran.Pos.X > loc.Transform.Pos.X {
 					tran.Pos.X = loc.Transform.Pos.X
 					if phys.Velocity.X > 0 {

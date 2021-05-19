@@ -1,9 +1,9 @@
 package main
 
 import (
-	"dwarf-sweeper/internal/cave"
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
+	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/state"
 	"dwarf-sweeper/internal/vfx"
@@ -20,7 +20,7 @@ import (
 )
 
 func run() {
-	//seed := int64(1619305348812219488)
+	//seed := int64(1621441470817460065)
 	seed := time.Now().UnixNano()
 	rand.Seed(seed)
 	fmt.Println("Seed:", seed)
@@ -39,17 +39,16 @@ func run() {
 
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = cfg.BaseH
-	camera.Cam.SetZoom(1.6)
+	camera.Cam.SetZoom(4. / 3.)
 	camera.Cam.SetILock(true)
-	camera.Cam.SetSize(1600, 900)
+	camera.Cam.SetSize(1600/900, cfg.BaseH)
 
 	debug.Initialize()
-	//debug.Debug = true
 	state.InitializeMenus()
 
 	vfx.Initialize()
 	particles.Initialize()
-	cave.Entities.Initialize()
+	dungeon.Entities.Initialize()
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")
@@ -121,7 +120,7 @@ func run() {
 			}
 			res := cfg.Resolutions[cfg.ResIndex]
 			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
-			camera.Cam.SetSize(res.X, res.Y)
+			camera.Cam.SetSize(res.X / res.Y, res.Y)
 		}
 	}
 }

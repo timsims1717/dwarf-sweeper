@@ -15,6 +15,7 @@ type input struct {
 	Scroll     float64
 	Debug      bool
 	DebugPause bool
+	DebugInv   bool
 	XDir       XDirection
 	XDirC      bool
 	Jumping    Button
@@ -22,6 +23,8 @@ type input struct {
 	IsMark     bool
 	LookUp     Button
 	LookDown   Button
+	ClimbUp    Button
+	ClimbDown  Button
 	UseCursor  bool
 	Back       bool
 	Fullscreen bool
@@ -75,6 +78,7 @@ func (i *input) Update(win *pixelgl.Window) {
 	i.World = camera.Cam.Mat.Unproject(win.MousePosition())
 	i.DebugPause = win.JustPressed(pixelgl.KeyF9)
 	i.Debug = win.JustPressed(pixelgl.KeyF3)
+	i.DebugInv = win.JustPressed(pixelgl.KeyF10)
 
 	i.Back = win.JustPressed(pixelgl.KeyEscape)
 
@@ -94,6 +98,8 @@ func (i *input) Update(win *pixelgl.Window) {
 	i.Fullscreen = win.JustPressed(pixelgl.KeyF)
 	i.LookUp.Set(win, pixelgl.KeyW)
 	i.LookDown.Set(win, pixelgl.KeyS)
+	i.ClimbUp.Set(win, pixelgl.KeyW)
+	i.ClimbDown.Set(win, pixelgl.KeyS)
 }
 
 type Button struct {

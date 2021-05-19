@@ -1,4 +1,4 @@
-package cave
+package dungeon
 
 import (
 	"dwarf-sweeper/internal/vfx"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	MineKnockback = 10.
+	MineKnockback = 20.
 )
 
 type Mine struct {
@@ -29,7 +29,7 @@ func (m *Mine) Update() {
 		m.animation.Update()
 		m.animation.SetMatrix(m.Transform.Mat)
 		if time.Since(m.Timer).Seconds() > 0.25 {
-			for _, n := range m.Tile.Coords.Neighbors() {
+			for _, n := range m.Tile.SubCoords.Neighbors() {
 				m.Tile.Chunk.Get(n).Destroy()
 			}
 			p := Player1.Transform.Pos.Sub(m.Tile.Transform.Pos)

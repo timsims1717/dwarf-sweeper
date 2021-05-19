@@ -1,4 +1,4 @@
-package cave
+package dungeon
 
 import (
 	"dwarf-sweeper/internal/debug"
@@ -25,6 +25,7 @@ import (
 )
 
 var (
+	ClimbSpeed = 50.
 	Speed = 75.
 	JumpVel = 150.
 	DigRange = 1.4
@@ -48,6 +49,7 @@ type Dwarf struct {
 	grounded    bool
 	digging     bool
 	marking     bool
+	climbing    bool
 	selected    *Tile
 	distFell    float64
 	cursorV     pixel.Vec
@@ -57,9 +59,10 @@ type Dwarf struct {
 	source      pixel.Vec
 	knockback   float64
 	Dead        bool
+	Inv         bool
 }
 
-func NewDwarf() *Dwarf {
+func NewDwarf(start pixel.Vec) *Dwarf {
 	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
 	if err != nil {
 		panic(err)
@@ -68,7 +71,7 @@ func NewDwarf() *Dwarf {
 	physicsT := &physics.Physics{
 		Transform: tran,
 	}
-	tran.Pos = pixel.V(16 * world.TileSize, -9 * world.TileSize)
+	tran.Pos = start
 	d := &Dwarf{
 		Transform:  physicsT,
 	}
@@ -142,6 +145,22 @@ func NewDwarf() *Dwarf {
 					}),
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
+							reanimator.NewAnim("climb_up", dwarfSheet, []int{18,19,20,21}, reanimator.Loop, nil), // climb_up
+							reanimator.NewAnim("climb_dwn", dwarfSheet, []int{21,20,19,18}, reanimator.Loop, nil), // climb_dwn
+							reanimator.NewAnim("climb_still", dwarfSheet, []int{18}, reanimator.Hold, nil), // climb_still
+						),
+						Check: func() int {
+							if d.Transform.Velocity.Y > 0. {
+								return 0
+							} else if d.Transform.Velocity.Y < 0. {
+								return 1
+							} else {
+								return 2
+							}
+						},
+					}),
+					reanimator.NewSwitch(&reanimator.Switch{
+						Elements: reanimator.NewElements(
 							reanimator.NewAnim("jump", dwarfSheet, []int{8, 9}, reanimator.Hold, nil), // jump
 							reanimator.NewAnim("fall", dwarfSheet, []int{10}, reanimator.Hold, nil), // fall
 						),
@@ -157,8 +176,10 @@ func NewDwarf() *Dwarf {
 				Check: func() int {
 					if d.grounded && !d.jumping {
 						return 0
-					} else {
+					} else if d.climbing {
 						return 1
+					} else {
+						return 2
 					}
 				},
 			}),
@@ -188,7 +209,7 @@ func (d *Dwarf) Update() {
 	dwn1 := CurrCave.GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
 	dwnlw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
 	dwnrw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
-	d.grounded = ((dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid)) && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0
+	d.grounded = ((dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid)) && (loc1 != nil && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0)
 	if d.Hurt {
 		if d.dmg > 0 {
 			// todo: damage to health
@@ -209,6 +230,7 @@ func (d *Dwarf) Update() {
 		d.digging = false
 		d.jumping = false
 		d.walking = false
+		d.climbing = false
 	} else {
 		d.selected = CurrCave.GetTile(input.Input.World)
 		if d.selected != nil {
@@ -217,6 +239,7 @@ func (d *Dwarf) Update() {
 				d.digging = true
 				d.jumping = false
 				d.walking = false
+				d.climbing = false
 				if d.selected.Transform.Pos.X < d.Transform.Pos.X {
 					d.faceLeft = true
 				} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
@@ -241,7 +264,10 @@ func (d *Dwarf) Update() {
 			dwnlj := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
 			dwnrj := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
 			dwn2 := CurrCave.GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.5))
+			right := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
+			left := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
 			canJump := (dwn1 != nil && dwn1.Solid) || (dwn2 != nil && dwn2.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid)
+			canClimb := (right != nil && right.Solid) || (left != nil && left.Solid)
 			switch input.Input.XDir {
 			case input.Left:
 				if input.Input.XDirC || d.Transform.Velocity.X >= 0. {
@@ -264,8 +290,10 @@ func (d *Dwarf) Update() {
 			// Ground test, considered on the ground for jumping purposes until half a tile out
 			if !d.jumping && loc1 != nil && canJump && input.Input.Jumping.JustPressed() {
 				d.toJump = true
+				d.climbing = false
 				d.toJumpTimer = time.Now()
 			} else if d.toJump && time.Since(d.toJumpTimer).Seconds() > 0.05 {
+				d.climbing = false
 				d.toJump = false
 				d.walking = false
 				d.jumping = true
@@ -274,6 +302,26 @@ func (d *Dwarf) Update() {
 				sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4)+1), 0.)
 				d.distFell = 0.
 				d.Transform.SetVelY(JumpVel, 0.)
+			} else if d.climbing {
+				if canClimb {
+					if input.Input.ClimbUp.Pressed() && !input.Input.ClimbDown.Pressed() {
+						d.Transform.SetVelY(ClimbSpeed, 0.)
+					} else if input.Input.ClimbDown.Pressed() && !input.Input.ClimbUp.Pressed() {
+						d.Transform.SetVelY(-ClimbSpeed, 0.)
+					} else {
+						d.Transform.SetVelY(0., 0.)
+					}
+				} else {
+					d.climbing = false
+				}
+			} else if canClimb && input.Input.ClimbUp.Pressed() {
+				d.climbing = true
+				d.Transform.SetVelY(ClimbSpeed, 0.)
+				if right != nil && right.Solid && (left == nil || !left.Solid) {
+					d.faceLeft = false
+				} else if left != nil && left.Solid && (right == nil || !right.Solid) {
+					d.faceLeft = true
+				}
 			} else if !d.jumping && d.grounded {
 				if math.Abs(d.Transform.Velocity.X) < 20.0 {
 					if input.Input.LookUp.Pressed() && !input.Input.LookDown.Pressed() {
@@ -282,18 +330,22 @@ func (d *Dwarf) Update() {
 						camera.Cam.Down()
 					}
 					d.walking = false
+					d.climbing = false
 				} else if d.Transform.Velocity.X > 0. {
 					d.faceLeft = false
 					d.walking = true
+					d.climbing = false
 				} else if d.Transform.Velocity.X < 0. {
 					d.faceLeft = true
 					d.walking = true
+					d.climbing = false
 				}
 				if d.walking {
 					d.distFell = 0.
 				}
 			} else {
 				d.walking = false
+				d.climbing = false
 				if d.jumping {
 					dist := int((d.Transform.Pos.Y - d.jumpOrigY) / world.TileSize)
 					if ((dist < MaxJump - 2 && input.Input.Jumping.Pressed()) || dist == d.jumpHeight) && d.Transform.Velocity.Y > 0. {
@@ -338,10 +390,12 @@ func (d *Dwarf) Draw(win *pixelgl.Window) {
 	if debug.Debug {
 		if d.selected != nil {
 			debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(input.Input.World.X), int(input.Input.World.Y)))
-			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.Coords.X, d.selected.Coords.Y))
+			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.selected.Chunk.Coords.X, d.selected.Chunk.Coords.Y))
+			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.SubCoords.X, d.selected.SubCoords.Y))
 			debug.AddText(fmt.Sprintf("tile type: '%s'", d.selected.Type))
 			debug.AddText(fmt.Sprintf("tile sprite: '%s'", d.selected.BGSpriteS))
 		}
+		debug.AddText(fmt.Sprintf("dwarf position: (%d,%d)", int(d.Transform.APos.X), int(d.Transform.APos.Y)))
 		debug.AddText(fmt.Sprintf("dwarf velocity: (%d,%d)", int(d.Transform.Velocity.X), int(d.Transform.Velocity.Y)))
 		debug.AddText(fmt.Sprintf("dwarf moving?: (%t,%t)", d.Transform.IsMovingX(), d.Transform.IsMovingY()))
 		debug.AddText(fmt.Sprintf("jump pressed?: %t", input.Input.Jumping.Pressed()))
@@ -349,7 +403,7 @@ func (d *Dwarf) Draw(win *pixelgl.Window) {
 }
 
 func (d *Dwarf) Damage(dmg float64, source pixel.Vec, knockback float64) {
-	if dmg > 0 {
+	if dmg > 0 && !d.Inv {
 		d.Hurt = true
 		d.dmg = dmg
 		d.source = source

@@ -3,7 +3,7 @@ package cfg
 import "github.com/faiface/pixel"
 
 const (
-	Title = "Dwarf Sweeper"
+	Title = "DwarfSweeper"
 	BaseW = 320.
 	BaseH = 240.
 

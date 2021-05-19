@@ -19,7 +19,7 @@ func InitializeText() {
 }
 
 func DrawText(win *pixelgl.Window) {
-	debugText.Transform.UIPos = camera.Cam.Pos
+	debugText.Transform.UIPos = camera.Cam.APos
 	debugText.Transform.UIZoom = camera.Cam.GetZoomScale()
 	debugText.Update(pixel.Rect{})
 	debugText.Draw(win)
