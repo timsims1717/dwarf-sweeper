@@ -61,15 +61,15 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 			tile = NewTile(x, y, coords, b, chunk)
 		}
 		if b {
-			if rand.Intn(2) == 0 {
+			//if rand.Intn(2) == 0 {
 				tile.AddEntity(&Bomb{
 					Tile: tile,
 				})
-			} else {
-				tile.AddEntity(&Mine{
-					Tile: tile,
-				})
-			}
+			//} else {
+			//	tile.AddEntity(&Mine{
+			//		Tile: tile,
+			//	})
+			//}
 		}
 		if !b && rand.Intn(20) == 0 {
 			tile.AddEntity(&Gem{})

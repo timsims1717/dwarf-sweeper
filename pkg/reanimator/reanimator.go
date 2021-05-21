@@ -37,10 +37,12 @@ func Update() {
 }
 
 func New(root *Switch) *Tree {
-	return &Tree{
+	t := &Tree{
 		Root:   root,
 		update: true,
 	}
+	t.Update()
+	return t
 }
 
 func (t *Tree) ForceUpdate() {
@@ -118,7 +120,24 @@ func NewElements(els ...*switchEl) []*switchEl {
 	return els
 }
 
-func NewAnim(key string, spriteSheet *img.SpriteSheet, rs []int, f Finish, tFn func()) *switchEl {
+func NewAnimFromSprites(key string, spr []*pixel.Sprite, f Finish, tFn func()) *switchEl {
+	var tfn func()
+	if f == Tran {
+		tfn = tFn
+	}
+	return &switchEl{
+		Switch: nil,
+		Anim: &Anim{
+			Key:    key,
+			S:      spr,
+			Step:   0,
+			Finish: f,
+			Tran:   tfn,
+		},
+	}
+}
+
+func NewAnimFromSheet(key string, spriteSheet *img.SpriteSheet, rs []int, f Finish, tFn func()) *switchEl {
 	var spr []*pixel.Sprite
 	for _, r := range rs {
 		spr = append(spr, pixel.NewSprite(spriteSheet.Img, spriteSheet.Sprites[r]))

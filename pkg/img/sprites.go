@@ -89,6 +89,7 @@ type sprite struct {
 	Loop bool    `json:"loop"`
 	Hold bool    `json:"hold"`
 	Dur  float64 `json:"dur"`
+	Anim bool    `json:"anim"`
 }
 
 func LoadSpriteSheet(path string) (*SpriteSheet, error) {
@@ -137,7 +138,7 @@ func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 				def.Sprites = append(def.Sprites, rect)
 				sheet.AnimMap[r.K] = def
 			} else {
-				if r.Dur != 0.0 {
+				if r.Dur != 0.0 || r.Anim {
 					sheet.AnimMap[r.K] = AnimDef{
 						Loop:    r.Loop,
 						Hold:    r.Hold,

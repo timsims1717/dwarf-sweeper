@@ -69,6 +69,9 @@ func Update(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		if win.Focused() {
+			if input.Input.Debug {
+				fmt.Println("DEBUG PAUSE")
+			}
 			reanimator.Update()
 			dungeon.CurrCave.Update(dungeon.Player1.Transform.Pos)
 			systems.PhysicsSystem()
@@ -85,7 +88,8 @@ func Update(win *pixelgl.Window) {
 				timerKeys["death"] = true
 			}
 			if dead, ok := timerKeys["death"]; ok && dead {
-				if time.Since(timer).Seconds() > 1. {
+				if (time.Since(timer).Seconds() > 1. && dungeon.Player1.DeadStop) ||
+					(time.Since(timer).Seconds() > 3. && dungeon.Player1.Dead) {
 					newState = 2
 				}
 			}
@@ -214,7 +218,7 @@ func updateState() {
 			if err != nil {
 				panic(err)
 			}
-			dungeon.CurrCave = dungeon.NewRoomyCave(sheet, -1, 1, 1)
+			dungeon.CurrCave = dungeon.NewRoomyCave(sheet, -1, 1, 2)
 			//dungeon.CurrCave = dungeon.NewInfiniteCave(sheet)
 
 			dungeon.Player1 = dungeon.NewDwarf(dungeon.CurrCave.GetStart())

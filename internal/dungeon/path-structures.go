@@ -33,18 +33,7 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction) []worl
 	}
 	curr := start
 	tile := cave.GetTileInt(curr.X, curr.Y)
-	if tile != nil && !tile.neverChange && !tile.isChanged {
-		tile.Solid = false
-		tile.Type = Empty
-		tile.BGSprite = nil
-		tile.breakable = false
-		tile.bomb = false
-		tile.neverChange = true
-		tile.isChanged = true
-		tile.Entities = []Entity{}
-		tile.UpdateSprites()
-		path = append(path, curr)
-	}
+	wallUp(tile, pDir.width < 3)
 	done := false
 	for !done {
 		pDir.l = true
@@ -173,7 +162,7 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction) []worl
 			}
 		}
 		tile = cave.GetTileInt(curr.X, curr.Y)
-		wallUp(tile, pDir.width == 1)
+		wallUp(tile, pDir.width < 3)
 		ns := tile.SubCoords.Neighbors()
 		if pDir.width == 3 || (pDir.width == 2 && pDir.wLeft) {
 			z := tile.Chunk.Get(ns[4])
@@ -217,7 +206,6 @@ func wallUp(tile *Tile, noBomb bool) {
 			tile.bomb = false
 			tile.Entities = []Entity{}
 		}
-		tile.neverChange = true
 		tile.isChanged = true
 		tile.UpdateSprites()
 		for _, n := range tile.SubCoords.Neighbors() {

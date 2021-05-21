@@ -24,6 +24,7 @@ func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve in
 						if y == b && util.Abs(x - door.X) < 2 {
 							tile.Type = Wall
 							tile.breakable = false
+							tile.neverChange = true
 						} else {
 							tile.Type = Block
 							tile.breakable = true
@@ -53,6 +54,7 @@ func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve in
 						}
 						tile.Solid = false
 						tile.Type = TileType(ty)
+						tile.neverChange = true
 						tile.BGSpriteS = s
 						if s != "" {
 							tile.BGSprite = cave.batcher.Sprites[s]
@@ -62,7 +64,6 @@ func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve in
 						tile.breakable = false
 					}
 					tile.bomb = false
-					tile.neverChange = true
 					tile.isChanged = true
 					tile.Entities = []Entity{}
 					tile.UpdateSprites()
@@ -72,7 +73,29 @@ func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve in
 	}
 }
 
-func RectRoom(cave *Cave, min, max int) {
+func RectRoom(cave *Cave, tl world.Coords, width, height int) {
+	for y := tl.Y; y < tl.Y + height; y++ {
+		for x := tl.X; x < tl.X + width; x++ {
+			tile := cave.GetTileInt(x, y)
+			if tile != nil {
+				if !tile.neverChange && !tile.isChanged && (x == tl.X || x == tl.X+width-1 || y == tl.Y || y == tl.Y+height-1) {
+					tile.Type = Wall
+					tile.breakable = false
+					tile.Solid = true
+					tile.UpdateSprites()
+				} else if !tile.neverChange && !tile.isChanged {
+					tile.Solid = true
+					tile.Type = Block
+					tile.breakable = true
+					tile.isChanged = true
+					tile.UpdateSprites()
+				}
+			}
+		}
+	}
+}
+
+func RandRectRoom(cave *Cave, min, max int, include world.Coords) {
 	s := max - min
 	width, height := cave.Dimensions()
 	if max > width * ChunkSize || max > height * ChunkSize {
@@ -81,21 +104,25 @@ func RectRoom(cave *Cave, min, max int) {
 	}
 	w := rand.Intn(s) + min
 	h := rand.Intn(s) + min
-	sX := rand.Intn(width - w)
-	sY := rand.Intn(height - h)
-	for y := sY; y < sY + h; y++ {
-		for x := sX; x < sX+w; x++ {
+	sX := include.X - w + 1
+	sY := include.Y - h + 1
+	tlX := rand.Intn(w - 2) + sX
+	tlY := rand.Intn(h - 2) + sY
+	for y := tlY; y < tlY + h; y++ {
+		for x := tlX; x < tlX+w; x++ {
 			tile := cave.GetTileInt(x, y)
 			if tile != nil {
-				if !tile.neverChange && !tile.isChanged && (x == sX || x == sX+w-1 || y == sY || y == sY+h-1) {
+				if !tile.neverChange && !tile.isChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
 					tile.Type = Wall
 					tile.breakable = false
 					tile.Solid = true
-					tile.bomb = false
-					tile.Entities = []Entity{}
 					tile.UpdateSprites()
-				} else {
+				} else if !tile.neverChange && !tile.isChanged {
+					tile.Solid = true
+					tile.Type = Block
+					tile.breakable = true
 					tile.isChanged = true
+					tile.UpdateSprites()
 				}
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
+	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
@@ -145,6 +146,7 @@ func (cave *Cave) CurrentBoundaries() (pixel.Vec, pixel.Vec) {
 func (cave *Cave) GetTileInt(x, y int) *Tile {
 	cX := x / ChunkSize
 	if x < 0 {
+		cX = (x + 1) / ChunkSize
 		cX--
 	}
 	tX := x % ChunkSize
@@ -177,6 +179,23 @@ func (cave *Cave) GetStart() pixel.Vec {
 	return cave.GetTileInt(cave.StartC.X, cave.StartC.Y).Transform.Pos
 }
 
+func (cave *Cave) markAsNotChanged() {
+	for _, chunk := range cave.RChunks {
+		for _, row := range chunk.Rows {
+			for _, tile := range row {
+				tile.isChanged = false
+			}
+		}
+	}
+	for _, chunk := range cave.LChunks {
+		for _, row := range chunk.Rows {
+			for _, tile := range row {
+				tile.isChanged = false
+			}
+		}
+	}
+}
+
 func WorldToChunk(v pixel.Vec) world.Coords {
 	if v.X >= 0 - world.TileSize * 0.5 {
 		return world.Coords{X: int((v.X+world.TileSize*0.5) / ChunkSize / world.TileSize), Y: int(-(v.Y-world.TileSize*0.5) / ChunkSize / world.TileSize)}
@@ -195,5 +214,34 @@ func WorldToTile(v pixel.Vec, left bool) world.Coords {
 	return world.Coords{
 		X: x % ChunkSize,
 		Y: y % ChunkSize,
+	}
+}
+
+func (cave *Cave) PrintCaveToTerminal() {
+	if cave.finite {
+		fmt.Println("Printing cave ... ")
+		fmt.Println()
+		for y := 0; y < (cave.bottom + 1) * ChunkSize; y++ {
+			for x := cave.left * ChunkSize; x < (cave.right+1)*ChunkSize; x++ {
+				tile := cave.GetTileInt(x, y)
+				if tile != nil {
+					switch tile.Type {
+					case Block, Value:
+						if tile.bomb {
+							fmt.Print("ó")
+						} else {
+							fmt.Print("□")
+						}
+					case Wall:
+						fmt.Print("▣")
+					case Deco:
+						fmt.Print("*")
+					case Empty:
+						fmt.Print(" ")
+					}
+				}
+			}
+			fmt.Print("\n")
+		}
 	}
 }

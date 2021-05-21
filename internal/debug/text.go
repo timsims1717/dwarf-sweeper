@@ -14,7 +14,9 @@ var (
 )
 
 func InitializeText() {
-	debugText = menu.NewItemText("", colornames.Aliceblue, pixel.V(1., 1.), menu.Left, menu.Top)
+	col := colornames.Aliceblue
+	col.A = 90
+	debugText = menu.NewItemText("", col, pixel.V(1., 1.), menu.Left, menu.Top)
 	debugText.Transform.Pos = pixel.V(cfg.BaseW * -0.5, cfg.BaseH * 0.5)
 }
 

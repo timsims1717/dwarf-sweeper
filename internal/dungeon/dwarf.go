@@ -58,6 +58,7 @@ type Dwarf struct {
 	dmg         float64
 	source      pixel.Vec
 	knockback   float64
+	DeadStop    bool
 	Dead        bool
 	Inv         bool
 }
@@ -81,8 +82,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				Elements: reanimator.NewElements(
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-								reanimator.NewAnim("hit_front", dwarfSheet, []int{15}, reanimator.Hold, nil), // hit_front
-								reanimator.NewAnim("hit_back", dwarfSheet, []int{16}, reanimator.Hold, nil), // hit_back
+								reanimator.NewAnimFromSheet("hit_front", dwarfSheet, []int{15}, reanimator.Hold, nil), // hit_front
+								reanimator.NewAnimFromSheet("hit_back", dwarfSheet, []int{16}, reanimator.Hold, nil),  // hit_back
 							),
 						Check: func() int {
 							if d.faceLeft {
@@ -100,7 +101,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							}
 						},
 					}),
-					reanimator.NewAnim("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
+					reanimator.NewAnimFromSheet("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
 				),
 				Check: func() int {
 					if !d.grounded || d.Transform.IsMovingX() {
@@ -110,21 +111,21 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}
 				},
 			}),
-			reanimator.NewAnim("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, func() {
+			reanimator.NewAnimFromSheet("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, func() {
 				d.digging = false
 			}), // digging
-			reanimator.NewAnim("mark", dwarfSheet, []int{14}, reanimator.Tran, func() {
+			reanimator.NewAnimFromSheet("mark", dwarfSheet, []int{14}, reanimator.Tran, func() {
 				d.marking = false
 			}), // marking
 			reanimator.NewSwitch(&reanimator.Switch{
 				Elements: reanimator.NewElements(
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-							reanimator.NewAnim("run", dwarfSheet, []int{4, 5, 6, 7}, reanimator.Loop, nil), // run
+							reanimator.NewAnimFromSheet("run", dwarfSheet, []int{4, 5, 6, 7}, reanimator.Loop, nil), // run
 							reanimator.NewSwitch(&reanimator.Switch{
 								Elements: reanimator.NewElements(
-									reanimator.NewAnim("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
-									reanimator.NewAnim("idle", dwarfSheet, []int{0, 1, 2, 3}, reanimator.Loop, nil), // idle
+									reanimator.NewAnimFromSheet("flat", dwarfSheet, []int{17}, reanimator.Hold, nil),         // flat
+									reanimator.NewAnimFromSheet("idle", dwarfSheet, []int{0, 1, 2, 3}, reanimator.Loop, nil), // idle
 								),
 								Check: func() int {
 									if d.distFell > 100. {
@@ -145,9 +146,9 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}),
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-							reanimator.NewAnim("climb_up", dwarfSheet, []int{18,19,20,21}, reanimator.Loop, nil), // climb_up
-							reanimator.NewAnim("climb_dwn", dwarfSheet, []int{21,20,19,18}, reanimator.Loop, nil), // climb_dwn
-							reanimator.NewAnim("climb_still", dwarfSheet, []int{18}, reanimator.Hold, nil), // climb_still
+							reanimator.NewAnimFromSheet("climb_up", dwarfSheet, []int{18,19,20,21}, reanimator.Loop, nil),  // climb_up
+							reanimator.NewAnimFromSheet("climb_dwn", dwarfSheet, []int{21,20,19,18}, reanimator.Loop, nil), // climb_dwn
+							reanimator.NewAnimFromSheet("climb_still", dwarfSheet, []int{18}, reanimator.Hold, nil),        // climb_still
 						),
 						Check: func() int {
 							if d.Transform.Velocity.Y > 0. {
@@ -161,8 +162,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}),
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-							reanimator.NewAnim("jump", dwarfSheet, []int{8, 9}, reanimator.Hold, nil), // jump
-							reanimator.NewAnim("fall", dwarfSheet, []int{10}, reanimator.Hold, nil), // fall
+							reanimator.NewAnimFromSheet("jump", dwarfSheet, []int{8, 9}, reanimator.Hold, nil), // jump
+							reanimator.NewAnimFromSheet("fall", dwarfSheet, []int{10}, reanimator.Hold, nil),   // fall
 						),
 						Check: func() int {
 							if d.Transform.Velocity.Y > 0. {
@@ -211,6 +212,7 @@ func (d *Dwarf) Update() {
 	dwnrw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
 	d.grounded = ((dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid)) && (loc1 != nil && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0)
 	if d.Hurt {
+		d.Dead = true
 		if d.dmg > 0 {
 			// todo: damage to health
 			if d.knockback > 0.1 {
@@ -225,7 +227,7 @@ func (d *Dwarf) Update() {
 		} else if d.grounded && !d.Transform.IsMovingX() {
 			d.Transform.CancelMovement()
 			d.distFell = 150.
-			d.Dead = true
+			d.DeadStop = true
 		}
 		d.digging = false
 		d.jumping = false
@@ -291,6 +293,7 @@ func (d *Dwarf) Update() {
 			if !d.jumping && loc1 != nil && canJump && input.Input.Jumping.JustPressed() {
 				d.toJump = true
 				d.climbing = false
+				d.walking = false
 				d.toJumpTimer = time.Now()
 			} else if d.toJump && time.Since(d.toJumpTimer).Seconds() > 0.05 {
 				d.climbing = false
@@ -303,7 +306,9 @@ func (d *Dwarf) Update() {
 				d.distFell = 0.
 				d.Transform.SetVelY(JumpVel, 0.)
 			} else if d.climbing {
+				d.grounded = false
 				if canClimb {
+					d.distFell = 0.
 					if input.Input.ClimbUp.Pressed() && !input.Input.ClimbDown.Pressed() {
 						d.Transform.SetVelY(ClimbSpeed, 0.)
 					} else if input.Input.ClimbDown.Pressed() && !input.Input.ClimbUp.Pressed() {
@@ -311,11 +316,20 @@ func (d *Dwarf) Update() {
 					} else {
 						d.Transform.SetVelY(0., 0.)
 					}
+					if right != nil && right.Solid && (left == nil || !left.Solid) {
+						d.faceLeft = false
+					} else if left != nil && left.Solid && (right == nil || !right.Solid) {
+						d.faceLeft = true
+					}
 				} else {
 					d.climbing = false
 				}
 			} else if canClimb && input.Input.ClimbUp.Pressed() {
 				d.climbing = true
+				d.walking = false
+				d.jumping = false
+				d.toJump = false
+				d.grounded = false
 				d.Transform.SetVelY(ClimbSpeed, 0.)
 				if right != nil && right.Solid && (left == nil || !left.Solid) {
 					d.faceLeft = false
@@ -334,11 +348,9 @@ func (d *Dwarf) Update() {
 				} else if d.Transform.Velocity.X > 0. {
 					d.faceLeft = false
 					d.walking = true
-					d.climbing = false
 				} else if d.Transform.Velocity.X < 0. {
 					d.faceLeft = true
 					d.walking = true
-					d.climbing = false
 				}
 				if d.walking {
 					d.distFell = 0.
@@ -390,12 +402,14 @@ func (d *Dwarf) Draw(win *pixelgl.Window) {
 	if debug.Debug {
 		if d.selected != nil {
 			debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(input.Input.World.X), int(input.Input.World.Y)))
+			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.RCoords.X, d.selected.RCoords.Y))
 			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.selected.Chunk.Coords.X, d.selected.Chunk.Coords.Y))
-			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.SubCoords.X, d.selected.SubCoords.Y))
+			debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.selected.SubCoords.X, d.selected.SubCoords.Y))
 			debug.AddText(fmt.Sprintf("tile type: '%s'", d.selected.Type))
 			debug.AddText(fmt.Sprintf("tile sprite: '%s'", d.selected.BGSpriteS))
 		}
 		debug.AddText(fmt.Sprintf("dwarf position: (%d,%d)", int(d.Transform.APos.X), int(d.Transform.APos.Y)))
+		debug.AddText(fmt.Sprintf("dwarf actual position: (%f,%f)", d.Transform.Pos.X, d.Transform.Pos.Y))
 		debug.AddText(fmt.Sprintf("dwarf velocity: (%d,%d)", int(d.Transform.Velocity.X), int(d.Transform.Velocity.Y)))
 		debug.AddText(fmt.Sprintf("dwarf moving?: (%t,%t)", d.Transform.IsMovingX(), d.Transform.IsMovingY()))
 		debug.AddText(fmt.Sprintf("jump pressed?: %t", input.Input.Jumping.Pressed()))

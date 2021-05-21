@@ -37,7 +37,7 @@ func CollisionSystem() {
 						phys.Velocity.Y = 0
 					}
 				}
-				if (dwn != nil && dwn.Solid) || (dwnr != nil && dwnr.Solid) || (dwnl != nil && dwnl.Solid) {
+				if ((dwn != nil && dwn.Solid) || (dwnr != nil && dwnr.Solid) || (dwnl != nil && dwnl.Solid)) && tran.Pos.Y < loc.Transform.Pos.Y {
 					tran.Pos.Y = loc.Transform.Pos.Y
 					if phys.Velocity.Y < 0 {
 						phys.Velocity.Y = 0

@@ -17,46 +17,39 @@
    "y": 64
   },
   {
-   "key": "bomb",
-   "loop": false,
-   "hold": false,
-   "dur": 0.75,
+   "key": "bomb_unlit",
+   "anim": true,
+   "x": 0,
+   "y": 48
+  },
+  {
+   "key": "bomb_fuse",
+   "anim": true,
    "x": 16,
    "y": 48
   },
   {
-   "key": "bomb",
+   "key": "bomb_fuse",
+   "anim": true,
    "x": 32,
    "y": 48
   },
   {
-   "key": "bomb",
+   "key": "bomb_blow",
+   "anim": true,
    "x": 48,
    "y": 48
   },
   {
-   "key": "bomb",
+   "key": "bomb_blow",
+   "anim": true,
    "x": 64,
    "y": 48
   },
   {
-   "key": "bomb",
+   "key": "bomb_blow",
+   "anim": true,
    "x": 80,
-   "y": 48
-  },
-  {
-   "key": "bomb",
-   "x": 96,
-   "y": 48
-  },
-  {
-   "key": "bomb",
-   "x": 112,
-   "y": 48
-  },
-  {
-   "key": "bomb",
-   "x": 128,
    "y": 48
   },
   {
