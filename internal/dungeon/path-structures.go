@@ -15,7 +15,7 @@ const (
 	Down
 )
 
-func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction) []world.Coords {
+func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb bool) []world.Coords {
 	var path []world.Coords
 	type pathDir struct {
 		l     bool
@@ -33,7 +33,7 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction) []worl
 	}
 	curr := start
 	tile := cave.GetTileInt(curr.X, curr.Y)
-	wallUp(tile, pDir.width < 3)
+	wallUp(tile, pDir.width < 3 && rb)
 	done := false
 	for !done {
 		pDir.l = true
@@ -162,27 +162,27 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction) []worl
 			}
 		}
 		tile = cave.GetTileInt(curr.X, curr.Y)
-		wallUp(tile, pDir.width < 3)
+		wallUp(tile, pDir.width < 3 && rb)
 		ns := tile.SubCoords.Neighbors()
 		if pDir.width == 3 || (pDir.width == 2 && pDir.wLeft) {
 			z := tile.Chunk.Get(ns[4])
-			wallUp(z, false)
+			wallUp(z, pDir.width < 3 && rb)
 			y := tile.Chunk.Get(ns[5])
-			wallUp(y, false)
+			wallUp(y, pDir.width < 3 && rb)
 			x := tile.Chunk.Get(ns[6])
-			wallUp(x, false)
+			wallUp(x, pDir.width < 3 && rb)
 			w := tile.Chunk.Get(ns[7])
-			wallUp(w, false)
+			wallUp(w, pDir.width < 3 && rb)
 		}
 		if pDir.width == 3 || (pDir.width == 2 && !pDir.wLeft) {
 			v := tile.Chunk.Get(ns[0])
-			wallUp(v, false)
+			wallUp(v, pDir.width < 3 && rb)
 			u := tile.Chunk.Get(ns[1])
-			wallUp(u, false)
+			wallUp(u, pDir.width < 3 && rb)
 			t := tile.Chunk.Get(ns[2])
-			wallUp(t, false)
+			wallUp(t, pDir.width < 3 && rb)
 			s := tile.Chunk.Get(ns[3])
-			wallUp(s, false)
+			wallUp(s, pDir.width < 3 && rb)
 		}
 		path = append(path, curr)
 		if curr == end {

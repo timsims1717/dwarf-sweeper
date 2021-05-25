@@ -12,6 +12,7 @@ var(
 	LowestLevel      int
 	LowestLevelItem  *menu.ItemText
 	LowestLevelTimer = 0.6
+	LowTotal         int
 	GemsFound        int
 	GemsFoundItem    *menu.ItemText
 	GemsFoundTimer   = 0.8

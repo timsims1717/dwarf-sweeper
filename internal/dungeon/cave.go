@@ -9,18 +9,19 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var CurrCave *Cave
-
 type Cave struct {
-	RChunks map[world.Coords]*Chunk
-	LChunks map[world.Coords]*Chunk
-	pivot   pixel.Vec
-	finite  bool
-	batcher *img.Batcher
-	left    int
-	right   int
-	bottom  int
-	StartC  world.Coords
+	RChunks  map[world.Coords]*Chunk
+	LChunks  map[world.Coords]*Chunk
+	pivot    pixel.Vec
+	finite   bool
+	batcher  *img.Batcher
+	left     int
+	right    int
+	bottom   int
+	StartC   world.Coords
+	bombPMin float64
+	bombPMax float64
+	fuseLen  float64
 }
 
 func (cave *Cave) Update(pos pixel.Vec) {

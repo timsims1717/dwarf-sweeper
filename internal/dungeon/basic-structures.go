@@ -7,7 +7,7 @@ import (
 	"math/rand"
 )
 
-func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve int) {
+func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve int, exit bool) {
 	t := door.Y - height
 	b := door.Y + 1
 	l := door.X - width / 2
@@ -36,6 +36,9 @@ func EntranceExit(cave *Cave, door world.Coords, width, height int, roofCurve in
 						if x == door.X && y == door.Y {
 							ty = Deco
 							s = "door"
+							if exit {
+								tile.Exit = true
+							}
 						} else if x == door.X - 1 && y == door.Y {
 							ty = Deco
 							s = "door_l"

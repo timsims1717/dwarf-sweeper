@@ -7,6 +7,7 @@ var Debug = false
 func Initialize() {
 	InitializeLines()
 	InitializeText()
+	InitializeFPS()
 }
 
 func Draw(win *pixelgl.Window) {
@@ -14,9 +15,11 @@ func Draw(win *pixelgl.Window) {
 		DrawLines(win)
 		DrawText(win)
 	}
+	DrawFPS(win)
 }
 
 func Clear() {
 	imd.Clear()
 	debugText.SetText("")
+	fpsText.SetText("")
 }

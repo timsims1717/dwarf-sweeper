@@ -70,6 +70,7 @@ type Tile struct {
 	destroying bool
 	reload     bool
 	marked     bool
+	Exit       bool
 
 	neverChange bool
 	isChanged   bool

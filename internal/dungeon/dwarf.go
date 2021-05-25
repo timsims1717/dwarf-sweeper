@@ -32,8 +32,6 @@ var (
 	MaxJump = 4
 )
 
-var Player1 *Dwarf
-
 type Dwarf struct {
 	Transform   *physics.Physics
 	Reanimator  *reanimator.Tree
@@ -206,10 +204,10 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 }
 
 func (d *Dwarf) Update() {
-	loc1 := CurrCave.GetTile(d.Transform.Pos)
-	dwn1 := CurrCave.GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
-	dwnlw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
-	dwnrw := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
+	loc1 := Dungeon.GetCave().GetTile(d.Transform.Pos)
+	dwn1 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
+	dwnlw := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
+	dwnrw := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
 	d.grounded = ((dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid)) && (loc1 != nil && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0)
 	if d.Hurt {
 		d.Dead = true
@@ -234,7 +232,7 @@ func (d *Dwarf) Update() {
 		d.walking = false
 		d.climbing = false
 	} else {
-		d.selected = CurrCave.GetTile(input.Input.World)
+		d.selected = Dungeon.GetCave().GetTile(input.Input.World)
 		if d.selected != nil {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.selected.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.selected.Transform.Pos.Y) < world.TileSize*DigRange
 			if input.Input.IsDig && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
@@ -263,11 +261,11 @@ func (d *Dwarf) Update() {
 		if d.digging {
 			d.Transform.Velocity = pixel.ZV
 		} else if !d.marking {
-			dwnlj := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
-			dwnrj := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
-			dwn2 := CurrCave.GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.5))
-			right := CurrCave.GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
-			left := CurrCave.GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
+			dwnlj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
+			dwnrj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
+			dwn2 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.5))
+			right := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
+			left := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
 			canJump := (dwn1 != nil && dwn1.Solid) || (dwn2 != nil && dwn2.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid)
 			canClimb := (right != nil && right.Solid) || (left != nil && left.Solid)
 			switch input.Input.XDir {

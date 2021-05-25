@@ -23,7 +23,7 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 	// Array of 1024 bools
 	list := [ChunkCnt]bool{}
 	// fill first 10-20% with true
-	bCount := rand.Intn(ChunkCnt / 10) + ChunkCnt / 10
+	bCount := rand.Intn(ChunkCnt / int(100 * (cave.bombPMax - cave.bombPMin)) + ChunkCnt / int(100 * cave.bombPMin))
 	for i := 0; i < bCount; i++ {
 		list[i] = true
 	}
@@ -64,6 +64,7 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 			//if rand.Intn(2) == 0 {
 				tile.AddEntity(&Bomb{
 					Tile: tile,
+					FuseLength: tile.Chunk.Cave.fuseLen,
 				})
 			//} else {
 			//	tile.AddEntity(&Mine{

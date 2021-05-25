@@ -61,8 +61,8 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Debug = !debug.Debug
 	}
-	if input.Input.DebugInv && dungeon.Player1 != nil {
-		dungeon.Player1.Inv = !dungeon.Player1.Inv
+	if input.Input.DebugInv && dungeon.Dungeon.GetPlayer() != nil {
+		dungeon.Dungeon.GetPlayer().Inv = !dungeon.Dungeon.GetPlayer().Inv
 	}
 	if debug.Debug {
 		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, input.Input.World, 1.)
@@ -73,7 +73,7 @@ func Update(win *pixelgl.Window) {
 				fmt.Println("DEBUG PAUSE")
 			}
 			reanimator.Update()
-			dungeon.CurrCave.Update(dungeon.Player1.Transform.Pos)
+			dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
 			systems.PhysicsSystem()
 			systems.TransformSystem()
 			systems.CollisionSystem()
@@ -82,26 +82,29 @@ func Update(win *pixelgl.Window) {
 			dungeon.Entities.Update()
 			particles.Update()
 			vfx.Update()
-			dungeon.Player1.Update()
-			if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Player1.Dead {
+			dungeon.Dungeon.GetPlayer().Update()
+			if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Dead {
 				timer = time.Now()
 				timerKeys["death"] = true
 			}
 			if dead, ok := timerKeys["death"]; ok && dead {
-				if (time.Since(timer).Seconds() > 1. && dungeon.Player1.DeadStop) ||
-					(time.Since(timer).Seconds() > 3. && dungeon.Player1.Dead) {
+				if (time.Since(timer).Seconds() > 1. && dungeon.Dungeon.GetPlayer().DeadStop) ||
+					(time.Since(timer).Seconds() > 3. && dungeon.Dungeon.GetPlayer().Dead) {
 					newState = 2
 				}
 			}
 			if input.Input.Back {
 				newState = 1
 			}
-			bl, tr := dungeon.CurrCave.CurrentBoundaries()
+			bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
 			bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
 			bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
 			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
 			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
 			camera.Cam.Restrict(bl, tr)
+			if input.Input.LookUp.JustPressed() && dungeon.Dungeon.GetPlayerTile().Exit {
+				state = -1
+			}
 		}
 	} else if state == 1 {
 		title.Transform.UIPos = camera.Cam.APos
@@ -116,7 +119,7 @@ func Update(win *pixelgl.Window) {
 			SwitchToMain()
 		}
 	} else if state == 2 {
-		dungeon.CurrCave.Update(dungeon.Player1.Transform.Pos)
+		dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
 		systems.PhysicsSystem()
 		systems.TransformSystem()
 		systems.CollisionSystem()
@@ -124,7 +127,7 @@ func Update(win *pixelgl.Window) {
 		dungeon.Entities.Update()
 		particles.Update()
 		vfx.Update()
-		dungeon.Player1.Update()
+		dungeon.Dungeon.GetPlayer().Update()
 		dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
 		dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
 		dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
@@ -155,14 +158,16 @@ func Update(win *pixelgl.Window) {
 			input.Input.Click.Consume()
 			newState = 1
 		}
+	} else if state == 4 {
+		newState = 0
 	}
 	camera.Cam.Update(win)
 }
 
 func Draw(win *pixelgl.Window) {
 	if state == 0 {
-		dungeon.CurrCave.Draw(win)
-		dungeon.Player1.Draw(win)
+		dungeon.Dungeon.GetCave().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win)
 		dungeon.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
@@ -173,8 +178,8 @@ func Draw(win *pixelgl.Window) {
 		Options.Draw(win)
 		title.Draw(win)
 	} else if state == 2 {
-		dungeon.CurrCave.Draw(win)
-		dungeon.Player1.Draw(win)
+		dungeon.Dungeon.GetCave().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win)
 		dungeon.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
@@ -207,27 +212,35 @@ func updateState() {
 	if state != newState {
 		timerKeys = make(map[string]bool)
 		// uninitialize
-		//switch state {
-		//case 0:
-		//
-		//}
+		switch state {
+		case 0:
+
+		}
 		// initialize
 		switch newState {
 		case 0:
+			if dungeon.Dungeon.Level == 0 {
+				dungeon.BlocksDug = 0
+				dungeon.LowestLevel = 0
+				dungeon.LowTotal = 0
+				dungeon.GemsFound = 0
+				dungeon.BombsMarked = 0
+				dungeon.WrongMarks = 0
+			} else {
+				dungeon.LowTotal = dungeon.LowestLevel
+				dungeon.LowestLevel = 0
+			}
+			dungeon.Dungeon.Level++
+
 			sheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
 			if err != nil {
 				panic(err)
 			}
-			dungeon.CurrCave = dungeon.NewRoomyCave(sheet, -1, 1, 2)
+			dungeon.Dungeon.SetCave(dungeon.NewRoomyCave(sheet, dungeon.Dungeon.Level, -1, 1, 2))
 			//dungeon.CurrCave = dungeon.NewInfiniteCave(sheet)
 
-			dungeon.Player1 = dungeon.NewDwarf(dungeon.CurrCave.GetStart())
-			camera.Cam.SnapTo(dungeon.Player1.Transform.Pos)
-
-			dungeon.BlocksDug = 0
-			dungeon.LowestLevel = 0
-			dungeon.BombsMarked = 0
-			dungeon.WrongMarks = 0
+			dungeon.Dungeon.SetPlayer(dungeon.NewDwarf(dungeon.Dungeon.GetCave().GetStart()))
+			camera.Cam.SnapTo(dungeon.Dungeon.GetPlayer().Transform.Pos)
 
 			particles.Clear()
 			vfx.Clear()
@@ -245,7 +258,7 @@ func updateState() {
 			yS := 16.
 			score := 0
 			score += dungeon.BlocksDug * 10
-			score += dungeon.LowestLevel * 5
+			score += (dungeon.LowestLevel | dungeon.LowTotal) * 5
 			score += dungeon.GemsFound * 15
 			score += dungeon.BombsMarked * 50
 			score -= dungeon.WrongMarks * 20
@@ -265,6 +278,8 @@ func updateState() {
 			InitializePostGameMenu()
 		case 3:
 
+		case 4:
+			dungeon.Dungeon.Level = 0
 		}
 		state = newState
 	}

@@ -15,7 +15,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 		StartC:  world.Coords{X: 16, Y: 9},
 	}
 	chunk0 := GenerateChunk(world.Coords{X: 0, Y: 0}, cave)
-	EntranceExit(cave, world.Coords{X: 16, Y: 9}, 9, 5, 3)
+	EntranceExit(cave, world.Coords{X: 16, Y: 9}, 9, 5, 3, false)
 
 	chunkr1 := GenerateChunk(world.Coords{X: 1, Y: 0}, cave)
 	chunkr2 := GenerateChunk(world.Coords{X: 1, Y: 1}, cave)
@@ -37,7 +37,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 }
 
 // requires at least 3 chunks wide
-func NewRoomyCave(spriteSheet *img.SpriteSheet, left, right, bottom int) *Cave {
+func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) *Cave {
 	batcher := img.NewBatcher(spriteSheet)
 	layers := makeLayers(left, right, bottom)
 	start := rand.Intn(3) // 0 = left, 1 = mid, 2 = right
@@ -59,6 +59,25 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, left, right, bottom int) *Cave {
 		bottom:  bottom,
 		StartC:  startT,
 	}
+	cave.fuseLen = 1.0
+	cave.bombPMin = 0.1
+	cave.bombPMax = 0.2
+	for i := 1; i < level; i += 2 {
+		cave.bombPMin += 0.02
+		cave.bombPMax += 0.02
+	}
+	if cave.bombPMin > 0.3 {
+		cave.bombPMin = 0.3
+	}
+	if cave.bombPMax > 0.4 {
+		cave.bombPMax = 0.4
+	}
+	for i := 2; i < level; i += 2 {
+		cave.fuseLen -= 0.1
+	}
+	if cave.fuseLen < 0.4 {
+		cave.fuseLen = 0.4
+	}
 	for y := 0; y <= bottom; y++ {
 		for x := left; x <= right; x++ {
 			chunk := GenerateChunk(world.Coords{X: x, Y: y}, cave)
@@ -70,25 +89,25 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, left, right, bottom int) *Cave {
 		}
 	}
 	// generate entrance (at y level 9, x between l + 10 and r - 10)
-	EntranceExit(cave, startT, 11, 5, 4)
+	EntranceExit(cave, startT, 11, 5, 4, false)
 	box := startT
 	box.X -= 8
 	box.Y -= 9
 	RectRoom(cave, box, 17, 12)
 	// generate exit (between y level 4 and 10, x between l + 10 and r - 10)
-	EntranceExit(cave, exitT, 7, 3, 1)
+	EntranceExit(cave, exitT, 7, 3, 1, true)
 	box = exitT
 	box.X -= 5
 	box.Y -= 5
 	RectRoom(cave, box, 11, 8)
 	cave.markAsNotChanged()
 	// generate paths and/or cycles from entrance to exit
-	path := SemiStraightPath(cave, startT, exitT, Left)
-	path = append(path, SemiStraightPath(cave, startT, exitT, Right)...)
+	path := SemiStraightPath(cave, startT, exitT, Left, false)
+	path = append(path, SemiStraightPath(cave, startT, exitT, Right, false)...)
 	startT.X -= 2
-	path = append(path, SemiStraightPath(cave, startT, exitT, Down)...)
+	path = append(path, SemiStraightPath(cave, startT, exitT, Down, false)...)
 	startT.X += 4
-	path = append(path, SemiStraightPath(cave, startT, exitT, Down)...)
+	path = append(path, SemiStraightPath(cave, startT, exitT, Down, false)...)
 	// generate path branching from orig paths
 
 	// place rectangles at random points on all paths, esp at or near dead ends

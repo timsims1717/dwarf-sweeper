@@ -49,7 +49,7 @@ func InitializeMainMenu() {
 	startGame.SetClickFn(func() {
 		//camera.Cam.Effect = transform.FadeTo(camera.Cam, colornames.Black, 1.0)
 		//sfx.MusicPlayer.FadeOut(1.0)
-		newState = 0
+		newState = 4
 	})
 	MainMenu.Items["start"] = startGame
 
@@ -350,7 +350,7 @@ func InitializePostGameMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	retryItem.SetClickFn(func() {
-		newState = 0
+		newState = 4
 	})
 	PostGame.Items["retry"] = retryItem
 
