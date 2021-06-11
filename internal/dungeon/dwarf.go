@@ -16,9 +16,7 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 	"math"
 	"math/rand"
 	"time"
@@ -48,7 +46,8 @@ type Dwarf struct {
 	digging     bool
 	marking     bool
 	climbing    bool
-	selected    *Tile
+	digTile     *Tile
+	hovered     *Tile
 	distFell    float64
 	cursorV     pixel.Vec
 	relWorld    pixel.Vec
@@ -102,18 +101,27 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					reanimator.NewAnimFromSheet("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
 				),
 				Check: func() int {
-					if !d.grounded || d.Transform.IsMovingX() {
+					if !d.Transform.Grounded {
 						return 0
 					} else {
 						return 1
 					}
 				},
 			}),
-			reanimator.NewAnimFromSheet("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, func() {
-				d.digging = false
+			reanimator.NewAnimFromSheet("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, map[int]func() {
+				1: func() {
+					BlocksDug += 1
+					d.digTile.Destroy()
+					sfx.SoundPlayer.PlaySound("shovel", 1.0)
+				},
+				3: func() {
+					d.digging = false
+				},
 			}), // digging
-			reanimator.NewAnimFromSheet("mark", dwarfSheet, []int{14}, reanimator.Tran, func() {
-				d.marking = false
+			reanimator.NewAnimFromSheet("mark", dwarfSheet, []int{14}, reanimator.Tran, map[int]func() {
+				1: func() {
+					d.marking = false
+				},
 			}), // marking
 			reanimator.NewSwitch(&reanimator.Switch{
 				Elements: reanimator.NewElements(
@@ -232,30 +240,28 @@ func (d *Dwarf) Update() {
 		d.walking = false
 		d.climbing = false
 	} else {
-		d.selected = Dungeon.GetCave().GetTile(input.Input.World)
-		if d.selected != nil {
-			d.selectLegal = math.Abs(d.Transform.Pos.X-d.selected.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.selected.Transform.Pos.Y) < world.TileSize*DigRange
-			if input.Input.IsDig && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
+		d.hovered = Dungeon.GetCave().GetTile(input.Input.World)
+		if d.hovered != nil {
+			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
+			if input.Input.IsDig && !d.digging && !d.marking && d.hovered.Solid && d.selectLegal {
 				d.digging = true
 				d.jumping = false
 				d.walking = false
 				d.climbing = false
-				if d.selected.Transform.Pos.X < d.Transform.Pos.X {
+				d.digTile = d.hovered
+				if d.digTile.Transform.Pos.X < d.Transform.Pos.X {
 					d.faceLeft = true
-				} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
+				} else if d.digTile.Transform.Pos.X > d.Transform.Pos.X {
 					d.faceLeft = false
 				}
-				BlocksDug += 1
-				d.selected.Destroy()
-				sfx.SoundPlayer.PlaySound("shovel", 1.0)
-			} else if input.Input.IsMark && !d.digging && !d.marking && d.selected.Solid && d.selectLegal {
-				if d.selected.Transform.Pos.X < d.Transform.Pos.X {
+			} else if input.Input.IsMark && !d.digging && !d.marking && d.hovered.Solid && d.selectLegal {
+				if d.hovered.Transform.Pos.X < d.Transform.Pos.X {
 					d.faceLeft = true
-				} else if d.selected.Transform.Pos.X > d.Transform.Pos.X {
+				} else if d.hovered.Transform.Pos.X > d.Transform.Pos.X {
 					d.faceLeft = false
 				}
 				d.marking = true
-				d.selected.Mark(d.Transform.Pos)
+				d.hovered.Mark(d.Transform.Pos)
 			}
 		}
 		if d.digging {
@@ -374,10 +380,6 @@ func (d *Dwarf) Update() {
 	}
 	d.Transform.Flip = d.faceLeft
 	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
-	debug.AddLine(colornames.White, imdraw.RoundEndShape, d.Transform.Pos, d.Transform.Pos, 2.0)
-	if d.selected != nil {
-		debug.AddLine(colornames.Yellow, imdraw.RoundEndShape, d.selected.Transform.Pos, d.selected.Transform.Pos, 3.0)
-	}
 	currLevel := int(-d.Transform.Pos.Y / world.TileSize)
 	if LowestLevel < currLevel && !d.Hurt {
 		LowestLevel = currLevel
@@ -390,27 +392,28 @@ func (d *Dwarf) Draw(win *pixelgl.Window) {
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4) + 1), 0.)
 		d.walkTimer = time.Now()
 	}
-	if d.selected != nil && !d.Hurt {
-		if d.selected.Solid && d.selectLegal {
-			particles.CreateStaticParticle("target", d.selected.Transform.Pos)
+	if d.hovered != nil && !d.Hurt {
+		if d.hovered.Solid && d.selectLegal {
+			particles.CreateStaticParticle("target", d.hovered.Transform.Pos)
 		} else {
-			particles.CreateStaticParticle("target_blank", d.selected.Transform.Pos)
+			particles.CreateStaticParticle("target_blank", d.hovered.Transform.Pos)
 		}
 	}
 	if debug.Debug {
-		if d.selected != nil {
-			debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(input.Input.World.X), int(input.Input.World.Y)))
-			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.selected.RCoords.X, d.selected.RCoords.Y))
-			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.selected.Chunk.Coords.X, d.selected.Chunk.Coords.Y))
-			debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.selected.SubCoords.X, d.selected.SubCoords.Y))
-			debug.AddText(fmt.Sprintf("tile type: '%s'", d.selected.Type))
-			debug.AddText(fmt.Sprintf("tile sprite: '%s'", d.selected.BGSpriteS))
+		debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(input.Input.World.X), int(input.Input.World.Y)))
+		if d.hovered != nil {
+			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.hovered.RCoords.X, d.hovered.RCoords.Y))
+			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.hovered.Chunk.Coords.X, d.hovered.Chunk.Coords.Y))
+			debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.hovered.SubCoords.X, d.hovered.SubCoords.Y))
+			debug.AddText(fmt.Sprintf("tile type: '%s'", d.hovered.Type))
+			debug.AddText(fmt.Sprintf("tile sprite: '%s'", d.hovered.BGSpriteS))
 		}
 		debug.AddText(fmt.Sprintf("dwarf position: (%d,%d)", int(d.Transform.APos.X), int(d.Transform.APos.Y)))
 		debug.AddText(fmt.Sprintf("dwarf actual position: (%f,%f)", d.Transform.Pos.X, d.Transform.Pos.Y))
 		debug.AddText(fmt.Sprintf("dwarf velocity: (%d,%d)", int(d.Transform.Velocity.X), int(d.Transform.Velocity.Y)))
 		debug.AddText(fmt.Sprintf("dwarf moving?: (%t,%t)", d.Transform.IsMovingX(), d.Transform.IsMovingY()))
-		debug.AddText(fmt.Sprintf("jump pressed?: %t", input.Input.Jumping.Pressed()))
+		//debug.AddText(fmt.Sprintf("jump pressed?: %t", input.Input.Jumping.Pressed()))
+		debug.AddText(fmt.Sprintf("dwarf grounded?: %t", d.Transform.Grounded))
 	}
 }
 

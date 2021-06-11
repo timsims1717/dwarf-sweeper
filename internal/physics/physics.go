@@ -47,7 +47,7 @@ func (p *Physics) Update() {
 	if !p.FrictionOff && !p.XJustSet {
 		friction := 10.
 		if p.Grounded {
-			friction = 25.
+			friction = 50.
 		}
 		if p.Velocity.X > 0. {
 			p.Velocity.X -= friction * timing.DT

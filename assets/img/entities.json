@@ -4,15 +4,14 @@
  "width": 16,
  "sprites": [
   {
-   "key": "mine",
-   "loop": false,
-   "hold": false,
-   "dur": 0.25,
+   "key": "mine_1",
+   "anim": true,
    "x": 0,
    "y": 64
   },
   {
-   "key": "mine",
+   "key": "mine_2",
+   "anim": true,
    "x": 16,
    "y": 64
   },
@@ -59,44 +58,49 @@
   },
   {
    "key": "flag_hang",
-   "loop": true,
-   "hold": false,
-   "dur": 0.75,
+   "anim": true,
    "x": 0,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 16,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 32,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 48,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 64,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 80,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 96,
    "y": 0
   },
   {
    "key": "flag_hang",
+   "anim": true,
    "x": 112,
    "y": 0
   }

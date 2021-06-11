@@ -13,6 +13,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 		LChunks: nil,
 		batcher: batcher,
 		StartC:  world.Coords{X: 16, Y: 9},
+		update:  true,
 	}
 	chunk0 := GenerateChunk(world.Coords{X: 0, Y: 0}, cave)
 	EntranceExit(cave, world.Coords{X: 16, Y: 9}, 9, 5, 3, false)
@@ -58,6 +59,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 		right:   right,
 		bottom:  bottom,
 		StartC:  startT,
+		update:  true,
 	}
 	cave.fuseLen = 1.0
 	cave.bombPMin = 0.1

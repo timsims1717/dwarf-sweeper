@@ -102,7 +102,7 @@ func Update(win *pixelgl.Window) {
 			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
 			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
 			camera.Cam.Restrict(bl, tr)
-			if input.Input.LookUp.JustPressed() && dungeon.Dungeon.GetPlayerTile().Exit {
+			if input.Input.LookUp.JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
 				state = -1
 			}
 		}

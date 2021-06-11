@@ -24,7 +24,7 @@ func PhysicsSystem() {
 			if !phys.FrictionOff && !phys.XJustSet {
 				friction := 25.
 				if phys.Grounded {
-					friction = 200.
+					friction = 400.
 				}
 				if phys.Velocity.X > 0. {
 					phys.Velocity.X -= friction * timing.DT

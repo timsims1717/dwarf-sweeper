@@ -55,6 +55,11 @@ func Normalize(p pixel.Vec) pixel.Vec {
 	return p.Scaled(1 / math.Sqrt(p.X*p.X+p.Y*p.Y))
 }
 
+// Magnitude takes a pixel.Vec and returns the magnitude of the vector
+func Magnitude(p pixel.Vec) float64 {
+	return math.Sqrt(p.X*p.X+p.Y*p.Y)
+}
+
 func IsNil(i interface{}) bool {
 	if i == nil {
 		return true

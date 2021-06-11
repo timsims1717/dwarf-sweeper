@@ -55,12 +55,16 @@ func (b *Bomb) Create(pos pixel.Vec, batcher *img.Batcher) {
 	b.Timer = time.Now()
 	b.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bomb_unlit", batcher.Animations["bomb_unlit"].S, reanimator.Tran, func() {
-				b.first = false
+			reanimator.NewAnimFromSprites("bomb_unlit", batcher.Animations["bomb_unlit"].S, reanimator.Tran, map[int]func() {
+				1: func() {
+					b.first = false
+				},
 			}),
 			reanimator.NewAnimFromSprites("bomb_fuse", batcher.Animations["bomb_fuse"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bomb_blow", batcher.Animations["bomb_blow"].S, reanimator.Tran, func() {
-				b.explode = true
+			reanimator.NewAnimFromSprites("bomb_blow", batcher.Animations["bomb_blow"].S, reanimator.Tran, map[int]func() {
+				1: func() {
+					b.explode = true
+				},
 			}),
 		),
 		Check: func() int {

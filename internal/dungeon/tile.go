@@ -150,6 +150,7 @@ func (tile *Tile) ToDestroy() {
 
 func (tile *Tile) Destroy() {
 	if tile != nil && !tile.destroyed && tile.breakable {
+		tile.Chunk.Cave.update = true
 		tile.destroying = false
 		tile.Solid = false
 		tile.Type = Empty
@@ -195,6 +196,7 @@ func (tile *Tile) ToReveal() {
 
 func (tile *Tile) Reveal(instant bool) {
 	if tile != nil && !tile.bomb && tile.Solid && tile.breakable {
+		tile.Chunk.Cave.update = true
 		tile.revealing = false
 		tile.Solid = false
 		tile.Type = Empty
@@ -259,6 +261,7 @@ func (tile *Tile) Mark(from pixel.Vec) {
 
 func (tile *Tile) UpdateSprites() {
 	if tile.Type != Deco {
+		tile.Chunk.Cave.update = true
 		ns := tile.SubCoords.Neighbors()
 		ss := [8]bool{}
 		bs := [4]bool{}
@@ -362,4 +365,8 @@ func (tile *Tile) GetTileCode() string {
 		}
 	}
 	return buf.String()
+}
+
+func (tile *Tile) IsExit() bool {
+	return tile != nil && tile.Exit
 }

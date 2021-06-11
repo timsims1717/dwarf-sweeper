@@ -14,6 +14,7 @@ type Cave struct {
 	LChunks  map[world.Coords]*Chunk
 	pivot    pixel.Vec
 	finite   bool
+	update   bool
 	batcher  *img.Batcher
 	left     int
 	right    int
@@ -25,7 +26,6 @@ type Cave struct {
 }
 
 func (cave *Cave) Update(pos pixel.Vec) {
-	cave.batcher.Clear()
 	cave.pivot = pos
 	if !cave.finite {
 		p := WorldToChunk(cave.pivot)
@@ -34,10 +34,12 @@ func (cave *Cave) Update(pos pixel.Vec) {
 			if i.X >= 0 && i.Y >= 0 {
 				if _, ok := cave.RChunks[i]; !ok {
 					cave.RChunks[i] = GenerateChunk(i, cave)
+					cave.update = true
 				}
 			} else if i.X < 0 && i.Y >= 0 {
 				if _, ok := cave.LChunks[i]; !ok {
 					cave.LChunks[i] = GenerateChunk(i, cave)
+					cave.update = true
 				}
 			}
 		}
@@ -45,6 +47,7 @@ func (cave *Cave) Update(pos pixel.Vec) {
 			dis := world.CoordsIn(i, all)
 			if dis && !chunk.display {
 				chunk.reload = true
+				cave.update = true
 			}
 			chunk.display = dis
 			chunk.Update()
@@ -53,6 +56,7 @@ func (cave *Cave) Update(pos pixel.Vec) {
 			dis := world.CoordsIn(i, all)
 			if dis && !chunk.display {
 				chunk.reload = true
+				cave.update = true
 			}
 			chunk.display = dis
 			chunk.Update()
@@ -70,13 +74,17 @@ func (cave *Cave) Update(pos pixel.Vec) {
 }
 
 func (cave *Cave) Draw(win *pixelgl.Window) {
-	for _, chunk := range cave.RChunks {
-		chunk.Draw(cave.batcher.Batch())
-	}
-	for _, chunk := range cave.LChunks {
-		chunk.Draw(cave.batcher.Batch())
+	if cave.update {
+		cave.batcher.Clear()
+		for _, chunk := range cave.RChunks {
+			chunk.Draw(cave.batcher.Batch())
+		}
+		for _, chunk := range cave.LChunks {
+			chunk.Draw(cave.batcher.Batch())
+		}
 	}
 	cave.batcher.Draw(win)
+	cave.update = false
 }
 
 func (cave *Cave) Dimensions() (int, int) {
