@@ -6,7 +6,6 @@ import (
 	"github.com/faiface/beep/effects"
 	"github.com/faiface/beep/speaker"
 	"github.com/pkg/errors"
-	"math/rand"
 )
 
 var SoundPlayer *soundPlayer
@@ -54,5 +53,5 @@ func (p *soundPlayer) PlaySound(key string, vol float64) {
 }
 
 func (p *soundPlayer) PlayRandomSound(keys []string) {
-	p.PlaySound(keys[rand.Intn(len(keys))], 0.)
+	p.PlaySound(keys[random.Intn(len(keys))], 0.)
 }

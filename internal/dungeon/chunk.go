@@ -1,9 +1,9 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
-	"math/rand"
 )
 
 const (
@@ -23,19 +23,19 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 	// Array of 1024 bools
 	list := [ChunkCnt]bool{}
 	// fill first 10-20% with true
-	bCount := rand.Intn(ChunkCnt / int(100 * (cave.bombPMax - cave.bombPMin)) + ChunkCnt / int(100 * cave.bombPMin))
+	bCount := random.CaveGen.Intn(ChunkCnt / int(100 * (cave.bombPMax - cave.bombPMin))) + ChunkCnt / int(100 * cave.bombPMin)
 	for i := 0; i < bCount; i++ {
 		list[i] = true
 	}
 	// randomize list
 	for i := len(list) - 1; i > 0; i-- {
-		j := rand.Intn(i)
+		j := random.CaveGen.Intn(i)
 		list[i], list[j] = list[j], list[i]
 	}
 	// create chunk, distribute bombs (trues), build tiles
 	chunk := &Chunk{
 		Coords:  coords,
-		Rows:    [32][32]*Tile{},
+		Rows:    [ChunkSize][ChunkSize]*Tile{},
 		display: true,
 		reload:  true,
 		Cave:    cave,
@@ -61,19 +61,19 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 			tile = NewTile(x, y, coords, b, chunk)
 		}
 		if b {
-			if rand.Intn(2) == 0 {
+			//if random.CaveGen.Intn(2) == 0 {
 				tile.AddEntity(&Bomb{
 					Tile: tile,
 					FuseLength: tile.Chunk.Cave.fuseLen,
 				})
-			} else {
-				tile.AddEntity(&Mine{
-					Tile: tile,
-					FuseLength: tile.Chunk.Cave.fuseLen,
-				})
-			}
+			//} else {
+			//	tile.AddEntity(&Mine{
+			//		Tile: tile,
+			//		FuseLength: tile.Chunk.Cave.fuseLen,
+			//	})
+			//}
 		}
-		if !b && rand.Intn(20) == 0 {
+		if !b && random.CaveGen.Intn(20) == 0 {
 			tile.AddEntity(&Gem{})
 		}
 		chunk.Rows[y][x] = tile

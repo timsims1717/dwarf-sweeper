@@ -61,6 +61,14 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Debug = !debug.Debug
 	}
+	if input.Input.DebugText {
+		if debug.Text {
+			fmt.Println("DEBUG TEXT OFF")
+		} else {
+			fmt.Println("DEBUG TEXT ON")
+		}
+		debug.Text = !debug.Text
+	}
 	if input.Input.DebugInv && dungeon.Dungeon.GetPlayer() != nil {
 		dungeon.Dungeon.GetPlayer().Inv = !dungeon.Dungeon.GetPlayer().Inv
 	}
@@ -69,7 +77,7 @@ func Update(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		if win.Focused() {
-			if input.Input.Debug {
+			if input.Input.DebugPause {
 				fmt.Println("DEBUG PAUSE")
 			}
 			reanimator.Update()
@@ -119,6 +127,7 @@ func Update(win *pixelgl.Window) {
 			SwitchToMain()
 		}
 	} else if state == 2 {
+		reanimator.Update()
 		dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
 		systems.PhysicsSystem()
 		systems.TransformSystem()
@@ -239,7 +248,11 @@ func updateState() {
 			dungeon.Dungeon.SetCave(dungeon.NewRoomyCave(sheet, dungeon.Dungeon.Level, -1, 1, 2))
 			//dungeon.CurrCave = dungeon.NewInfiniteCave(sheet)
 
-			dungeon.Dungeon.SetPlayer(dungeon.NewDwarf(dungeon.Dungeon.GetCave().GetStart()))
+			if dungeon.Dungeon.Player != nil {
+				dungeon.Dungeon.Player.Transform.Pos = dungeon.Dungeon.GetCave().GetStart()
+			} else {
+				dungeon.Dungeon.SetPlayer(dungeon.NewDwarf(dungeon.Dungeon.GetCave().GetStart()))
+			}
 			camera.Cam.SnapTo(dungeon.Dungeon.GetPlayer().Transform.Pos)
 
 			particles.Clear()
@@ -258,12 +271,12 @@ func updateState() {
 			yS := 16.
 			score := 0
 			score += dungeon.BlocksDug * 10
-			score += (dungeon.LowestLevel | dungeon.LowTotal) * 5
+			score += (dungeon.LowestLevel + dungeon.LowTotal) * 5
 			score += dungeon.GemsFound * 15
 			score += dungeon.BombsMarked * 50
 			score -= dungeon.WrongMarks * 20
 			dungeon.BlocksDugItem   = menu.NewItemText(fmt.Sprintf("Blocks Dug:      %d x 10", dungeon.BlocksDug), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", dungeon.LowestLevel), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", dungeon.LowestLevel + dungeon.LowTotal), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
 			dungeon.GemsFoundItem   = menu.NewItemText(fmt.Sprintf("Gems Found:      %d x 15", dungeon.GemsFound), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
 			dungeon.BombsMarkedItem = menu.NewItemText(fmt.Sprintf("Bombs Marked:    %d x 50", dungeon.BombsMarked), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
 			dungeon.WrongMarksItem  = menu.NewItemText(fmt.Sprintf("Incorrect Marks: %d x -20", dungeon.WrongMarks), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
@@ -280,6 +293,10 @@ func updateState() {
 
 		case 4:
 			dungeon.Dungeon.Level = 0
+			if dungeon.Dungeon.Player != nil {
+				dungeon.Dungeon.Player.Delete()
+				dungeon.Dungeon.Player = nil
+			}
 		}
 		state = newState
 	}

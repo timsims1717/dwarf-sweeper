@@ -80,10 +80,10 @@ func (m *Mine) Create(pos pixel.Vec, batcher *img.Batcher) {
 		AddComponent(myecs.Animation, m.Reanimator)
 }
 
-func (m *Mine) Remove() bool {
-	if m.done {
-		myecs.Manager.DisposeEntity(m.entity)
-		return true
-	}
-	return false
+func (m *Mine) Done() bool {
+	return m.done
+}
+
+func (m *Mine) Delete() {
+	myecs.Manager.DisposeEntity(m.entity)
 }

@@ -3,12 +3,12 @@ package dungeon
 import (
 	"bytes"
 	"dwarf-sweeper/internal/particles"
-	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"math/rand"
 	"time"
 )
 
@@ -179,7 +179,7 @@ func (tile *Tile) Destroy() {
 			}
 			tile.UpdateSprites()
 			particles.BlockParticles(tile.Transform.Pos)
-			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", rand.Intn(5) + 1), -1.0)
+			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5) + 1), -1.0)
 		}
 		for _, e := range tile.Entities {
 			Entities.Add(e, tile.Transform.Pos)

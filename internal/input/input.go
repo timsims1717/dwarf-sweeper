@@ -14,6 +14,7 @@ type input struct {
 	Click      Button
 	Scroll     float64
 	Debug      bool
+	DebugText  bool
 	DebugPause bool
 	DebugInv   bool
 	XDir       XDirection
@@ -77,7 +78,8 @@ func (i *input) Update(win *pixelgl.Window) {
 
 	i.World = camera.Cam.Mat.Unproject(win.MousePosition())
 	i.DebugPause = win.JustPressed(pixelgl.KeyF9)
-	i.Debug = win.JustPressed(pixelgl.KeyF3)
+	i.Debug = win.JustPressed(pixelgl.KeyF3) && !win.Pressed(pixelgl.KeyLeftShift)
+	i.DebugText = win.JustPressed(pixelgl.KeyF3) && win.Pressed(pixelgl.KeyLeftShift)
 	i.DebugInv = win.JustPressed(pixelgl.KeyF10)
 
 	i.Back = win.JustPressed(pixelgl.KeyEscape)

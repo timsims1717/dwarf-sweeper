@@ -10,7 +10,8 @@ type Entity interface {
 	Update()
 	Draw(pixel.Target)
 	Create(pixel.Vec, *img.Batcher)
-	Remove() bool
+	Done() bool
+	Delete()
 }
 
 var Entities entities
@@ -32,7 +33,8 @@ func (e *entities) Update() {
 	var drop []int
 	for i, o := range e.set {
 		o.Update()
-		if o.Remove() {
+		if o.Done() {
+			o.Delete()
 			drop = append(drop, i)
 		}
 	}
@@ -55,5 +57,8 @@ func (e *entities) Add(entity Entity, vec pixel.Vec) {
 }
 
 func (e *entities) Clear() {
+	for _, entity := range e.set {
+		entity.Delete()
+	}
 	e.set = []Entity{}
 }

@@ -1,9 +1,9 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
-	"math/rand"
 )
 
 type Direction int
@@ -28,8 +28,8 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 	}
 	pDir := pathDir{
 		last:  dir,
-		width: rand.Intn(3) + 1,
-		wLeft: rand.Intn(2) == 0,
+		width: random.CaveGen.Intn(3) + 1,
+		wLeft: random.CaveGen.Intn(2) == 0,
 	}
 	curr := start
 	tile := cave.GetTileInt(curr.X, curr.Y)
@@ -69,7 +69,7 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 				(n == Right && !pDir.r) ||
 				(n == Up && !pDir.u) ||
 				(n == Down && !pDir.d) ||
-				rand.Intn(20) == 0 {
+				random.CaveGen.Intn(20) == 0 {
 				tC := 0
 				lC := 0
 				rC := 0
@@ -126,7 +126,7 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 						tC += t
 					}
 				}
-				c := rand.Intn(tC)
+				c := random.CaveGen.Intn(tC)
 				if c < lC {
 					n = Left
 				} else if c < rC {
@@ -148,11 +148,11 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 			curr.Y += 1
 		}
 		pDir.last = n
-		if rand.Intn(20) == 0 {
-			two := rand.Intn(3)
+		if random.CaveGen.Intn(20) == 0 {
+			two := random.CaveGen.Intn(3)
 			if pDir.width == 3 || pDir.width == 1 {
 				pDir.width = 2
-				pDir.wLeft = rand.Intn(2) == 0
+				pDir.wLeft = random.CaveGen.Intn(2) == 0
 			} else if two == 0 {
 				pDir.wLeft = !pDir.wLeft
 			} else if two == 1 {

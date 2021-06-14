@@ -82,10 +82,10 @@ func (b *Bomb) Create(pos pixel.Vec, batcher *img.Batcher) {
 		AddComponent(myecs.Animation, b.Reanimator)
 }
 
-func (b *Bomb) Remove() bool {
-	if b.done {
-		myecs.Manager.DisposeEntity(b.entity)
-		return true
-	}
-	return false
+func (b *Bomb) Done() bool {
+	return b.done
+}
+
+func (b *Bomb) Delete() {
+	myecs.Manager.DisposeEntity(b.entity)
 }

@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -15,10 +16,10 @@ import (
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
+	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"math"
-	"math/rand"
 	"time"
 )
 
@@ -33,6 +34,7 @@ var (
 type Dwarf struct {
 	Transform   *physics.Physics
 	Reanimator  *reanimator.Tree
+	entity      *ecs.Entity
 	faceLeft    bool
 	selectLegal bool
 	walkTimer   time.Time
@@ -42,7 +44,6 @@ type Dwarf struct {
 	jumpHeight  int
 	toJump      bool
 	toJumpTimer time.Time
-	grounded    bool
 	digging     bool
 	marking     bool
 	climbing    bool
@@ -181,7 +182,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}),
 				),
 				Check: func() int {
-					if d.grounded && !d.jumping {
+					if d.Transform.Grounded && !d.jumping {
 						return 0
 					} else if d.climbing {
 						return 1
@@ -203,7 +204,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			}
 		},
 	})
-	myecs.Manager.NewEntity().
+	d.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
 		AddComponent(myecs.Physics, physicsT).
 		AddComponent(myecs.Collision, myecs.Collider{}).
@@ -213,10 +214,6 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 
 func (d *Dwarf) Update() {
 	loc1 := Dungeon.GetCave().GetTile(d.Transform.Pos)
-	dwn1 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
-	dwnlw := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
-	dwnrw := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.3, d.Transform.Pos.Y-world.TileSize))
-	d.grounded = ((dwn1 != nil && dwn1.Solid) || (dwnlw != nil && dwnlw.Solid) || (dwnrw != nil && dwnrw.Solid)) && (loc1 != nil && d.Transform.Pos.Y <= loc1.Transform.Pos.Y+1.0)
 	if d.Hurt {
 		d.Dead = true
 		if d.dmg > 0 {
@@ -230,7 +227,7 @@ func (d *Dwarf) Update() {
 			d.knockback = 0.
 			d.dmg = 0
 			d.Transform.RicochetX = true
-		} else if d.grounded && !d.Transform.IsMovingX() {
+		} else if d.Transform.Grounded && !d.Transform.IsMovingX() {
 			d.Transform.CancelMovement()
 			d.distFell = 150.
 			d.DeadStop = true
@@ -248,6 +245,7 @@ func (d *Dwarf) Update() {
 				d.jumping = false
 				d.walking = false
 				d.climbing = false
+				d.distFell = 0.
 				d.digTile = d.hovered
 				if d.digTile.Transform.Pos.X < d.Transform.Pos.X {
 					d.faceLeft = true
@@ -261,14 +259,16 @@ func (d *Dwarf) Update() {
 					d.faceLeft = false
 				}
 				d.marking = true
+				d.distFell = 0.
 				d.hovered.Mark(d.Transform.Pos)
 			}
 		}
 		if d.digging {
 			d.Transform.Velocity = pixel.ZV
 		} else if !d.marking {
-			dwnlj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
-			dwnrj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.5, d.Transform.Pos.Y-world.TileSize))
+			dwnlj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
+			dwnrj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
+			dwn1 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
 			dwn2 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.5))
 			right := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
 			left := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
@@ -280,7 +280,7 @@ func (d *Dwarf) Update() {
 					d.walkTimer = time.Now()
 				}
 				d.Transform.SetVelX(-Speed, 5.)
-				if d.grounded {
+				if d.Transform.Grounded {
 					d.faceLeft = true
 				}
 			case input.Right:
@@ -288,7 +288,7 @@ func (d *Dwarf) Update() {
 					d.walkTimer = time.Now()
 				}
 				d.Transform.SetVelX(Speed, 5.)
-				if d.grounded {
+				if d.Transform.Grounded {
 					d.faceLeft = false
 				}
 			}
@@ -298,6 +298,7 @@ func (d *Dwarf) Update() {
 				d.toJump = true
 				d.climbing = false
 				d.walking = false
+				d.distFell = 0.
 				d.toJumpTimer = time.Now()
 			} else if d.toJump && time.Since(d.toJumpTimer).Seconds() > 0.05 {
 				d.climbing = false
@@ -306,11 +307,10 @@ func (d *Dwarf) Update() {
 				d.jumping = true
 				d.jumpOrigY = d.Transform.Pos.Y
 				d.jumpHeight = -1
-				sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4)+1), 0.)
+				sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
 				d.distFell = 0.
 				d.Transform.SetVelY(JumpVel, 0.)
 			} else if d.climbing {
-				d.grounded = false
 				if canClimb {
 					d.distFell = 0.
 					if input.Input.ClimbUp.Pressed() && !input.Input.ClimbDown.Pressed() {
@@ -333,16 +333,17 @@ func (d *Dwarf) Update() {
 				d.walking = false
 				d.jumping = false
 				d.toJump = false
-				d.grounded = false
+				d.distFell = 0.
 				d.Transform.SetVelY(ClimbSpeed, 0.)
 				if right != nil && right.Solid && (left == nil || !left.Solid) {
 					d.faceLeft = false
 				} else if left != nil && left.Solid && (right == nil || !right.Solid) {
 					d.faceLeft = true
 				}
-			} else if !d.jumping && d.grounded {
+			} else if !d.jumping && d.Transform.Grounded {
 				if math.Abs(d.Transform.Velocity.X) < 20.0 {
 					if input.Input.LookUp.Pressed() && !input.Input.LookDown.Pressed() {
+						d.distFell = 0.
 						camera.Cam.Up()
 					} else if input.Input.LookDown.Pressed() && !input.Input.LookUp.Pressed() {
 						camera.Cam.Down()
@@ -389,7 +390,7 @@ func (d *Dwarf) Update() {
 func (d *Dwarf) Draw(win *pixelgl.Window) {
 	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
 	if d.walking && time.Since(d.walkTimer).Seconds() > 0.4 {
-		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", rand.Intn(4) + 1), 0.)
+		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
 		d.walkTimer = time.Now()
 	}
 	if d.hovered != nil && !d.Hurt {
@@ -424,4 +425,8 @@ func (d *Dwarf) Damage(dmg float64, source pixel.Vec, knockback float64) {
 		d.source = source
 		d.knockback = knockback
 	}
+}
+
+func (d *Dwarf) Delete() {
+	myecs.Manager.DisposeEntity(d.entity)
 }

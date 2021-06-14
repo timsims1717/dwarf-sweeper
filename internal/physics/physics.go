@@ -21,50 +21,6 @@ type Physics struct {
 	Grounded    bool
 }
 
-func (p *Physics) Update() {
-	if p.interX != nil {
-		vx, fin := p.interX.Update(timing.DT)
-		p.Velocity.X = vx
-		if fin {
-			p.interX = nil
-		}
-	}
-	if p.interY != nil {
-		vy, fin := p.interY.Update(timing.DT)
-		p.Velocity.Y = vy
-		if fin {
-			p.interY = nil
-		}
-	}
-	p.Pos.X += timing.DT * p.Velocity.X
-	p.Pos.Y += timing.DT * p.Velocity.Y
-	if !p.GravityOff && !p.YJustSet {
-		if p.Velocity.Y > -500. {
-			p.Velocity.Y -= 750. * timing.DT
-		}
-	}
-	p.YJustSet = false
-	if !p.FrictionOff && !p.XJustSet {
-		friction := 10.
-		if p.Grounded {
-			friction = 50.
-		}
-		if p.Velocity.X > 0. {
-			p.Velocity.X -= friction * timing.DT
-			if p.Velocity.X < 0. {
-				p.Velocity.X = 0
-			}
-		} else if p.Velocity.X < 0. {
-			p.Velocity.X += friction * timing.DT
-			if p.Velocity.X > 0. {
-				p.Velocity.X = 0
-			}
-		}
-	}
-	p.XJustSet = false
-	p.Transform.Update()
-}
-
 func (p *Physics) IsMovingX() bool {
 	return p.Velocity.X > 0.01 || p.Velocity.X < -0.01
 }

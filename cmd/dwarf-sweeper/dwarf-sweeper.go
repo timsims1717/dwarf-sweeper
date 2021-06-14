@@ -11,19 +11,12 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
-	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
-	"math/rand"
-	"time"
+	"image/color"
 )
 
 func run() {
-	//seed := int64(1621568935395093348)
-	seed := time.Now().UnixNano()
-	rand.Seed(seed)
-	fmt.Println("Seed:", seed)
 	world.SetTileSize(cfg.TileSize)
 	config := pixelgl.WindowConfig{
 		Title:  cfg.Title,
@@ -76,7 +69,12 @@ func run() {
 		debug.Clear()
 		state.Update(win)
 
-		win.Clear(colornames.Black)
+		win.Clear(color.RGBA{
+			R: 6,
+			G: 6,
+			B: 8,
+			A: 255,
+		})
 
 		state.Draw(win)
 		debug.Draw(win)

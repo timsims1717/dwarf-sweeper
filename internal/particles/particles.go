@@ -2,6 +2,7 @@ package particles
 
 import (
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/util"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
@@ -14,7 +15,6 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 	"image/color"
-	"math/rand"
 )
 
 type particle struct {
@@ -94,17 +94,17 @@ func Clear() {
 var blocks []string
 
 func BlockParticles(pos pixel.Vec) {
-	c := rand.Intn(3) + 4
+	c := random.Effects.Intn(3) + 4
 	for i := 0; i < c; i++ {
-		phys := util.RandomVelocity(pos, 1.0)
-		if rand.Intn(2) == 0 {
+		phys := util.RandomVelocity(pos, 1.0, random.Effects)
+		if random.Effects.Intn(2) == 0 {
 			phys.Flip = true
 		}
-		if rand.Intn(2) == 0 {
+		if random.Effects.Intn(2) == 0 {
 			phys.Flop = true
 		}
 		particles = append(particles, &particle{
-			Sprite:    PartBatcher.Sprites[blocks[rand.Intn(len(blocks))]],
+			Sprite:    PartBatcher.Sprites[blocks[random.Effects.Intn(len(blocks))]],
 			Transform: phys.Transform,
 			entity:    myecs.Manager.NewEntity().
 				AddComponent(myecs.Transform, phys.Transform).
@@ -115,18 +115,18 @@ func BlockParticles(pos pixel.Vec) {
 	}
 }
 func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64) {
-	c := rand.Intn(max - min + 1) + min
+	c := random.Effects.Intn(max - min + 1) + min
 	for i := 0; i < c; i++ {
 		tran := transform.NewTransform()
-		tran.Pos = util.RandomPosition(orig, variance)
-		if rand.Intn(2) == 0 {
+		tran.Pos = util.RandomPosition(orig, variance, random.Effects)
+		if random.Effects.Intn(2) == 0 {
 			tran.Flip = true
 		}
-		if rand.Intn(2) == 0 {
+		if random.Effects.Intn(2) == 0 {
 			tran.Flop = true
 		}
-		nDur := dur + (rand.Float64() - 0.5) * durVar
-		key := keys[rand.Intn(len(keys))]
+		nDur := dur + (random.Effects.Float64() - 0.5) * durVar
+		key := keys[random.Effects.Intn(len(keys))]
 		particles = append(particles, &particle{
 			Sprite:    PartBatcher.Sprites[key],
 			Transform: tran,

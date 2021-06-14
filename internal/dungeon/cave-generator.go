@@ -1,12 +1,13 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
-	"math/rand"
 )
 
 func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
+	random.RandCaveSeed()
 	batcher := img.NewBatcher(spriteSheet)
 	cave := &Cave{
 		RChunks: nil,
@@ -16,7 +17,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 		update:  true,
 	}
 	chunk0 := GenerateChunk(world.Coords{X: 0, Y: 0}, cave)
-	EntranceExit(cave, world.Coords{X: 16, Y: 9}, 9, 5, 3, false)
+	Entrance(cave, world.Coords{X: 16, Y: 9}, 9, 5, 3, false)
 
 	chunkr1 := GenerateChunk(world.Coords{X: 1, Y: 0}, cave)
 	chunkr2 := GenerateChunk(world.Coords{X: 1, Y: 1}, cave)
@@ -39,14 +40,16 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 
 // requires at least 3 chunks wide
 func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) *Cave {
+	//random.SetCaveSeed(3991445806800781949)
+	random.RandCaveSeed()
 	batcher := img.NewBatcher(spriteSheet)
-	layers := makeLayers(left, right, bottom)
-	start := rand.Intn(3) // 0 = left, 1 = mid, 2 = right
-	end := rand.Intn(2)
+	layers := makeLayers(left, right, bottom, 5, 7, 3)
+	start := random.CaveGen.Intn(3) // 0 = left, 1 = mid, 2 = right
+	end := random.CaveGen.Intn(2)
 	if start == 0 {
 		end++
 	} else if start == 1 && end == 1 {
-		end = rand.Intn(2)
+		end = random.CaveGen.Intn(2)
 	}
 	startT := layers[0][start]
 	exitT := layers[2][end]
@@ -91,13 +94,13 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 		}
 	}
 	// generate entrance (at y level 9, x between l + 10 and r - 10)
-	EntranceExit(cave, startT, 11, 5, 4, false)
+	Entrance(cave, startT, 11, 5, 4, false)
 	box := startT
 	box.X -= 8
 	box.Y -= 9
 	RectRoom(cave, box, 17, 12)
 	// generate exit (between y level 4 and 10, x between l + 10 and r - 10)
-	EntranceExit(cave, exitT, 7, 3, 1, true)
+	Exit(cave, exitT, 7, 3, 1, true)
 	box = exitT
 	box.X -= 5
 	box.Y -= 5
@@ -113,13 +116,13 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	// generate path branching from orig paths
 
 	// place rectangles at random points on all paths, esp at or near dead ends
-	count := rand.Intn(15) + 5
+	count := random.CaveGen.Intn(ChunkSize / 3) + ChunkSize / 3
 	for i := 0; i < count; i++ {
-		include := path[rand.Intn(len(path))]
+		include := path[random.CaveGen.Intn(len(path))]
 		//fmt.Printf("rect room includes: (%d,%d)\n", include.X, include.Y)
-		RandRectRoom(cave, 8, 24, include)
+		RandRectRoom(cave, 7, (ChunkSize / 4) * 3, include)
 	}
-	//num := rand.Intn(8) + 12
+	//num := random.CaveGen.Intn(8) + 12
 	//for i := 0; i < num; i++ {
 	//	RectRoom(cave, 5, 20)
 	//}
@@ -127,49 +130,56 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	return cave
 }
 
-func makeLayers(left, right, bottom int) [3][3]world.Coords {
+func makeLayers(left, right, bottom, marginH, marginT, marginB int) [3][3]world.Coords {
+	if marginH >= ChunkSize / 2 {
+		marginH = ChunkSize / 2 - 1
+	}
 	layer1 := [3]world.Coords{
 		{
-			X: rand.Intn(ChunkSize - 10) + left * ChunkSize + 10,
-			Y: rand.Intn(3) + 8,
+			X: left * ChunkSize + marginH + random.CaveGen.Intn(ChunkSize - marginH),
+			Y: marginT + random.CaveGen.Intn(3),
 		},
 		{
-			X: rand.Intn((right - left - 1) * ChunkSize) + left * ChunkSize,
-			Y: rand.Intn(3) + 8,
+			X: (left + 1) * ChunkSize + random.CaveGen.Intn((right - left - 1) * ChunkSize),
+			Y: marginT + random.CaveGen.Intn(3),
 		},
 		{
-			X: rand.Intn(ChunkSize - 10) + right * ChunkSize - 10,
-			Y: rand.Intn(3) + 8,
+			X: (right + 1) * ChunkSize - marginH - random.CaveGen.Intn(ChunkSize - marginH),
+			Y: marginT + random.CaveGen.Intn(3),
 		},
 	}
 	layer2 := [3]world.Coords{
 		{
-			X: rand.Intn(ChunkSize - 10) + left * ChunkSize + 10,
-			Y: rand.Intn((bottom - 1) * ChunkSize) + ChunkSize,
+			X: left * ChunkSize + marginH + random.CaveGen.Intn(ChunkSize - marginH),
+			Y: ChunkSize + random.CaveGen.Intn((bottom - 1) * ChunkSize),
 		},
 		{
-			X: rand.Intn((right - left - 1) * ChunkSize) + left * ChunkSize,
-			Y: rand.Intn((bottom - 1) * ChunkSize) + ChunkSize,
+			X: (left + 1) * ChunkSize + random.CaveGen.Intn((right - left - 1) * ChunkSize),
+			Y: ChunkSize + random.CaveGen.Intn((bottom - 1) * ChunkSize),
 		},
 		{
-			X: rand.Intn(ChunkSize - 10) + right * ChunkSize - 10,
-			Y: rand.Intn((bottom - 1) * ChunkSize) + ChunkSize,
+			X: (right + 1) * ChunkSize - marginH - random.CaveGen.Intn(ChunkSize - marginH),
+			Y: ChunkSize + random.CaveGen.Intn((bottom - 1) * ChunkSize),
 		},
 	}
 	layer3 := [3]world.Coords{
 		{
-			X: rand.Intn(ChunkSize - 10) + left * ChunkSize + 10,
-			Y: rand.Intn(6) + (bottom + 1) * ChunkSize - 10,
+			X: left * ChunkSize + marginH + random.CaveGen.Intn(ChunkSize - marginH),
+			Y: (bottom + 1) * ChunkSize - marginB - random.CaveGen.Intn(6),
 		},
 		{
-			X: rand.Intn((right - left - 1) * ChunkSize) + left * ChunkSize,
-			Y: rand.Intn(6) + (bottom + 1) * ChunkSize - 10,
+			X: (left + 1) * ChunkSize + random.CaveGen.Intn((right - left - 1) * ChunkSize),
+			Y: (bottom + 1) * ChunkSize - marginB - random.CaveGen.Intn(6),
 		},
 		{
-			X: rand.Intn(ChunkSize - 10) + right * ChunkSize - 10,
-			Y: rand.Intn(6) + (bottom + 1) * ChunkSize - 10,
+			X: (right + 1) * ChunkSize - marginH - random.CaveGen.Intn(ChunkSize - marginH),
+			Y: (bottom + 1) * ChunkSize - marginB - random.CaveGen.Intn(6),
 		},
 	}
+	//fmt.Println("Layers:")
+	//fmt.Println("TOP - Left:", layer1[0], "Mid:", layer1[1], "Right:", layer1[2])
+	//fmt.Println("MID - Left:", layer2[0], "Mid:", layer2[1], "Right:", layer2[2])
+	//fmt.Println("BOT - Left:", layer3[0], "Mid:", layer3[1], "Right:", layer3[2])
 	return [3][3]world.Coords{
 		layer1,
 		layer2,

@@ -8,25 +8,25 @@ import (
 	"math/rand"
 )
 
-func RandomPosition(orig pixel.Vec, variance float64) pixel.Vec {
+func RandomPosition(orig pixel.Vec, variance float64, rando *rand.Rand) pixel.Vec {
 	pos := orig
 	actVar := variance * world.TileSize
-	xVar := (rand.Float64() - 0.5) * actVar
-	yVar := (rand.Float64() - 0.5) * actVar
+	xVar := (rando.Float64() - 0.5) * actVar
+	yVar := (rando.Float64() - 0.5) * actVar
 	pos.X += xVar
 	pos.Y += yVar
 	return pos
 }
 
 
-func RandomVelocity(orig pixel.Vec, variance float64) *physics.Physics {
+func RandomVelocity(orig pixel.Vec, variance float64, rando *rand.Rand) *physics.Physics {
 	tran := transform.NewTransform()
 	physicsT := &physics.Physics{Transform: tran}
 	physicsT.Pos = orig
 	actVar := variance * world.TileSize
 	//if square {
-	xVar := (rand.Float64() - 0.5) * actVar
-	yVar := (rand.Float64() - 0.5) * actVar
+	xVar := (rando.Float64() - 0.5) * actVar
+	yVar := (rando.Float64() - 0.5) * actVar
 	physicsT.Pos.X += xVar
 	physicsT.Pos.Y += yVar
 	physicsT.Velocity.X = xVar * 5.
