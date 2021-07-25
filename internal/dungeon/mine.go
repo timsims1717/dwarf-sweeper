@@ -74,7 +74,7 @@ func (m *Mine) Create(pos pixel.Vec, batcher *img.Batcher) {
 				return 1
 			}
 		},
-	})
+	}, "mine_1")
 	m.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, m.Transform).
 		AddComponent(myecs.Animation, m.Reanimator)

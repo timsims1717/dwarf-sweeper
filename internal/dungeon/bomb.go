@@ -76,7 +76,7 @@ func (b *Bomb) Create(pos pixel.Vec, batcher *img.Batcher) {
 				return 2
 			}
 		},
-	})
+	}, "bomb_unlit")
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Animation, b.Reanimator)

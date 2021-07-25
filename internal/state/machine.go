@@ -48,12 +48,41 @@ var (
 	timerKeys map[string]bool
 	credits   = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
 	title     = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
+	mInput    = &input.Input{
+		Bools: map[string]*input.BoolSet{
+			"debugPause": input.NewBool(pixelgl.KeyF9),
+			"debug":      input.NewBool(pixelgl.KeyF3),
+			"debugText":  input.NewBool(pixelgl.KeyF4),
+			"debugInv":   input.NewBool(pixelgl.KeyF10),
+			"back":       input.NewBool(pixelgl.KeyEscape),
+			"fullscreen": input.NewBool(pixelgl.KeyF),
+		},
+		Buttons: map[string]*input.ButtonSet{
+			"click": input.NewButton(pixelgl.MouseButtonLeft),
+		},
+	}
+	dInput    = &input.Input{
+		Bools: map[string]*input.BoolSet{
+			"dig":  input.NewBool(pixelgl.MouseButtonLeft),
+			"mark": input.NewBool(pixelgl.MouseButtonRight),
+		},
+		Buttons: map[string]*input.ButtonSet{
+			"left":      input.NewButton(pixelgl.KeyA),
+			"right":     input.NewButton(pixelgl.KeyD),
+			"jump":      input.NewButton(pixelgl.KeySpace),
+			"lookUp":    input.NewButton(pixelgl.KeyW),
+			"lookDown":  input.NewButton(pixelgl.KeyS),
+			"climbUp":   input.NewButton(pixelgl.KeyW),
+			"climbDown": input.NewButton(pixelgl.KeyS),
+		},
+	}
 )
 
 func Update(win *pixelgl.Window) {
 	updateState()
-	input.Input.Update(win)
-	if input.Input.Debug {
+	mInput.Update(win)
+	dInput.Update(win)
+	if mInput.GetBool("debug") {
 		if debug.Debug {
 			fmt.Println("DEBUG OFF")
 		} else {
@@ -61,7 +90,7 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Debug = !debug.Debug
 	}
-	if input.Input.DebugText {
+	if mInput.GetBool("debugText") {
 		if debug.Text {
 			fmt.Println("DEBUG TEXT OFF")
 		} else {
@@ -69,15 +98,15 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Text = !debug.Text
 	}
-	if input.Input.DebugInv && dungeon.Dungeon.GetPlayer() != nil {
+	if mInput.GetBool("debugInv") && dungeon.Dungeon.GetPlayer() != nil {
 		dungeon.Dungeon.GetPlayer().Inv = !dungeon.Dungeon.GetPlayer().Inv
 	}
 	if debug.Debug {
-		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, input.Input.World, 1.)
+		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, dInput.World, 1.)
 	}
 	if state == 0 {
 		if win.Focused() {
-			if input.Input.DebugPause {
+			if mInput.GetBool("debugPause") {
 				fmt.Println("DEBUG PAUSE")
 			}
 			reanimator.Update()
@@ -90,7 +119,7 @@ func Update(win *pixelgl.Window) {
 			dungeon.Entities.Update()
 			particles.Update()
 			vfx.Update()
-			dungeon.Dungeon.GetPlayer().Update()
+			dungeon.Dungeon.GetPlayer().Update(dInput)
 			if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Dead {
 				timer = time.Now()
 				timerKeys["death"] = true
@@ -101,7 +130,7 @@ func Update(win *pixelgl.Window) {
 					newState = 2
 				}
 			}
-			if input.Input.Back {
+			if mInput.GetBool("back") {
 				newState = 1
 			}
 			bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
@@ -110,7 +139,7 @@ func Update(win *pixelgl.Window) {
 			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
 			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
 			camera.Cam.Restrict(bl, tr)
-			if input.Input.LookUp.JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+			if dInput.GetButton("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
 				state = -1
 			}
 		}
@@ -118,12 +147,12 @@ func Update(win *pixelgl.Window) {
 		title.Transform.UIPos = camera.Cam.APos
 		title.Transform.UIZoom = camera.Cam.GetZoomScale()
 		title.Update(pixel.Rect{})
-		MainMenu.Update(input.Input.World, input.Input.Click)
-		if Current == 0 && (MainMenu.Items["exit"].IsClicked() || input.Input.Back) {
+		MainMenu.Update(mInput.World, mInput.GetButton("click"))
+		if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.GetBool("back")) {
 			win.SetClosed(true)
 		}
-		Options.Update(input.Input.World, input.Input.Click)
-		if Current == 1 && (Options.Items["back"].IsClicked() || input.Input.Back) {
+		Options.Update(mInput.World, mInput.GetButton("click"))
+		if Current == 1 && (Options.Items["back"].IsClicked() || mInput.GetBool("back")) {
 			SwitchToMain()
 		}
 	} else if state == 2 {
@@ -136,7 +165,7 @@ func Update(win *pixelgl.Window) {
 		dungeon.Entities.Update()
 		particles.Update()
 		vfx.Update()
-		dungeon.Dungeon.GetPlayer().Update()
+		dungeon.Dungeon.GetPlayer().Update(dInput)
 		dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
 		dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
 		dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
@@ -155,16 +184,16 @@ func Update(win *pixelgl.Window) {
 		dungeon.BombsMarkedItem.Update(pixel.Rect{})
 		dungeon.WrongMarksItem.Update(pixel.Rect{})
 		dungeon.TotalScore.Update(pixel.Rect{})
-		PostGame.Update(input.Input.World, input.Input.Click)
-		if PostGame.Items["menu"].IsClicked() || input.Input.Back {
+		PostGame.Update(mInput.World, mInput.GetButton("click"))
+		if PostGame.Items["menu"].IsClicked() || mInput.GetBool("back") {
 			newState = 1
 		}
 	} else if state == 3 {
 		credits.Transform.UIPos = camera.Cam.APos
 		credits.Transform.UIZoom = camera.Cam.GetZoomScale()
 		credits.Update(pixel.Rect{})
-		if input.Input.Back || input.Input.Click.JustPressed() {
-			input.Input.Click.Consume()
+		if mInput.GetBool("back") || mInput.GetButton("click").JustPressed() {
+			mInput.GetButton("click").Consume()
 			newState = 1
 		}
 	} else if state == 4 {
@@ -176,7 +205,7 @@ func Update(win *pixelgl.Window) {
 func Draw(win *pixelgl.Window) {
 	if state == 0 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
 		dungeon.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)
@@ -188,7 +217,7 @@ func Draw(win *pixelgl.Window) {
 		title.Draw(win)
 	} else if state == 2 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
 		dungeon.Entities.Draw(win)
 		particles.Draw(win)
 		vfx.Draw(win)

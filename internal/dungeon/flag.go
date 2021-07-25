@@ -44,7 +44,7 @@ func (f *Flag) Create(from pixel.Vec, batcher *img.Batcher) {
 		Check: func() int {
 			return 0
 		},
-	})
+	}, "flag_hang")
 	f.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, f.Transform).
 		AddComponent(myecs.Animation, f.Reanimator)

@@ -59,7 +59,7 @@ func NewItem(t *ItemText, rect, parent pixel.Rect) *Item {
 	return item
 }
 
-func (i *Item) Update(r pixel.Rect, cursor pixel.Vec, clicked input.Button) {
+func (i *Item) Update(r pixel.Rect, cursor pixel.Vec, clicked *input.Button) {
 	if i.Show {
 		if i.Disabled {
 			if i.disabled && i.disabledFn != nil {

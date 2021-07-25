@@ -6,102 +6,65 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var Input = &input{}
+type AxisSet struct {
 
-type input struct {
-	Cursor     pixel.Vec
-	World      pixel.Vec
-	Click      Button
-	Scroll     float64
-	Debug      bool
-	DebugText  bool
-	DebugPause bool
-	DebugInv   bool
-	XDir       XDirection
-	XDirC      bool
-	Jumping    Button
-	IsDig      bool
-	IsMark     bool
-	LookUp     Button
-	LookDown   Button
-	ClimbUp    Button
-	ClimbDown  Button
-	UseCursor  bool
-	Back       bool
-	Fullscreen bool
 }
 
-type XDirection int
-
-const (
-	None = iota
-	Left
-	Right
-)
-
-func Restrict(win *pixelgl.Window, bl, tr pixel.Vec) {
-	world := camera.Cam.Mat.Unproject(win.MousePosition())
-	if bl.X <= tr.X {
-		if bl.X > world.X {
-			world.X = bl.X
-		} else if tr.X < world.X {
-			world.X = tr.X
-		}
-	}
-	if bl.Y <= tr.Y {
-		if bl.Y > world.Y {
-			world.Y = bl.Y
-		} else if tr.Y < world.Y {
-			world.Y = tr.Y
-		}
-	}
-	win.SetMousePosition(camera.Cam.Mat.Project(world))
+type BoolSet struct {
+	B bool
+	S pixelgl.Button
 }
 
-func (i *input) Update(win *pixelgl.Window) {
+func NewBool(button pixelgl.Button) *BoolSet {
+	return &BoolSet{
+		S: button,
+	}
+}
+
+type ButtonSet struct {
+	B Button
+	S pixelgl.Button
+}
+
+func NewButton(button pixelgl.Button) *ButtonSet {
+	return &ButtonSet{
+		S: button,
+	}
+}
+
+type Input struct {
+	Cursor  pixel.Vec
+	World   pixel.Vec
+	Axes    map[string]float64
+	Bools   map[string]*BoolSet
+	Buttons map[string]*ButtonSet
+}
+
+func (i *Input) Update(win *pixelgl.Window) {
 	i.Cursor = win.MousePosition()
-	i.Click.Set(win, pixelgl.MouseButtonLeft)
-
-	if win.Pressed(pixelgl.KeyLeft) {
-		camera.Cam.Left()
-	}
-	if win.Pressed(pixelgl.KeyRight) {
-		camera.Cam.Right()
-	}
-	if win.Pressed(pixelgl.KeyDown) {
-		camera.Cam.Down()
-	}
-	if win.Pressed(pixelgl.KeyUp) {
-		camera.Cam.Up()
-	}
-	camera.Cam.ZoomIn(win.MouseScroll().Y)
-
 	i.World = camera.Cam.Mat.Unproject(win.MousePosition())
-	i.DebugPause = win.JustPressed(pixelgl.KeyF9)
-	i.Debug = win.JustPressed(pixelgl.KeyF3) && !win.Pressed(pixelgl.KeyLeftShift)
-	i.DebugText = win.JustPressed(pixelgl.KeyF3) && win.Pressed(pixelgl.KeyLeftShift)
-	i.DebugInv = win.JustPressed(pixelgl.KeyF10)
 
-	i.Back = win.JustPressed(pixelgl.KeyEscape)
-
-	if win.JustPressed(pixelgl.KeyD) {
-		i.XDir = Right
-		i.XDirC = true
-	} else if win.JustPressed(pixelgl.KeyA) {
-		i.XDir = Left
-		i.XDirC = true
-	} else if (i.XDir == Right && !win.Pressed(pixelgl.KeyD)) || (i.XDir == Left && !win.Pressed(pixelgl.KeyA)) {
-		i.XDir = None
-		i.XDirC = true
+	for _, set := range i.Bools {
+		set.B = win.JustPressed(set.S)
 	}
-	i.IsDig = win.JustPressed(pixelgl.MouseButtonLeft) || win.JustPressed(pixelgl.KeyKP0) || win.JustPressed(pixelgl.KeyKPEnter)
-	i.IsMark = win.JustPressed(pixelgl.MouseButtonRight)
-	i.Jumping.Set(win, pixelgl.KeySpace)
-	i.Fullscreen = win.JustPressed(pixelgl.KeyF)
-	i.LookUp.Set(win, pixelgl.KeyW)
-	i.LookDown.Set(win, pixelgl.KeyS)
-	i.ClimbUp.Set(win, pixelgl.KeyW)
-	i.ClimbDown.Set(win, pixelgl.KeyS)
+
+	for _, set := range i.Buttons {
+		set.B.Set(win, set.S)
+	}
+}
+
+func (i *Input) GetBool(s string) bool {
+	if b, ok := i.Bools[s]; ok {
+		return b.B
+	}
+	return false
+}
+
+func (i *Input) GetButton(s string) *Button {
+	if b, ok := i.Buttons[s]; ok {
+		return &b.B
+	}
+	return &Button{}
 }
 
 type Button struct {

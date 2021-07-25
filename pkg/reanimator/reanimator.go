@@ -19,6 +19,7 @@ type Tree struct {
 	animKey string
 	update  bool
 	Done    bool
+	Default string
 }
 
 func SetFrameRate(fRate int) {
@@ -55,10 +56,11 @@ func NewSimple(anim *Anim) *Tree {
 	return t
 }
 
-func New(root *Switch) *Tree {
+func New(root *Switch, def string) *Tree {
 	t := &Tree{
-		Root:   root,
-		update: true,
+		Root:    root,
+		update:  true,
+		Default: def,
 	}
 	t.Update()
 	return t
@@ -101,7 +103,11 @@ func (t *Tree) Update() {
 				}
 			}
 			t.spr = a.S[a.Step]
-			t.animKey = a.Key
+			if t.update {
+				t.animKey = t.Default
+			} else {
+				t.animKey = a.Key
+			}
 		}
 	}
 }
