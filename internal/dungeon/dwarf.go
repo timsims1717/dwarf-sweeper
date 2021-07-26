@@ -34,38 +34,43 @@ var (
 )
 
 type Dwarf struct {
-	Transform   *physics.Physics
-	Reanimator  *reanimator.Tree
-	entity      *ecs.Entity
-	faceLeft    bool
+	Transform  *physics.Physics
+	Reanimator *reanimator.Tree
+	entity     *ecs.Entity
+	faceLeft   bool
+
 	selectLegal bool
-	walkTimer   time.Time
-	walking     bool
-	jumping     bool
-	jumpOrigY   float64
-	jumpTarget  float64
-	jumpTimer   time.Time
-	toJump      bool
-	jumpEnd     bool
-	digging     bool
+	jpSelect    bool
+	hovered     *Tile
+	relative    pixel.Vec
+	digTile     *Tile
 	tileQueue   []struct{
 		a int
 		t *Tile
 	}
-	marking     bool
-	climbing    bool
-	digTile     *Tile
-	hovered     *Tile
-	distFell    float64
-	cursorV     pixel.Vec
-	relWorld    pixel.Vec
-	Hurt        bool
-	dmg         float64
-	source      pixel.Vec
-	knockback   float64
-	DeadStop    bool
-	Dead        bool
-	Inv         bool
+
+	walkTimer time.Time
+	walking   bool
+
+	jumping    bool
+	jumpOrigY  float64
+	jumpTarget float64
+	jumpTimer  time.Time
+	toJump     bool
+	jumpEnd    bool
+	distFell   float64
+
+	digging  bool
+	marking  bool
+	climbing bool
+
+	Hurt      bool
+	dmg       float64
+	source    pixel.Vec
+	knockback float64
+	DeadStop  bool
+	Dead      bool
+	Inv       bool
 }
 
 func NewDwarf(start pixel.Vec) *Dwarf {
@@ -244,10 +249,42 @@ func (d *Dwarf) Update(in *input.Input) {
 		d.walking = false
 		d.climbing = false
 	} else {
-		d.hovered = Dungeon.GetCave().GetTile(in.World)
+		jpSelecting := in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.
+		if jpSelecting {
+			d.jpSelect = true
+		} else if in.MouseMoved {
+			d.jpSelect = false
+		}
+		if d.jpSelect {
+			if jpSelecting {
+				x := in.Axes["targetX"].F
+				y := in.Axes["targetY"].F
+				if x > input.Deadzone || x < -input.Deadzone {
+					if x > 0. {
+						x = world.TileSize
+					} else {
+						x = -world.TileSize
+					}
+				}
+				if y > input.Deadzone || y < -input.Deadzone {
+					if y > 0. {
+						y = -world.TileSize
+					} else {
+						y = world.TileSize
+					}
+				}
+				d.relative = pixel.V(x, y)
+			}
+			p := d.Transform.Pos
+			p.X += d.relative.X
+			p.Y += d.relative.Y
+			d.hovered = Dungeon.GetCave().GetTile(p)
+		} else if !d.jpSelect {
+			d.hovered = Dungeon.GetCave().GetTile(in.World)
+		}
 		if d.hovered != nil {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
-			if in.GetBool("dig") && d.hovered.Solid && d.selectLegal {
+			if in.Get("dig").JustPressed() && d.hovered.Solid && d.selectLegal {
 				d.tileQueue = append(d.tileQueue, struct{
 					a int
 					t *Tile
@@ -255,7 +292,7 @@ func (d *Dwarf) Update(in *input.Input) {
 					a: 0,
 					t: d.hovered,
 				})
-			} else if in.GetBool("mark") && d.hovered.Solid && d.selectLegal {
+			} else if in.Get("mark").JustPressed() && d.hovered.Solid && d.selectLegal {
 				d.tileQueue = append(d.tileQueue, struct{
 					a int
 					t *Tile
@@ -268,7 +305,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		if len(d.tileQueue) > 0 && !d.digging && !d.marking {
 			next := d.tileQueue[0]
 			d.tileQueue = d.tileQueue[1:]
-			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange {
+			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange && next.t.Solid {
 				if next.a == 0 {
 					d.digging = true
 					d.jumping = false
@@ -306,9 +343,9 @@ func (d *Dwarf) Update(in *input.Input) {
 			canClimb := (right != nil && right.Solid) || (left != nil && left.Solid)
 
 			xDir := 0
-			if in.GetButton("left").Pressed() && !in.GetButton("right").Pressed() {
+			if in.Get("left").Pressed() && !in.Get("right").Pressed() {
 				xDir = 1
-			} else if in.GetButton("right").Pressed() && !in.GetButton("left").Pressed() {
+			} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
 				xDir = 2
 			}
 
@@ -329,7 +366,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 			}
 			// Ground test, considered on the ground for jumping purposes until half a tile out
-			if !d.jumping && loc1 != nil && canJump && in.GetButton("jump").JustPressed() {
+			if !d.jumping && loc1 != nil && canJump && in.Get("jump").JustPressed() {
 				d.toJump = true
 				d.climbing = false
 				d.walking = false
@@ -347,9 +384,9 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if d.climbing {
 				if canClimb {
 					d.distFell = 0.
-					if in.GetButton("climbUp").Pressed() && !in.GetButton("climbDown").Pressed() {
+					if in.Get("climbUp").Pressed() && !in.Get("climbDown").Pressed() {
 						d.Transform.SetVelY(ClimbSpeed, 0.)
-					} else if in.GetButton("climbDown").Pressed() && !in.GetButton("climbUp").Pressed() {
+					} else if in.Get("climbDown").Pressed() && !in.Get("climbUp").Pressed() {
 						d.Transform.SetVelY(-ClimbSpeed, 0.)
 					} else {
 						d.Transform.SetVelY(0., 0.)
@@ -362,7 +399,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				} else {
 					d.climbing = false
 				}
-			} else if canClimb && !d.toJump && in.GetButton("climbUp").Pressed() {
+			} else if canClimb && !d.toJump && in.Get("climbUp").Pressed() {
 				d.climbing = true
 				d.walking = false
 				d.jumping = false
@@ -377,10 +414,10 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if !d.jumping && !d.toJump && d.Transform.Grounded {
 				wasWalking := d.walking
 				if math.Abs(d.Transform.Velocity.X) < 20.0 {
-					if in.GetButton("lookUp").Pressed() && !in.GetButton("lookDown").Pressed() {
+					if in.Get("lookUp").Pressed() && !in.Get("lookDown").Pressed() {
 						d.distFell = 0.
 						camera.Cam.Up()
-					} else if in.GetButton("lookDown").Pressed() && !in.GetButton("lookUp").Pressed() {
+					} else if in.Get("lookDown").Pressed() && !in.Get("lookUp").Pressed() {
 						d.distFell = 0.
 						camera.Cam.Down()
 					}
@@ -407,10 +444,10 @@ func (d *Dwarf) Update(in *input.Input) {
 					if d.Transform.Velocity.Y <= 0. {
 						d.jumping = false
 						d.jumpEnd = false
-					} else if height < MaxJump - 1 && in.GetButton("jump").Pressed() {
+					} else if height < MaxJump - 1 && in.Get("jump").Pressed() {
 						d.Transform.SetVelY(JumpVel, 0.)
 					} else if !d.jumpEnd {
-						in.GetButton("jump").Consume()
+						in.Get("jump").Consume()
 						d.jumping = false
 						d.jumpEnd = true
 						d.jumpTarget = Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y+world.TileSize*1.0)).Transform.Pos.Y

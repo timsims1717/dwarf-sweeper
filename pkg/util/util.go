@@ -91,3 +91,19 @@ func FMod(a, b float64) float64 {
 	}
 	return mod
 }
+
+func UBound(a, b float64) float64 {
+	if a >= 0. {
+		return math.Min(a, math.Abs(b))
+	} else {
+		return math.Max(a, -math.Abs(b))
+	}
+}
+
+func LBound(a, b float64) float64 {
+	if a >= 0. {
+		return math.Max(a, math.Abs(b))
+	} else {
+		return math.Min(a, -math.Abs(b))
+	}
+}

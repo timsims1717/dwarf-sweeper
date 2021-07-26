@@ -49,32 +49,45 @@ var (
 	credits   = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
 	title     = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
 	mInput    = &input.Input{
-		Bools: map[string]*input.BoolSet{
-			"debugPause": input.NewBool(pixelgl.KeyF9),
-			"debug":      input.NewBool(pixelgl.KeyF3),
-			"debugText":  input.NewBool(pixelgl.KeyF4),
-			"debugInv":   input.NewBool(pixelgl.KeyF10),
-			"back":       input.NewBool(pixelgl.KeyEscape),
-			"fullscreen": input.NewBool(pixelgl.KeyF),
-		},
 		Buttons: map[string]*input.ButtonSet{
-			"click": input.NewButton(pixelgl.MouseButtonLeft),
+			"debugPause": input.NewJoyless(pixelgl.KeyF9),
+			"debug":      input.NewJoyless(pixelgl.KeyF3),
+			"debugText":  input.NewJoyless(pixelgl.KeyF4),
+			"debugInv":   input.NewJoyless(pixelgl.KeyF10),
+			"back":       input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
+			"fullscreen": input.NewJoyless(pixelgl.KeyF),
+			"click":      input.NewJoyless(pixelgl.MouseButtonLeft),
 		},
 	}
 	dInput    = &input.Input{
-		Bools: map[string]*input.BoolSet{
-			"dig":  input.NewBool(pixelgl.MouseButtonLeft),
-			"mark": input.NewBool(pixelgl.MouseButtonRight),
+		Axes: map[string]*input.AxisSet{
+			"targetX": {
+				A: pixelgl.AxisRightX,
+			},
+			"targetY": {
+				A: pixelgl.AxisRightY,
+			},
 		},
 		Buttons: map[string]*input.ButtonSet{
-			"left":      input.NewButton(pixelgl.KeyA),
-			"right":     input.NewButton(pixelgl.KeyD),
-			"jump":      input.NewButton(pixelgl.KeySpace),
-			"lookUp":    input.NewButton(pixelgl.KeyW),
-			"lookDown":  input.NewButton(pixelgl.KeyS),
-			"climbUp":   input.NewButton(pixelgl.KeyW),
-			"climbDown": input.NewButton(pixelgl.KeyS),
+			"dig": {
+				Key:  pixelgl.MouseButtonLeft,
+				Axis: pixelgl.AxisRightTrigger,
+				GP:   1,
+			},
+			"mark": {
+				Key:  pixelgl.MouseButtonRight,
+				Axis: pixelgl.AxisLeftTrigger,
+				GP:   1,
+			},
+			"left":      input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
+			"right":     input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
+			"jump":      input.New(pixelgl.KeySpace, pixelgl.ButtonA),
+			"lookUp":    input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			"lookDown":  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			"climbUp":   input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			"climbDown": input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
 		},
+		StickD: true,
 	}
 )
 
@@ -82,7 +95,7 @@ func Update(win *pixelgl.Window) {
 	updateState()
 	mInput.Update(win)
 	dInput.Update(win)
-	if mInput.GetBool("debug") {
+	if mInput.Get("debug").JustPressed() {
 		if debug.Debug {
 			fmt.Println("DEBUG OFF")
 		} else {
@@ -90,7 +103,7 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Debug = !debug.Debug
 	}
-	if mInput.GetBool("debugText") {
+	if mInput.Get("debugText").JustPressed() {
 		if debug.Text {
 			fmt.Println("DEBUG TEXT OFF")
 		} else {
@@ -98,7 +111,7 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Text = !debug.Text
 	}
-	if mInput.GetBool("debugInv") && dungeon.Dungeon.GetPlayer() != nil {
+	if mInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
 		dungeon.Dungeon.GetPlayer().Inv = !dungeon.Dungeon.GetPlayer().Inv
 	}
 	if debug.Debug {
@@ -106,7 +119,7 @@ func Update(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		if win.Focused() {
-			if mInput.GetBool("debugPause") {
+			if mInput.Get("debugPause").JustPressed() {
 				fmt.Println("DEBUG PAUSE")
 			}
 			reanimator.Update()
@@ -130,7 +143,7 @@ func Update(win *pixelgl.Window) {
 					newState = 2
 				}
 			}
-			if mInput.GetBool("back") {
+			if mInput.Get("back").JustPressed() {
 				newState = 1
 			}
 			bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
@@ -139,7 +152,7 @@ func Update(win *pixelgl.Window) {
 			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
 			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
 			camera.Cam.Restrict(bl, tr)
-			if dInput.GetButton("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+			if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
 				state = -1
 			}
 		}
@@ -147,12 +160,12 @@ func Update(win *pixelgl.Window) {
 		title.Transform.UIPos = camera.Cam.APos
 		title.Transform.UIZoom = camera.Cam.GetZoomScale()
 		title.Update(pixel.Rect{})
-		MainMenu.Update(mInput.World, mInput.GetButton("click"))
-		if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.GetBool("back")) {
+		MainMenu.Update(mInput.World, mInput.Get("click"))
+		if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.Get("back").JustPressed()) {
 			win.SetClosed(true)
 		}
-		Options.Update(mInput.World, mInput.GetButton("click"))
-		if Current == 1 && (Options.Items["back"].IsClicked() || mInput.GetBool("back")) {
+		Options.Update(mInput.World, mInput.Get("click"))
+		if Current == 1 && (Options.Items["back"].IsClicked() || mInput.Get("back").JustPressed()) {
 			SwitchToMain()
 		}
 	} else if state == 2 {
@@ -184,16 +197,16 @@ func Update(win *pixelgl.Window) {
 		dungeon.BombsMarkedItem.Update(pixel.Rect{})
 		dungeon.WrongMarksItem.Update(pixel.Rect{})
 		dungeon.TotalScore.Update(pixel.Rect{})
-		PostGame.Update(mInput.World, mInput.GetButton("click"))
-		if PostGame.Items["menu"].IsClicked() || mInput.GetBool("back") {
+		PostGame.Update(mInput.World, mInput.Get("click"))
+		if PostGame.Items["menu"].IsClicked() || mInput.Get("back").JustPressed() {
 			newState = 1
 		}
 	} else if state == 3 {
 		credits.Transform.UIPos = camera.Cam.APos
 		credits.Transform.UIZoom = camera.Cam.GetZoomScale()
 		credits.Update(pixel.Rect{})
-		if mInput.GetBool("back") || mInput.GetButton("click").JustPressed() {
-			mInput.GetButton("click").Consume()
+		if mInput.Get("back").JustPressed() || mInput.Get("click").JustPressed() {
+			mInput.Get("click").Consume()
 			newState = 1
 		}
 	} else if state == 4 {
