@@ -16,15 +16,15 @@ func PhysicsSystem() {
 			tran.Pos.X += timing.DT * phys.Velocity.X
 			tran.Pos.Y += timing.DT * phys.Velocity.Y
 			if !phys.GravityOff && !phys.YJustSet {
-				if phys.Velocity.Y > -500. {
-					phys.Velocity.Y -= 750. * timing.DT
+				if phys.Velocity.Y > -phys.Terminal {
+					phys.Velocity.Y -= phys.Gravity * timing.DT
 				}
 			}
 			phys.YJustSet = false
 			if !phys.FrictionOff && !phys.XJustSet {
-				friction := 25.
+				friction := phys.AirFriction
 				if phys.Grounded {
-					friction = 400.
+					friction = phys.Friction
 				}
 				if phys.Velocity.X > 0. {
 					phys.Velocity.X -= friction * timing.DT

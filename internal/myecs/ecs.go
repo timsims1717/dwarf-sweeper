@@ -20,7 +20,10 @@ var (
 	IsCollectible = ecs.BuildTag(Transform, Collect)
 )
 
-type Collider struct{}
+type Collider struct{
+	GroundOnly bool
+	CanPass    bool
+}
 type Collectible struct{
 	CollectedBy bool
 }

@@ -3,12 +3,10 @@ package physics
 import (
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/timing"
-	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
 )
 
 type Physics struct {
-	*transform.Transform
 	Velocity    pixel.Vec
 	interX      *gween.Tween
 	interY      *gween.Tween
@@ -19,6 +17,19 @@ type Physics struct {
 	RicochetX   bool
 	RicochetY   bool
 	Grounded    bool
+	Gravity     float64
+	Terminal    float64
+	Friction    float64
+	AirFriction float64
+}
+
+func New() *Physics {
+	return &Physics{
+		Gravity:     750.,
+		Terminal:    500.,
+		Friction:    400.,
+		AirFriction: 25.,
+	}
 }
 
 func (p *Physics) IsMovingX() bool {

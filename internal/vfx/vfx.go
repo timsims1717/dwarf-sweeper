@@ -12,7 +12,10 @@ type VFX struct {
 	Matrix    pixel.Matrix
 }
 
-var effects []*VFX
+var (
+	effects     []*VFX
+	partBatcher *img.Batcher
+)
 
 func Initialize() {
 	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
@@ -20,6 +23,12 @@ func Initialize() {
 		panic(err)
 	}
 	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done, nil).Anim
+	particleSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
+	if err != nil {
+		panic(err)
+	}
+	partBatcher = img.NewBatcher(particleSheet)
+	dazed = reanimator.NewAnimFromSprites("dazed", partBatcher.Animations["dazed"].S, reanimator.Loop, nil).Anim
 }
 
 func Update() {
@@ -37,7 +46,9 @@ func Update() {
 
 func Draw(win *pixelgl.Window) {
 	for _, effect := range effects {
-		effect.Animation.CurrentSprite().Draw(win, effect.Matrix)
+		if effect.Animation.CurrentSprite() != nil {
+			effect.Animation.CurrentSprite().Draw(win, effect.Matrix)
+		}
 	}
 }
 

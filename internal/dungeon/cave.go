@@ -95,6 +95,10 @@ func (cave *Cave) Dimensions() (int, int) {
 	}
 }
 
+func (cave *Cave) PointLoaded(v pixel.Vec) bool {
+	return cave.GetChunk(WorldToChunk(v)).display
+}
+
 func (cave *Cave) CurrentBoundaries() (pixel.Vec, pixel.Vec) {
 	p := WorldToChunk(cave.pivot)
 	var all []world.Coords

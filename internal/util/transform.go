@@ -19,18 +19,18 @@ func RandomPosition(orig pixel.Vec, variance float64, rando *rand.Rand) pixel.Ve
 }
 
 
-func RandomVelocity(orig pixel.Vec, variance float64, rando *rand.Rand) *physics.Physics {
+func RandomVelocity(orig pixel.Vec, variance float64, rando *rand.Rand) (*physics.Physics, *transform.Transform) {
 	tran := transform.NewTransform()
-	physicsT := &physics.Physics{Transform: tran}
-	physicsT.Pos = orig
+	physicsT := physics.New()
+	tran.Pos = orig
 	actVar := variance * world.TileSize
 	//if square {
 	xVar := (rando.Float64() - 0.5) * actVar
 	yVar := (rando.Float64() - 0.5) * actVar
-	physicsT.Pos.X += xVar
-	physicsT.Pos.Y += yVar
+	tran.Pos.X += xVar
+	tran.Pos.Y += yVar
 	physicsT.Velocity.X = xVar * 5.
 	physicsT.Velocity.Y = 20.
 	//}
-	return physicsT
+	return physicsT, tran
 }

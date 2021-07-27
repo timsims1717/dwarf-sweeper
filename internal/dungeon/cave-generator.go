@@ -64,7 +64,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 		StartC:  startT,
 		update:  true,
 	}
-	cave.fuseLen = 1.0
+	cave.fuseLen = 1.5
 	cave.bombPMin = 0.1
 	cave.bombPMax = 0.2
 	for i := 1; i < level; i += 2 {

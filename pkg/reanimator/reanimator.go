@@ -47,7 +47,7 @@ func NewSimple(anim *Anim) *Tree {
 					Anim: anim,
 				},
 			),
-			Check:    func() int {
+			Check: func() int {
 				return 0
 			},
 		},

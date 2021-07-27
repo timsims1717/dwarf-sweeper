@@ -54,54 +54,96 @@
   {
    "key": "gem_diamond",
    "x": 0,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 0,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 16,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 32,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 48,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 64,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 80,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 96,
-   "y": 0
+   "y": 16
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 112,
+   "y": 16
+  },
+  {
+   "key": "mm_idle",
+   "anim": true,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 16,
+   "y": 0
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 48,
+   "y": 0
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 80,
    "y": 0
   }
  ]

@@ -96,18 +96,18 @@ var blocks []string
 func BlockParticles(pos pixel.Vec) {
 	c := random.Effects.Intn(3) + 4
 	for i := 0; i < c; i++ {
-		phys := util.RandomVelocity(pos, 1.0, random.Effects)
+		phys, tran := util.RandomVelocity(pos, 1.0, random.Effects)
 		if random.Effects.Intn(2) == 0 {
-			phys.Flip = true
+			tran.Flip = true
 		}
 		if random.Effects.Intn(2) == 0 {
-			phys.Flop = true
+			tran.Flop = true
 		}
 		particles = append(particles, &particle{
 			Sprite:    PartBatcher.Sprites[blocks[random.Effects.Intn(len(blocks))]],
-			Transform: phys.Transform,
+			Transform: tran,
 			entity:    myecs.Manager.NewEntity().
-				AddComponent(myecs.Transform, phys.Transform).
+				AddComponent(myecs.Transform, tran).
 				AddComponent(myecs.Physics, phys),
 			color:     colornames.White,
 			fader:     gween.New(255., 0., 1.0, ease.Linear),

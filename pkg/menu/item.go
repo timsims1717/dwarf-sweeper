@@ -1,7 +1,7 @@
 package menu
 
 import (
-	"dwarf-sweeper/internal/input"
+	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"github.com/faiface/pixel"

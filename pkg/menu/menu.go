@@ -1,8 +1,8 @@
 package menu
 
 import (
-	"dwarf-sweeper/internal/input"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"

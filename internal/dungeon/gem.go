@@ -8,12 +8,14 @@ import (
 	"dwarf-sweeper/internal/util"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/transform"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 )
 
 type Gem struct {
-	Transform *physics.Physics
+	Physics   *physics.Physics
+	Transform *transform.Transform
 	created   bool
 	done      bool
 	collect   *myecs.Collectible
@@ -37,15 +39,15 @@ func (g *Gem) Draw(target pixel.Target) {
 }
 
 func (g *Gem) Create(pos pixel.Vec, batcher *img.Batcher) {
-	g.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
+	g.Physics, g.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
 	g.Transform.Pos = pos
 	g.created = true
 	g.sprite = batcher.Sprites["gem_diamond"]
 	g.collect = &myecs.Collectible{}
 	g.entity = myecs.Manager.NewEntity().
-		AddComponent(myecs.Transform, g.Transform.Transform).
-		AddComponent(myecs.Physics, g.Transform).
-		AddComponent(myecs.Collision, myecs.Collider{}).
+		AddComponent(myecs.Transform, g.Transform).
+		AddComponent(myecs.Physics, g.Physics).
+		AddComponent(myecs.Collision, myecs.Collider{ GroundOnly: true }).
 		AddComponent(myecs.Collect, g.collect)
 }
 

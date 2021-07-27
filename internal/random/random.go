@@ -14,7 +14,7 @@ var (
 
 func init() {
 	seed := time.Now().UnixNano()
-	//seed := int64(1623432418406855114)
+	//seed := int64(1627363045028136166)
 	Global = rand.New(rand.NewSource(seed))
 	PrintSeed(seed, "Global")
 	effSeed := Global.Int63()
