@@ -72,13 +72,11 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 			//		FuseLength: tile.Chunk.Cave.fuseLen,
 			//	})
 			//}
-		}
-		if !b && random.CaveGen.Intn(20) == 0 {
+		} else if random.CaveGen.Intn(20) == 0 {
 			tile.AddEntity(&Gem{})
+		} else if random.CaveGen.Intn(50) == 0 {
+			tile.AddEntity(&MadMonk{})
 		}
-		//if !b && random.CaveGen.Intn(20) == 0 {
-		//	tile.AddEntity(&MadMonk{})
-		//}
 		chunk.Rows[y][x] = tile
 		x++
 		if x % ChunkSize == 0 {

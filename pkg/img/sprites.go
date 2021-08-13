@@ -14,6 +14,7 @@ var (
 	Flip     = pixel.IM.ScaledXY(pixel.ZV, pixel.V(-1., 1.))
 	Flop     = pixel.IM.ScaledXY(pixel.ZV, pixel.V(1., -1.))
 	FlipFlop = pixel.IM.ScaledXY(pixel.ZV, pixel.V(-1., -1.))
+	Batchers = map[string]*Batcher{}
 )
 
 type Batcher struct {

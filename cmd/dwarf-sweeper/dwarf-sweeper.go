@@ -3,11 +3,11 @@ package main
 import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/state"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
@@ -41,7 +41,11 @@ func run() {
 
 	vfx.Initialize()
 	particles.Initialize()
-	dungeon.Entities.Initialize()
+	sheet, err := img.LoadSpriteSheet("assets/img/entities.json")
+	if err != nil {
+		panic(err)
+	}
+	img.Batchers["entities"] = img.NewBatcher(sheet)
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")

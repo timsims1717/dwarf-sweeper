@@ -2,18 +2,20 @@ package dungeon
 
 import (
 	"bytes"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"time"
 )
 
 const (
 	startSprite = "blank"
+	revealTimer = 0.2
 )
 
 var (
@@ -56,7 +58,7 @@ type Tile struct {
 	BGSpriteS string
 	BGSMatrix pixel.Matrix
 	FGSprite  *pixel.Sprite
-	Entities  []Entity
+	Entities  []myecs.AnEntity
 	bomb      bool
 	destroyed bool
 	breakable bool
@@ -64,9 +66,9 @@ type Tile struct {
 	Solid     bool
 	Transform  *transform.Transform
 	Chunk      *Chunk
-	revealT    time.Time
+	revealT    *timing.FrameTimer
 	revealing  bool
-	destroyT   time.Time
+	destroyT   *timing.FrameTimer
 	destroying bool
 	reload     bool
 	marked     bool
@@ -95,7 +97,7 @@ func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 	}
 }
 
-func (tile *Tile) AddEntity(e Entity) {
+func (tile *Tile) AddEntity(e myecs.AnEntity) {
 	tile.Entities = append(tile.Entities, e)
 }
 
@@ -116,14 +118,12 @@ func (tile *Tile) Update() {
 		tile.reload = false
 	}
 	if !tile.destroyed && tile.destroying && tile.breakable {
-		s := time.Since(tile.destroyT).Seconds()
-		if s >= 0.2 {
+		if tile.destroyT.UpdateDone() {
 			tile.Destroy()
 		}
 	}
 	if tile.Solid && !tile.destroyed && tile.revealing && tile.breakable {
-		s := time.Since(tile.revealT).Seconds()
-		if s >= 0.2 {
+		if tile.revealT.UpdateDone() {
 			tile.Reveal(false)
 		}
 	}
@@ -143,13 +143,14 @@ func (tile *Tile) Draw(target pixel.Target) {
 
 func (tile *Tile) ToDestroy() {
 	if tile != nil && !tile.destroyed && !tile.destroying && tile.breakable {
-		tile.destroyT = time.Now()
+		tile.destroyT = timing.New(revealTimer)
 		tile.destroying = true
 	}
 }
 
 func (tile *Tile) Destroy() {
 	if tile != nil && !tile.destroyed && tile.breakable {
+		wasSolid := tile.Solid
 		tile.Chunk.Cave.update = true
 		tile.destroying = false
 		tile.Solid = false
@@ -178,18 +179,20 @@ func (tile *Tile) Destroy() {
 				}
 			}
 			tile.UpdateSprites()
-			particles.BlockParticles(tile.Transform.Pos)
-			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5) + 1), -1.0)
 		}
-		for _, e := range tile.Entities {
-			Entities.Add(e, tile.Transform.Pos)
+		if wasSolid {
+			particles.BlockParticles(tile.Transform.Pos)
+			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
+			for _, e := range tile.Entities {
+				e.Create(tile.Transform.Pos)
+			}
 		}
 	}
 }
 
 func (tile *Tile) ToReveal() {
 	if tile != nil && !tile.revealing && tile.Solid && tile.breakable {
-		tile.revealT = time.Now()
+		tile.revealT = timing.New(revealTimer)
 		tile.revealing = true
 	}
 }
@@ -212,7 +215,7 @@ func (tile *Tile) Reveal(instant bool) {
 			}
 		}
 		for _, e := range tile.Entities {
-			Entities.Add(e, tile.Transform.Pos)
+			e.Create(tile.Transform.Pos)
 		}
 		if c == 0 {
 			tile.destroyed = true
@@ -240,9 +243,10 @@ func (tile *Tile) Mark(from pixel.Vec) {
 		correct := tile.bomb
 		if !tile.marked {
 			tile.marked = true
-			Entities.Add(&Flag{
+			f := &Flag{
 				Tile: tile,
-			}, from)
+			}
+			f.Create(from)
 			if correct {
 				BombsMarked++
 			} else {

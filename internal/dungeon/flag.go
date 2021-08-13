@@ -13,47 +13,34 @@ type Flag struct {
 	Transform  *transform.Transform
 	Tile       *Tile
 	created    bool
-	done       bool
 	Reanimator *reanimator.Tree
 	entity     *ecs.Entity
 }
 
 func (f *Flag) Update() {
-	if f.created && !f.done {
+	if f.created {
 		if !f.Tile.Solid || f.Tile.destroyed || !f.Tile.marked {
-			f.done = true
+			myecs.LazyDelete(f.entity)
 			// todo: particles?
 		}
 	}
 }
 
-func (f *Flag) Draw(target pixel.Target) {
-	if f.created && !f.done {
-		f.Reanimator.CurrentSprite().Draw(target, f.Transform.Mat)
-	}
-}
-
-func (f *Flag) Create(from pixel.Vec, batcher *img.Batcher) {
+func (f *Flag) Create(from pixel.Vec) {
 	f.Transform = transform.NewTransform()
 	f.Transform.Pos = f.Tile.Transform.Pos
 	f.created = true
 	f.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("flag_hang", batcher.Animations["flag_hang"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("flag_hang", img.Batchers[entityBKey].Animations["flag_hang"].S, reanimator.Loop, nil),
 		),
 		Check: func() int {
 			return 0
 		},
 	}, "flag_hang")
 	f.entity = myecs.Manager.NewEntity().
+		AddComponent(myecs.Entity, f).
 		AddComponent(myecs.Transform, f.Transform).
-		AddComponent(myecs.Animation, f.Reanimator)
-}
-
-func (f *Flag) Done() bool {
-	return f.done
-}
-
-func (f *Flag) Delete() {
-	myecs.Manager.DisposeEntity(f.entity)
+		AddComponent(myecs.Animation, f.Reanimator).
+		AddComponent(myecs.Batch, entityBKey)
 }

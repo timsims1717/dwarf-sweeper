@@ -1,22 +1,21 @@
 package physics
 
 import (
-	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
 )
 
 type Physics struct {
 	Velocity    pixel.Vec
-	interX      *gween.Tween
-	interY      *gween.Tween
+
 	XJustSet    bool
 	YJustSet    bool
 	FrictionOff bool
 	GravityOff  bool
-	RicochetX   bool
-	RicochetY   bool
+	RagDoll     bool
 	Grounded    bool
+
+	// the "Constants"
 	Gravity     float64
 	Terminal    float64
 	Friction    float64
@@ -33,11 +32,11 @@ func New() *Physics {
 }
 
 func (p *Physics) IsMovingX() bool {
-	return p.Velocity.X > 0.01 || p.Velocity.X < -0.01
+	return p.Velocity.X > 0.1 || p.Velocity.X < -0.1
 }
 
 func (p *Physics) IsMovingY() bool {
-	return p.Velocity.Y > 0.01 || p.Velocity.Y < -0.01
+	return p.Velocity.Y > 0.1 || p.Velocity.Y < -0.1
 }
 
 func (p *Physics) SetVelX(vx, spd float64) {
@@ -59,6 +58,5 @@ func (p *Physics) SetVelY(vy, spd float64) {
 }
 
 func (p *Physics) CancelMovement() {
-	p.interX = nil
 	p.Velocity = pixel.ZV
 }

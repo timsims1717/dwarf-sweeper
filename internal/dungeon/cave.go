@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"math"
 )
 
 type Cave struct {
@@ -228,6 +229,10 @@ func WorldToTile(v pixel.Vec, left bool) world.Coords {
 		X: x % ChunkSize,
 		Y: y % ChunkSize,
 	}
+}
+
+func TileInTile(a, b pixel.Vec) bool {
+	return math.Abs(a.X - b.X) <= world.TileSize * 0.5 && math.Abs(a.Y - b.Y) <= world.TileSize * 0.5
 }
 
 func (cave *Cave) PrintCaveToTerminal() {

@@ -135,6 +135,7 @@ func CollisionSystem() {
 							stopped = true
 						}
 						phys.Grounded = true
+						phys.RagDoll = false
 					} else {
 						phys.Grounded = false
 					}
@@ -143,7 +144,7 @@ func CollisionSystem() {
 					if right != nil && right.Solid && next.X >= loc.Transform.Pos.X {
 						next.X = loc.Transform.Pos.X
 						if phys.Velocity.X > 0 {
-							if phys.RicochetX {
+							if phys.RagDoll {
 								phys.Velocity.X = phys.Velocity.X * -0.6
 								stopped = true
 							} else {
@@ -155,7 +156,7 @@ func CollisionSystem() {
 					if left != nil && left.Solid && next.X <= loc.Transform.Pos.X {
 						next.X = loc.Transform.Pos.X
 						if phys.Velocity.X < 0 {
-							if phys.RicochetX {
+							if phys.RagDoll {
 								phys.Velocity.X = phys.Velocity.X * -0.6
 								stopped = true
 							} else {

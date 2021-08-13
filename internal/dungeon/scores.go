@@ -2,7 +2,7 @@ package dungeon
 
 import (
 	"dwarf-sweeper/pkg/menu"
-	"time"
+	"dwarf-sweeper/pkg/timing"
 )
 
 var(
@@ -24,5 +24,5 @@ var(
 	WrongMarksTimer  = 1.2
 	TotalScore       *menu.ItemText
 	TotalScoreTimer  = 1.4
-	ScoreTimer       time.Time
+	ScoreTimer       *timing.FrameTimer
 )

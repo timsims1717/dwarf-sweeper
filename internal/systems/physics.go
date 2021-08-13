@@ -19,6 +19,9 @@ func PhysicsSystem() {
 				if phys.Velocity.Y > -phys.Terminal {
 					phys.Velocity.Y -= phys.Gravity * timing.DT
 				}
+				if phys.Velocity.Y <= -phys.Terminal {
+					phys.Velocity.Y = -phys.Terminal
+				}
 			}
 			phys.YJustSet = false
 			if !phys.FrictionOff && !phys.XJustSet {

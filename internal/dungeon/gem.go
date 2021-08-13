@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/character"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
@@ -17,48 +18,43 @@ type Gem struct {
 	Physics   *physics.Physics
 	Transform *transform.Transform
 	created   bool
-	done      bool
 	collect   *myecs.Collectible
 	sprite    *pixel.Sprite
 	entity    *ecs.Entity
+	health    *character.Health
 }
 
 func (g *Gem) Update() {
-	if g.created && !g.done {
+	if g.created {
 		if g.collect.CollectedBy {
 			GemsFound++
-			g.done = true
+			particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_1","sparkle_2","sparkle_3","sparkle_4","sparkle_5"}, g.Transform.Pos, 1.0, 1.0, 0.5)
+			sfx.SoundPlayer.PlaySound("clink", 1.0)
+			myecs.LazyDelete(g.entity)
+		} else if g.health.Dead {
+			myecs.LazyDelete(g.entity)
 		}
 	}
 }
 
-func (g *Gem) Draw(target pixel.Target) {
-	if g.created && !g.done {
-		g.sprite.Draw(target, g.Transform.Mat)
-	}
-}
-
-func (g *Gem) Create(pos pixel.Vec, batcher *img.Batcher) {
+func (g *Gem) Create(pos pixel.Vec) {
 	g.Physics, g.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
 	g.Transform.Pos = pos
 	g.created = true
-	g.sprite = batcher.Sprites["gem_diamond"]
+	g.sprite = img.Batchers[entityBKey].Sprites["gem_diamond"]
 	g.collect = &myecs.Collectible{}
+	g.health = &character.Health{
+		Max:        1,
+		Curr:       1,
+		Override:   true,
+	}
 	g.entity = myecs.Manager.NewEntity().
+		AddComponent(myecs.Entity, g).
 		AddComponent(myecs.Transform, g.Transform).
 		AddComponent(myecs.Physics, g.Physics).
 		AddComponent(myecs.Collision, myecs.Collider{ GroundOnly: true }).
-		AddComponent(myecs.Collect, g.collect)
-}
-
-func (g *Gem) Done() bool {
-	return g.done
-}
-
-func (g *Gem) Delete() {
-	if g.done {
-		particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_1","sparkle_2","sparkle_3","sparkle_4","sparkle_5"}, g.Transform.Pos, 1.0, 1.0, 0.5)
-		sfx.SoundPlayer.PlaySound("clink", 1.0)
-	}
-	myecs.Manager.DisposeEntity(g.entity)
+		AddComponent(myecs.Collect, g.collect).
+		AddComponent(myecs.Health, g.health).
+		AddComponent(myecs.Sprite, g.sprite).
+		AddComponent(myecs.Batch, entityBKey)
 }

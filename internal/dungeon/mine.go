@@ -1,74 +1,73 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/character"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/world"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
-	"math"
-	"time"
 )
 
 const (
-	MineKnockback = 10.
+	MineKnockback = 25.
 )
 
 type Mine struct {
 	Transform  *transform.Transform
-	Timer      time.Time
+	Timer      *timing.FrameTimer
 	FuseLength float64
 	Tile       *Tile
 	created    bool
-	done       bool
 	explode    bool
 	Reanimator *reanimator.Tree
 	entity     *ecs.Entity
 }
 
 func (m *Mine) Update() {
-	if m.created && !m.done && m.explode {
-		if time.Since(m.Timer).Seconds() > 0.25 {
+	if m.created && m.explode {
+		if m.Timer.UpdateDone() {
+			area := []pixel.Vec{ m.Transform.Pos }
 			for _, n := range m.Tile.SubCoords.Neighbors() {
-				m.Tile.Chunk.Get(n).Destroy()
+				t := m.Tile.Chunk.Get(n)
+				t.Destroy()
+				area = append(area, t.Transform.Pos)
 			}
-			p := Dungeon.Player.Transform.Pos.Sub(m.Tile.Transform.Pos)
-			mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
-			if mag < world.TileSize*2. {
-				dmg := 4.-mag/world.TileSize
-				Dungeon.Player.Damage(dmg, m.Tile.Transform.Pos, MineKnockback*dmg*world.TileSize)
-			}
+			myecs.Manager.NewEntity().
+				AddComponent(myecs.AreaDmg, &character.AreaDamage{
+					Area:           area,
+					Amount:         1,
+					Dazed:          3.,
+					Knockback:      MineKnockback,
+					KnockbackDecay: true,
+					Source:         m.Transform.Pos,
+					Override:       true,
+				})
 			vfx.CreateExplosion(m.Tile.Transform.Pos)
-			m.done = true
+			myecs.LazyDelete(m.entity)
 		}
 	}
 }
 
-func (m *Mine) Draw(target pixel.Target) {
-	if m.created && !m.done {
-		m.Reanimator.CurrentSprite().Draw(target, m.Transform.Mat)
-	}
-}
-
-func (m *Mine) Create(pos pixel.Vec, batcher *img.Batcher) {
+func (m *Mine) Create(pos pixel.Vec) {
 	m.Transform = transform.NewTransform()
 	m.Transform.Pos = pos
 	m.created = true
-	m.Timer = time.Now()
+	m.Timer = timing.New(0.25)
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mine_1", batcher.Animations["mine_1"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("mine_2", batcher.Animations["mine_2"].S, reanimator.Tran, map[int]func() {
-				1: func() {
+			reanimator.NewAnimFromSprites("mine_1", img.Batchers[entityBKey].Animations["mine_1"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("mine_2", img.Batchers[entityBKey].Animations["mine_2"].S, reanimator.Tran, map[int]func() {
+				2: func() {
 					m.explode = true
 				},
 			}),
 		),
 		Check: func() int {
-			if m.FuseLength - time.Since(m.Timer).Seconds() > 0.3 {
+			if m.FuseLength * 0.5 > m.Timer.Elapsed() {
 				return 0
 			} else {
 				return 1
@@ -76,14 +75,8 @@ func (m *Mine) Create(pos pixel.Vec, batcher *img.Batcher) {
 		},
 	}, "mine_1")
 	m.entity = myecs.Manager.NewEntity().
+		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).
-		AddComponent(myecs.Animation, m.Reanimator)
-}
-
-func (m *Mine) Done() bool {
-	return m.done
-}
-
-func (m *Mine) Delete() {
-	myecs.Manager.DisposeEntity(m.entity)
+		AddComponent(myecs.Animation, m.Reanimator).
+		AddComponent(myecs.Batch, entityBKey)
 }

@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
@@ -12,13 +13,13 @@ import (
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/reanimator"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
-	"time"
 )
 
 const (
@@ -42,21 +43,23 @@ Thanks for playing!`
 )
 
 var (
-	state     = -1
-	newState  = 1
-	timer     time.Time
-	timerKeys map[string]bool
-	credits   = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
-	title     = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
-	mInput    = &input.Input{
+	state      = -1
+	newState   = 1
+	debugPause = false
+	timer      *timing.FrameTimer
+	timerKeys  map[string]bool
+	credits    = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
+	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
+	mInput     = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
-			"debugPause": input.NewJoyless(pixelgl.KeyF9),
-			"debug":      input.NewJoyless(pixelgl.KeyF3),
-			"debugText":  input.NewJoyless(pixelgl.KeyF4),
-			"debugInv":   input.NewJoyless(pixelgl.KeyF10),
-			"back":       input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
-			"fullscreen": input.NewJoyless(pixelgl.KeyF),
-			"click":      input.NewJoyless(pixelgl.MouseButtonLeft),
+			"debugPause":  input.NewJoyless(pixelgl.KeyF9),
+			"debugResume": input.NewJoyless(pixelgl.KeyF10),
+			"debug":       input.NewJoyless(pixelgl.KeyF3),
+			"debugText":   input.NewJoyless(pixelgl.KeyF4),
+			"debugInv":    input.NewJoyless(pixelgl.KeyF10),
+			"back":        input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
+			"fullscreen":  input.NewJoyless(pixelgl.KeyF),
+			"click":       input.NewJoyless(pixelgl.MouseButtonLeft),
 		},
 	}
 	dInput    = &input.Input{
@@ -112,114 +115,140 @@ func Update(win *pixelgl.Window) {
 		debug.Text = !debug.Text
 	}
 	if mInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
-		dungeon.Dungeon.GetPlayer().Inv = !dungeon.Dungeon.GetPlayer().Inv
+		dungeon.Dungeon.GetPlayer().Health.Inv = !dungeon.Dungeon.GetPlayer().Health.Inv
 	}
 	if debug.Debug {
 		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, dInput.World, 1.)
 	}
-	if state == 0 {
-		if win.Focused() {
-			if mInput.Get("debugPause").JustPressed() {
+	if win.Focused() {
+		frame := false
+		if mInput.Get("debugPause").JustPressed() {
+			if !debugPause {
 				fmt.Println("DEBUG PAUSE")
+				debugPause = true
+			} else {
+				frame = true
 			}
-			reanimator.Update()
-			dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
-			systems.PhysicsSystem()
-			systems.TransformSystem()
-			systems.CollisionSystem()
-			systems.CollectSystem()
-			systems.AnimationSystem()
-			dungeon.Entities.Update()
-			particles.Update()
-			vfx.Update()
-			dungeon.Dungeon.GetPlayer().Update(dInput)
-			if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Dead {
-				timer = time.Now()
-				timerKeys["death"] = true
-			}
-			if dead, ok := timerKeys["death"]; ok && dead {
-				if (time.Since(timer).Seconds() > 1. && dungeon.Dungeon.GetPlayer().DeadStop) ||
-					(time.Since(timer).Seconds() > 3. && dungeon.Dungeon.GetPlayer().Dead) {
-					newState = 2
+		} else if mInput.Get("debugResume").JustPressed() {
+			fmt.Println("DEBUG RESUME")
+			debugPause = false
+		}
+		if !debugPause || frame {
+			if state == 0 {
+				reanimator.Update()
+				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				systems.PhysicsSystem()
+				systems.TransformSystem()
+				systems.CollisionSystem()
+				systems.CollectSystem()
+				systems.AreaDamageSystem()
+				systems.DamageSystem()
+				systems.HealthSystem()
+				//dungeon.Entities.Update()
+				systems.EntitySystem()
+				particles.Update()
+				vfx.Update()
+				dungeon.Dungeon.GetPlayer().Update(dInput)
+				systems.AnimationSystem()
+				if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Health.Dead {
+					timer = timing.New(3.)
+					timerKeys["death"] = true
 				}
+				if dead, ok := timerKeys["death"]; ok && dead {
+					timer.Update()
+					if (timer.Elapsed() > 1. && dungeon.Dungeon.GetPlayer().DeadStop) ||
+						(timer.Elapsed() > 3. && dungeon.Dungeon.GetPlayer().Health.Dead) {
+						newState = 2
+					}
+				}
+				if mInput.Get("back").JustPressed() {
+					newState = 1
+				}
+				bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
+				bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
+				bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
+				tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
+				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
+				camera.Cam.Restrict(bl, tr)
+				if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+					state = -1
+				}
+			} else if state == 1 {
+				title.Transform.UIPos = camera.Cam.APos
+				title.Transform.UIZoom = camera.Cam.GetZoomScale()
+				title.Update(pixel.Rect{})
+				MainMenu.Update(mInput.World, mInput.Get("click"))
+				if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.Get("back").JustPressed()) {
+					win.SetClosed(true)
+				}
+				Options.Update(mInput.World, mInput.Get("click"))
+				if Current == 1 && (Options.Items["back"].IsClicked() || mInput.Get("back").JustPressed()) {
+					SwitchToMain()
+				}
+			} else if state == 2 {
+				reanimator.Update()
+				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				systems.PhysicsSystem()
+				systems.TransformSystem()
+				systems.CollisionSystem()
+				//dungeon.Entities.Update()
+				systems.EntitySystem()
+				particles.Update()
+				vfx.Update()
+				dungeon.Dungeon.GetPlayer().Update(dInput)
+				systems.AnimationSystem()
+				dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
+				dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
+				dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
+				dungeon.BombsMarkedItem.Transform.UIPos = camera.Cam.APos
+				dungeon.WrongMarksItem.Transform.UIPos = camera.Cam.APos
+				dungeon.TotalScore.Transform.UIPos = camera.Cam.APos
+				dungeon.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.GemsFoundItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.BlocksDugItem.Update(pixel.Rect{})
+				dungeon.LowestLevelItem.Update(pixel.Rect{})
+				dungeon.GemsFoundItem.Update(pixel.Rect{})
+				dungeon.BombsMarkedItem.Update(pixel.Rect{})
+				dungeon.WrongMarksItem.Update(pixel.Rect{})
+				dungeon.TotalScore.Update(pixel.Rect{})
+				PostGame.Update(mInput.World, mInput.Get("click"))
+				if PostGame.Items["menu"].IsClicked() || mInput.Get("back").JustPressed() {
+					newState = 1
+				}
+			} else if state == 3 {
+				credits.Transform.UIPos = camera.Cam.APos
+				credits.Transform.UIZoom = camera.Cam.GetZoomScale()
+				credits.Update(pixel.Rect{})
+				if mInput.Get("back").JustPressed() || mInput.Get("click").JustPressed() {
+					mInput.Get("click").Consume()
+					newState = 1
+				}
+			} else if state == 4 {
+				newState = 0
 			}
-			if mInput.Get("back").JustPressed() {
-				newState = 1
-			}
-			bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
-			bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
-			bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
-			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
-			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
-			camera.Cam.Restrict(bl, tr)
-			if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
-				state = -1
-			}
 		}
-	} else if state == 1 {
-		title.Transform.UIPos = camera.Cam.APos
-		title.Transform.UIZoom = camera.Cam.GetZoomScale()
-		title.Update(pixel.Rect{})
-		MainMenu.Update(mInput.World, mInput.Get("click"))
-		if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.Get("back").JustPressed()) {
-			win.SetClosed(true)
-		}
-		Options.Update(mInput.World, mInput.Get("click"))
-		if Current == 1 && (Options.Items["back"].IsClicked() || mInput.Get("back").JustPressed()) {
-			SwitchToMain()
-		}
-	} else if state == 2 {
-		reanimator.Update()
-		dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
-		systems.PhysicsSystem()
-		systems.TransformSystem()
-		systems.CollisionSystem()
-		systems.AnimationSystem()
-		dungeon.Entities.Update()
-		particles.Update()
-		vfx.Update()
-		dungeon.Dungeon.GetPlayer().Update(dInput)
-		dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
-		dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
-		dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
-		dungeon.BombsMarkedItem.Transform.UIPos = camera.Cam.APos
-		dungeon.WrongMarksItem.Transform.UIPos = camera.Cam.APos
-		dungeon.TotalScore.Transform.UIPos = camera.Cam.APos
-		dungeon.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		dungeon.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		dungeon.GemsFoundItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		dungeon.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		dungeon.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-		dungeon.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
-		dungeon.BlocksDugItem.Update(pixel.Rect{})
-		dungeon.LowestLevelItem.Update(pixel.Rect{})
-		dungeon.GemsFoundItem.Update(pixel.Rect{})
-		dungeon.BombsMarkedItem.Update(pixel.Rect{})
-		dungeon.WrongMarksItem.Update(pixel.Rect{})
-		dungeon.TotalScore.Update(pixel.Rect{})
-		PostGame.Update(mInput.World, mInput.Get("click"))
-		if PostGame.Items["menu"].IsClicked() || mInput.Get("back").JustPressed() {
-			newState = 1
-		}
-	} else if state == 3 {
-		credits.Transform.UIPos = camera.Cam.APos
-		credits.Transform.UIZoom = camera.Cam.GetZoomScale()
-		credits.Update(pixel.Rect{})
-		if mInput.Get("back").JustPressed() || mInput.Get("click").JustPressed() {
-			mInput.Get("click").Consume()
-			newState = 1
-		}
-	} else if state == 4 {
-		newState = 0
 	}
 	camera.Cam.Update(win)
+	myecs.Flush()
 }
 
 func Draw(win *pixelgl.Window) {
+	for _, batcher := range img.Batchers {
+		batcher.Clear()
+	}
 	if state == 0 {
 		dungeon.Dungeon.GetCave().Draw(win)
 		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
-		dungeon.Entities.Draw(win)
+		//dungeon.Entities.Draw(win)
+		systems.AnimationDraw()
+		systems.SpriteDraw()
+		for _, batcher := range img.Batchers {
+			batcher.Draw(win)
+		}
 		particles.Draw(win)
 		vfx.Draw(win)
 		debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
@@ -231,10 +260,16 @@ func Draw(win *pixelgl.Window) {
 	} else if state == 2 {
 		dungeon.Dungeon.GetCave().Draw(win)
 		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
-		dungeon.Entities.Draw(win)
+		//dungeon.Entities.Draw(win)
+		systems.AnimationDraw()
+		systems.SpriteDraw()
+		for _, batcher := range img.Batchers {
+			batcher.Draw(win)
+		}
 		particles.Draw(win)
 		vfx.Draw(win)
-		since := time.Since(dungeon.ScoreTimer).Seconds()
+		dungeon.ScoreTimer.Update()
+		since := dungeon.ScoreTimer.Elapsed()
 		if since > dungeon.BlocksDugTimer {
 			dungeon.BlocksDugItem.Draw(win)
 		}
@@ -299,7 +334,7 @@ func updateState() {
 
 			particles.Clear()
 			vfx.Clear()
-			dungeon.Entities.Clear()
+			//dungeon.Entities.Clear()
 
 			reanimator.SetFrameRate(10)
 			reanimator.Reset()
@@ -329,7 +364,7 @@ func updateState() {
 			dungeon.BombsMarkedItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 5.)
 			dungeon.WrongMarksItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 6.)
 			dungeon.TotalScore.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 9.)
-			dungeon.ScoreTimer = time.Now()
+			dungeon.ScoreTimer = timing.New(5.)
 			InitializePostGameMenu()
 		case 3:
 

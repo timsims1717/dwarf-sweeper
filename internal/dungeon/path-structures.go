@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
@@ -204,7 +205,7 @@ func wallUp(tile *Tile, noBomb bool) {
 		tile.breakable = true
 		if noBomb {
 			tile.bomb = false
-			tile.Entities = []Entity{}
+			tile.Entities = []myecs.AnEntity{}
 		}
 		tile.isChanged = true
 		tile.UpdateSprites()

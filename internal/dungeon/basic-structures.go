@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
@@ -68,7 +69,7 @@ func Entrance(cave *Cave, door world.Coords, width, height int, roofCurve int, e
 					}
 					tile.bomb = false
 					tile.isChanged = true
-					tile.Entities = []Entity{}
+					tile.Entities = []myecs.AnEntity{}
 					tile.UpdateSprites()
 				}
 			}
@@ -137,7 +138,7 @@ func Exit(cave *Cave, door world.Coords, width, height int, roofCurve int, exit 
 					}
 					tile.bomb = false
 					tile.isChanged = true
-					tile.Entities = []Entity{}
+					tile.Entities = []myecs.AnEntity{}
 					tile.UpdateSprites()
 				}
 			}
@@ -154,7 +155,7 @@ func Exit(cave *Cave, door world.Coords, width, height int, roofCurve int, exit 
 					tile.neverChange = true
 					tile.bomb = false
 					tile.isChanged = true
-					tile.Entities = []Entity{}
+					tile.Entities = []myecs.AnEntity{}
 					tile.UpdateSprites()
 				}
 			}

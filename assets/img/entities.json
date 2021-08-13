@@ -7,143 +7,185 @@
    "key": "mine_1",
    "anim": true,
    "x": 0,
-   "y": 64
+   "y": 80
   },
   {
    "key": "mine_2",
    "anim": true,
    "x": 16,
-   "y": 64
+   "y": 80
   },
   {
    "key": "bomb_unlit",
    "anim": true,
    "x": 0,
-   "y": 48
+   "y": 64
   },
   {
    "key": "bomb_fuse",
    "anim": true,
    "x": 16,
-   "y": 48
+   "y": 64
   },
   {
    "key": "bomb_fuse",
    "anim": true,
    "x": 32,
-   "y": 48
+   "y": 64
   },
   {
    "key": "bomb_blow",
    "anim": true,
    "x": 48,
-   "y": 48
+   "y": 64
   },
   {
    "key": "bomb_blow",
    "anim": true,
    "x": 64,
-   "y": 48
+   "y": 64
   },
   {
    "key": "bomb_blow",
    "anim": true,
    "x": 80,
-   "y": 48
+   "y": 64
   },
   {
    "key": "gem_diamond",
+   "x": 0,
+   "y": 48
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
    "x": 0,
    "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
-   "x": 0,
-   "y": 16
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
    "x": 16,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 32,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 48,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 64,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 80,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 96,
-   "y": 16
+   "y": 32
   },
   {
    "key": "flag_hang",
    "anim": true,
    "x": 112,
-   "y": 16
+   "y": 32
   },
   {
    "key": "mm_idle",
    "anim": true,
    "x": 0,
-   "y": 0
+   "y": 16
   },
   {
    "key": "mm_walk",
    "anim": true,
    "x": 0,
-   "y": 0
+   "y": 16
   },
   {
    "key": "mm_walk",
    "anim": true,
    "x": 16,
-   "y": 0
+   "y": 16
   },
   {
    "key": "mm_walk",
    "anim": true,
    "x": 32,
-   "y": 0
+   "y": 16
   },
   {
    "key": "mm_walk",
    "anim": true,
    "x": 48,
-   "y": 0
+   "y": 16
   },
   {
    "key": "mm_walk",
    "anim": true,
    "x": 64,
-   "y": 0
+   "y": 16
   },
   {
    "key": "mm_walk",
    "anim": true,
    "x": 80,
+   "y": 16
+  },
+  {
+   "key": "mm_fall",
+   "anim": true,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "mm_fall",
+   "anim": true,
+   "x": 16,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 48,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 80,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 96,
    "y": 0
   }
  ]
