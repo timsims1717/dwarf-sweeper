@@ -4,7 +4,6 @@ import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
-	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
@@ -56,7 +55,7 @@ var (
 			"debugResume": input.NewJoyless(pixelgl.KeyF10),
 			"debug":       input.NewJoyless(pixelgl.KeyF3),
 			"debugText":   input.NewJoyless(pixelgl.KeyF4),
-			"debugInv":    input.NewJoyless(pixelgl.KeyF10),
+			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
 			"back":        input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
 			"fullscreen":  input.NewJoyless(pixelgl.KeyF),
 			"click":       input.NewJoyless(pixelgl.MouseButtonLeft),
@@ -233,7 +232,6 @@ func Update(win *pixelgl.Window) {
 		}
 	}
 	camera.Cam.Update(win)
-	myecs.Flush()
 }
 
 func Draw(win *pixelgl.Window) {
@@ -305,6 +303,7 @@ func updateState() {
 		// initialize
 		switch newState {
 		case 0:
+			dungeon.Dungeon.RemoveAllEntities()
 			if dungeon.Dungeon.Level == 0 {
 				dungeon.BlocksDug = 0
 				dungeon.LowestLevel = 0

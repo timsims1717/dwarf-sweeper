@@ -36,6 +36,7 @@ type Damage struct {
 	Amount    int
 	Dazed     float64
 	Knockback float64
+	Angle     *float64
 	Source    pixel.Vec
 	Override  bool
 }

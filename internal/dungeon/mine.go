@@ -17,6 +17,7 @@ const (
 )
 
 type Mine struct {
+	EID        int
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
 	FuseLength float64
@@ -47,7 +48,7 @@ func (m *Mine) Update() {
 					Override:       true,
 				})
 			vfx.CreateExplosion(m.Tile.Transform.Pos)
-			myecs.LazyDelete(m.entity)
+			m.Delete()
 		}
 	}
 }
@@ -79,4 +80,14 @@ func (m *Mine) Create(pos pixel.Vec) {
 		AddComponent(myecs.Transform, m.Transform).
 		AddComponent(myecs.Animation, m.Reanimator).
 		AddComponent(myecs.Batch, entityBKey)
+	Dungeon.AddEntity(m)
+}
+
+func (m *Mine) Delete() {
+	myecs.Manager.DisposeEntity(m.entity)
+	Dungeon.RemoveEntity(m.EID)
+}
+
+func (m *Mine) SetId(i int) {
+	m.EID = i
 }

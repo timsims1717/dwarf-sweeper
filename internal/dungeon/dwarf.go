@@ -539,9 +539,6 @@ func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
 }
 
 func (d *Dwarf) Delete() {
-	if d.Health.DazedVFX != nil {
-		d.Health.DazedVFX.Animation.Done = true
-		d.Health.DazedVFX = nil
-	}
-	myecs.LazyDelete(d.Entity)
+	d.Health.Delete()
+	myecs.Manager.DisposeEntity(d.Entity)
 }

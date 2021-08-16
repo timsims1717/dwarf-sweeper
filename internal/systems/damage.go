@@ -9,6 +9,7 @@ import (
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
+	"github.com/faiface/pixel"
 	"math"
 )
 
@@ -40,7 +41,7 @@ func AreaDamageSystem() {
 				}
 			}
 		}
-		myecs.LazyDelete(result.Entity)
+		myecs.Manager.DisposeEntity(result.Entity)
 	}
 }
 
@@ -60,9 +61,17 @@ func DamageSystem() {
 			}
 			if dmg.Knockback > 0.0 {
 				phys.CancelMovement()
-				d := tran.Pos.Sub(dmg.Source)
-				d.Y += 1.
-				dir := util.Normalize(d)
+				var dir pixel.Vec
+				if dmg.Angle == nil {
+					d := tran.Pos.Sub(dmg.Source)
+					d.Y += 1.
+					dir = util.Normalize(d)
+				} else {
+					dir = pixel.V(1., 0.).Rotated(*dmg.Angle)
+					if tran.Pos.X < dmg.Source.X {
+						dir.X *= -1
+					}
+				}
 				phys.SetVelX(dir.X * dmg.Knockback * world.TileSize, 0.)
 				phys.SetVelY(dir.Y * dmg.Knockback * world.TileSize, 0.)
 				phys.RagDoll = true

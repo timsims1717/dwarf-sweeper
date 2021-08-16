@@ -8,10 +8,11 @@ import (
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/util"
+	"dwarf-sweeper/pkg/world"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"github.com/google/uuid"
+	"math"
 )
 
 const (
@@ -21,7 +22,12 @@ const (
 	entityBKey = "entities"
 )
 
+var (
+	mmAngle    = 45.
+)
+
 type MadMonk struct {
+	EID        int
 	ID         uuid.UUID
 	Transform  *transform.Transform
 	Physics    *physics.Physics
@@ -39,16 +45,18 @@ func (m *MadMonk) Update() {
 		if !m.Health.Dazed && !m.Health.Dead {
 			m.AtkTimer.Update()
 			if m.Physics.Grounded && !m.Attack {
-				ownPos := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
-				playerPos := Dungeon.GetPlayerTile().RCoords
-				if util.Abs(ownPos.X - playerPos.X) < 2 && ownPos.Y == playerPos.Y && m.AtkTimer.Done() {
+				ownCoords := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
+				playerCoords := Dungeon.GetPlayerTile().RCoords
+				ownPos := m.Transform.Pos
+				playerPos := Dungeon.GetPlayer().Transform.Pos
+				if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y && m.AtkTimer.Done() {
 					m.Attack = true
-					m.faceLeft = ownPos.X > playerPos.X
+					m.faceLeft = ownCoords.X > playerCoords.X
 				}
-				if ownPos.X > playerPos.X {
+				if ownCoords.X > playerCoords.X {
 					m.faceLeft = true
 					m.Physics.SetVelX(-mmSpeed, mmAcc)
-				} else if ownPos.X < playerPos.X {
+				} else if ownCoords.X < playerCoords.X {
 					m.faceLeft = false
 					m.Physics.SetVelX(mmSpeed, mmAcc)
 				}
@@ -57,8 +65,7 @@ func (m *MadMonk) Update() {
 		}
 	}
 	if m.Health.Dead {
-		m.Health.Delete()
-		myecs.LazyDelete(m.Entity)
+		m.Delete()
 	}
 }
 
@@ -85,13 +92,16 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[entityBKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
 				3: func() {
 					m.AtkTimer = timing.New(mmAtkWait)
-					ownPos := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
-					playerPos := Dungeon.GetPlayerTile().RCoords
-					if util.Abs(ownPos.X - playerPos.X) < 2 && ownPos.Y == playerPos.Y {
+					ownCoords := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
+					playerCoords := Dungeon.GetPlayerTile().RCoords
+					ownPos := m.Transform.Pos
+					playerPos := Dungeon.GetPlayer().Transform.Pos
+					if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
 						Dungeon.GetPlayer().Entity.AddComponent(myecs.Damage, &character.Damage{
 							Amount:    1,
 							Dazed:     1.,
 							Knockback: 8.,
+							Angle:     &mmAngle,
 							Source:    m.Transform.Pos,
 						})
 					}
@@ -124,4 +134,14 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		AddComponent(myecs.Health, m.Health).
 		AddComponent(myecs.Collision, myecs.Collider{}).
 		AddComponent(myecs.Batch, entityBKey)
+	Dungeon.AddEntity(m)
+}
+
+func (m *MadMonk) Delete() {
+	m.Health.Delete()
+	myecs.Manager.DisposeEntity(m.Entity)
+}
+
+func (m *MadMonk) SetId(i int) {
+	m.EID = i
 }

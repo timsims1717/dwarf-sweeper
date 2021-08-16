@@ -10,6 +10,7 @@ import (
 )
 
 type Flag struct {
+	EID        int
 	Transform  *transform.Transform
 	Tile       *Tile
 	created    bool
@@ -20,7 +21,7 @@ type Flag struct {
 func (f *Flag) Update() {
 	if f.created {
 		if !f.Tile.Solid || f.Tile.destroyed || !f.Tile.marked {
-			myecs.LazyDelete(f.entity)
+			f.Delete()
 			// todo: particles?
 		}
 	}
@@ -43,4 +44,15 @@ func (f *Flag) Create(from pixel.Vec) {
 		AddComponent(myecs.Transform, f.Transform).
 		AddComponent(myecs.Animation, f.Reanimator).
 		AddComponent(myecs.Batch, entityBKey)
+	Dungeon.AddEntity(f)
+}
+
+func (f *Flag) Delete() {
+	f.Tile.marked = false
+	myecs.Manager.DisposeEntity(f.entity)
+	Dungeon.RemoveEntity(f.EID)
+}
+
+func (f *Flag) SetId(i int) {
+	f.EID = i
 }

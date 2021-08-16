@@ -48,15 +48,21 @@ type Collectible struct{
 type AnEntity interface {
 	Update()
 	Create(pixel.Vec)
+	Delete()
+	SetId(int)
 }
 
-func LazyDelete(e *ecs.Entity) {
-	toDelete = append(toDelete, e.ID)
-}
-
-func Flush() {
-	for _, i := range toDelete {
-		Manager.DisposeEntity(Manager.GetEntityByID(i))
-	}
-	toDelete = []ecs.EntityID{}
-}
+//func LazyDelete(e *ecs.Entity) {
+//	toDelete = append(toDelete, e.ID)
+//}
+//
+//func Flush() {
+//	for _, i := range toDelete {
+//		Manager.DisposeEntity(Manager.GetEntityByID(i))
+//	}
+//	toDelete = []ecs.EntityID{}
+//}
+//
+//func Clear() {
+//	Manager = ecs.NewManager()
+//}

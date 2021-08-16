@@ -15,6 +15,7 @@ import (
 )
 
 type Gem struct {
+	EID       int
 	Physics   *physics.Physics
 	Transform *transform.Transform
 	created   bool
@@ -30,9 +31,9 @@ func (g *Gem) Update() {
 			GemsFound++
 			particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_1","sparkle_2","sparkle_3","sparkle_4","sparkle_5"}, g.Transform.Pos, 1.0, 1.0, 0.5)
 			sfx.SoundPlayer.PlaySound("clink", 1.0)
-			myecs.LazyDelete(g.entity)
+			g.Delete()
 		} else if g.health.Dead {
-			myecs.LazyDelete(g.entity)
+			g.Delete()
 		}
 	}
 }
@@ -57,4 +58,14 @@ func (g *Gem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Health, g.health).
 		AddComponent(myecs.Sprite, g.sprite).
 		AddComponent(myecs.Batch, entityBKey)
+	Dungeon.AddEntity(g)
+}
+
+func (g *Gem) Delete() {
+	myecs.Manager.DisposeEntity(g.entity)
+	Dungeon.RemoveEntity(g.EID)
+}
+
+func (g *Gem) SetId(i int) {
+	g.EID = i
 }

@@ -13,6 +13,7 @@ import (
 )
 
 type Bomb struct {
+	EID        int
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
 	FuseLength float64
@@ -44,7 +45,7 @@ func (b *Bomb) Update() {
 				Override:       true,
 			})
 			vfx.CreateExplosion(b.Tile.Transform.Pos)
-			myecs.LazyDelete(b.entity)
+			b.Delete()
 		} else {
 			b.Timer.Update()
 		}
@@ -85,4 +86,14 @@ func (b *Bomb) Create(pos pixel.Vec) {
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
 		AddComponent(myecs.Batch, entityBKey)
+	Dungeon.AddEntity(b)
+}
+
+func (b *Bomb) Delete() {
+	myecs.Manager.DisposeEntity(b.entity)
+	Dungeon.RemoveEntity(b.EID)
+}
+
+func (b *Bomb) SetId(i int) {
+	b.EID = i
 }
