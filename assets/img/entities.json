@@ -16,6 +16,16 @@
    "y": 80
   },
   {
+   "key": "heart_full",
+   "x": 32,
+   "y": 80
+  },
+  {
+   "key": "heart_empty",
+   "x": 48,
+   "y": 80
+  },
+  {
    "key": "bomb_unlit",
    "anim": true,
    "x": 0,

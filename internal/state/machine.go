@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/particles"
+	"dwarf-sweeper/internal/player"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -134,6 +135,12 @@ func Update(win *pixelgl.Window) {
 		}
 		if !debugPause || frame {
 			if state == 0 {
+				bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
+				bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
+				bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
+				tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
+				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
+				camera.Cam.Restrict(bl, tr)
 				reanimator.Update()
 				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
 				systems.PhysicsSystem()
@@ -149,6 +156,7 @@ func Update(win *pixelgl.Window) {
 				vfx.Update()
 				dungeon.Dungeon.GetPlayer().Update(dInput)
 				systems.AnimationSystem()
+				player.UpdateHUD()
 				if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Health.Dead {
 					timer = timing.New(3.)
 					timerKeys["death"] = true
@@ -163,12 +171,6 @@ func Update(win *pixelgl.Window) {
 				if mInput.Get("back").JustPressed() {
 					newState = 1
 				}
-				bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
-				bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
-				bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
-				tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
-				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
-				camera.Cam.Restrict(bl, tr)
 				if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
 					state = -1
 				}
@@ -196,6 +198,7 @@ func Update(win *pixelgl.Window) {
 				vfx.Update()
 				dungeon.Dungeon.GetPlayer().Update(dInput)
 				systems.AnimationSystem()
+				player.UpdateHUD()
 				dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
 				dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
 				dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
@@ -249,6 +252,7 @@ func Draw(win *pixelgl.Window) {
 		}
 		particles.Draw(win)
 		vfx.Draw(win)
+		player.DrawHUD(win)
 		debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
 		debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
 	} else if state == 1 {
@@ -266,6 +270,7 @@ func Draw(win *pixelgl.Window) {
 		}
 		particles.Draw(win)
 		vfx.Draw(win)
+		player.DrawHUD(win)
 		dungeon.ScoreTimer.Update()
 		since := dungeon.ScoreTimer.Elapsed()
 		if since > dungeon.BlocksDugTimer {
@@ -304,7 +309,7 @@ func updateState() {
 		switch newState {
 		case 0:
 			dungeon.Dungeon.RemoveAllEntities()
-			if dungeon.Dungeon.Level == 0 {
+			if dungeon.Dungeon.Start {
 				dungeon.BlocksDug = 0
 				dungeon.LowestLevel = 0
 				dungeon.LowTotal = 0
@@ -329,6 +334,9 @@ func updateState() {
 			} else {
 				dungeon.Dungeon.SetPlayer(dungeon.NewDwarf(dungeon.Dungeon.GetCave().GetStart()))
 			}
+			if dungeon.Dungeon.Start {
+				player.InitHUD()
+			}
 			camera.Cam.SnapTo(dungeon.Dungeon.GetPlayer().Transform.Pos)
 
 			particles.Clear()
@@ -337,6 +345,7 @@ func updateState() {
 
 			reanimator.SetFrameRate(10)
 			reanimator.Reset()
+			dungeon.Dungeon.Start = false
 		case 1:
 			title.Transform.Pos = pixel.V(0., 75.)
 			camera.Cam.SnapTo(pixel.ZV)
@@ -369,6 +378,7 @@ func updateState() {
 
 		case 4:
 			dungeon.Dungeon.Level = 0
+			dungeon.Dungeon.Start = true
 			if dungeon.Dungeon.Player != nil {
 				dungeon.Dungeon.Player.Delete()
 				dungeon.Dungeon.Player = nil

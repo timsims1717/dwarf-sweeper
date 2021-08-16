@@ -9,6 +9,7 @@ type dungeon struct {
 	Level    int
 	Player   *Dwarf
 	Entities []myecs.AnEntity
+	Start    bool
 }
 
 func (d *dungeon) GetCave() *Cave {
