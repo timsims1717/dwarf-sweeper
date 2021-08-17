@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
+	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"github.com/bytearena/ecs"
@@ -34,7 +35,7 @@ func (m *Mine) Update() {
 			area := []pixel.Vec{ m.Transform.Pos }
 			for _, n := range m.Tile.SubCoords.Neighbors() {
 				t := m.Tile.Chunk.Get(n)
-				t.Destroy()
+				t.Destroy(false)
 				area = append(area, t.Transform.Pos)
 			}
 			myecs.Manager.NewEntity().
@@ -48,6 +49,7 @@ func (m *Mine) Update() {
 					Override:       true,
 				})
 			vfx.CreateExplosion(m.Tile.Transform.Pos)
+			sfx.SoundPlayer.PlaySound("blast1", -1.0)
 			m.Delete()
 		}
 	}

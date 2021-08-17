@@ -47,6 +47,7 @@ func run() {
 	}
 	img.Batchers["entities"] = img.NewBatcher(sheet)
 
+	sfx.SoundPlayer.RegisterSound("assets/sound/blast1.wav", "blast1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact2.wav", "impact2")

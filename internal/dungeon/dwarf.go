@@ -132,7 +132,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					if d.digTile != nil {
 						if d.digTile.Solid {
 							BlocksDug += 1
-							d.digTile.Destroy()
+							d.digTile.Destroy(true)
 						} else {
 							myecs.Manager.NewEntity().
 								AddComponent(myecs.AreaDmg, &character.AreaDamage{

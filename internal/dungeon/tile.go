@@ -119,7 +119,7 @@ func (tile *Tile) Update() {
 	}
 	if !tile.destroyed && tile.destroying && tile.breakable {
 		if tile.destroyT.UpdateDone() {
-			tile.Destroy()
+			tile.Destroy(false)
 		}
 	}
 	if tile.Solid && !tile.destroyed && tile.revealing && tile.breakable {
@@ -148,7 +148,7 @@ func (tile *Tile) ToDestroy() {
 	}
 }
 
-func (tile *Tile) Destroy() {
+func (tile *Tile) Destroy(playSound bool) {
 	if tile != nil && !tile.destroyed && tile.breakable {
 		wasSolid := tile.Solid
 		tile.Chunk.Cave.update = true
@@ -182,7 +182,9 @@ func (tile *Tile) Destroy() {
 		}
 		if wasSolid {
 			particles.BlockParticles(tile.Transform.Pos)
-			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
+			if playSound {
+				sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
+			}
 			for _, e := range tile.Entities {
 				e.Create(tile.Transform.Pos)
 			}
