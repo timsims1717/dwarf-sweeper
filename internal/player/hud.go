@@ -21,6 +21,7 @@ var (
 	gemTimer        *timing.FrameTimer
 	gemTransform    *transform.Transform
 	gemNumberItem   *menu.ItemText
+	itemTransform   *transform.Transform
 )
 
 func InitHUD() {
@@ -28,18 +29,23 @@ func InitHUD() {
 	for i := 0; i < dungeon.Dungeon.Player.Health.Max; i++ {
 		tran := transform.NewTransform()
 		tran.Anchor.H = transform.Left
-		tran.Anchor.V = transform.Bottom
+		tran.Anchor.V = transform.Center
 		tran.Scalar = pixel.V(1.6, 1.6)
-		tran.Pos = pixel.V(cfg.BaseW * -0.5 + 8. + float64(i) * 2.0 * world.TileSize, cfg.BaseH * 0.5 - world.TileSize)
+		tran.Pos = pixel.V(cfg.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, cfg.BaseH * 0.5 - world.TileSize)
 		heartTransforms = append(heartTransforms, tran)
 	}
 	gemTransform = transform.NewTransform()
 	gemTransform.Anchor.H = transform.Left
-	gemTransform.Anchor.V = transform.Bottom
+	gemTransform.Anchor.V = transform.Center
 	gemTransform.Scalar = pixel.V(1.6, 1.6)
 	gemTransform.Pos = pixel.V(cfg.BaseW * -0.5 + 8., cfg.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
 	gemNumberItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Center)
 	gemNumberItem.Transform.Pos = pixel.V(cfg.BaseW * -0.5 + 24., cfg.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	itemTransform = transform.NewTransform()
+	itemTransform.Anchor.H = transform.Right
+	itemTransform.Anchor.V = transform.Center
+	itemTransform.Scalar = pixel.V(1.6, 1.6)
+	itemTransform.Pos = pixel.V(cfg.BaseW * 0.5 - 8., cfg.BaseH * 0.5 - world.TileSize)
 }
 
 func UpdateHUD() {
@@ -77,5 +83,12 @@ func DrawHUD(win *pixelgl.Window) {
 		gemNumberItem.Update(pixel.Rect{})
 		img.Batchers["entities"].Sprites["gem_diamond"].Draw(win, gemTransform.Mat)
 		gemNumberItem.Draw(win)
+	}
+	itemTransform.UIPos = camera.Cam.APos
+	itemTransform.UIZoom = camera.Cam.GetZoomScale()
+	itemTransform.Update()
+	img.Batchers["entities"].Sprites["item_box"].Draw(win, itemTransform.Mat)
+	if len(dungeon.Inventory) > 0 && dungeon.InvIndex < len(dungeon.Inventory) {
+		dungeon.Inventory[dungeon.InvIndex].Sprite.Draw(win, itemTransform.Mat)
 	}
 }

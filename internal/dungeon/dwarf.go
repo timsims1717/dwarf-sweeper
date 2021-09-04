@@ -497,6 +497,13 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 			}
 		}
+		if in.Get("prevItem").JustPressed() {
+			PrevItem()
+		} else if in.Get("nextItem").JustPressed() {
+			NextItem()
+		} else if in.Get("useItem").JustPressed() {
+			UseEquipped()
+		}
 	}
 	d.Transform.Flip = d.faceLeft
 	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)

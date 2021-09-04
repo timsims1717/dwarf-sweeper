@@ -146,9 +146,8 @@ func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 						Sprites: []pixel.Rect{rect},
 						dur:     r.Dur,
 					}
-				} else {
-					sheet.SpriteMap[r.K] = rect
 				}
+				sheet.SpriteMap[r.K] = rect
 			}
 		}
 	}

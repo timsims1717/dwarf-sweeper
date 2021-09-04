@@ -89,6 +89,15 @@ var (
 			"lookDown":  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
 			"climbUp":   input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
 			"climbDown": input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			"useItem":   input.New(pixelgl.KeyLeftShift, pixelgl.ButtonX),
+			"prevItem":  {
+				GPKey:  pixelgl.ButtonLeftBumper,
+				Scroll: -1,
+			},
+			"nextItem":  {
+				GPKey:  pixelgl.ButtonRightBumper,
+				Scroll: 1,
+			},
 		},
 		StickD: true,
 	}

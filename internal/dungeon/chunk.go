@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ChunkSize = 32
+	ChunkSize = 16
 	ChunkCnt  = ChunkSize * ChunkSize
 )
 
@@ -75,6 +75,8 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 		} else if random.CaveGen.Intn(20) == 0 {
 			tile.AddEntity(&Gem{})
 		} else if random.CaveGen.Intn(50) == 0 {
+			tile.AddEntity(&BombItem{})
+		} else if random.CaveGen.Intn(75) == 0 {
 			tile.AddEntity(&MadMonk{})
 		}
 		chunk.Rows[y][x] = tile

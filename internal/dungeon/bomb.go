@@ -13,6 +13,8 @@ import (
 	"github.com/faiface/pixel"
 )
 
+const BaseFuse = 1.5
+
 type Bomb struct {
 	EID        int
 	Transform  *transform.Transform

@@ -4,25 +4,18 @@
  "width": 16,
  "sprites": [
   {
-   "key": "mine_1",
-   "anim": true,
+   "key": "heart_full",
    "x": 0,
    "y": 80
   },
   {
-   "key": "mine_2",
-   "anim": true,
+   "key": "heart_empty",
    "x": 16,
    "y": 80
   },
   {
-   "key": "heart_full",
+   "key": "item_box",
    "x": 32,
-   "y": 80
-  },
-  {
-   "key": "heart_empty",
-   "x": 48,
    "y": 80
   },
   {
@@ -62,7 +55,24 @@
    "y": 64
   },
   {
+   "key": "mine_1",
+   "anim": true,
+   "x": 96,
+   "y": 64
+  },
+  {
+   "key": "mine_2",
+   "anim": true,
+   "x": 112,
+   "y": 64
+  },
+  {
    "key": "gem_diamond",
+   "x": 0,
+   "y": 48
+  },
+  {
+   "key": "bubble_item",
    "x": 0,
    "y": 48
   },
