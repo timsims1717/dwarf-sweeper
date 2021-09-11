@@ -1,4 +1,4 @@
-package character
+package data
 
 import (
 	"dwarf-sweeper/internal/vfx"
@@ -6,9 +6,15 @@ import (
 	"github.com/faiface/pixel"
 )
 
+type SimpleHealth struct {
+	Dead bool
+}
+
 type Health struct {
 	Max          int
 	Curr         int
+	TempHP       int
+	TempHPTimer  *timing.FrameTimer
 	Dead         bool
 	Dazed        bool
 	DazedO       bool
@@ -49,4 +55,14 @@ type AreaDamage struct {
 	KnockbackDecay bool
 	Source         pixel.Vec
 	Override       bool
+}
+
+type Heal struct {
+	Amount    int
+	TmpAmount int
+}
+
+type TempHP struct {
+	Amount int
+	Timer  *timing.FrameTimer
 }

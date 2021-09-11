@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/player"
 	"dwarf-sweeper/internal/systems"
@@ -153,13 +154,14 @@ func Update(win *pixelgl.Window) {
 				reanimator.Update()
 				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
 				systems.PhysicsSystem()
-				systems.TransformSystem()
 				systems.CollisionSystem()
+				systems.ParentSystem()
+				systems.TransformSystem()
 				systems.CollectSystem()
+				systems.HealingSystem()
 				systems.AreaDamageSystem()
 				systems.DamageSystem()
 				systems.HealthSystem()
-				//dungeon.Entities.Update()
 				systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
@@ -201,7 +203,6 @@ func Update(win *pixelgl.Window) {
 				systems.PhysicsSystem()
 				systems.TransformSystem()
 				systems.CollisionSystem()
-				//dungeon.Entities.Update()
 				systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
@@ -244,6 +245,8 @@ func Update(win *pixelgl.Window) {
 		}
 	}
 	camera.Cam.Update(win)
+	myecs.Update()
+	systems.ManagementSystem()
 }
 
 func Draw(win *pixelgl.Window) {
@@ -264,6 +267,7 @@ func Draw(win *pixelgl.Window) {
 		player.DrawHUD(win)
 		debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
 		debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
+		debug.AddText(fmt.Sprintf("entity count: %d", myecs.Count))
 	} else if state == 1 {
 		MainMenu.Draw(win)
 		Options.Draw(win)
@@ -317,7 +321,7 @@ func updateState() {
 		// initialize
 		switch newState {
 		case 0:
-			dungeon.Dungeon.RemoveAllEntities()
+			systems.DeleteAllEntities()
 			if dungeon.Dungeon.Start {
 				dungeon.BlocksDug = 0
 				dungeon.LowestLevel = 0

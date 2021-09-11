@@ -2,12 +2,13 @@ package dungeon
 
 import (
 	"dwarf-sweeper/internal/random"
+	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 )
 
 const (
-	ChunkSize = 16
+	ChunkSize = 32
 	ChunkCnt  = ChunkSize * ChunkSize
 )
 
@@ -61,23 +62,42 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 			tile = NewTile(x, y, coords, b, chunk)
 		}
 		if b {
-			//if random.CaveGen.Intn(2) == 0 {
-				tile.AddEntity(&Bomb{
-					Tile: tile,
-					FuseLength: tile.Chunk.Cave.fuseLen,
-				})
-			//} else {
-			//	tile.AddEntity(&Mine{
-			//		Tile: tile,
-			//		FuseLength: tile.Chunk.Cave.fuseLen,
-			//	})
-			//}
-		} else if random.CaveGen.Intn(20) == 0 {
-			tile.AddEntity(&Gem{})
-		} else if random.CaveGen.Intn(50) == 0 {
-			tile.AddEntity(&BombItem{})
+			tile.Entity = &Bomb{
+				Tile: tile,
+				FuseLength: tile.Chunk.Cave.fuseLen,
+			}
+			tile.XRay = img.Batchers[entityKey].Sprites["bomb_fuse"]
+		} else if random.CaveGen.Intn(cave.gemRate) == 0 {
+			collect := Collectibles[GemDiamond]
+			tile.Entity = &CollectibleItem{
+				collect: collect,
+			}
+			tile.XRay = collect.Sprite
+		} else if random.CaveGen.Intn(cave.itemRate) == 0 {
+			collectible := ""
+			//collectible = XRayItem
+			switch random.CaveGen.Intn(5) {
+			case 0:
+				tile.Entity = &BombItem{}
+				tile.XRay = img.Batchers[entityKey].Sprites["bomb_unlit"]
+			case 1:
+				collectible = Mushroom
+			case 2:
+				collectible = Beer
+			case 3:
+				collectible = BubbleItem
+			case 4:
+				collectible = XRayItem
+			}
+			if collectible != "" {
+				collect := Collectibles[collectible]
+				tile.Entity = &CollectibleItem{
+					collect: collect,
+				}
+				tile.XRay = collect.Sprite
+			}
 		} else if random.CaveGen.Intn(75) == 0 {
-			tile.AddEntity(&MadMonk{})
+			tile.Entity = &MadMonk{}
 		}
 		chunk.Rows[y][x] = tile
 		x++

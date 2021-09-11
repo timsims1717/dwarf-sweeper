@@ -10,7 +10,7 @@ import (
 func TransformSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasTransform) {
 		if tran, ok := result.Components[myecs.Transform].(*transform.Transform); ok {
-			tran.APos = tran.Pos
+			tran.APos = tran.Pos.Add(tran.Offset)
 			tran.APos.X = math.Floor(tran.APos.X)
 			tran.APos.Y = math.Floor(tran.APos.Y)
 			tran.Mat = pixel.IM
@@ -25,6 +25,16 @@ func TransformSystem() {
 			tran.Mat = tran.Mat.Rotated(pixel.ZV, tran.Rot)
 			tran.Mat = tran.Mat.Moved(tran.APos.Scaled(tran.UIZoom))
 			tran.Mat = tran.Mat.Moved(tran.UIPos)
+		}
+	}
+}
+
+func ParentSystem() {
+	for _, result := range myecs.Manager.Query(myecs.HasParent) {
+		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
+		parent, okP := result.Components[myecs.Parent].(*transform.Transform)
+		if okT && okP {
+			tran.Pos = parent.Pos
 		}
 	}
 }

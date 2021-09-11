@@ -6,8 +6,13 @@ import (
 )
 
 var (
+	Count = 0
+)
+
+var (
 	Manager  = ecs.NewManager()
-	toDelete = []ecs.EntityID{}
+
+	Temp = Manager.NewComponent()
 
 	Animation = Manager.NewComponent()
 	Batch     = Manager.NewComponent()
@@ -16,12 +21,16 @@ var (
 
 	Physics   = Manager.NewComponent()
 	Transform = Manager.NewComponent()
+	Parent    = Manager.NewComponent()
 	Collision = Manager.NewComponent()
 	Collect   = Manager.NewComponent()
 
 	Health  = Manager.NewComponent()
+	Healing = Manager.NewComponent()
 	Damage  = Manager.NewComponent()
 	AreaDmg = Manager.NewComponent()
+
+	IsTemp = ecs.BuildTag(Temp)
 
 	HasAnimation   = ecs.BuildTag(Animation)
 	HasAnimDrawing = ecs.BuildTag(Animation, Transform, Batch)
@@ -29,40 +38,28 @@ var (
 	IsEntity       = ecs.BuildTag(Entity)
 
 	HasTransform  = ecs.BuildTag(Transform)
+	HasParent     = ecs.BuildTag(Transform, Parent)
 	HasPhysics    = ecs.BuildTag(Transform, Physics)
 	HasCollision  = ecs.BuildTag(Transform, Physics, Collision)
 	IsCollectible = ecs.BuildTag(Transform, Collect)
 
 	HasAreaDamage = ecs.BuildTag(AreaDmg)
+	HasHealing    = ecs.BuildTag(Health, Healing)
 	HasHealth     = ecs.BuildTag(Health, Transform)
 	HasDamage     = ecs.BuildTag(Health, Physics, Transform, Damage)
 )
 
-type Collider struct{
-	GroundOnly bool
-	CanPass    bool
+func Update() {
+	Count = 0
+	for _, result := range Manager.Query(IsEntity) {
+		if _, ok := result.Components[Entity].(AnEntity); ok {
+			Count++
+		}
+	}
 }
-type Collectible struct{
-	CollectedBy bool
-}
+
 type AnEntity interface {
 	Update()
 	Create(pixel.Vec)
 	Delete()
-	SetId(int)
 }
-
-//func LazyDelete(e *ecs.Entity) {
-//	toDelete = append(toDelete, e.ID)
-//}
-//
-//func Flush() {
-//	for _, i := range toDelete {
-//		Manager.DisposeEntity(Manager.GetEntityByID(i))
-//	}
-//	toDelete = []ecs.EntityID{}
-//}
-//
-//func Clear() {
-//	Manager = ecs.NewManager()
-//}

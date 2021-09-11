@@ -10,6 +10,15 @@ import (
 	"math"
 )
 
+const (
+	BaseFuse = 1.5
+	BaseGem  = 20
+	BaseItem = 50
+
+	entityKey    = "entities"
+	bigEntityKey = "big_entities"
+)
+
 type Cave struct {
 	RChunks  map[world.Coords]*Chunk
 	LChunks  map[world.Coords]*Chunk
@@ -24,6 +33,8 @@ type Cave struct {
 	bombPMin float64
 	bombPMax float64
 	fuseLen  float64
+	gemRate  int
+	itemRate int
 }
 
 func (cave *Cave) Update(pos pixel.Vec) {

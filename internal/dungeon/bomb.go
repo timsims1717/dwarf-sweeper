@@ -1,9 +1,10 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/character"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
+	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -13,16 +14,12 @@ import (
 	"github.com/faiface/pixel"
 )
 
-const BaseFuse = 1.5
-
 type Bomb struct {
-	EID        int
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
 	FuseLength float64
 	Tile       *Tile
 	created    bool
-	first      bool
 	explode    bool
 	Reanimator *reanimator.Tree
 	entity     *ecs.Entity
@@ -38,7 +35,7 @@ func (b *Bomb) Update() {
 				area = append(area, t.Transform.Pos)
 			}
 			myecs.Manager.NewEntity().
-			AddComponent(myecs.AreaDmg, &character.AreaDamage{
+			AddComponent(myecs.AreaDmg, &data.AreaDamage{
 				Area:           area,
 				Amount:         1,
 				Dazed:          3.,
@@ -49,6 +46,7 @@ func (b *Bomb) Update() {
 			})
 			vfx.CreateExplosion(b.Tile.Transform.Pos)
 			sfx.SoundPlayer.PlaySound("blast1", 0.0)
+			camera.Cam.Shake()
 			b.Delete()
 		} else {
 			b.Timer.Update()
@@ -63,25 +61,18 @@ func (b *Bomb) Create(pos pixel.Vec) {
 	b.Timer = timing.New(b.FuseLength)
 	b.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bomb_unlit", img.Batchers[entityBKey].Animations["bomb_unlit"].S, reanimator.Tran, map[int]func() {
-				1: func() {
-					b.first = false
-				},
-			}),
-			reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[entityBKey].Animations["bomb_fuse"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[entityBKey].Animations["bomb_blow"].S, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[entityKey].Animations["bomb_fuse"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[entityKey].Animations["bomb_blow"].S, reanimator.Tran, map[int]func() {
 				2: func() {
 					b.explode = true
 				},
 			}),
 		),
 		Check: func() int {
-			if b.first {
+			if b.FuseLength - b.Timer.Elapsed() > 0.3 {
 				return 0
-			} else if b.FuseLength - b.Timer.Elapsed() > 0.3 {
-				return 1
 			} else {
-				return 2
+				return 1
 			}
 		},
 	}, "bomb_unlit")
@@ -89,15 +80,9 @@ func (b *Bomb) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
-		AddComponent(myecs.Batch, entityBKey)
-	Dungeon.AddEntity(b)
+		AddComponent(myecs.Batch, entityKey)
 }
 
 func (b *Bomb) Delete() {
 	myecs.Manager.DisposeEntity(b.entity)
-	Dungeon.RemoveEntity(b.EID)
-}
-
-func (b *Bomb) SetId(i int) {
-	b.EID = i
 }

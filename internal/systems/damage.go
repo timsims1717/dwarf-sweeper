@@ -1,7 +1,7 @@
 package systems
 
 import (
-	"dwarf-sweeper/internal/character"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -15,12 +15,13 @@ import (
 
 func AreaDamageSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasAreaDamage) {
-		area, ok := result.Components[myecs.AreaDmg].(*character.AreaDamage)
+		area, ok := result.Components[myecs.AreaDmg].(*data.AreaDamage)
 		if ok {
 			for _, tResult := range myecs.Manager.Query(myecs.HasHealth) {
 				tran, okT := tResult.Components[myecs.Transform].(*transform.Transform)
-				_, okH := tResult.Components[myecs.Health].(*character.Health)
-				if okT && okH {
+				_, okH1 := tResult.Components[myecs.Health].(*data.Health)
+				_, okH2 := tResult.Components[myecs.Health].(*data.SimpleHealth)
+				if okT && (okH1 || okH2) {
 					for _, a := range area.Area {
 						if dungeon.TileInTile(tran.Pos, a) {
 							kb := area.Knockback
@@ -29,7 +30,7 @@ func AreaDamageSystem() {
 								mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
 								kb = kb - (mag / world.TileSize)
 							}
-							tResult.Entity.AddComponent(myecs.Damage, &character.Damage{
+							tResult.Entity.AddComponent(myecs.Damage, &data.Damage{
 								Amount:    area.Amount,
 								Dazed:     area.Dazed,
 								Knockback: kb,
@@ -47,16 +48,26 @@ func AreaDamageSystem() {
 
 func DamageSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasDamage) {
-		hp, okH := result.Components[myecs.Health].(*character.Health)
+		hp, okH := result.Components[myecs.Health].(*data.Health)
+		hpS, okS := result.Components[myecs.Health].(*data.SimpleHealth)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
-		dmg, okD := result.Components[myecs.Damage].(*character.Damage)
+		dmg, okD := result.Components[myecs.Damage].(*data.Damage)
 		if okH && okP && okD && okT && !hp.Inv && !hp.TempInv && (!hp.Override || dmg.Override) {
-			if dmg.Amount > 0 {
-				hp.Curr -= dmg.Amount
-				if hp.Curr <= 0 {
-					hp.Curr = 0
-					hp.Dead = true
+			dmgAmt := dmg.Amount
+			if dmgAmt > 0 {
+				tmp := hp.TempHP
+				hp.TempHP -= dmgAmt
+				if hp.TempHP < 0 {
+					hp.TempHP = 0
+				}
+				dmgAmt -= tmp
+				if dmgAmt > 0 {
+					hp.Curr -= dmgAmt
+					if hp.Curr <= 0 {
+						hp.Curr = 0
+						hp.Dead = true
+					}
 				}
 			}
 			if dmg.Knockback > 0.0 {
@@ -91,6 +102,28 @@ func DamageSystem() {
 			if hp.TempInvSec > 0. {
 				hp.TempInv = true
 				hp.TempInvTimer = timing.New(hp.TempInvSec)
+			}
+		} else if okS && okD && okP && okT {
+			dmgAmt := dmg.Amount
+			if dmgAmt > 0 {
+				hpS.Dead = true
+			}
+			if dmg.Knockback > 0.0 {
+				phys.CancelMovement()
+				var dir pixel.Vec
+				if dmg.Angle == nil {
+					d := tran.Pos.Sub(dmg.Source)
+					d.Y += 1.
+					dir = util.Normalize(d)
+				} else {
+					dir = pixel.V(1., 0.).Rotated(*dmg.Angle)
+					if tran.Pos.X < dmg.Source.X {
+						dir.X *= -1
+					}
+				}
+				phys.SetVelX(dir.X * dmg.Knockback * world.TileSize, 0.)
+				phys.SetVelY(dir.Y * dmg.Knockback * world.TileSize, 0.)
+				phys.RagDoll = true
 			}
 		}
 		result.Entity.RemoveComponent(myecs.Damage)

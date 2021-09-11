@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/character"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/img"
@@ -19,7 +19,6 @@ const (
 	mmSpeed    = 40.
 	mmAcc      = 5.
 	mmAtkWait  = 2.
-	entityBKey = "entities"
 )
 
 var (
@@ -27,14 +26,13 @@ var (
 )
 
 type MadMonk struct {
-	EID        int
 	ID         uuid.UUID
 	Transform  *transform.Transform
 	Physics    *physics.Physics
 	Reanimator *reanimator.Tree
 	Entity     *ecs.Entity
 	created    bool
-	Health     *character.Health
+	Health     *data.Health
 	faceLeft   bool
 	Attack     bool
 	AtkTimer   *timing.FrameTimer
@@ -76,7 +74,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 	m.Transform.Pos = pos
 	m.Physics = physics.New()
 	m.Physics.Terminal = 100.
-	m.Health = &character.Health{
+	m.Health = &data.Health{
 		Max:          2,
 		Curr:         2,
 		Dead:         false,
@@ -89,7 +87,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 	m.created = true
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[entityBKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
+			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[entityKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
 				3: func() {
 					m.AtkTimer = timing.New(mmAtkWait)
 					ownCoords := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
@@ -97,7 +95,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 					ownPos := m.Transform.Pos
 					playerPos := Dungeon.GetPlayer().Transform.Pos
 					if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
-						Dungeon.GetPlayer().Entity.AddComponent(myecs.Damage, &character.Damage{
+						Dungeon.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
 							Amount:    1,
 							Dazed:     1.,
 							Knockback: 8.,
@@ -110,9 +108,9 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 					m.Attack = false
 				},
 			}),
-			reanimator.NewAnimFromSprites("mm_fall", img.Batchers[entityBKey].Animations["mm_fall"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("mm_walk", img.Batchers[entityBKey].Animations["mm_walk"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("mm_idle", img.Batchers[entityBKey].Animations["mm_idle"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("mm_fall", img.Batchers[entityKey].Animations["mm_fall"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("mm_walk", img.Batchers[entityKey].Animations["mm_walk"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("mm_idle", img.Batchers[entityKey].Animations["mm_idle"].S, reanimator.Hold, nil),
 		),
 		Check: func() int {
 			if m.Attack {
@@ -132,16 +130,11 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		AddComponent(myecs.Animation, m.Reanimator).
 		AddComponent(myecs.Physics, m.Physics).
 		AddComponent(myecs.Health, m.Health).
-		AddComponent(myecs.Collision, myecs.Collider{}).
-		AddComponent(myecs.Batch, entityBKey)
-	Dungeon.AddEntity(m)
+		AddComponent(myecs.Collision, data.Collider{}).
+		AddComponent(myecs.Batch, entityKey)
 }
 
 func (m *MadMonk) Delete() {
 	m.Health.Delete()
 	myecs.Manager.DisposeEntity(m.Entity)
-}
-
-func (m *MadMonk) SetId(i int) {
-	m.EID = i
 }

@@ -10,7 +10,7 @@ var (
 type InvItem struct {
 	Name   string
 	Sprite *pixel.Sprite
-	OnUse  func()
+	OnUse  func() bool
 	Count  int
 	Unique bool
 }
@@ -33,15 +33,16 @@ func AddToInventory(item *InvItem) bool {
 func UseEquipped() {
 	if len(Inventory) > 0 && InvIndex < len(Inventory) {
 		item := Inventory[InvIndex]
-		item.OnUse()
-		item.Count--
-		if item.Count < 1 {
-			if len(Inventory) > 1 {
-				Inventory = append(Inventory[:InvIndex], Inventory[InvIndex+1:]...)
-			} else {
-				Inventory = []*InvItem{}
+		if item.OnUse() {
+			item.Count--
+			if item.Count < 1 {
+				if len(Inventory) > 1 {
+					Inventory = append(Inventory[:InvIndex], Inventory[InvIndex+1:]...)
+				} else {
+					Inventory = []*InvItem{}
+				}
+				PrevItem()
 			}
-			PrevItem()
 		}
 	} else {
 		InvIndex = 0
@@ -50,7 +51,11 @@ func UseEquipped() {
 
 func PrevItem() {
 	if len(Inventory) > 0 {
-		InvIndex = (InvIndex - 1) % len(Inventory)
+		newInv := InvIndex - 1
+		if newInv < 0 {
+			newInv += len(Inventory)
+		}
+		InvIndex = newInv% len(Inventory)
 	} else {
 		InvIndex = 0
 	}

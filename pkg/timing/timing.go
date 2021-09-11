@@ -1,6 +1,7 @@
 package timing
 
 import (
+	"math"
 	"strconv"
 	"time"
 )
@@ -77,4 +78,14 @@ func (f *FrameTimer) Elapsed() float64 {
 		return 0.
 	}
 	return f.elapsed
+}
+
+func (f *FrameTimer) Perc() float64 {
+	if f == nil {
+		return 100.
+	}
+	if f.sec == 0. {
+		return 100.
+	}
+	return math.Min(f.elapsed / f.sec, 100.)
 }

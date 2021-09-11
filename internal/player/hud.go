@@ -3,11 +3,14 @@ package player
 import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/menu"
+	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -22,6 +25,7 @@ var (
 	gemTransform    *transform.Transform
 	gemNumberItem   *menu.ItemText
 	itemTransform   *transform.Transform
+	tmpAnimation    *reanimator.Tree
 )
 
 func InitHUD() {
@@ -46,9 +50,45 @@ func InitHUD() {
 	itemTransform.Anchor.V = transform.Center
 	itemTransform.Scalar = pixel.V(1.6, 1.6)
 	itemTransform.Pos = pixel.V(cfg.BaseW * 0.5 - 8., cfg.BaseH * 0.5 - world.TileSize)
+	tmpAnimation = reanimator.New(&reanimator.Switch{
+		Elements: reanimator.NewElements(
+			reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers["entities"].Animations["heart_temp_1"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers["entities"].Animations["heart_temp_2"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers["entities"].Animations["heart_temp_3"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers["entities"].Animations["heart_temp_4"].S, reanimator.Hold, nil),
+		),
+		Check: func() int {
+			if dungeon.Dungeon.Player.Health.TempHPTimer == nil {
+				return 0
+			}
+			perc := dungeon.Dungeon.Player.Health.TempHPTimer.Perc()
+			if perc < 0.25 {
+				return 0
+			} else if perc < 0.5 {
+				return 1
+			} else if perc < 0.75 {
+				return 2
+			} else {
+				return 3
+			}
+		},
+	}, "heart_temp_1")
+	myecs.Manager.NewEntity().AddComponent(myecs.Animation, tmpAnimation)
 }
 
 func UpdateHUD() {
+	thp := dungeon.Dungeon.Player.Health.Max + dungeon.Dungeon.Player.Health.TempHP
+	if len(heartTransforms) != thp {
+		heartTransforms = []*transform.Transform{}
+		for i := 0; i < thp; i++ {
+			tran := transform.NewTransform()
+			tran.Anchor.H = transform.Left
+			tran.Anchor.V = transform.Center
+			tran.Scalar = pixel.V(1.6, 1.6)
+			tran.Pos = pixel.V(cfg.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, cfg.BaseH * 0.5 - world.TileSize)
+			heartTransforms = append(heartTransforms, tran)
+		}
+	}
 	if dungeon.GemsFound != lastGem {
 		lastGem = dungeon.GemsFound
 		gemNumberItem.SetText(fmt.Sprintf("x%d", lastGem))
@@ -66,11 +106,16 @@ func DrawHUD(win *pixelgl.Window) {
 		tran.Update()
 	}
 	i := 0
-	for i < dungeon.Dungeon.Player.Health.Curr {
+	hp := dungeon.Dungeon.Player.Health
+	for i < hp.Curr {
 		img.Batchers["entities"].Sprites["heart_full"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}
-	for i < dungeon.Dungeon.Player.Health.Max {
+	for i < hp.TempHP + hp.Curr {
+		tmpAnimation.CurrentSprite().Draw(win, heartTransforms[i].Mat)
+		i++
+	}
+	for i < util.Min(hp.Max + hp.TempHP, hp.Max) {
 		img.Batchers["entities"].Sprites["heart_empty"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}

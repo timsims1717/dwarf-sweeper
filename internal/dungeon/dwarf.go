@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/character"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
@@ -71,8 +71,10 @@ type Dwarf struct {
 	marking  bool
 	climbing bool
 
-	Health    *character.Health
+	Health    *data.Health
 	DeadStop  bool
+
+	Bubble *Bubble
 }
 
 func NewDwarf(start pixel.Vec) *Dwarf {
@@ -85,7 +87,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 	d := &Dwarf{
 		Physics:   physics.New(),
 		Transform: tran,
-		Health:    &character.Health{
+		Health:    &data.Health{
 			Max:          3,
 			Curr:         3,
 			TempInvSec:   3.,
@@ -135,7 +137,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							d.digTile.Destroy(true)
 						} else {
 							myecs.Manager.NewEntity().
-								AddComponent(myecs.AreaDmg, &character.AreaDamage{
+								AddComponent(myecs.AreaDmg, &data.AreaDamage{
 									Area:      []pixel.Vec{d.digTile.Transform.Pos},
 									Amount:    0,
 									Dazed:     ShovelDazed,
@@ -176,7 +178,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							}),
 						),
 						Check: func() int {
-							if d.Physics.IsMovingX() {
+							if d.Physics.IsMovingX() || (d.Bubble != nil && d.Bubble.Physics.IsMovingX()) {
 								return 0
 							} else {
 								return 1
@@ -205,7 +207,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							reanimator.NewAnimFromSheet("fall", dwarfSheet, []int{10}, reanimator.Hold, nil),   // fall
 						),
 						Check: func() int {
-							if d.Physics.Velocity.Y > 0. || d.jumping || d.toJump || d.jumpEnd {
+							if d.Physics.Velocity.Y > 0. || d.jumping || d.toJump || d.jumpEnd ||
+								(d.Bubble != nil && d.Bubble.Physics.Velocity.Y > 0.) {
 								return 0
 							} else {
 								return 1
@@ -214,7 +217,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}),
 				),
 				Check: func() int {
-					if d.Physics.Grounded && !d.jumping && !d.toJump {
+					if (d.Physics.Grounded && !d.jumping && !d.toJump && d.Bubble == nil) ||
+						(d.Bubble != nil && d.Bubble.Physics.Grounded) {
 						return 0
 					} else if d.climbing {
 						return 1
@@ -239,7 +243,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 	d.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
 		AddComponent(myecs.Physics, d.Physics).
-		AddComponent(myecs.Collision, myecs.Collider{ CanPass: true }).
+		AddComponent(myecs.Collision, data.Collider{ CanPass: true }).
 		AddComponent(myecs.Animation, d.Reanimator).
 		AddComponent(myecs.Health, d.Health)
 	return d
@@ -248,6 +252,9 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 func (d *Dwarf) Update(in *input.Input) {
 	loc1 := Dungeon.GetCave().GetTile(d.Transform.Pos)
 	if d.Health.Dazed || d.Health.Dead {
+		if d.Bubble != nil {
+			d.Bubble.Pop()
+		}
 		d.digging = false
 		d.jumping = false
 		d.walking = false
@@ -363,6 +370,23 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 		if d.digging {
 			d.Physics.Velocity = pixel.ZV
+		} else if d.Bubble != nil {
+			if in.Get("left").Pressed() && !in.Get("right").Pressed() {
+				d.faceLeft = true
+				d.Bubble.Physics.SetVelX(-BubbleVel, BubbleAcc)
+			} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
+				d.faceLeft = false
+				d.Bubble.Physics.SetVelX(BubbleVel, BubbleAcc)
+			}
+			if in.Get("lookUp").Pressed() && !in.Get("lookDown").Pressed() {
+				d.Bubble.Physics.SetVelY(BubbleVel, BubbleAcc)
+			} else if in.Get("lookDown").Pressed() && !in.Get("lookUp").Pressed() {
+				d.Bubble.Physics.SetVelY(-BubbleVel, BubbleAcc)
+			}
+			d.walking = false
+			d.jumping = false
+			d.climbing = false
+			d.distFell = 0.
 		} else if !d.marking {
 			dwnlj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
 			dwnrj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))

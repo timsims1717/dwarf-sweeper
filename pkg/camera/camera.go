@@ -10,9 +10,13 @@ import (
 	"golang.org/x/image/colornames"
 	"image/color"
 	"math"
+	"math/rand"
+	"time"
 )
 
-var Cam *Camera
+var (
+	Cam *Camera
+)
 
 type Camera struct {
 	Height float64
@@ -31,7 +35,10 @@ type Camera struct {
 	interX *gween.Tween
 	interY *gween.Tween
 	interZ *gween.Tween
+	shakeX *gween.Tween
+	shakeY *gween.Tween
 	lock   bool
+	random *rand.Rand
 }
 
 type Options struct {
@@ -53,8 +60,9 @@ func New(isWin bool) *Camera {
 			ZoomSpeed:   0.2,
 			WindowScale: 900.,
 		},
-		Mask:  colornames.White,
-		IsWin: isWin,
+		Mask:   colornames.White,
+		IsWin:  isWin,
+		random: rand.New(rand.NewSource(time.Now().Unix())),
 	}
 }
 
@@ -132,9 +140,23 @@ func (c *Camera) Update(win *pixelgl.Window) {
 		}
 	}
 	c.APos = c.Pos
+	if c.shakeX != nil {
+		x, finSX := c.shakeX.Update(timing.DT)
+		c.APos.X += x
+		if finSX {
+			c.shakeX = nil
+		}
+	}
+	if c.shakeY != nil {
+		y, finSY := c.shakeY.Update(timing.DT)
+		c.APos.Y += y
+		if finSY {
+			c.shakeY = nil
+		}
+	}
 	if c.iLock {
-		c.APos.X = math.Floor(c.Pos.X)
-		c.APos.Y = math.Floor(c.Pos.Y)
+		c.APos.X = math.Floor(c.APos.X)
+		c.APos.Y = math.Floor(c.APos.Y)
 	}
 	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.Zoom).Moved(win.Bounds().Center().Sub(c.APos))
 	win.SetMatrix(c.Mat)
@@ -254,4 +276,13 @@ func (c *Camera) GetColor() color.RGBA {
 
 func (c *Camera) SetColor(col color.RGBA) {
 	c.Mask = col
+}
+
+func (c *Camera) Shake() {
+	c.shakeX = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, Sine)
+	c.shakeY = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, Sine)
+}
+
+func Sine(t, b, c, d float64) float64 {
+	return b * math.Pow(math.E, -math.Abs(c) * t) * math.Sin(10. * math.Pi * t)
 }

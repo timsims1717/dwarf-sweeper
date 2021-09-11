@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/character"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/img"
@@ -18,7 +18,6 @@ const (
 )
 
 type Mine struct {
-	EID        int
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
 	FuseLength float64
@@ -39,7 +38,7 @@ func (m *Mine) Update() {
 				area = append(area, t.Transform.Pos)
 			}
 			myecs.Manager.NewEntity().
-				AddComponent(myecs.AreaDmg, &character.AreaDamage{
+				AddComponent(myecs.AreaDmg, &data.AreaDamage{
 					Area:           area,
 					Amount:         1,
 					Dazed:          3.,
@@ -62,8 +61,8 @@ func (m *Mine) Create(pos pixel.Vec) {
 	m.Timer = timing.New(0.25)
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mine_1", img.Batchers[entityBKey].Animations["mine_1"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("mine_2", img.Batchers[entityBKey].Animations["mine_2"].S, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprites("mine_1", img.Batchers[entityKey].Animations["mine_1"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("mine_2", img.Batchers[entityKey].Animations["mine_2"].S, reanimator.Tran, map[int]func() {
 				2: func() {
 					m.explode = true
 				},
@@ -81,15 +80,9 @@ func (m *Mine) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).
 		AddComponent(myecs.Animation, m.Reanimator).
-		AddComponent(myecs.Batch, entityBKey)
-	Dungeon.AddEntity(m)
+		AddComponent(myecs.Batch, entityKey)
 }
 
 func (m *Mine) Delete() {
 	myecs.Manager.DisposeEntity(m.entity)
-	Dungeon.RemoveEntity(m.EID)
-}
-
-func (m *Mine) SetId(i int) {
-	m.EID = i
 }

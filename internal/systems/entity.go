@@ -11,3 +11,11 @@ func EntitySystem() {
 		}
 	}
 }
+
+func DeleteAllEntities() {
+	for _, result := range myecs.Manager.Query(myecs.IsEntity) {
+		if e, ok := result.Components[myecs.Entity].(myecs.AnEntity); ok {
+			e.Delete()
+		}
+	}
+}

@@ -10,7 +10,6 @@ import (
 )
 
 type Flag struct {
-	EID        int
 	Transform  *transform.Transform
 	Tile       *Tile
 	created    bool
@@ -33,7 +32,7 @@ func (f *Flag) Create(from pixel.Vec) {
 	f.created = true
 	f.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("flag_hang", img.Batchers[entityBKey].Animations["flag_hang"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("flag_hang", img.Batchers[entityKey].Animations["flag_hang"].S, reanimator.Loop, nil),
 		),
 		Check: func() int {
 			return 0
@@ -43,16 +42,10 @@ func (f *Flag) Create(from pixel.Vec) {
 		AddComponent(myecs.Entity, f).
 		AddComponent(myecs.Transform, f.Transform).
 		AddComponent(myecs.Animation, f.Reanimator).
-		AddComponent(myecs.Batch, entityBKey)
-	Dungeon.AddEntity(f)
+		AddComponent(myecs.Batch, entityKey)
 }
 
 func (f *Flag) Delete() {
 	f.Tile.marked = false
 	myecs.Manager.DisposeEntity(f.entity)
-	Dungeon.RemoveEntity(f.EID)
-}
-
-func (f *Flag) SetId(i int) {
-	f.EID = i
 }

@@ -1,16 +1,18 @@
 package systems
 
 import (
-	"dwarf-sweeper/internal/character"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/util"
 	"github.com/faiface/pixel"
 )
 
 func HealthSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasHealth) {
-		hp, okH := result.Components[myecs.Health].(*character.Health)
+		hp, okH := result.Components[myecs.Health].(*data.Health)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		if okH && okT {
 			if hp.Dazed {
@@ -32,6 +34,27 @@ func HealthSystem() {
 			if hp.Curr < 1 {
 				hp.Dead = true
 			}
+			if hp.TempHP > 0 && hp.TempHPTimer.UpdateDone() {
+				hp.TempHP = 0
+			}
 		}
+	}
+}
+
+func HealingSystem() {
+	for _, result := range myecs.Manager.Query(myecs.HasHealing) {
+		hp, ok1 := result.Components[myecs.Health].(*data.Health)
+		heal, ok2 := result.Components[myecs.Healing].(*data.Heal)
+		if ok1 && ok2 {
+			hp.Curr += heal.Amount
+			if hp.Curr > hp.Max {
+				hp.Curr = hp.Max
+			}
+			if heal.TmpAmount > 0 {
+				hp.TempHP = util.Max(heal.TmpAmount, hp.TempHP)
+				hp.TempHPTimer = timing.New(8.)
+			}
+		}
+		result.Entity.RemoveComponent(myecs.Healing)
 	}
 }

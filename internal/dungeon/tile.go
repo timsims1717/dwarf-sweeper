@@ -8,6 +8,7 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -58,17 +59,18 @@ type Tile struct {
 	BGSpriteS string
 	BGSMatrix pixel.Matrix
 	FGSprite  *pixel.Sprite
-	Entities  []myecs.AnEntity
+	Entity    myecs.AnEntity
+	XRay      *pixel.Sprite
 	bomb      bool
 	destroyed bool
 	breakable bool
 	cracked   bool
 	Solid     bool
-	Transform  *transform.Transform
-	Chunk      *Chunk
-	revealT    *timing.FrameTimer
-	revealing  bool
-	destroyT   *timing.FrameTimer
+	Transform *transform.Transform
+	Chunk     *Chunk
+	revealT   *timing.FrameTimer
+	revealing bool
+	destroyT  *timing.FrameTimer
 	destroying bool
 	reload     bool
 	marked     bool
@@ -95,10 +97,6 @@ func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 		Transform: tran,
 		Chunk:     chunk,
 	}
-}
-
-func (tile *Tile) AddEntity(e myecs.AnEntity) {
-	tile.Entities = append(tile.Entities, e)
 }
 
 func (tile *Tile) Update() {
@@ -185,8 +183,8 @@ func (tile *Tile) Destroy(playSound bool) {
 			if playSound {
 				sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
 			}
-			for _, e := range tile.Entities {
-				e.Create(tile.Transform.Pos)
+			if !util.IsNil(tile.Entity) {
+				tile.Entity.Create(tile.Transform.Pos)
 			}
 		}
 	}
@@ -216,8 +214,8 @@ func (tile *Tile) Reveal(instant bool) {
 				t.UpdateSprites()
 			}
 		}
-		for _, e := range tile.Entities {
-			e.Create(tile.Transform.Pos)
+		if !util.IsNil(tile.Entity) {
+			tile.Entity.Create(tile.Transform.Pos)
 		}
 		if c == 0 {
 			tile.destroyed = true

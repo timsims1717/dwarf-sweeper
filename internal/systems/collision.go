@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/myecs"
@@ -26,7 +27,7 @@ const (
 func CollisionSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasCollision) {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
-		coll, okC := result.Components[myecs.Collision].(myecs.Collider)
+		coll, okC := result.Components[myecs.Collision].(data.Collider)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		if okT && okC && okP {
 			//var others []struct{
@@ -37,7 +38,7 @@ func CollisionSystem() {
 				collDist := world.TileSize * collisionDistance
 				for _, result1 := range myecs.Manager.Query(myecs.HasCollision) {
 					tran1, okT1 := result1.Components[myecs.Transform].(*transform.Transform)
-					coll1, okC1 := result1.Components[myecs.Collision].(myecs.Collider)
+					coll1, okC1 := result1.Components[myecs.Collision].(data.Collider)
 					phys1, okP1 := result1.Components[myecs.Physics].(*physics.Physics)
 					distX := math.Abs(tran.Pos.X - tran1.Pos.X)
 					if okT1 && okC1 && okP1 && !coll1.GroundOnly && distX < collDist && math.Abs(tran1.Pos.Y-tran.Pos.Y) < world.TileSize {
@@ -174,7 +175,7 @@ func CollisionSystem() {
 				}
 			}
 			tran.Pos = next
-			tran.Update()
+			//tran.Update()
 			//if debug.Debug {
 			//	up := dungeon.Dungeon.GetCave().GetTile(pixel.V(tran.Pos.X, tran.Pos.Y+world.TileSize))
 			//	upl := dungeon.Dungeon.GetCave().GetTile(pixel.V(tran.Pos.X-world.TileSize*0.3, tran.Pos.Y+world.TileSize))
