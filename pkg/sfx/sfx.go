@@ -8,6 +8,7 @@ import (
 	"github.com/faiface/beep/vorbis"
 	"github.com/faiface/beep/wav"
 	"github.com/pkg/errors"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -17,6 +18,7 @@ const sampleRate = beep.SampleRate(44100 * 4)
 
 // Volumes are stored as integers from 0 to 100.
 var (
+	random       *rand.Rand
 	masterVolume = 100
 	masterMuted  = false
 	musicVolume  = 100
@@ -28,6 +30,7 @@ var (
 )
 
 func init() {
+	random = rand.New(rand.NewSource(time.Now().Unix()))
 	err := speaker.Init(sampleRate, sampleRate.N(time.Second/100))
 	if err != nil {
 		panic(err)

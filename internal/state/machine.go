@@ -1,122 +1,308 @@
 package state
 
 import (
-	"dwarf-sweeper/internal/cave"
-	"dwarf-sweeper/internal/input"
-	"dwarf-sweeper/internal/menu"
+	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/debug"
+	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/particles"
+	"dwarf-sweeper/internal/player"
+	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/typeface"
+	"dwarf-sweeper/pkg/input"
+	"dwarf-sweeper/pkg/menu"
+	"dwarf-sweeper/pkg/reanimator"
+	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
-	"github.com/faiface/pixel/text"
 	"golang.org/x/image/colornames"
-	"time"
+)
+
+const (
+	titleString  = `DwarfSweeper`
+	creditString = `DwarfSweeper
+
+
+Made by Tim Sims for Ludum Dare 48
+(DEEPER AND DEEPER)
+using Pixel, a 2d Engine written in Go.
+
+Sound from the PMSFX Sampler March 2021
+
+Special Thanks:
+My wife Kaylan,
+Marshall and Clark,
+faiface, the Ludum Dare LD48 team,
+and YOU!
+
+Thanks for playing!`
 )
 
 var (
-	state     = -1
-	newState  = 1
-	timer     time.Time
-	timerKeys map[string]bool
-	credits   = text.New(pixel.ZV, typeface.BasicAtlas)
-	title     = text.New(pixel.ZV, typeface.BasicAtlas)
+	state      = -1
+	newState   = 1
+	debugPause = false
+	timer      *timing.FrameTimer
+	timerKeys  map[string]bool
+	credits    = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
+	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
+	mInput     = &input.Input{
+		Buttons: map[string]*input.ButtonSet{
+			"debugPause":  input.NewJoyless(pixelgl.KeyF9),
+			"debugResume": input.NewJoyless(pixelgl.KeyF10),
+			"debug":       input.NewJoyless(pixelgl.KeyF3),
+			"debugText":   input.NewJoyless(pixelgl.KeyF4),
+			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
+			"back":        input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
+			"fullscreen":  input.NewJoyless(pixelgl.KeyF),
+			"click":       input.NewJoyless(pixelgl.MouseButtonLeft),
+		},
+	}
+	dInput    = &input.Input{
+		Axes: map[string]*input.AxisSet{
+			"targetX": {
+				A: pixelgl.AxisRightX,
+			},
+			"targetY": {
+				A: pixelgl.AxisRightY,
+			},
+		},
+		Buttons: map[string]*input.ButtonSet{
+			"dig": {
+				Key:  pixelgl.MouseButtonLeft,
+				Axis: pixelgl.AxisRightTrigger,
+				GP:   1,
+			},
+			"mark": {
+				Key:  pixelgl.MouseButtonRight,
+				Axis: pixelgl.AxisLeftTrigger,
+				GP:   1,
+			},
+			"left":      input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
+			"right":     input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
+			"jump":      input.New(pixelgl.KeySpace, pixelgl.ButtonA),
+			"lookUp":    input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			"lookDown":  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			"climbUp":   input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			"climbDown": input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			"useItem":   input.New(pixelgl.KeyLeftShift, pixelgl.ButtonX),
+			"prevItem":  {
+				GPKey:  pixelgl.ButtonLeftBumper,
+				Scroll: -1,
+			},
+			"nextItem":  {
+				GPKey:  pixelgl.ButtonRightBumper,
+				Scroll: 1,
+			},
+		},
+		StickD: true,
+	}
 )
 
 func Update(win *pixelgl.Window) {
 	updateState()
-	if state == 0 {
-		if dead, ok := timerKeys["death"]; ok && dead {
-			if time.Since(timer).Seconds() > 1. {
-				newState = 2
+	mInput.Update(win)
+	dInput.Update(win)
+	if mInput.Get("debug").JustPressed() {
+		if debug.Debug {
+			fmt.Println("DEBUG OFF")
+		} else {
+			fmt.Println("DEBUG ON")
+		}
+		debug.Debug = !debug.Debug
+	}
+	if mInput.Get("debugText").JustPressed() {
+		if debug.Text {
+			fmt.Println("DEBUG TEXT OFF")
+		} else {
+			fmt.Println("DEBUG TEXT ON")
+		}
+		debug.Text = !debug.Text
+	}
+	if mInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
+		dungeon.Dungeon.GetPlayer().Health.Inv = !dungeon.Dungeon.GetPlayer().Health.Inv
+	}
+	if debug.Debug {
+		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, dInput.World, 1.)
+	}
+	if win.Focused() {
+		frame := false
+		if mInput.Get("debugPause").JustPressed() {
+			if !debugPause {
+				fmt.Println("DEBUG PAUSE")
+				debugPause = true
+			} else {
+				frame = true
+			}
+		} else if mInput.Get("debugResume").JustPressed() {
+			fmt.Println("DEBUG RESUME")
+			debugPause = false
+		}
+		if !debugPause || frame {
+			if state == 0 {
+				bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
+				bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
+				bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
+				tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
+				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
+				camera.Cam.Restrict(bl, tr)
+				reanimator.Update()
+				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				systems.PhysicsSystem()
+				systems.TransformSystem()
+				systems.CollisionSystem()
+				systems.CollectSystem()
+				systems.AreaDamageSystem()
+				systems.DamageSystem()
+				systems.HealthSystem()
+				//dungeon.Entities.Update()
+				systems.EntitySystem()
+				particles.Update()
+				vfx.Update()
+				dungeon.Dungeon.GetPlayer().Update(dInput)
+				systems.AnimationSystem()
+				player.UpdateHUD()
+				if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Health.Dead {
+					timer = timing.New(3.)
+					timerKeys["death"] = true
+				}
+				if dead, ok := timerKeys["death"]; ok && dead {
+					timer.Update()
+					if (timer.Elapsed() > 1. && dungeon.Dungeon.GetPlayer().DeadStop) ||
+						(timer.Elapsed() > 3. && dungeon.Dungeon.GetPlayer().Health.Dead) {
+						newState = 2
+					}
+				}
+				if mInput.Get("back").JustPressed() {
+					newState = 1
+				}
+				if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+					state = -1
+				}
+			} else if state == 1 {
+				title.Transform.UIPos = camera.Cam.APos
+				title.Transform.UIZoom = camera.Cam.GetZoomScale()
+				title.Update(pixel.Rect{})
+				MainMenu.Update(mInput.World, mInput.Get("click"))
+				if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.Get("back").JustPressed()) {
+					win.SetClosed(true)
+				}
+				Options.Update(mInput.World, mInput.Get("click"))
+				if Current == 1 && (Options.Items["back"].IsClicked() || mInput.Get("back").JustPressed()) {
+					SwitchToMain()
+				}
+			} else if state == 2 {
+				reanimator.Update()
+				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				systems.PhysicsSystem()
+				systems.TransformSystem()
+				systems.CollisionSystem()
+				//dungeon.Entities.Update()
+				systems.EntitySystem()
+				particles.Update()
+				vfx.Update()
+				dungeon.Dungeon.GetPlayer().Update(dInput)
+				systems.AnimationSystem()
+				player.UpdateHUD()
+				dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
+				dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
+				dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
+				dungeon.BombsMarkedItem.Transform.UIPos = camera.Cam.APos
+				dungeon.WrongMarksItem.Transform.UIPos = camera.Cam.APos
+				dungeon.TotalScore.Transform.UIPos = camera.Cam.APos
+				dungeon.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.GemsFoundItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
+				dungeon.BlocksDugItem.Update(pixel.Rect{})
+				dungeon.LowestLevelItem.Update(pixel.Rect{})
+				dungeon.GemsFoundItem.Update(pixel.Rect{})
+				dungeon.BombsMarkedItem.Update(pixel.Rect{})
+				dungeon.WrongMarksItem.Update(pixel.Rect{})
+				dungeon.TotalScore.Update(pixel.Rect{})
+				PostGame.Update(mInput.World, mInput.Get("click"))
+				if PostGame.Items["menu"].IsClicked() || mInput.Get("back").JustPressed() {
+					newState = 1
+				}
+			} else if state == 3 {
+				credits.Transform.UIPos = camera.Cam.APos
+				credits.Transform.UIZoom = camera.Cam.GetZoomScale()
+				credits.Update(pixel.Rect{})
+				if mInput.Get("back").JustPressed() || mInput.Get("click").JustPressed() {
+					mInput.Get("click").Consume()
+					newState = 1
+				}
+			} else if state == 4 {
+				newState = 0
 			}
 		}
-		input.Input.Update(win)
-		if input.Input.Debug {
-			fmt.Println("DEBUG PAUSE")
-		}
-		if input.Input.Back {
-			newState = 1
-		}
-		camera.Cam.Update(win)
-		cave.CurrCave.Update(cave.Player1.Transform.Pos)
-		cave.Entities.Update()
-		particles.Update()
-		vfx.Update()
-		cave.Player1.Update()
-		if dead, ok := timerKeys["death"]; (!ok || !dead) && cave.Player1.Dead {
-			timer = time.Now()
-			timerKeys["death"] = true
-		}
-	} else if state == 1 {
-		input.Input.Update(win)
-		camera.Cam.Update(win)
-		menu.Start.Update()
-		menu.Exit.Update()
-		menu.Credits.Update()
-		if menu.Exit.Clicked || input.Input.Back {
-			win.SetClosed(true)
-		} else if menu.Start.Clicked {
-			newState = 0
-		} else if menu.Credits.Clicked {
-			newState = 3
-		}
-	} else if state == 2 {
-		input.Input.Update(win)
-		if input.Input.Back {
-			newState = 1
-		}
-		camera.Cam.Update(win)
-		cave.CurrCave.Update(cave.Player1.Transform.Pos)
-		cave.Entities.Update()
-		particles.Update()
-		vfx.Update()
-		cave.Player1.Update()
-		cave.BlocksDugItem.Update()
-		cave.LowestLevelItem.Update()
-		cave.BombsMarkedItem.Update()
-		cave.BlocksMarkedItem.Update()
-		cave.TotalScore.Update()
-	} else if state == 3 {
-		input.Input.Update(win)
-		if input.Input.Back {
-			newState = 1
-		}
-		camera.Cam.Update(win)
 	}
+	camera.Cam.Update(win)
 }
 
 func Draw(win *pixelgl.Window) {
+	for _, batcher := range img.Batchers {
+		batcher.Clear()
+	}
 	if state == 0 {
-		cave.CurrCave.Draw(win)
-		cave.Player1.Draw(win)
-		cave.Entities.Draw(win)
+		dungeon.Dungeon.GetCave().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
+		//dungeon.Entities.Draw(win)
+		systems.AnimationDraw()
+		systems.SpriteDraw()
+		for _, batcher := range img.Batchers {
+			batcher.Draw(win)
+		}
 		particles.Draw(win)
 		vfx.Draw(win)
-		//debug.Draw(win)
+		player.DrawHUD(win)
+		debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
+		debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
 	} else if state == 1 {
-		menu.Start.Draw(win)
-		menu.Exit.Draw(win)
-		menu.Credits.Draw(win)
-		title.Draw(win, pixel.IM.Scaled(pixel.ZV, 4.3).Moved(pixel.V(0., 43.)))
-		//debug.Draw(win)
+		MainMenu.Draw(win)
+		Options.Draw(win)
+		title.Draw(win)
 	} else if state == 2 {
-		cave.CurrCave.Draw(win)
-		cave.Player1.Draw(win)
-		cave.Entities.Draw(win)
+		dungeon.Dungeon.GetCave().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
+		//dungeon.Entities.Draw(win)
+		systems.AnimationDraw()
+		systems.SpriteDraw()
+		for _, batcher := range img.Batchers {
+			batcher.Draw(win)
+		}
 		particles.Draw(win)
 		vfx.Draw(win)
-		//debug.Draw(win)
-		cave.BlocksDugItem.Draw(win)
-		cave.LowestLevelItem.Draw(win)
-		cave.BombsMarkedItem.Draw(win)
-		cave.BlocksMarkedItem.Draw(win)
-		cave.TotalScore.Draw(win)
+		player.DrawHUD(win)
+		dungeon.ScoreTimer.Update()
+		since := dungeon.ScoreTimer.Elapsed()
+		if since > dungeon.BlocksDugTimer {
+			dungeon.BlocksDugItem.Draw(win)
+		}
+		if since > dungeon.LowestLevelTimer {
+			dungeon.LowestLevelItem.Draw(win)
+		}
+		if since > dungeon.GemsFoundTimer {
+			dungeon.GemsFoundItem.Draw(win)
+		}
+		if since > dungeon.BombsMarkedTimer {
+			dungeon.BombsMarkedItem.Draw(win)
+		}
+		if since > dungeon.WrongMarksTimer {
+			dungeon.WrongMarksItem.Draw(win)
+		}
+		if since > dungeon.TotalScoreTimer {
+			dungeon.TotalScore.Draw(win)
+		}
+		PostGame.Draw(win)
 	} else if state == 3 {
-		credits.Draw(win, camera.Cam.UITransform(pixel.V(camera.WindowWidthF * 0.5, camera.WindowHeightF - 200.), pixel.V(3., 3.), 0.))
+		credits.Draw(win)
 	}
 }
 
@@ -124,75 +310,87 @@ func updateState() {
 	if state != newState {
 		timerKeys = make(map[string]bool)
 		// uninitialize
-		//switch state {
-		//case 0:
-		//
-		//}
+		switch state {
+		case 0:
+
+		}
 		// initialize
 		switch newState {
 		case 0:
-			sheet, err := img.LoadSpriteSheet("assets/img/test-tiles.json")
+			dungeon.Dungeon.RemoveAllEntities()
+			if dungeon.Dungeon.Start {
+				dungeon.BlocksDug = 0
+				dungeon.LowestLevel = 0
+				dungeon.LowTotal = 0
+				dungeon.GemsFound = 0
+				dungeon.BombsMarked = 0
+				dungeon.WrongMarks = 0
+			} else {
+				dungeon.LowTotal = dungeon.LowestLevel
+				dungeon.LowestLevel = 0
+			}
+			dungeon.Dungeon.Level++
+
+			sheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
 			if err != nil {
 				panic(err)
 			}
-			cave.CurrCave = cave.NewCave(sheet)
+			dungeon.Dungeon.SetCave(dungeon.NewRoomyCave(sheet, dungeon.Dungeon.Level, -1, 1, 2))
+			//dungeon.CurrCave = dungeon.NewInfiniteCave(sheet)
 
-			cave.Player1 = cave.NewDwarf()
-			camera.Cam.MoveTo(cave.Player1.Transform.Pos, 0.0, false)
-
-			cave.BlocksDug = 0
-			cave.LowestLevel = 0
-			cave.BombsMarked = 0
-			cave.BlocksMarked = 0
+			if dungeon.Dungeon.Player != nil {
+				dungeon.Dungeon.Player.Transform.Pos = dungeon.Dungeon.GetCave().GetStart()
+			} else {
+				dungeon.Dungeon.SetPlayer(dungeon.NewDwarf(dungeon.Dungeon.GetCave().GetStart()))
+			}
+			if dungeon.Dungeon.Start {
+				player.InitHUD()
+			}
+			camera.Cam.SnapTo(dungeon.Dungeon.GetPlayer().Transform.Pos)
 
 			particles.Clear()
 			vfx.Clear()
-			cave.Entities.Clear()
+			//dungeon.Entities.Clear()
+
+			reanimator.SetFrameRate(10)
+			reanimator.Reset()
+			dungeon.Dungeon.Start = false
 		case 1:
-			camera.Cam.MoveTo(pixel.ZV, 0.0, false)
-			title.Clear()
-			title.Color = colornames.Aliceblue
-			line := "DwarfSweeper"
-			title.Dot.X -= title.BoundsOf(line).W() * 0.5
-			fmt.Fprintln(title, line)
+			title.Transform.Pos = pixel.V(0., 75.)
+			camera.Cam.SnapTo(pixel.ZV)
+			InitializeMainMenu()
+			InitializeOptionsMenu()
 		case 2:
-			cave.BlocksDugItem    = cave.NewScore(fmt.Sprintf("Blocks Dug:      %d x 10", cave.BlocksDug), pixel.V(200., camera.WindowHeightF * 0.5 + 200.), 1.)
-			cave.LowestLevelItem  = cave.NewScore(fmt.Sprintf("Lowest Level:    %d x 1", cave.LowestLevel), pixel.V(200., camera.WindowHeightF * 0.5 + 150.), 1.2)
-			cave.BombsMarkedItem  = cave.NewScore(fmt.Sprintf("Bombs Marked:    %d x 50", cave.BombsMarked), pixel.V(200., camera.WindowHeightF * 0.5 + 100.), 1.4)
-			cave.BlocksMarkedItem = cave.NewScore(fmt.Sprintf("Incorrect Marks: %d x -20", cave.BlocksMarked), pixel.V(200., camera.WindowHeightF * 0.5 + 50.), 1.6)
+			x := cfg.BaseW * -0.5 + 8.
+			yS := 16.
 			score := 0
-			score += cave.BlocksDug * 10
-			score += cave.LowestLevel
-			score += cave.BombsMarked * 50
-			score -= cave.BlocksMarked * 20
-			cave.TotalScore       = cave.NewScore(fmt.Sprintf("Total Score:     %d", score), pixel.V(200., camera.WindowHeightF * 0.5 - 100.), 1.8)
-			cave.ScoreTimer = time.Now()
+			score += dungeon.BlocksDug * 10
+			score += (dungeon.LowestLevel + dungeon.LowTotal) * 5
+			score += dungeon.GemsFound * 15
+			score += dungeon.BombsMarked * 50
+			score -= dungeon.WrongMarks * 20
+			dungeon.BlocksDugItem   = menu.NewItemText(fmt.Sprintf("Blocks Dug:      %d x 10", dungeon.BlocksDug), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", dungeon.LowestLevel + dungeon.LowTotal), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.GemsFoundItem   = menu.NewItemText(fmt.Sprintf("Gems Found:      %d x 15", dungeon.GemsFound), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.BombsMarkedItem = menu.NewItemText(fmt.Sprintf("Bombs Marked:    %d x 50", dungeon.BombsMarked), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.WrongMarksItem  = menu.NewItemText(fmt.Sprintf("Incorrect Marks: %d x -20", dungeon.WrongMarks), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.TotalScore      = menu.NewItemText(fmt.Sprintf("Total Score:     %d", score), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
+			dungeon.BlocksDugItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 2.)
+			dungeon.LowestLevelItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 3.)
+			dungeon.GemsFoundItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 4.)
+			dungeon.BombsMarkedItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 5.)
+			dungeon.WrongMarksItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 6.)
+			dungeon.TotalScore.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 9.)
+			dungeon.ScoreTimer = timing.New(5.)
+			InitializePostGameMenu()
 		case 3:
-			credits.Clear()
-			credits.Color = colornames.Aliceblue
-			c_title := "DwarfSweeper"
-			credits.Dot.X -= credits.BoundsOf(c_title).W() * 0.5
-			fmt.Fprintln(credits, c_title)
-			fmt.Fprintln(credits)
-			fmt.Fprintln(credits)
-			lines := []string{
-				"Made by Tim Sims for Ludum Dare 48",
-				"(DEEPER AND DEEPER)",
-				"using Pixel, a 2d Engine written in Go.",
-				"",
-				"Sound from the PMSFX Sampler March 2021",
-				"",
-				"Special Thanks:",
-				"My wife Kaylan,",
-				"Marshall and Clark,",
-				"faiface, the Ludum Dare LD48 team,",
-				"and YOU!",
-				"",
-				"Thanks for playing!",
-			}
-			for _, line := range lines {
-				credits.Dot.X -= credits.BoundsOf(line).W() * 0.5
-				fmt.Fprintln(credits, line)
+
+		case 4:
+			dungeon.Dungeon.Level = 0
+			dungeon.Dungeon.Start = true
+			if dungeon.Dungeon.Player != nil {
+				dungeon.Dungeon.Player.Delete()
+				dungeon.Dungeon.Player = nil
 			}
 		}
 		state = newState

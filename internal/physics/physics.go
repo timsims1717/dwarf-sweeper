@@ -1,52 +1,62 @@
 package physics
 
 import (
-	"dwarf-sweeper/pkg/animation"
-	gween "dwarf-sweeper/pkg/gween64"
-	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
-	"math"
 )
 
 type Physics struct {
-	*animation.Transform
-	Velocity pixel.Vec
-	interX   *gween.Tween
-	Off      bool
+	Velocity    pixel.Vec
+
+	XJustSet    bool
+	YJustSet    bool
+	FrictionOff bool
+	GravityOff  bool
+	RagDoll     bool
+	Grounded    bool
+
+	// the "Constants"
+	Gravity     float64
+	Terminal    float64
+	Friction    float64
+	AirFriction float64
 }
 
-func (p *Physics) Update() {
-	if p.interX != nil {
-		vx, fin := p.interX.Update(timing.DT)
+func New() *Physics {
+	return &Physics{
+		Gravity:     750.,
+		Terminal:    500.,
+		Friction:    400.,
+		AirFriction: 25.,
+	}
+}
+
+func (p *Physics) IsMovingX() bool {
+	return p.Velocity.X > 0.1 || p.Velocity.X < -0.1
+}
+
+func (p *Physics) IsMovingY() bool {
+	return p.Velocity.Y > 0.1 || p.Velocity.Y < -0.1
+}
+
+func (p *Physics) SetVelX(vx, spd float64) {
+	if spd == 0. {
 		p.Velocity.X = vx
-		if fin {
-			p.interX = nil
-		}
+	} else {
+		p.Velocity.X += spd * timing.DT * (vx - p.Velocity.X)
 	}
-	p.Pos.X += timing.DT * p.Velocity.X
-	p.Pos.Y += timing.DT * p.Velocity.Y
-	if !p.Off {
-		if p.Velocity.Y > -500. {
-			p.Velocity.Y -= 5.
-		}
-		if p.Velocity.X > 75. {
-			p.Velocity.X -= 10. * timing.DT
-		} else if p.Velocity.X < -75. {
-			p.Velocity.X += 10. * timing.DT
-		}
-	}
-	p.Transform.Update(pixel.Rect{})
+	p.XJustSet = true
 }
 
-func (p *Physics) SetVelX(vx, dur float64) {
-	diff := math.Abs(p.Velocity.X - vx)
-	if diff != 0. {
-		p.interX = gween.New(p.Velocity.X, vx, dur, ease.Linear)
+func (p *Physics) SetVelY(vy, spd float64) {
+	if spd == 0. {
+		p.Velocity.Y = vy
+	} else {
+		p.Velocity.Y += spd * timing.DT * (vy - p.Velocity.Y)
 	}
+	p.YJustSet = true
 }
 
 func (p *Physics) CancelMovement() {
-	p.interX = nil
 	p.Velocity = pixel.ZV
 }

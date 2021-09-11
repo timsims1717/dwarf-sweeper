@@ -1,14 +1,16 @@
 package vfx
 
 import (
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/pkg/reanimator"
 	"github.com/faiface/pixel"
 )
 
-var explosion *animation.Animation
+var explosion *reanimator.Anim
 
 func CreateExplosion(vec pixel.Vec) {
-	exp := explosion.NewInstance()
-	exp.Matrix = pixel.IM.Moved(vec)
+	exp := &VFX{
+		Animation: reanimator.NewSimple(explosion),
+		Matrix:    pixel.IM.Moved(vec),
+	}
 	effects = append(effects, exp)
 }

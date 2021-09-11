@@ -1,26 +1,41 @@
 package vfx
 
 import (
-	"dwarf-sweeper/pkg/animation"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/reanimator"
+	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var effects []*animation.AnimationInstance
+type VFX struct {
+	Animation *reanimator.Tree
+	Matrix    pixel.Matrix
+}
+
+var (
+	effects     []*VFX
+	partBatcher *img.Batcher
+)
 
 func Initialize() {
 	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
 	if err != nil {
 		panic(err)
 	}
-	explosion = animation.NewAnimation(expSheet, 0, 6,false, false, 0.5)
+	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done, nil).Anim
+	particleSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
+	if err != nil {
+		panic(err)
+	}
+	partBatcher = img.NewBatcher(particleSheet)
+	dazed = reanimator.NewAnimFromSprites("dazed", partBatcher.Animations["dazed"].S, reanimator.Loop, nil).Anim
 }
 
 func Update() {
 	var drop []int
 	for i, effect := range effects {
-		effect.Update()
-		if effect.Done {
+		effect.Animation.Update()
+		if effect.Animation.Done {
 			drop = append(drop, i)
 		}
 	}
@@ -31,10 +46,12 @@ func Update() {
 
 func Draw(win *pixelgl.Window) {
 	for _, effect := range effects {
-		effect.Draw(win)
+		if effect.Animation.CurrentSprite() != nil {
+			effect.Animation.CurrentSprite().Draw(win, effect.Matrix)
+		}
 	}
 }
 
 func Clear() {
-	effects = []*animation.AnimationInstance{}
+	effects = []*VFX{}
 }

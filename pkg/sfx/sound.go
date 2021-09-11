@@ -6,18 +6,23 @@ import (
 	"github.com/faiface/beep/effects"
 	"github.com/faiface/beep/speaker"
 	"github.com/pkg/errors"
-	"math/rand"
+	"time"
 )
 
-var SoundPlayer *soundPlayer
+var (
+	SoundPlayer *soundPlayer
+	RepeatDelay = 0.25
+)
 
 type soundPlayer struct {
-	sounds map[string]*beep.Buffer
+	sounds     map[string]*beep.Buffer
+	currSounds map[string]time.Time
 }
 
 func init() {
 	SoundPlayer = &soundPlayer{
 		sounds: make(map[string]*beep.Buffer),
+		currSounds: make(map[string]time.Time),
 	}
 }
 
@@ -41,18 +46,21 @@ func (p *soundPlayer) RegisterSound(path, key string) error {
 
 func (p *soundPlayer) PlaySound(key string, vol float64) {
 	if sound, ok := p.sounds[key]; ok {
-		volume := &effects.Volume{
-			Streamer: sound.Streamer(0, sound.Len()),
-			Base:     2,
-			Volume:   getSoundVolume() + vol,
-			Silent:   false,
+		if t, ok := p.currSounds[key]; !ok || time.Since(t).Seconds() > RepeatDelay {
+			volume := &effects.Volume{
+				Streamer: sound.Streamer(0, sound.Len()),
+				Base:     2,
+				Volume:   getSoundVolume() + vol,
+				Silent:   false,
+			}
+			speaker.Play(volume)
+			p.currSounds[key] = time.Now()
 		}
-		speaker.Play(volume)
 	} else {
 		fmt.Printf("WARNING: SoundPlayer key %s not registered\n", key)
 	}
 }
 
 func (p *soundPlayer) PlayRandomSound(keys []string) {
-	p.PlaySound(keys[rand.Intn(len(keys))], 0.)
+	p.PlaySound(keys[random.Intn(len(keys))], 0.)
 }

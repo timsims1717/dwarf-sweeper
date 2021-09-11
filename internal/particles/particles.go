@@ -1,36 +1,37 @@
 package particles
 
 import (
-	"dwarf-sweeper/internal/physics"
-	"dwarf-sweeper/pkg/animation"
+	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/random"
+	"dwarf-sweeper/internal/util"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
-	"dwarf-sweeper/pkg/world"
+	"dwarf-sweeper/pkg/transform"
 	"fmt"
+	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 	"image/color"
-	"math/rand"
 )
 
 type particle struct {
-	Sprite      *pixel.Sprite
-	Transform   *physics.Physics
-	//ColorEffect animation.ColorEffect
-	Frame       bool
-	color       color.RGBA
-	fader       *gween.Tween
-	done        bool
-	frame       bool
+	Sprite    *pixel.Sprite
+	Transform *transform.Transform
+	entity    *ecs.Entity
+	//ColorEffect transform.ColorEffect
+	Frame     bool
+	color     color.RGBA
+	fader     *gween.Tween
+	done      bool
+	frame     bool
 
 }
 
 func (p *particle) Update() {
 	if !p.done {
-		p.Transform.Update()
 		if p.fader != nil {
 			a, fin := p.fader.Update(timing.DT)
 			if fin {
@@ -93,45 +94,58 @@ func Clear() {
 var blocks []string
 
 func BlockParticles(pos pixel.Vec) {
-	c := rand.Intn(3) + 4
+	c := random.Effects.Intn(3) + 4
 	for i := 0; i < c; i++ {
+		phys, tran := util.RandomVelocity(pos, 1.0, random.Effects)
+		if random.Effects.Intn(2) == 0 {
+			tran.Flip = true
+		}
+		if random.Effects.Intn(2) == 0 {
+			tran.Flop = true
+		}
 		particles = append(particles, &particle{
-			Sprite:    PartBatcher.Sprites[blocks[rand.Intn(len(blocks))]],
-			Transform: randomParticleLocation(pos, 1.0),
+			Sprite:    PartBatcher.Sprites[blocks[random.Effects.Intn(len(blocks))]],
+			Transform: tran,
+			entity:    myecs.Manager.NewEntity().
+				AddComponent(myecs.Transform, tran).
+				AddComponent(myecs.Physics, phys),
 			color:     colornames.White,
 			fader:     gween.New(255., 0., 1.0, ease.Linear),
 		})
 	}
 }
-
-func randomParticleLocation(orig pixel.Vec, variance float64) *physics.Physics {
-	transform := animation.NewTransform(true)
-	physicsT := &physics.Physics{Transform: transform}
-	physicsT.Pos = orig
-	actVar := variance * world.TileSize
-	//if square {
-	xVar := (rand.Float64() - 0.5) * actVar
-	yVar := (rand.Float64() - 0.5) * actVar
-	physicsT.Pos.X += xVar
-	physicsT.Pos.Y += yVar
-	physicsT.Velocity.X = xVar * 0.02
-	physicsT.Velocity.Y = 0.5
-	//}
-	if rand.Intn(2) == 0 {
-		physicsT.Flip = true
+func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64) {
+	c := random.Effects.Intn(max - min + 1) + min
+	for i := 0; i < c; i++ {
+		tran := transform.NewTransform()
+		tran.Pos = util.RandomPosition(orig, variance, random.Effects)
+		if random.Effects.Intn(2) == 0 {
+			tran.Flip = true
+		}
+		if random.Effects.Intn(2) == 0 {
+			tran.Flop = true
+		}
+		nDur := dur + (random.Effects.Float64() - 0.5) * durVar
+		key := keys[random.Effects.Intn(len(keys))]
+		particles = append(particles, &particle{
+			Sprite:    PartBatcher.Sprites[key],
+			Transform: tran,
+			entity:    myecs.Manager.NewEntity().
+				AddComponent(myecs.Transform, tran),
+			color:     colornames.White,
+			fader:     gween.New(255., 0., nDur, ease.Linear),
+		})
 	}
-	if rand.Intn(2) == 0 {
-		physicsT.Flop = true
-	}
-	return physicsT
 }
 
 func CreateStaticParticle(key string, orig pixel.Vec) {
-	transform := animation.NewTransform(true)
-	transform.Pos = orig
+	tran := transform.NewTransform()
+	tran.Pos = orig
 	particles = append(particles, &particle{
 		Sprite:    PartBatcher.Sprites[key],
-		Transform: &physics.Physics{Transform: transform, Off: true},
+		Transform: tran,
+		entity:    myecs.Manager.NewEntity().
+			AddComponent(myecs.Transform, tran),
 		color:     colornames.White,
 		Frame:     true,
 	})

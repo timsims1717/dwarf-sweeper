@@ -1,10 +1,10 @@
 package camera
 
 import (
-	"dwarf-sweeper/pkg/animation"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
@@ -15,13 +15,18 @@ import (
 var Cam *Camera
 
 type Camera struct {
+	Height float64
+	Width  float64
 	Mat    pixel.Matrix
 	Pos    pixel.Vec
-	zoom   float64
+	APos   pixel.Vec
+	Zoom   float64
 	zStep  float64
 	Opt    Options
 	Mask   color.RGBA
-	Effect *animation.ColorEffect
+	Effect *transform.ColorEffect
+	IsWin  bool
+	iLock  bool
 
 	interX *gween.Tween
 	interY *gween.Tween
@@ -33,28 +38,62 @@ type Options struct {
 	ScrollSpeed float64
 	ZoomStep    float64
 	ZoomSpeed   float64
+	WindowScale float64
 }
 
-func New() *Camera {
+func New(isWin bool) *Camera {
 	return &Camera{
 		Mat:   pixel.IM,
 		Pos:   pixel.ZV,
-		zoom:  1.0,
+		Zoom:  1.0,
 		zStep: 1.0,
 		Opt: Options{
-			ScrollSpeed: 500.0,
+			ScrollSpeed: 40.0,
 			ZoomStep:    1.2,
 			ZoomSpeed:   0.2,
+			WindowScale: 900.,
 		},
-		Mask: colornames.White,
+		Mask:  colornames.White,
+		IsWin: isWin,
 	}
+}
+
+func (c *Camera) SetSize(ratio, height float64) {
+	c.Width = height * ratio
+	c.Height = height
+}
+
+func (c *Camera) GetZoomScale() float64 {
+	return 1 / c.Zoom
 }
 
 func (c *Camera) Moving() bool {
 	return c.lock
 }
 
+func (c *Camera) Restrict(bl, tr pixel.Vec) {
+	world := c.Pos
+	if bl.X <= tr.X {
+		if bl.X > world.X {
+			world.X = bl.X
+		} else if tr.X < world.X {
+			world.X = tr.X
+		}
+	}
+	if bl.Y <= tr.Y {
+		if bl.Y > world.Y {
+			world.Y = bl.Y
+		} else if tr.Y < world.Y {
+			world.Y = tr.Y
+		}
+	}
+	c.Pos = world
+}
+
 func (c *Camera) Update(win *pixelgl.Window) {
+	if c.IsWin {
+		c.SetSize(win.Bounds().W(), win.Bounds().H())
+	}
 	fin := true
 	if c.interX != nil {
 		x, finX := c.interX.Update(timing.DT)
@@ -76,7 +115,7 @@ func (c *Camera) Update(win *pixelgl.Window) {
 	}
 	if c.interZ != nil {
 		z, finZ := c.interZ.Update(timing.DT)
-		c.zoom = z
+		c.Zoom = z
 		if finZ {
 			c.interZ = nil
 		} else {
@@ -92,7 +131,12 @@ func (c *Camera) Update(win *pixelgl.Window) {
 			c.Effect = nil
 		}
 	}
-	c.Mat = pixel.IM.Scaled(c.Pos, c.zoom).Moved(win.Bounds().Center().Sub(c.Pos))
+	c.APos = c.Pos
+	if c.iLock {
+		c.APos.X = math.Floor(c.Pos.X)
+		c.APos.Y = math.Floor(c.Pos.Y)
+	}
+	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.Zoom).Moved(win.Bounds().Center().Sub(c.APos))
 	win.SetMatrix(c.Mat)
 	win.SetColorMask(c.Mask)
 }
@@ -101,6 +145,28 @@ func (c *Camera) Stop() {
 	c.lock = false
 	c.interX = nil
 	c.interY = nil
+}
+
+func (c *Camera) SnapTo(v pixel.Vec) {
+	if !c.lock {
+		c.Pos.X = v.X
+		c.Pos.Y = v.Y
+	}
+}
+
+func (c *Camera) StayWithin(v pixel.Vec, d float64) {
+	if !c.lock {
+		if c.Pos.X >= v.X + d {
+			c.Pos.X = v.X + d
+		} else if c.Pos.X <= v.X - d {
+			c.Pos.X = v.X - d
+		}
+		if c.Pos.Y >= v.Y + d {
+			c.Pos.Y = v.Y + d
+		} else if c.Pos.Y <= v.Y - d {
+			c.Pos.Y = v.Y - d
+		}
+	}
 }
 
 func (c *Camera) MoveTo(v pixel.Vec, dur float64, lock bool) {
@@ -155,27 +221,31 @@ func (c *Camera) Up() {
 }
 
 func (c *Camera) SetZoom(zoom float64) {
-	c.zoom = zoom
+	c.Zoom = zoom
 	c.zStep = zoom
 }
 
 func (c *Camera) ZoomIn(zoom float64) {
 	if !c.lock {
 		c.zStep *= math.Pow(c.Opt.ZoomStep, zoom)
-		c.interZ = gween.New(c.zoom, c.zStep, c.Opt.ZoomSpeed, ease.OutQuad)
+		c.interZ = gween.New(c.Zoom, c.zStep, c.Opt.ZoomSpeed, ease.OutQuad)
 	}
 }
 
 // UITransform returns a pixel.Matrix that can move the center of a pixel.Rect
-// to the bottom left of the screen.
+// to the center of the screen.
 func (c *Camera) UITransform(pos, scalar pixel.Vec, rot float64) pixel.Matrix {
-	zoom := 1 / c.zoom
-	mat := pixel.IM.ScaledXY(pixel.ZV, scalar.Scaled(zoom))
+	zoom := c.GetZoomScale()
+	mat := pixel.IM
+	mat = mat.ScaledXY(pixel.ZV, scalar.Scaled(zoom))
 	mat = mat.Rotated(pixel.ZV, rot)
 	mat = mat.Moved(pixel.V(c.Pos.X, c.Pos.Y))
-	mat = mat.Moved(pixel.V(WindowWidthF, WindowHeightF).Scaled(-0.5 * zoom))
 	mat = mat.Moved(pos.Scaled(zoom))
 	return mat
+}
+
+func (c *Camera) SetILock(b bool) {
+	c.iLock = b
 }
 
 func (c *Camera) GetColor() color.RGBA {

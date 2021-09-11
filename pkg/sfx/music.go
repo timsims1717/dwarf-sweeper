@@ -10,7 +10,6 @@ import (
 	"github.com/faiface/beep/effects"
 	"github.com/faiface/beep/speaker"
 	"github.com/pkg/errors"
-	"math/rand"
 )
 
 var MusicPlayer *musicPlayer
@@ -87,7 +86,7 @@ func (p *musicPlayer) PlayTrack(key string, fadeOut float64) {
 
 func (p *musicPlayer) PlayNextTrack(fadeOut float64, mustSwitch bool) {
 	if len(p.currSet) > 0 && (mustSwitch || !util.ContainsStr(p.curr, p.currSet)) {
-		p.PlayTrack(p.currSet[rand.Intn(len(p.currSet))], fadeOut)
+		p.PlayTrack(p.currSet[random.Intn(len(p.currSet))], fadeOut)
 	}
 }
 
@@ -138,7 +137,7 @@ func (p *musicPlayer) loadTrack(key string) error {
 			beep.Resample(4, format.SampleRate, sampleRate, p.volume),
 			beep.Callback(func() {
 				if len(p.currSet) > 0 {
-					p.PlayTrack(p.currSet[rand.Intn(len(p.currSet)-1)], 0.)
+					p.PlayTrack(p.currSet[random.Intn(len(p.currSet)-1)], 0.)
 				}
 			}),
 		))

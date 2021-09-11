@@ -2,16 +2,211 @@
  "img": "entities.png",
  "height": 16,
  "width": 16,
- "singleRow": true,
  "sprites": [
   {
-   "key": "bomb"
+   "key": "heart_full",
+   "x": 0,
+   "y": 80
   },
   {
-   "key": "flag"
+   "key": "heart_empty",
+   "x": 16,
+   "y": 80
   },
   {
-   "key": "flag_c"
+   "key": "item_box",
+   "x": 32,
+   "y": 80
+  },
+  {
+   "key": "bomb_unlit",
+   "anim": true,
+   "x": 0,
+   "y": 64
+  },
+  {
+   "key": "bomb_fuse",
+   "anim": true,
+   "x": 16,
+   "y": 64
+  },
+  {
+   "key": "bomb_fuse",
+   "anim": true,
+   "x": 32,
+   "y": 64
+  },
+  {
+   "key": "bomb_blow",
+   "anim": true,
+   "x": 48,
+   "y": 64
+  },
+  {
+   "key": "bomb_blow",
+   "anim": true,
+   "x": 64,
+   "y": 64
+  },
+  {
+   "key": "bomb_blow",
+   "anim": true,
+   "x": 80,
+   "y": 64
+  },
+  {
+   "key": "mine_1",
+   "anim": true,
+   "x": 96,
+   "y": 64
+  },
+  {
+   "key": "mine_2",
+   "anim": true,
+   "x": 112,
+   "y": 64
+  },
+  {
+   "key": "gem_diamond",
+   "x": 0,
+   "y": 48
+  },
+  {
+   "key": "bubble_item",
+   "x": 0,
+   "y": 48
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 0,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 16,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 32,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 48,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 64,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 80,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 96,
+   "y": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 112,
+   "y": 32
+  },
+  {
+   "key": "mm_idle",
+   "anim": true,
+   "x": 0,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 0,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 16,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 32,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 48,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 64,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 80,
+   "y": 16
+  },
+  {
+   "key": "mm_fall",
+   "anim": true,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "mm_fall",
+   "anim": true,
+   "x": 16,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 48,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 80,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 96,
+   "y": 0
   }
  ]
 }
