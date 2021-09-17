@@ -12,7 +12,8 @@ const (
 )
 
 var (
-	FullScreen = false
+	FullScreen       = false
+	VSync            = true
 	ChangeScreenSize = false
 	Resolutions = []pixel.Vec{
 		pixel.V(800, 600),

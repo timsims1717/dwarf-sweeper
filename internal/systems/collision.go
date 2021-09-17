@@ -71,8 +71,8 @@ func CollisionSystem() {
 			for !done {
 				posChange := tran.Pos.Sub(lastPos)
 				mag := util.Magnitude(posChange)
-				if mag > world.TileSize {
-					posChange = util.Normalize(posChange).Scaled(world.TileSize)
+				if mag > world.TileSize * 0.5 {
+					posChange = util.Normalize(posChange).Scaled(world.TileSize * 0.5)
 					next = lastPos.Add(posChange)
 				} else {
 					next = tran.Pos

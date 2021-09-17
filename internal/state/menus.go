@@ -11,7 +11,6 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
-	"fmt"
 	"github.com/faiface/pixel"
 	"golang.org/x/image/colornames"
 	"strconv"
@@ -211,6 +210,50 @@ func InitializeSoundOption() {
 	SetOptionSoundWidth()
 }
 
+func InitializeVSyncOption() {
+	vsyncS := "VSync:"
+	vsyncOptionS := " Off"
+	if cfg.VSync {
+		vsyncOptionS = " On"
+	}
+
+	vsyncText := menu.NewItemText(vsyncS, colornames.Aliceblue, pixel.V(Size1, Size1), menu.Center, menu.Center)
+
+	vsyncOptionText := menu.NewItemText(vsyncOptionS, colornames.Aliceblue, pixel.V(Size1, Size1), menu.Center, menu.Center)
+	vsyncOptionText.HoverColor = colornames.Darkblue
+	vsyncOptionText.HoverSize = pixel.V(Size2, Size2)
+
+	vsyncR := pixel.R(0., 0., vsyncText.Text.BoundsOf(vsyncS).W()*Size2, vsyncText.Text.BoundsOf(vsyncS).H()*Size2)
+	vsyncItem := menu.NewItem(vsyncText, vsyncR, Options.Canvas.Bounds())
+	vsyncItem.Transform.Anchor = transform.Anchor{
+		H: transform.Center,
+		V: transform.Center,
+	}
+	vsyncItem.Disabled = true
+	Options.Items["vsync"] = vsyncItem
+
+	vsyncOptionR := pixel.R(0., 0., vsyncOptionText.Text.BoundsOf(" Off").W()*Size2, vsyncOptionText.Text.BoundsOf(" Off").H()*Size2)
+	vsyncOptionItem := menu.NewItem(vsyncOptionText, vsyncOptionR, Options.Canvas.Bounds())
+	vsyncOptionItem.Transform.Anchor = transform.Anchor{
+		H: transform.Center,
+		V: transform.Center,
+	}
+	vsyncOptionItem.SetOnHoverFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	vsyncOptionItem.SetClickFn(func() {
+		s := " On"
+		if cfg.VSync {
+			s = " Off"
+		}
+		cfg.VSync = !cfg.VSync
+		vsyncOptionItem.Text.SetText(s)
+		SetOptionVSyncWidth()
+	})
+	Options.Items["vsync_options"] = vsyncOptionItem
+	SetOptionVSyncWidth()
+}
+
 func InitializeFullscreenOption() {
 	fullscreenS := "Fullscreen:"
 	fullscreenOptionS := " Off"
@@ -299,6 +342,7 @@ func InitializeOptionsMenu() {
 	Options.Transform.Pos.X = cfg.BaseW * 1.5
 
 	InitializeSoundOption()
+	InitializeVSyncOption()
 	InitializeFullscreenOption()
 	InitializeResolutionOption()
 
@@ -329,10 +373,20 @@ func SetOptionSoundWidth() {
 	soundVPlusItem := Options.Items["sound_+"]
 	soundVPlusTextW := soundVPlusItem.Text.Text.BoundsOf(soundVPlusItem.Text.Raw).W()
 	totalWidth := (soundVTextW + soundVMinusTextW + soundVVolumeTextW + soundVPlusTextW) * Size1
-	soundVItem.Transform.Pos = pixel.V((totalWidth - soundVTextW * Size1) * -0.5, Spacing * 0.)
-	soundVMinusItem.Transform.Pos = pixel.V(totalWidth * -0.5 + (soundVTextW + soundVMinusTextW * 0.5) * Size1, Spacing * 0.)
-	soundVolumeItem.Transform.Pos = pixel.V(totalWidth * 0.5 - (soundVPlusTextW + soundVVolumeTextW * 0.5) * Size1, Spacing * 0.)
-	soundVPlusItem.Transform.Pos = pixel.V((totalWidth - soundVPlusTextW * Size1) * 0.5, Spacing * 0.)
+	soundVItem.Transform.Pos = pixel.V((totalWidth - soundVTextW * Size1) * -0.5, Spacing * 1.)
+	soundVMinusItem.Transform.Pos = pixel.V(totalWidth * -0.5 + (soundVTextW + soundVMinusTextW * 0.5) * Size1, Spacing)
+	soundVolumeItem.Transform.Pos = pixel.V(totalWidth * 0.5 - (soundVPlusTextW + soundVVolumeTextW * 0.5) * Size1, Spacing)
+	soundVPlusItem.Transform.Pos = pixel.V((totalWidth - soundVPlusTextW * Size1) * 0.5, Spacing * 1.)
+}
+
+func SetOptionVSyncWidth() {
+	vsyncItem := Options.Items["vsync"]
+	vsyncTextW := vsyncItem.Text.Text.BoundsOf(vsyncItem.Text.Raw).W()
+	vsyncOptionItem := Options.Items["vsync_options"]
+	vsyncOptionTextW := vsyncOptionItem.Text.Text.BoundsOf(vsyncOptionItem.Text.Raw).W()
+	totalWidth := (vsyncTextW + vsyncOptionTextW) * Size1
+	vsyncItem.Transform.Pos = pixel.V((totalWidth - vsyncTextW * Size1) * -0.5, 0.)
+	vsyncOptionItem.Transform.Pos = pixel.V((totalWidth - vsyncOptionTextW * Size1) * 0.5, 0.)
 }
 
 func SetOptionFullscreenWidth() {
@@ -402,7 +456,6 @@ func InitializeEnchantShopMenu() bool {
 		}
 	}
 	choices := util.RandomSampleRange(util.Min(len(list), 3), 0, len(list), random.CaveGen)
-	fmt.Println(choices)
 	var e1, e2, e3 *data.Enchantment
 	for i, c := range choices {
 		if i == 0 {

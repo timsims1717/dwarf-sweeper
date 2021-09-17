@@ -92,6 +92,7 @@ func run() {
 		state.Draw(win)
 		debug.Draw(win)
 		win.Update()
+		win.SetVSync(cfg.VSync)
 		if cfg.ChangeScreenSize {
 			cfg.ChangeScreenSize = false
 			if (cfg.FullScreen && win.Monitor() == nil) || (!cfg.FullScreen && win.Monitor() != nil) {
