@@ -37,6 +37,9 @@ func HealthSystem() {
 			if hp.TempHP > 0 && hp.TempHPTimer.UpdateDone() {
 				hp.TempHP = 0
 			}
+			if hp.Curr > hp.Max {
+				hp.Curr = hp.Max
+			}
 		}
 	}
 }

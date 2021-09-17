@@ -3,6 +3,7 @@ package util
 import (
 	"github.com/faiface/pixel"
 	"math"
+	"math/rand"
 	"reflect"
 )
 
@@ -106,4 +107,27 @@ func LBound(a, b float64) float64 {
 	} else {
 		return math.Min(a, -math.Abs(b))
 	}
+}
+
+// RandomSample returns k unique integers in the specified range [a,b)
+func RandomSampleRange(k, a, b int, rando *rand.Rand) []int {
+	var res []int
+	for i := a; i < b; i++ {
+		res = append(res, i)
+	}
+	for i := len(res) - 1; i > 0; i-- {
+		j := rando.Intn(i)
+		res[i], res[j] = res[j], res[i]
+	}
+	return res[:k]
+}
+
+// RandomSample returns k unique integers from l
+func RandomSample(k int, l []int, rando *rand.Rand) []int {
+	res := l
+	for i := len(res) - 1; i > 0; i-- {
+		j := rando.Intn(i)
+		res[i], res[j] = res[j], res[i]
+	}
+	return res[:k]
 }

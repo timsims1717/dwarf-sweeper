@@ -23,27 +23,51 @@ import (
 )
 
 const (
-	JumpDelay = 0.05
-	stepTime  = 0.4
+	JumpDelay          = 0.05
+	stepTime           = 0.4
+	GroundAcceleration = 5.
+	AirAcceleration    = 10.
+	JumpVel            = 150.
+	DigRange           = 1.5
 )
 
 var (
-	ClimbSpeed         = 50.
-	Speed              = 80.
-	JumpVel            = 150.
-	DigRange           = 1.5
-	MaxJump            = 4
-	GroundAcceleration = 5.
-	AirAcceleration    = 10.
-	ShovelKnockback    = 5.
-	ShovelDazed        = 2.
+	ClimbSpeed      = 50.
+	Speed           = 80.
+	MaxJump         = 4
+	ShovelKnockback = 5.
+	ShovelDazed     = 2.
+	ShovelDamage    = 0
 )
 
+type DwarfStats struct {
+	ClimbSpeed      float64
+	Speed           float64
+	MaxJump         int
+	ShovelKnockback float64
+	ShovelDazed     float64
+	ShovelDamage    int
+}
+
+func DefaultStats() DwarfStats {
+	return DwarfStats{
+		ClimbSpeed:      ClimbSpeed,
+		Speed:           Speed,
+		MaxJump:         MaxJump,
+		ShovelKnockback: ShovelKnockback,
+		ShovelDazed:     ShovelDazed,
+		ShovelDamage:    ShovelDamage,
+	}
+}
+
 type Dwarf struct {
+	DwarfStats
 	Physics    *physics.Physics
 	Transform  *transform.Transform
 	Reanimator *reanimator.Tree
 	Entity     *ecs.Entity
+	Enchants   []int
+	EnchantMax int
 	faceLeft   bool
 
 	selectLegal bool
@@ -85,9 +109,10 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 	tran := transform.NewTransform()
 	tran.Pos = start
 	d := &Dwarf{
-		Physics:   physics.New(),
-		Transform: tran,
-		Health:    &data.Health{
+		DwarfStats: DefaultStats(),
+		Physics:    physics.New(),
+		Transform:  tran,
+		Health: &data.Health{
 			Max:          3,
 			Curr:         3,
 			TempInvSec:   3.,
@@ -139,9 +164,9 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							myecs.Manager.NewEntity().
 								AddComponent(myecs.AreaDmg, &data.AreaDamage{
 									Area:      []pixel.Vec{d.digTile.Transform.Pos},
-									Amount:    0,
-									Dazed:     ShovelDazed,
-									Knockback: ShovelKnockback,
+									Amount:    d.ShovelDamage,
+									Dazed:     d.ShovelDazed,
+									Knockback: d.ShovelKnockback,
 									Source:    d.Transform.Pos,
 								})
 						}
@@ -408,16 +433,16 @@ func (d *Dwarf) Update(in *input.Input) {
 			case 1:
 				if d.Physics.Grounded {
 					d.faceLeft = true
-					d.Physics.SetVelX(-Speed, GroundAcceleration)
+					d.Physics.SetVelX(-d.Speed, GroundAcceleration)
 				} else {
-					d.Physics.SetVelX(-Speed, AirAcceleration)
+					d.Physics.SetVelX(-d.Speed, AirAcceleration)
 				}
 			case 2:
 				if d.Physics.Grounded {
 					d.faceLeft = false
-					d.Physics.SetVelX(Speed, GroundAcceleration)
+					d.Physics.SetVelX(d.Speed, GroundAcceleration)
 				} else {
-					d.Physics.SetVelX(Speed, AirAcceleration)
+					d.Physics.SetVelX(d.Speed, AirAcceleration)
 				}
 			}
 			// Ground test, considered on the ground for jumping purposes until half a tile out
@@ -440,9 +465,9 @@ func (d *Dwarf) Update(in *input.Input) {
 				if canClimb {
 					d.distFell = 0.
 					if in.Get("climbUp").Pressed() && !in.Get("climbDown").Pressed() {
-						d.Physics.SetVelY(ClimbSpeed, 0.)
+						d.Physics.SetVelY(d.ClimbSpeed, 0.)
 					} else if in.Get("climbDown").Pressed() && !in.Get("climbUp").Pressed() {
-						d.Physics.SetVelY(-ClimbSpeed, 0.)
+						d.Physics.SetVelY(-d.ClimbSpeed, 0.)
 					} else {
 						d.Physics.SetVelY(0., 0.)
 					}
@@ -460,7 +485,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.jumping = false
 				d.toJump = false
 				d.distFell = 0.
-				d.Physics.SetVelY(ClimbSpeed, 0.)
+				d.Physics.SetVelY(d.ClimbSpeed, 0.)
 				if right != nil && right.Solid && (left == nil || !left.Solid) {
 					d.faceLeft = false
 				} else if left != nil && left.Solid && (right == nil || !right.Solid) {
@@ -499,7 +524,7 @@ func (d *Dwarf) Update(in *input.Input) {
 					if d.Physics.Velocity.Y <= 0. {
 						d.jumping = false
 						d.jumpEnd = false
-					} else if height < MaxJump - 1 && in.Get("jump").Pressed() {
+					} else if height < d.MaxJump - 1 && in.Get("jump").Pressed() {
 						d.Physics.SetVelY(JumpVel, 0.)
 					} else if !d.jumpEnd {
 						in.Get("jump").Consume()

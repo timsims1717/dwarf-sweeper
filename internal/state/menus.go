@@ -2,10 +2,16 @@ package state
 
 import (
 	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/enchants"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/util"
+	"fmt"
 	"github.com/faiface/pixel"
 	"golang.org/x/image/colornames"
 	"strconv"
@@ -21,13 +27,27 @@ var (
 	MainMenu    *menu.Menu
 	Options     *menu.Menu
 	PostGame    *menu.Menu
+	EnchantShop *menu.Menu
 	Current     int
 )
 
 func InitializeMenus() {
-	MainMenu = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
-	Options  = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
-	PostGame = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
+	MainMenu    = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
+	Options     = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
+	PostGame    = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
+	EnchantShop = menu.NewMenu(pixel.R(0, 0, cfg.BaseW, cfg.BaseH), camera.Cam)
+	Current = 0
+}
+
+func SwitchToOptions() {
+	Options.Transform.Pos.X = 0.
+	MainMenu.Transform.Pos.X = cfg.BaseW * 1.5
+	Current = 1
+}
+
+func SwitchToMain() {
+	Options.Transform.Pos.X = cfg.BaseW * 1.5
+	MainMenu.Transform.Pos.X = 0.
 	Current = 0
 }
 
@@ -370,14 +390,91 @@ func InitializePostGameMenu() {
 	PostGame.Items["menu"] = menuItem
 }
 
-func SwitchToOptions() {
-	Options.Transform.Pos.X = 0.
-	MainMenu.Transform.Pos.X = cfg.BaseW * 1.5
-	Current = 1
-}
+func InitializeEnchantShopMenu() bool {
+	EnchantShop.Items = map[string]*menu.Item{}
+	pe := dungeon.Dungeon.GetPlayer().Enchants
+	list := enchants.Enchantments
+	for _, i := range pe {
+		if len(list) > 1 {
+			list = append(list[:i], list[i+1:]...)
+		} else {
+			return false
+		}
+	}
+	choices := util.RandomSampleRange(util.Min(len(list), 3), 0, len(list), random.CaveGen)
+	fmt.Println(choices)
+	var e1, e2, e3 *data.Enchantment
+	for i, c := range choices {
+		if i == 0 {
+			e1 = list[c]
+		} else if i == 1 {
+			e2 = list[c]
+		} else if i == 2 {
+			e3 = list[c]
+		}
+	}
+	if e1 == nil {
+		return false
+	}
+	enchant1S := e1.Title
+	enchant1Text := menu.NewItemText(enchant1S, colornames.Aliceblue, pixel.V(1.1, 1.1), menu.Center, menu.Top)
+	enchant1Text.HoverColor = colornames.Mediumblue
+	enchant1R := pixel.R(0., 0., enchant1Text.Text.BoundsOf(enchant1S).W() * 1.2, enchant1Text.Text.BoundsOf(enchant1S).H() * 1.2)
+	enchant1Item := menu.NewItem(enchant1Text, enchant1R, EnchantShop.Canvas.Bounds())
+	enchant1Item.Transform.Pos = pixel.V(0., 50.)
+	enchant1Item.Transform.Anchor = transform.Anchor{
+		H: transform.Center,
+		V: transform.Bottom,
+	}
+	enchant1Item.SetOnHoverFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	enchant1Item.SetClickFn(func() {
+		enchants.AddEnchantment(e1)
+		newState = 0
+	})
+	EnchantShop.Items["enchant1"] = enchant1Item
 
-func SwitchToMain() {
-	Options.Transform.Pos.X = cfg.BaseW * 1.5
-	MainMenu.Transform.Pos.X = 0.
-	Current = 0
+	if e2 != nil {
+		enchant2S := e2.Title
+		enchant2Text := menu.NewItemText(enchant2S, colornames.Aliceblue, pixel.V(1.1, 1.1), menu.Center, menu.Top)
+		enchant2Text.HoverColor = colornames.Mediumblue
+		enchant2R := pixel.R(0., 0., enchant2Text.Text.BoundsOf(enchant2S).W()*1.2, enchant2Text.Text.BoundsOf(enchant2S).H()*1.2)
+		enchant2Item := menu.NewItem(enchant2Text, enchant2R, EnchantShop.Canvas.Bounds())
+		enchant2Item.Transform.Pos = pixel.V(0., 100.)
+		enchant2Item.Transform.Anchor = transform.Anchor{
+			H: transform.Center,
+			V: transform.Bottom,
+		}
+		enchant2Item.SetOnHoverFn(func() {
+			sfx.SoundPlayer.PlaySound("click", 2.0)
+		})
+		enchant2Item.SetClickFn(func() {
+			enchants.AddEnchantment(e2)
+			newState = 0
+		})
+		EnchantShop.Items["enchant2"] = enchant2Item
+	}
+
+	if e3 != nil {
+		enchant3S := e3.Title
+		enchant3Text := menu.NewItemText(enchant3S, colornames.Aliceblue, pixel.V(1.1, 1.1), menu.Center, menu.Top)
+		enchant3Text.HoverColor = colornames.Mediumblue
+		enchant3R := pixel.R(0., 0., enchant3Text.Text.BoundsOf(enchant3S).W()*1.2, enchant3Text.Text.BoundsOf(enchant3S).H()*1.2)
+		enchant3Item := menu.NewItem(enchant3Text, enchant3R, EnchantShop.Canvas.Bounds())
+		enchant3Item.Transform.Pos = pixel.V(0., 150.)
+		enchant3Item.Transform.Anchor = transform.Anchor{
+			H: transform.Center,
+			V: transform.Bottom,
+		}
+		enchant3Item.SetOnHoverFn(func() {
+			sfx.SoundPlayer.PlaySound("click", 2.0)
+		})
+		enchant3Item.SetClickFn(func() {
+			enchants.AddEnchantment(e3)
+			newState = 0
+		})
+		EnchantShop.Items["enchant3"] = enchant3Item
+	}
+	return true
 }

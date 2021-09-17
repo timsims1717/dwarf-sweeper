@@ -30,31 +30,3 @@ func (d *dungeon) SetPlayer(dwarf *Dwarf) {
 func (d *dungeon) GetPlayerTile() *Tile {
 	return d.Cave.GetTile(d.Player.Transform.Pos)
 }
-
-//func (d *dungeon) AddEntity(e myecs.AnEntity) int {
-//	i := len(d.Entities)
-//	d.Entities = append(d.Entities, e)
-//	return i
-//}
-
-//func (d *dungeon) RemoveEntity(id int) {
-//	if !d.removing {
-//		if len(d.Entities) == 1 {
-//			d.Entities = []myecs.AnEntity{}
-//		} else if len(d.Entities) > 1 {
-//			d.Entities = append(d.Entities[:id], d.Entities[id+1:]...)
-//			for i, e := range d.Entities {
-//				e.SetId(i)
-//			}
-//		}
-//	}
-//}
-
-//func (d *dungeon) RemoveAllEntities() {
-//	d.removing = true
-//	for _, e := range d.Entities {
-//		e.Delete()
-//	}
-//	d.Entities = []myecs.AnEntity{}
-//	d.removing = false
-//}

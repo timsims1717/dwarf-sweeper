@@ -107,15 +107,15 @@ func DrawHUD(win *pixelgl.Window) {
 	}
 	i := 0
 	hp := dungeon.Dungeon.Player.Health
-	for i < hp.Curr {
+	for i < hp.Curr && i < len(heartTransforms) {
 		img.Batchers["entities"].Sprites["heart_full"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}
-	for i < hp.TempHP + hp.Curr {
+	for i < hp.TempHP + hp.Curr && i < len(heartTransforms) {
 		tmpAnimation.CurrentSprite().Draw(win, heartTransforms[i].Mat)
 		i++
 	}
-	for i < util.Min(hp.Max + hp.TempHP, hp.Max) {
+	for i < util.Min(hp.Max + hp.TempHP, hp.Max) && i < len(heartTransforms) {
 		img.Batchers["entities"].Sprites["heart_empty"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}

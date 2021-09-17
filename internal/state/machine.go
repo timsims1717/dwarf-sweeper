@@ -18,7 +18,6 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 )
@@ -53,14 +52,14 @@ var (
 	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
 	mInput     = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
-			"debugPause":  input.NewJoyless(pixelgl.KeyF9),
-			"debugResume": input.NewJoyless(pixelgl.KeyF10),
-			"debug":       input.NewJoyless(pixelgl.KeyF3),
-			"debugText":   input.NewJoyless(pixelgl.KeyF4),
-			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
-			"back":        input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
-			"fullscreen":  input.NewJoyless(pixelgl.KeyF),
-			"click":       input.NewJoyless(pixelgl.MouseButtonLeft),
+			"debugPause":   input.NewJoyless(pixelgl.KeyF9),
+			"debugResume":  input.NewJoyless(pixelgl.KeyF10),
+			"debug":        input.NewJoyless(pixelgl.KeyF3),
+			"debugText":    input.NewJoyless(pixelgl.KeyF4),
+			"debugInv":     input.NewJoyless(pixelgl.KeyF11),
+			"back":         input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
+			"fullscreen":   input.NewJoyless(pixelgl.KeyF),
+			"click":        input.NewJoyless(pixelgl.MouseButtonLeft),
 		},
 	}
 	dInput    = &input.Input{
@@ -127,9 +126,6 @@ func Update(win *pixelgl.Window) {
 	if mInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
 		dungeon.Dungeon.GetPlayer().Health.Inv = !dungeon.Dungeon.GetPlayer().Health.Inv
 	}
-	if debug.Debug {
-		debug.AddLine(colornames.Red, imdraw.SharpEndShape, pixel.ZV, dInput.World, 1.)
-	}
 	if win.Focused() {
 		frame := false
 		if mInput.Get("debugPause").JustPressed() {
@@ -183,7 +179,7 @@ func Update(win *pixelgl.Window) {
 					newState = 1
 				}
 				if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
-					state = -1
+					newState = 5
 				}
 			} else if state == 1 {
 				title.Transform.UIPos = camera.Cam.APos
@@ -241,6 +237,18 @@ func Update(win *pixelgl.Window) {
 				}
 			} else if state == 4 {
 				newState = 0
+			} else if state == 5 {
+				reanimator.Update()
+				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				//systems.PhysicsSystem()
+				//systems.TransformSystem()
+				//systems.CollisionSystem()
+				//systems.EntitySystem()
+				particles.Update()
+				vfx.Update()
+				//systems.AnimationSystem()
+				player.UpdateHUD()
+				EnchantShop.Update(mInput.World, mInput.Get("click"))
 			}
 		}
 	}
@@ -275,7 +283,6 @@ func Draw(win *pixelgl.Window) {
 	} else if state == 2 {
 		dungeon.Dungeon.GetCave().Draw(win)
 		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
-		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
@@ -307,6 +314,18 @@ func Draw(win *pixelgl.Window) {
 		PostGame.Draw(win)
 	} else if state == 3 {
 		credits.Draw(win)
+	} else if state == 5 {
+		dungeon.Dungeon.GetCave().Draw(win)
+		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
+		systems.AnimationDraw()
+		systems.SpriteDraw()
+		for _, batcher := range img.Batchers {
+			batcher.Draw(win)
+		}
+		particles.Draw(win)
+		vfx.Draw(win)
+		player.DrawHUD(win)
+		EnchantShop.Draw(win)
 	}
 }
 
@@ -395,6 +414,12 @@ func updateState() {
 			if dungeon.Dungeon.Player != nil {
 				dungeon.Dungeon.Player.Delete()
 				dungeon.Dungeon.Player = nil
+			}
+		case 5:
+			success := InitializeEnchantShopMenu()
+			if !success {
+				newState = 0
+				state = -1
 			}
 		}
 		state = newState
