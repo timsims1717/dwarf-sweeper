@@ -10,7 +10,7 @@ var (
 	Timer       time.Time
 	FRate       int
 	inter       float64
-	frameSwitch bool
+	FrameSwitch bool
 )
 
 type Tree struct {
@@ -32,8 +32,8 @@ func Reset() {
 }
 
 func Update() {
-	frameSwitch = time.Since(Timer).Seconds() > inter
-	if frameSwitch {
+	FrameSwitch = time.Since(Timer).Seconds() > inter
+	if FrameSwitch {
 		Reset()
 	}
 }
@@ -73,7 +73,7 @@ func (t *Tree) ForceUpdate() {
 func (t *Tree) Update() {
 	if !t.Done {
 		a := t.Root.Choose()
-		if frameSwitch || t.update {
+		if FrameSwitch || t.update {
 			t.update = false
 			var trigger int
 			if a.Key != t.animKey {

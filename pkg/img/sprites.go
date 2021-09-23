@@ -21,10 +21,13 @@ type Batcher struct {
 	Sprites    map[string]*pixel.Sprite
 	Animations map[string]*Animation
 	batch      *pixel.Batch
+	AutoDraw   bool
 }
 
-func NewBatcher(sheet *SpriteSheet) *Batcher {
-	b := &Batcher{}
+func NewBatcher(sheet *SpriteSheet, auto bool) *Batcher {
+	b := &Batcher{
+		AutoDraw: auto,
+	}
 	b.SetSpriteSheet(sheet)
 	return b
 }

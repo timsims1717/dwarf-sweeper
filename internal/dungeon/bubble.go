@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/img"
@@ -43,8 +44,8 @@ func (b *Bubble) Create(_ pixel.Vec) {
 	b.created = true
 	b.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bubble_vibe", img.Batchers[bigEntityKey].Animations["bubble_vibe"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bubble_pop", img.Batchers[bigEntityKey].Animations["bubble_pop"].S, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprites("bubble_vibe", img.Batchers[cfg.BigEntityKey].Animations["bubble_vibe"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("bubble_pop", img.Batchers[cfg.BigEntityKey].Animations["bubble_pop"].S, reanimator.Tran, map[int]func() {
 				2: func() {
 					b.Delete()
 				},
@@ -63,7 +64,7 @@ func (b *Bubble) Create(_ pixel.Vec) {
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Parent, Dungeon.Player.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
-		AddComponent(myecs.Batch, bigEntityKey)
+		AddComponent(myecs.Batch, cfg.BigEntityKey)
 }
 
 func (b *Bubble) Delete() {

@@ -9,6 +9,11 @@ const (
 
 	// Tile Constants
 	TileSize = 16.0
+
+	// Batcher Keys
+	EntityKey    = "entities"
+	BigEntityKey = "big_entities"
+	MenuSprites  = "menu_sprites"
 )
 
 var (

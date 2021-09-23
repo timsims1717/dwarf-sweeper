@@ -1,59 +1,33 @@
 {
- "img": "particles.png",
+ "img": "entities.png",
  "sprites": [
   {
-   "key": "corner",
-   "x": 0,
-   "y": 16,
+   "key": "menu_corner",
+   "x": 112,
+   "y": 88,
    "h": 8,
    "w": 8
   },
   {
-   "key": "side",
-   "x": 8,
-   "y": 16,
+   "key": "menu_side_h",
+   "x": 120,
+   "y": 88,
    "h": 8,
    "w": 8
   },
   {
-   "key": "open",
-   "anim": true,
-   "x": 0,
-   "y": 0,
-   "h": 6,
-   "w": 6
-  },
-  {
-   "key": "open",
-   "anim": true,
-   "x": 0,
-   "y": 8,
+   "key": "menu_side_v",
+   "x": 112,
+   "y": 80,
    "h": 8,
    "w": 8
   },
   {
-   "key": "open",
-   "anim": true,
-   "x": 6,
-   "y": 0,
-   "h": 10,
-   "w": 10
-  },
-  {
-   "key": "open",
-   "anim": true,
-   "x": 16,
-   "y": 0,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "open",
-   "anim": true,
-   "x": 16,
-   "y": 16,
-   "h": 14,
-   "w": 14
+   "key": "menu_inner",
+   "x": 120,
+   "y": 80,
+   "h": 8,
+   "w": 8
   }
  ]
 }

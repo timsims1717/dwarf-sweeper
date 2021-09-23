@@ -126,6 +126,18 @@ func (i *Input) SetStandard(s string, n pixelgl.Button) {
 	}
 }
 
+func (i *Input) AnyJustPressed(consume bool) bool {
+	for _, b := range i.Buttons {
+		if b.Button.JustPressed() {
+			if consume {
+				b.Button.Consume()
+			}
+			return true
+		}
+	}
+	return false
+}
+
 func (i *Input) Get(s string) *Button {
 	if b, ok := i.Buttons[s]; ok {
 		return &b.Button

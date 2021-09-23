@@ -25,8 +25,8 @@ var (
 	musicMuted   = false
 	soundVolume  = 100
 	soundMuted   = false
-	sfxVolume    = map[string]int{}
-	sfxMuted     = map[string]bool{}
+	//sfxVolume    = map[string]int{}
+	//sfxMuted     = map[string]bool{}
 )
 
 func init() {
@@ -36,6 +36,8 @@ func init() {
 		panic(err)
 	}
 }
+
+/* INTERNAL GETTERS */
 
 func getMasterVolume() float64 {
 	if masterMuted {
@@ -61,13 +63,15 @@ func getSoundVolume() float64 {
 	}
 }
 
-func getSfxVolume(key string) float64 {
-	if sfxMuted[key] || masterMuted {
-		return -5.
-	} else {
-		return float64(sfxVolume[key]*masterVolume)/2000. - 5.
-	}
-}
+//func getSfxVolume(key string) float64 {
+//	if sfxMuted[key] || masterMuted {
+//		return -5.
+//	} else {
+//		return float64(sfxVolume[key]*masterVolume)/2000. - 5.
+//	}
+//}
+
+/* EXTERNAL GETTERS */
 
 func GetMasterVolume() int {
 	if masterMuted {
@@ -93,49 +97,141 @@ func GetSoundVolume() int {
 	}
 }
 
-func GetSfxVolume(key string) int {
-	if sfxMuted[key] {
-		return 0
-	} else {
-		return sfxVolume[key]
-	}
-}
+//func GetSfxVolume(key string) int {
+//	if sfxMuted[key] {
+//		return 0
+//	} else {
+//		return sfxVolume[key]
+//	}
+//}
 
-func SetMasterVolume(v int) {
-	if v == 0 {
+/* SET MUTE */
+
+func MuteMaster(muted bool) {
+	speaker.Lock()
+	if muted {
 		masterMuted = true
+		MusicPlayer.volume.Silent = true
+		for _, vol := range SoundPlayer.volumes {
+			vol.Silent = true
+		}
 	} else {
 		masterMuted = false
+		if !musicMuted {
+			MusicPlayer.volume.Silent = false
+		}
+		if !soundMuted {
+			for _, vol := range SoundPlayer.volumes {
+				vol.Silent = false
+			}
+		}
+	}
+	speaker.Unlock()
+}
+
+func MuteMusic(muted bool) {
+	speaker.Lock()
+	if muted {
+		musicMuted = true
+		MusicPlayer.volume.Silent = true
+	} else {
+		musicMuted = false
+		if !masterMuted {
+			MusicPlayer.volume.Silent = false
+		}
+	}
+	speaker.Unlock()
+}
+
+func MuteSound(muted bool) {
+	speaker.Lock()
+	if muted {
+		soundMuted = true
+		for _, vol := range SoundPlayer.volumes {
+			vol.Silent = true
+		}
+	} else {
+		soundMuted = false
+		if !masterMuted {
+			for _, vol := range SoundPlayer.volumes {
+				vol.Silent = false
+			}
+		}
+	}
+	speaker.Unlock()
+}
+
+/* SET VOLUME */
+
+func SetMasterVolume(v int) {
+	speaker.Lock()
+	if v == 0 {
+		masterMuted = true
+		if MusicPlayer.volume != nil {
+			MusicPlayer.volume.Silent = true
+		}
+		for _, vol := range SoundPlayer.volumes {
+			vol.Silent = true
+		}
+	} else {
+		masterMuted = false
+		if !musicMuted && MusicPlayer.volume != nil {
+			MusicPlayer.volume.Silent = false
+		}
+		if !soundMuted {
+			for _, vol := range SoundPlayer.volumes {
+				vol.Silent = false
+			}
+		}
 	}
 	masterVolume = v
+	speaker.Unlock()
 }
 
 func SetMusicVolume(v int) {
+	speaker.Lock()
 	if v == 0 {
 		musicMuted = true
+		if MusicPlayer.volume != nil {
+			MusicPlayer.volume.Silent = true
+		}
 	} else {
 		musicMuted = false
+		if !masterMuted && MusicPlayer.volume != nil {
+			MusicPlayer.volume.Silent = false
+		}
 	}
 	musicVolume = v
+	speaker.Unlock()
 }
 
 func SetSoundVolume(v int) {
+	speaker.Lock()
 	if v == 0 {
 		soundMuted = true
+		for _, vol := range SoundPlayer.volumes {
+			vol.Silent = true
+		}
 	} else {
 		soundMuted = false
+		if !masterMuted {
+			for _, vol := range SoundPlayer.volumes {
+				vol.Silent = false
+			}
+		}
 	}
 	soundVolume = v
+	speaker.Unlock()
 }
 
-func SetSfxVolume(v int, key string) {
-	if v == 0 {
-		sfxMuted[key] = true
-	} else {
-		sfxMuted[key] = false
-	}
-	sfxVolume[key] = v
-}
+//func SetSfxVolume(v int, key string) {
+//	if v == 0 {
+//		sfxMuted[key] = true
+//	} else {
+//		sfxMuted[key] = false
+//	}
+//	sfxVolume[key] = v
+//}
 
 func loadSoundFile(path string) (beep.StreamSeekCloser, beep.Format, error) {
 	errMsg := "load sound file"

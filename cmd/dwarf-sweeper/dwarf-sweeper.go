@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/state"
 	"dwarf-sweeper/internal/vfx"
@@ -31,6 +32,9 @@ func run() {
 	}
 	win.SetSmooth(false)
 
+	sfx.SetMasterVolume(75)
+	sfx.SetSoundVolume(75)
+
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = cfg.BaseH
 	camera.Cam.SetZoom(4. / 3.)
@@ -38,7 +42,6 @@ func run() {
 	camera.Cam.SetSize(1600/900, cfg.BaseH)
 
 	debug.Initialize()
-	state.InitializeMenus()
 
 	vfx.Initialize()
 	particles.Initialize()
@@ -46,13 +49,20 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers["entities"] = img.NewBatcher(sheet)
+	img.Batchers[cfg.EntityKey] = img.NewBatcher(sheet, true)
 	sheet2, err := img.LoadSpriteSheet("assets/img/big_entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers["big_entities"] = img.NewBatcher(sheet2)
+	img.Batchers[cfg.BigEntityKey] = img.NewBatcher(sheet2, true)
+	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
+	if err != nil {
+		panic(err)
+	}
+	img.Batchers[cfg.MenuSprites] = img.NewBatcher(menuSheet, false)
 
+	menus.Initialize()
+	state.InitializeMenus(win)
 	dungeon.InitCollectibles()
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/blast1.wav", "blast1")
@@ -72,8 +82,6 @@ func run() {
 	sfx.SoundPlayer.RegisterSound("assets/sound/step3.wav", "step3")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step4.wav", "step4")
 	sfx.SoundPlayer.RegisterSound("assets/sound/clink.wav", "clink")
-	sfx.SetMasterVolume(75)
-	sfx.SetSoundVolume(75)
 
 	timing.Reset()
 	win.Show()
@@ -95,7 +103,7 @@ func run() {
 		win.SetVSync(cfg.VSync)
 		if cfg.ChangeScreenSize {
 			cfg.ChangeScreenSize = false
-			if (cfg.FullScreen && win.Monitor() == nil) || (!cfg.FullScreen && win.Monitor() != nil) {
+			//if (cfg.FullScreen && win.Monitor() == nil) || (!cfg.FullScreen && win.Monitor() != nil) {
 				pos := win.GetPos()
 				pos.X += win.Bounds().W() * 0.5
 				pos.Y += win.Bounds().H() * 0.5
@@ -120,16 +128,16 @@ func run() {
 							}
 						}
 					}
-					if picked == nil {
-						picked = pixelgl.PrimaryMonitor()
-					}
+				}
+				if picked == nil {
+					picked = pixelgl.PrimaryMonitor()
 				}
 				if cfg.FullScreen {
 					win.SetMonitor(picked)
 				} else {
 					win.SetMonitor(nil)
 				}
-			}
+			//}
 			res := cfg.Resolutions[cfg.ResIndex]
 			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
 			camera.Cam.SetSize(res.X / res.Y, res.Y)

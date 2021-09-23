@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
@@ -61,8 +62,8 @@ func (b *Bomb) Create(pos pixel.Vec) {
 	b.Timer = timing.New(b.FuseLength)
 	b.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[entityKey].Animations["bomb_fuse"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[entityKey].Animations["bomb_blow"].S, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[cfg.EntityKey].Animations["bomb_fuse"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[cfg.EntityKey].Animations["bomb_blow"].S, reanimator.Tran, map[int]func() {
 				2: func() {
 					b.explode = true
 				},
@@ -80,7 +81,7 @@ func (b *Bomb) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
-		AddComponent(myecs.Batch, entityKey)
+		AddComponent(myecs.Batch, cfg.EntityKey)
 }
 
 func (b *Bomb) Delete() {

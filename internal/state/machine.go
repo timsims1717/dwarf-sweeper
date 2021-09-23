@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/player"
@@ -46,23 +47,33 @@ var (
 	state      = -1
 	newState   = 1
 	debugPause = false
+	menuStack  []*menus.DwarfMenu
 	timer      *timing.FrameTimer
 	timerKeys  map[string]bool
 	credits    = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
 	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
-	mInput     = &input.Input{
+	debugInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
-			"debugPause":   input.NewJoyless(pixelgl.KeyF9),
-			"debugResume":  input.NewJoyless(pixelgl.KeyF10),
-			"debug":        input.NewJoyless(pixelgl.KeyF3),
-			"debugText":    input.NewJoyless(pixelgl.KeyF4),
-			"debugInv":     input.NewJoyless(pixelgl.KeyF11),
-			"back":         input.New(pixelgl.KeyEscape, pixelgl.ButtonBack),
-			"fullscreen":   input.NewJoyless(pixelgl.KeyF),
-			"click":        input.NewJoyless(pixelgl.MouseButtonLeft),
+			"debugPause":  input.NewJoyless(pixelgl.KeyF9),
+			"debugResume": input.NewJoyless(pixelgl.KeyF10),
+			"debug":       input.NewJoyless(pixelgl.KeyF3),
+			"debugText":   input.NewJoyless(pixelgl.KeyF4),
+			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
 		},
 	}
-	dInput    = &input.Input{
+	menuInput = &input.Input{
+		Buttons: map[string]*input.ButtonSet{
+			"menuUp":      input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			"menuDown":    input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			"menuLeft":    input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
+			"menuRight":   input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
+			"menuSelect":  input.New(pixelgl.KeySpace, pixelgl.ButtonA),
+			"menuBack":    input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
+			"pause":       input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+			"click":       input.NewJoyless(pixelgl.MouseButtonLeft),
+		},
+	}
+	gameInput = &input.Input{
 		Axes: map[string]*input.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
@@ -89,7 +100,7 @@ var (
 			"lookDown":  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
 			"climbUp":   input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
 			"climbDown": input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-			"useItem":   input.New(pixelgl.KeyLeftShift, pixelgl.ButtonX),
+			"useItem":   input.New(pixelgl.KeyLeftShift, pixelgl.ButtonB),
 			"prevItem":  {
 				GPKey:  pixelgl.ButtonLeftBumper,
 				Scroll: -1,
@@ -105,9 +116,10 @@ var (
 
 func Update(win *pixelgl.Window) {
 	updateState()
-	mInput.Update(win)
-	dInput.Update(win)
-	if mInput.Get("debug").JustPressed() {
+	debugInput.Update(win)
+	menuInput.Update(win)
+	gameInput.Update(win)
+	if debugInput.Get("debug").JustPressed() {
 		if debug.Debug {
 			fmt.Println("DEBUG OFF")
 		} else {
@@ -115,7 +127,7 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Debug = !debug.Debug
 	}
-	if mInput.Get("debugText").JustPressed() {
+	if debugInput.Get("debugText").JustPressed() {
 		if debug.Text {
 			fmt.Println("DEBUG TEXT OFF")
 		} else {
@@ -123,19 +135,19 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Text = !debug.Text
 	}
-	if mInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
+	if debugInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
 		dungeon.Dungeon.GetPlayer().Health.Inv = !dungeon.Dungeon.GetPlayer().Health.Inv
 	}
 	if win.Focused() {
 		frame := false
-		if mInput.Get("debugPause").JustPressed() {
+		if debugInput.Get("debugPause").JustPressed() {
 			if !debugPause {
 				fmt.Println("DEBUG PAUSE")
 				debugPause = true
 			} else {
 				frame = true
 			}
-		} else if mInput.Get("debugResume").JustPressed() {
+		} else if debugInput.Get("debugResume").JustPressed() {
 			fmt.Println("DEBUG RESUME")
 			debugPause = false
 		}
@@ -148,22 +160,37 @@ func Update(win *pixelgl.Window) {
 				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
 				camera.Cam.Restrict(bl, tr)
 				reanimator.Update()
-				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
-				systems.PhysicsSystem()
-				systems.CollisionSystem()
-				systems.ParentSystem()
-				systems.TransformSystem()
-				systems.CollectSystem()
-				systems.HealingSystem()
-				systems.AreaDamageSystem()
-				systems.DamageSystem()
-				systems.HealthSystem()
-				systems.EntitySystem()
-				particles.Update()
-				vfx.Update()
-				dungeon.Dungeon.GetPlayer().Update(dInput)
-				systems.AnimationSystem()
-				player.UpdateHUD()
+				if len(menuStack) > 0 {
+					currMenu := menuStack[len(menuStack)-1]
+					currMenu.Update(menuInput)
+					if currMenu.Closed {
+						if len(menuStack) > 1 {
+							menuStack = menuStack[:len(menuStack)-1]
+						} else {
+							menuStack = []*menus.DwarfMenu{}
+						}
+					}
+				} else {
+					dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+					systems.PhysicsSystem()
+					systems.CollisionSystem()
+					systems.ParentSystem()
+					systems.TransformSystem()
+					systems.CollectSystem()
+					systems.HealingSystem()
+					systems.AreaDamageSystem()
+					systems.DamageSystem()
+					systems.HealthSystem()
+					systems.EntitySystem()
+					particles.Update()
+					vfx.Update()
+					dungeon.Dungeon.GetPlayer().Update(gameInput)
+					systems.AnimationSystem()
+					player.UpdateHUD()
+					if gameInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+						newState = 5
+					}
+				}
 				if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Health.Dead {
 					timer = timing.New(3.)
 					timerKeys["death"] = true
@@ -175,23 +202,30 @@ func Update(win *pixelgl.Window) {
 						newState = 2
 					}
 				}
-				if mInput.Get("back").JustPressed() {
-					newState = 1
-				}
-				if dInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
-					newState = 5
+				if menuInput.Get("pause").JustPressed() {
+					menuInput.Get("pause").Consume()
+					if len(menuStack) < 1 && !dungeon.Dungeon.GetPlayer().Health.Dead {
+						PauseMenu.Open()
+						menuStack = append(menuStack, PauseMenu)
+					}
 				}
 			} else if state == 1 {
 				title.Transform.UIPos = camera.Cam.APos
 				title.Transform.UIZoom = camera.Cam.GetZoomScale()
 				title.Update(pixel.Rect{})
-				MainMenu.Update(mInput.World, mInput.Get("click"))
-				if Current == 0 && (MainMenu.Items["exit"].IsClicked() || mInput.Get("back").JustPressed()) {
-					win.SetClosed(true)
-				}
-				Options.Update(mInput.World, mInput.Get("click"))
-				if Current == 1 && (Options.Items["back"].IsClicked() || mInput.Get("back").JustPressed()) {
-					SwitchToMain()
+				if len(menuStack) > 0 {
+					currMenu := menuStack[len(menuStack)-1]
+					currMenu.Update(menuInput)
+					if currMenu.Closed {
+						if len(menuStack) > 1 {
+							menuStack = menuStack[:len(menuStack)-1]
+						} else {
+							menuStack = []*menus.DwarfMenu{}
+						}
+					}
+				} else if menuInput.AnyJustPressed(true) {
+					MainMenu.Open()
+					menuStack = append(menuStack, MainMenu)
 				}
 			} else if state == 2 {
 				reanimator.Update()
@@ -202,7 +236,7 @@ func Update(win *pixelgl.Window) {
 				systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
-				dungeon.Dungeon.GetPlayer().Update(dInput)
+				dungeon.Dungeon.GetPlayer().Update(gameInput)
 				systems.AnimationSystem()
 				player.UpdateHUD()
 				dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
@@ -223,16 +257,17 @@ func Update(win *pixelgl.Window) {
 				dungeon.BombsMarkedItem.Update(pixel.Rect{})
 				dungeon.WrongMarksItem.Update(pixel.Rect{})
 				dungeon.TotalScore.Update(pixel.Rect{})
-				PostGame.Update(mInput.World, mInput.Get("click"))
-				if PostGame.Items["menu"].IsClicked() || mInput.Get("back").JustPressed() {
+				PostGame.Update(menuInput.World, menuInput.Get("click"))
+				if PostGame.Items["menu"].IsClicked() || menuInput.Get("back").JustPressed() {
 					newState = 1
 				}
 			} else if state == 3 {
 				credits.Transform.UIPos = camera.Cam.APos
 				credits.Transform.UIZoom = camera.Cam.GetZoomScale()
 				credits.Update(pixel.Rect{})
-				if mInput.Get("back").JustPressed() || mInput.Get("click").JustPressed() {
-					mInput.Get("click").Consume()
+				if menuInput.Get("back").JustPressed() || menuInput.Get("click").JustPressed() {
+					menuInput.Get("back").Consume()
+					menuInput.Get("click").Consume()
 					newState = 1
 				}
 			} else if state == 4 {
@@ -240,15 +275,28 @@ func Update(win *pixelgl.Window) {
 			} else if state == 5 {
 				reanimator.Update()
 				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
-				//systems.PhysicsSystem()
-				//systems.TransformSystem()
-				//systems.CollisionSystem()
-				//systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
-				//systems.AnimationSystem()
 				player.UpdateHUD()
-				EnchantShop.Update(mInput.World, mInput.Get("click"))
+				if len(menuStack) > 0 {
+					currMenu := menuStack[len(menuStack)-1]
+					currMenu.Update(menuInput)
+					if currMenu.Closed {
+						if len(menuStack) > 1 {
+							menuStack = menuStack[:len(menuStack)-1]
+						} else {
+							menuStack = []*menus.DwarfMenu{}
+						}
+					}
+				} else {
+					ClearEnchantMenu()
+					newState = 0
+				}
+				if menuInput.Get("pause").JustPressed() {
+					menuInput.Get("pause").Consume()
+					PauseMenu.Open()
+					menuStack = append(menuStack, PauseMenu)
+				}
 			}
 		}
 	}
@@ -263,30 +311,38 @@ func Draw(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
+		dungeon.Dungeon.GetPlayer().Draw(win, gameInput)
 		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
-			batcher.Draw(win)
+			if batcher.AutoDraw {
+				batcher.Draw(win)
+			}
 		}
 		particles.Draw(win)
 		vfx.Draw(win)
 		player.DrawHUD(win)
+		for _, m := range menuStack {
+			m.Draw(win)
+		}
 		debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
 		debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
 		debug.AddText(fmt.Sprintf("entity count: %d", myecs.Count))
 	} else if state == 1 {
-		MainMenu.Draw(win)
-		Options.Draw(win)
 		title.Draw(win)
+		for _, m := range menuStack {
+			m.Draw(win)
+		}
 	} else if state == 2 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
+		dungeon.Dungeon.GetPlayer().Draw(win, gameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
-			batcher.Draw(win)
+			if batcher.AutoDraw {
+				batcher.Draw(win)
+			}
 		}
 		particles.Draw(win)
 		vfx.Draw(win)
@@ -316,16 +372,20 @@ func Draw(win *pixelgl.Window) {
 		credits.Draw(win)
 	} else if state == 5 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, dInput)
+		dungeon.Dungeon.GetPlayer().Draw(win, gameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
-			batcher.Draw(win)
+			if batcher.AutoDraw {
+				batcher.Draw(win)
+			}
 		}
 		particles.Draw(win)
 		vfx.Draw(win)
 		player.DrawHUD(win)
-		EnchantShop.Draw(win)
+		for _, m := range menuStack {
+			m.Draw(win)
+		}
 	}
 }
 
@@ -381,8 +441,10 @@ func updateState() {
 		case 1:
 			title.Transform.Pos = pixel.V(0., 75.)
 			camera.Cam.SnapTo(pixel.ZV)
-			InitializeMainMenu()
-			InitializeOptionsMenu()
+			if state != -1 {
+				MainMenu.Open()
+				menuStack = append(menuStack, MainMenu)
+			}
 		case 2:
 			x := cfg.BaseW * -0.5 + 8.
 			yS := 16.
@@ -416,10 +478,12 @@ func updateState() {
 				dungeon.Dungeon.Player = nil
 			}
 		case 5:
-			success := InitializeEnchantShopMenu()
+			success := FillEnchantMenu()
 			if !success {
-				newState = 0
-				state = -1
+				ClearEnchantMenu()
+			} else {
+				EnchantMenu.Open()
+				menuStack = append(menuStack, EnchantMenu)
 			}
 		}
 		state = newState

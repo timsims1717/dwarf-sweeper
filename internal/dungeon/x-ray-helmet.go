@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
@@ -102,7 +103,7 @@ func (x *XRayHelmet) Update() {
 						AddComponent(myecs.Sprite, tile.XRay).
 						AddComponent(myecs.Transform, transform.NewTransform()).
 						AddComponent(myecs.Parent, tile.Transform).
-						AddComponent(myecs.Batch, entityKey).
+						AddComponent(myecs.Batch, cfg.EntityKey).
 						AddComponent(myecs.Temp, timing.New(0.25))
 				}
 			}
@@ -118,16 +119,16 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	e1 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t1).
 		AddComponent(myecs.Parent, Dungeon.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[bigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, bigEntityKey)
+		AddComponent(myecs.Sprite, img.Batchers[cfg.BigEntityKey].Sprites["x-ray-ring"]).
+		AddComponent(myecs.Batch, cfg.BigEntityKey)
 	t2 := transform.NewTransform()
 	t2.Offset = pixel.V(world.TileSize, world.TileSize)
 	t2.Flip = true
 	e2 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t2).
 		AddComponent(myecs.Parent, Dungeon.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[bigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, bigEntityKey)
+		AddComponent(myecs.Sprite, img.Batchers[cfg.BigEntityKey].Sprites["x-ray-ring"]).
+		AddComponent(myecs.Batch, cfg.BigEntityKey)
 	t3 := transform.NewTransform()
 	t3.Offset = pixel.V(world.TileSize, -world.TileSize)
 	t3.Flip = true
@@ -135,16 +136,16 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	e3 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t3).
 		AddComponent(myecs.Parent, Dungeon.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[bigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, bigEntityKey)
+		AddComponent(myecs.Sprite, img.Batchers[cfg.BigEntityKey].Sprites["x-ray-ring"]).
+		AddComponent(myecs.Batch, cfg.BigEntityKey)
 	t4 := transform.NewTransform()
 	t4.Offset = pixel.V(-world.TileSize, -world.TileSize)
 	t4.Flop = true
 	e4 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t4).
 		AddComponent(myecs.Parent, Dungeon.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[bigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, bigEntityKey)
+		AddComponent(myecs.Sprite, img.Batchers[cfg.BigEntityKey].Sprites["x-ray-ring"]).
+		AddComponent(myecs.Batch, cfg.BigEntityKey)
 	x.entities = [4]*ecs.Entity{e1, e2, e3, e4}
 	x.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, x)

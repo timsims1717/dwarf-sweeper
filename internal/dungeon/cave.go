@@ -14,9 +14,6 @@ const (
 	BaseFuse = 1.5
 	BaseGem  = 20
 	BaseItem = 50
-
-	entityKey    = "entities"
-	bigEntityKey = "big_entities"
 )
 
 type Cave struct {

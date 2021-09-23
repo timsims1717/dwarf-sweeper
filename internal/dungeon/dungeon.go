@@ -6,7 +6,6 @@ type dungeon struct {
 	Cave     *Cave
 	Level    int
 	Player   *Dwarf
-	//Entities []myecs.AnEntity
 	removing bool
 	Start    bool
 }

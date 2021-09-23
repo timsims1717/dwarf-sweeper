@@ -27,7 +27,7 @@ func Initialize() {
 	if err != nil {
 		panic(err)
 	}
-	partBatcher = img.NewBatcher(particleSheet)
+	partBatcher = img.NewBatcher(particleSheet, false)
 	dazed = reanimator.NewAnimFromSprites("dazed", partBatcher.Animations["dazed"].S, reanimator.Loop, nil).Anim
 }
 

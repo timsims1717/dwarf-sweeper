@@ -52,7 +52,7 @@ func Initialize() {
 	if err != nil {
 		panic(err)
 	}
-	PartBatcher = img.NewBatcher(partSheet)
+	PartBatcher = img.NewBatcher(partSheet, false)
 	// block particles
 	for i := 0; i < 8; i++ {
 		blocks = append(blocks, fmt.Sprintf("b_%d", i))

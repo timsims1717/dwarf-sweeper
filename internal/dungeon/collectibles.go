@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
@@ -25,11 +26,11 @@ const (
 var Collectibles = map[string]*data.Collectible{}
 
 func InitCollectibles() {
-	gemSpr := img.Batchers[entityKey].Sprites["gem_diamond"]
-	beerSpr := img.Batchers[entityKey].Sprites["beer"]
-	bubbleSpr := img.Batchers[entityKey].Sprites["bubble_item"]
-	mushroomSpr := img.Batchers[entityKey].Sprites["mushroom"]
-	xRaySpr := img.Batchers[entityKey].Sprites["x-ray-helmet"]
+	gemSpr := img.Batchers[cfg.EntityKey].Sprites["gem_diamond"]
+	beerSpr := img.Batchers[cfg.EntityKey].Sprites["beer"]
+	bubbleSpr := img.Batchers[cfg.EntityKey].Sprites["bubble_item"]
+	mushroomSpr := img.Batchers[cfg.EntityKey].Sprites["mushroom"]
+	xRaySpr := img.Batchers[cfg.EntityKey].Sprites["x-ray-helmet"]
 	Collectibles[GemDiamond] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
 			GemsFound++
@@ -148,7 +149,7 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Collect, b.collect).
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
-		AddComponent(myecs.Batch, entityKey)
+		AddComponent(myecs.Batch, cfg.EntityKey)
 }
 
 func (b *CollectibleItem) Delete() {

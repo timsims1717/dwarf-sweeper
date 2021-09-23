@@ -8,7 +8,7 @@ import (
 
 func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 	random.RandCaveSeed()
-	batcher := img.NewBatcher(spriteSheet)
+	batcher := img.NewBatcher(spriteSheet, false)
 	cave := &Cave{
 		RChunks: nil,
 		LChunks: nil,
@@ -42,7 +42,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *Cave {
 func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) *Cave {
 	//random.SetCaveSeed(3991445806800781949)
 	random.RandCaveSeed()
-	batcher := img.NewBatcher(spriteSheet)
+	batcher := img.NewBatcher(spriteSheet, false)
 	layers := makeLayers(left, right, bottom, 5, 7, 3)
 	start := random.CaveGen.Intn(3) // 0 = left, 1 = mid, 2 = right
 	end := random.CaveGen.Intn(2)

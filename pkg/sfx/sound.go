@@ -11,10 +11,11 @@ import (
 
 var (
 	SoundPlayer *soundPlayer
-	RepeatDelay = 0.25
+	RepeatDelay = 0.05
 )
 
 type soundPlayer struct {
+	volumes    []*effects.Volume
 	sounds     map[string]*beep.Buffer
 	currSounds map[string]time.Time
 }
@@ -45,19 +46,22 @@ func (p *soundPlayer) RegisterSound(path, key string) error {
 }
 
 func (p *soundPlayer) PlaySound(key string, vol float64) {
-	if sound, ok := p.sounds[key]; ok {
-		if t, ok := p.currSounds[key]; !ok || time.Since(t).Seconds() > RepeatDelay {
-			volume := &effects.Volume{
-				Streamer: sound.Streamer(0, sound.Len()),
-				Base:     2,
-				Volume:   getSoundVolume() + vol,
-				Silent:   false,
+	if !soundMuted && !masterMuted {
+		if sound, ok := p.sounds[key]; ok {
+			if t, ok := p.currSounds[key]; !ok || time.Since(t).Seconds() > RepeatDelay {
+				volume := &effects.Volume{
+					Streamer: sound.Streamer(0, sound.Len()),
+					Base:     2,
+					Volume:   getSoundVolume() + vol,
+					Silent:   false,
+				}
+				p.volumes = append(p.volumes, volume)
+				speaker.Play(volume)
+				p.currSounds[key] = time.Now()
 			}
-			speaker.Play(volume)
-			p.currSounds[key] = time.Now()
+		} else {
+			fmt.Printf("WARNING: SoundPlayer key %s not registered\n", key)
 		}
-	} else {
-		fmt.Printf("WARNING: SoundPlayer key %s not registered\n", key)
 	}
 }
 

@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
@@ -61,8 +62,8 @@ func (m *Mine) Create(pos pixel.Vec) {
 	m.Timer = timing.New(0.25)
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mine_1", img.Batchers[entityKey].Animations["mine_1"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("mine_2", img.Batchers[entityKey].Animations["mine_2"].S, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprites("mine_1", img.Batchers[cfg.EntityKey].Animations["mine_1"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("mine_2", img.Batchers[cfg.EntityKey].Animations["mine_2"].S, reanimator.Tran, map[int]func() {
 				2: func() {
 					m.explode = true
 				},
@@ -80,7 +81,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).
 		AddComponent(myecs.Animation, m.Reanimator).
-		AddComponent(myecs.Batch, entityKey)
+		AddComponent(myecs.Batch, cfg.EntityKey)
 }
 
 func (m *Mine) Delete() {
