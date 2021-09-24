@@ -27,6 +27,7 @@ var (
 	sideV  *pixel.Sprite
 	sideH  *pixel.Sprite
 	inner  *pixel.Sprite
+	arrow  *pixel.Sprite
 )
 
 func Initialize() {
@@ -34,6 +35,7 @@ func Initialize() {
 	sideV = img.Batchers[cfg.MenuSprites].Sprites["menu_side_v"]
 	sideH = img.Batchers[cfg.MenuSprites].Sprites["menu_side_h"]
 	inner = img.Batchers[cfg.MenuSprites].Sprites["menu_inner"]
+	arrow = img.Batchers[cfg.MenuSprites].Sprites["menu_arrow"]
 	DefaultColor = color.RGBA{
 		R: 74,
 		G: 84,
@@ -60,6 +62,7 @@ type DwarfMenu struct {
 	StepH   float64
 	Cam     *camera.Camera
 	Roll    bool
+	backFn  func()
 
 	Center *transform.Transform
 	CTUL   *transform.Transform
@@ -70,6 +73,7 @@ type DwarfMenu struct {
 	STR    *transform.Transform
 	STD    *transform.Transform
 	STL    *transform.Transform
+	ArrowT *transform.Transform
 }
 
 func New(key string, rect pixel.Rect, cam *camera.Camera) *DwarfMenu {
@@ -88,6 +92,7 @@ func New(key string, rect pixel.Rect, cam *camera.Camera) *DwarfMenu {
 	STR := transform.NewTransform()
 	STD := transform.NewTransform()
 	STL := transform.NewTransform()
+	AT := transform.NewTransform()
 	CTUR.Flip = true
 	CTDR.Flip = true
 	CTDR.Flop = true
@@ -111,6 +116,7 @@ func New(key string, rect pixel.Rect, cam *camera.Camera) *DwarfMenu {
 		STR:     STR,
 		STD:     STD,
 		STL:     STL,
+		ArrowT:  AT,
 	}
 }
 
@@ -166,8 +172,7 @@ func (m *DwarfMenu) Open() {
 	hover := false
 	for i, item := range m.Items {
 		if !hover && !item.disabled && !item.NoHover {
-			item.Hovered = true
-			m.Hovered = i
+			m.setHover(i)
 			hover = true
 		} else {
 			item.Hovered = false
@@ -291,6 +296,8 @@ func (m *DwarfMenu) UpdateTransforms() {
 		m.STL.UIPos = m.Cam.APos
 		m.Center.UIZoom = m.Cam.GetZoomScale()
 		m.Center.UIPos = m.Cam.APos
+		m.ArrowT.UIZoom = m.Cam.GetZoomScale()
+		m.ArrowT.UIPos = m.Cam.APos
 	}
 	m.CTUL.Pos = pixel.V(-m.StepH, m.StepV)
 	m.CTUL.Scalar = pixel.V(1.4, 1.4)
@@ -318,6 +325,15 @@ func (m *DwarfMenu) UpdateTransforms() {
 	m.STL.Update()
 	m.Center.Scalar = pixel.V(1.4 * m.StepH * 0.1725, 1.4 * m.StepV * 0.1725)
 	m.Center.Update()
+	hovered := m.Items[m.Hovered]
+	m.ArrowT.Pos.Y = hovered.Transform.Pos.Y + hovered.Text.BoundsOf(hovered.Raw).H() * 0.5
+	if hovered.Right {
+		m.ArrowT.Pos.X = hovered.Transform.Pos.X - hovered.Text.BoundsOf(hovered.Raw).W() * 1.45 - 10.
+	} else {
+		m.ArrowT.Pos.X = hovered.Transform.Pos.X - 10.
+	}
+	m.ArrowT.Scalar = pixel.V(1.4, 1.4)
+	m.ArrowT.Update()
 	m.Trans.Update()
 }
 
@@ -342,19 +358,20 @@ func (m *DwarfMenu) UpdateItems(in *input.Input) {
 			if !item.Hovered && !item.Disabled && !item.NoHover {
 				b := item.Text.BoundsOf(item.Raw)
 				point := in.World
-				point.X -= b.W() * 0.5
+				if item.Right {
+					point.X += b.W() * 0.5
+				} else {
+					point.X -= b.W() * 0.5
+				}
 				point.Y -= b.H() * 2.
 				if util.PointInside(point, b, item.Transform.Mat) {
-					m.Items[m.Hovered].Hovered = false
-					item.Hovered = true
-					m.Hovered = i
-					sfx.SoundPlayer.PlaySound("click", 2.0)
+					m.setHover(i)
 				}
 			}
 		}
 	}
 	if in.Get("menuBack").JustPressed() {
-		m.Close()
+		m.Back()
 		in.Get("menuBack").Consume()
 	} else if in.Get("menuSelect").JustPressed() {
 		if m.Items[m.Hovered].clickFn != nil {
@@ -395,7 +412,7 @@ func (m *DwarfMenu) setHover(nextI int) {
 
 func (m *DwarfMenu) GetNextHover(dir, curr int, in *input.Input) {
 	if dir == 0 || dir == 1 {
-		m.GetNextHoverVert(dir, curr, in)
+		m.GetNextHoverVert(dir, curr, m.Items[curr].Right, in)
 	} else {
 		m.GetNextHoverHor(dir, curr, in)
 	}
@@ -422,7 +439,7 @@ func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *input.Input) {
 	}
 }
 
-func (m *DwarfMenu) GetNextHoverVert(dir, curr int, in *input.Input) {
+func (m *DwarfMenu) GetNextHoverVert(dir, curr int, right bool, in *input.Input) {
 	nextI := curr
 	if dir == 0 {
 		nextI--
@@ -437,8 +454,8 @@ func (m *DwarfMenu) GetNextHoverVert(dir, curr int, in *input.Input) {
 	}
 	nextI %= len(m.Items)
 	next := m.Items[nextI]
-	if next.Disabled || next.NoHover {
-		m.GetNextHoverVert(dir, nextI, in)
+	if next.Disabled || next.NoHover || next.Right != right {
+		m.GetNextHoverVert(dir, nextI, right, in)
 	} else {
 		m.setHover(nextI)
 		if dir == 0 {
@@ -462,6 +479,21 @@ func (m *DwarfMenu) Draw(target pixel.Target) {
 	if !m.closing && m.opened {
 		for _, item := range m.Items {
 			item.Draw(target)
+			if item.Hovered {
+				arrow.Draw(target, m.ArrowT.Mat)
+			}
 		}
 	}
+}
+
+func (m *DwarfMenu) Back() {
+	if m.backFn != nil {
+		m.backFn()
+	} else {
+		m.Close()
+	}
+}
+
+func (m *DwarfMenu) SetBackFn(fn func()) {
+	m.backFn = fn
 }

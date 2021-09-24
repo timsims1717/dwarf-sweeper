@@ -68,6 +68,9 @@ func (b *Bubble) Create(_ pixel.Vec) {
 }
 
 func (b *Bubble) Delete() {
+	if !b.popped {
+		b.Pop()
+	}
 	myecs.Manager.DisposeEntity(b.entity)
 }
 

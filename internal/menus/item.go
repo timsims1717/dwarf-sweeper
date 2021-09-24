@@ -26,6 +26,7 @@ type Item struct {
 	Hovered  bool
 	Disabled bool
 	NoHover  bool
+	NoShow   bool
 	hovered  bool
 	disabled bool
 }
@@ -82,7 +83,7 @@ func (i *Item) Update() {
 }
 
 func (i *Item) Draw(target pixel.Target) {
-	if i.Text != nil {
+	if i.Text != nil && !i.NoShow {
 		i.Text.Draw(target, i.Transform.Mat)
 	}
 }

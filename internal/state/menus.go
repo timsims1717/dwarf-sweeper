@@ -8,66 +8,28 @@ import (
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/sfx"
-	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 	"strconv"
 )
 
 var (
-	PostGame    *menu.Menu
 	MainMenu    *menus.DwarfMenu
 	PauseMenu   *menus.DwarfMenu
 	OptionsMenu *menus.DwarfMenu
 	EnchantMenu *menus.DwarfMenu
+	PostMenu    *menus.DwarfMenu
 )
 
 func InitializeMenus(win *pixelgl.Window) {
-	PostGame    = menu.NewMenu(pixel.R(0,0, cfg.BaseW, cfg.BaseH), camera.Cam)
 	InitMainMenu(win)
 	InitOptionsMenu()
 	InitPauseMenu(win)
 	InitEnchantMenu()
-}
-
-func InitializePostGameMenu() {
-	retryS := "Retry"
-	retryText := menu.NewItemText(retryS, colornames.Aliceblue, pixel.V(2., 2.), menu.Center, menu.Top)
-	retryText.HoverColor = colornames.Mediumblue
-	retryR := pixel.R(0., 0., retryText.Text.BoundsOf(retryS).W() * 2.5, retryText.Text.BoundsOf(retryS).H() * 2.5)
-	retryItem := menu.NewItem(retryText, retryR, PostGame.Canvas.Bounds())
-	retryItem.Transform.Pos = pixel.V(-75., 25.)
-	retryItem.Transform.Anchor = transform.Anchor{
-		H: transform.Center,
-		V: transform.Bottom,
-	}
-	retryItem.SetOnHoverFn(func() {
-		sfx.SoundPlayer.PlaySound("click", 2.0)
-	})
-	retryItem.SetClickFn(func() {
-		newState = 4
-	})
-	PostGame.Items["retry"] = retryItem
-
-	menuS := "Main Menu"
-	menuText := menu.NewItemText(menuS, colornames.Aliceblue, pixel.V(2., 2.), menu.Center, menu.Top)
-	menuText.HoverColor = colornames.Mediumblue
-	menuR := pixel.R(0., 0., menuText.Text.BoundsOf(menuS).W() * 2.5, menuText.Text.BoundsOf(menuS).H() * 2.5)
-	menuItem := menu.NewItem(menuText, menuR, PostGame.Canvas.Bounds())
-	menuItem.Transform.Pos = pixel.V(75., 25.)
-	menuItem.Transform.Anchor = transform.Anchor{
-		H: transform.Center,
-		V: transform.Bottom,
-	}
-	menuItem.SetOnHoverFn(func() {
-		sfx.SoundPlayer.PlaySound("click", 2.0)
-	})
-	PostGame.Items["menu"] = menuItem
+	InitPostGameMenu()
 }
 
 func InitMainMenu(win *pixelgl.Window) {
@@ -279,4 +241,58 @@ func FillEnchantMenu() bool {
 		})
 	}
 	return true
+}
+
+func InitPostGameMenu() {
+	PostMenu = menus.New("post", pixel.R(0., 0., 64., 64.), camera.Cam)
+	PostMenu.SetBackFn(func() {})
+	blocksDug := PostMenu.AddItem("blocks", "Blocks Dug")
+	blocksDugS := PostMenu.AddItem("blocks_s", "")
+	gems := PostMenu.AddItem("gem_count", "Gems Found")
+	gemsS := PostMenu.AddItem("gem_count_s", "")
+	bombs := PostMenu.AddItem("bombs_marked", "Bombs Marked")
+	bombsS := PostMenu.AddItem("bombs_marked_s", "")
+	wrongMarks := PostMenu.AddItem("wrong_marks", "Incorrect Marks")
+	wrongMarksS := PostMenu.AddItem("wrong_marks_s", "")
+	totalScore := PostMenu.AddItem("total_score", "Total Score")
+	totalScoreS := PostMenu.AddItem("total_score_s", "")
+	retry := PostMenu.AddItem("retry", "Retry")
+	backToMenu := PostMenu.AddItem("menu", "Main Menu")
+
+	blocksDug.NoHover = true
+	blocksDug.NoShow = true
+	blocksDugS.Right = true
+	blocksDugS.NoHover = true
+	blocksDugS.NoShow = true
+	gems.NoHover = true
+	gems.NoShow = true
+	gemsS.Right = true
+	gemsS.NoHover = true
+	gemsS.NoShow = true
+	bombs.NoHover = true
+	bombs.NoShow = true
+	bombsS.Right = true
+	bombsS.NoHover = true
+	bombsS.NoShow = true
+	wrongMarks.NoHover = true
+	wrongMarks.NoShow = true
+	wrongMarksS.Right = true
+	wrongMarksS.NoHover = true
+	wrongMarksS.NoShow = true
+	totalScore.NoHover = true
+	totalScore.NoShow = true
+	totalScoreS.Right = true
+	totalScoreS.NoHover = true
+	totalScoreS.NoShow = true
+	retry.SetClickFn(func() {
+		PostMenu.CloseInstant()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		newState = 4
+	})
+	backToMenu.Right = true
+	backToMenu.SetClickFn(func() {
+		PostMenu.CloseInstant()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		newState = 1
+	})
 }

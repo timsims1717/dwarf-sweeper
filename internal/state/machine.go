@@ -1,7 +1,6 @@
 package state
 
 import (
-	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/menus"
@@ -192,13 +191,13 @@ func Update(win *pixelgl.Window) {
 					}
 				}
 				if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Health.Dead {
-					timer = timing.New(3.)
+					timer = timing.New(5.)
 					timerKeys["death"] = true
 				}
 				if dead, ok := timerKeys["death"]; ok && dead {
 					timer.Update()
-					if (timer.Elapsed() > 1. && dungeon.Dungeon.GetPlayer().DeadStop) ||
-						(timer.Elapsed() > 3. && dungeon.Dungeon.GetPlayer().Health.Dead) {
+					if (timer.Elapsed() > 2. && dungeon.Dungeon.GetPlayer().DeadStop) ||
+						(timer.Elapsed() > 4. && dungeon.Dungeon.GetPlayer().Health.Dead) {
 						newState = 2
 					}
 				}
@@ -239,26 +238,17 @@ func Update(win *pixelgl.Window) {
 				dungeon.Dungeon.GetPlayer().Update(gameInput)
 				systems.AnimationSystem()
 				player.UpdateHUD()
-				dungeon.BlocksDugItem.Transform.UIPos = camera.Cam.APos
-				dungeon.LowestLevelItem.Transform.UIPos = camera.Cam.APos
-				dungeon.GemsFoundItem.Transform.UIPos = camera.Cam.APos
-				dungeon.BombsMarkedItem.Transform.UIPos = camera.Cam.APos
-				dungeon.WrongMarksItem.Transform.UIPos = camera.Cam.APos
-				dungeon.TotalScore.Transform.UIPos = camera.Cam.APos
-				dungeon.BlocksDugItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-				dungeon.LowestLevelItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-				dungeon.GemsFoundItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-				dungeon.BombsMarkedItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-				dungeon.WrongMarksItem.Transform.UIZoom = camera.Cam.GetZoomScale()
-				dungeon.TotalScore.Transform.UIZoom = camera.Cam.GetZoomScale()
-				dungeon.BlocksDugItem.Update(pixel.Rect{})
-				dungeon.LowestLevelItem.Update(pixel.Rect{})
-				dungeon.GemsFoundItem.Update(pixel.Rect{})
-				dungeon.BombsMarkedItem.Update(pixel.Rect{})
-				dungeon.WrongMarksItem.Update(pixel.Rect{})
-				dungeon.TotalScore.Update(pixel.Rect{})
-				PostGame.Update(menuInput.World, menuInput.Get("click"))
-				if PostGame.Items["menu"].IsClicked() || menuInput.Get("back").JustPressed() {
+				if len(menuStack) > 0 {
+					currMenu := menuStack[len(menuStack)-1]
+					currMenu.Update(menuInput)
+					if currMenu.Closed {
+						if len(menuStack) > 1 {
+							menuStack = menuStack[:len(menuStack)-1]
+						} else {
+							menuStack = []*menus.DwarfMenu{}
+						}
+					}
+				} else {
 					newState = 1
 				}
 			} else if state == 3 {
@@ -345,24 +335,28 @@ func Draw(win *pixelgl.Window) {
 		dungeon.ScoreTimer.Update()
 		since := dungeon.ScoreTimer.Elapsed()
 		if since > dungeon.BlocksDugTimer {
-			dungeon.BlocksDugItem.Draw(win)
-		}
-		if since > dungeon.LowestLevelTimer {
-			dungeon.LowestLevelItem.Draw(win)
+			PostMenu.ItemMap["blocks"].NoShow = false
+			PostMenu.ItemMap["blocks_s"].NoShow = false
 		}
 		if since > dungeon.GemsFoundTimer {
-			dungeon.GemsFoundItem.Draw(win)
+			PostMenu.ItemMap["gem_count"].NoShow = false
+			PostMenu.ItemMap["gem_count_s"].NoShow = false
 		}
 		if since > dungeon.BombsMarkedTimer {
-			dungeon.BombsMarkedItem.Draw(win)
+			PostMenu.ItemMap["bombs_marked"].NoShow = false
+			PostMenu.ItemMap["bombs_marked_s"].NoShow = false
 		}
 		if since > dungeon.WrongMarksTimer {
-			dungeon.WrongMarksItem.Draw(win)
+			PostMenu.ItemMap["wrong_marks"].NoShow = false
+			PostMenu.ItemMap["wrong_marks_s"].NoShow = false
 		}
 		if since > dungeon.TotalScoreTimer {
-			dungeon.TotalScore.Draw(win)
+			PostMenu.ItemMap["total_score"].NoShow = false
+			PostMenu.ItemMap["total_score_s"].NoShow = false
 		}
-		PostGame.Draw(win)
+		for _, m := range menuStack {
+			m.Draw(win)
+		}
 	} else if state == 3 {
 		credits.Draw(win)
 	} else if state == 5 {
@@ -398,14 +392,9 @@ func updateState() {
 			systems.DeleteAllEntities()
 			if dungeon.Dungeon.Start {
 				dungeon.BlocksDug = 0
-				dungeon.LowestLevel = 0
-				dungeon.LowTotal = 0
 				dungeon.GemsFound = 0
 				dungeon.BombsMarked = 0
 				dungeon.WrongMarks = 0
-			} else {
-				dungeon.LowTotal = dungeon.LowestLevel
-				dungeon.LowestLevel = 0
 			}
 			dungeon.Dungeon.Level++
 
@@ -423,6 +412,7 @@ func updateState() {
 			}
 			if dungeon.Dungeon.Start {
 				player.InitHUD()
+				dungeon.Inventory = []*dungeon.InvItem{}
 			}
 			camera.Cam.SnapTo(dungeon.Dungeon.GetPlayer().Transform.Pos)
 
@@ -441,28 +431,19 @@ func updateState() {
 				menuStack = append(menuStack, MainMenu)
 			}
 		case 2:
-			x := cfg.BaseW * -0.5 + 8.
-			yS := 16.
 			score := 0
-			score += dungeon.BlocksDug * 10
-			score += (dungeon.LowestLevel + dungeon.LowTotal) * 5
-			score += dungeon.GemsFound * 15
-			score += dungeon.BombsMarked * 50
-			score -= dungeon.WrongMarks * 20
-			dungeon.BlocksDugItem   = menu.NewItemText(fmt.Sprintf("Blocks Dug:      %d x 10", dungeon.BlocksDug), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.LowestLevelItem = menu.NewItemText(fmt.Sprintf("Lowest Level:    %d x 5", dungeon.LowestLevel + dungeon.LowTotal), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.GemsFoundItem   = menu.NewItemText(fmt.Sprintf("Gems Found:      %d x 15", dungeon.GemsFound), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.BombsMarkedItem = menu.NewItemText(fmt.Sprintf("Bombs Marked:    %d x 50", dungeon.BombsMarked), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.WrongMarksItem  = menu.NewItemText(fmt.Sprintf("Incorrect Marks: %d x -20", dungeon.WrongMarks), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.TotalScore      = menu.NewItemText(fmt.Sprintf("Total Score:     %d", score), colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Top)
-			dungeon.BlocksDugItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 2.)
-			dungeon.LowestLevelItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 3.)
-			dungeon.GemsFoundItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 4.)
-			dungeon.BombsMarkedItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 5.)
-			dungeon.WrongMarksItem.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 6.)
-			dungeon.TotalScore.Transform.Pos = pixel.V(x, cfg.BaseH * 0.5 - yS * 9.)
+			score += dungeon.BlocksDug * 2
+			score += dungeon.GemsFound
+			score += dungeon.BombsMarked * 10
+			score -= dungeon.WrongMarks * 5
+			PostMenu.ItemMap["blocks_s"].Raw = fmt.Sprintf("%d x  2", dungeon.BlocksDug)
+			PostMenu.ItemMap["gem_count_s"].Raw = fmt.Sprintf("%d x  1", dungeon.GemsFound)
+			PostMenu.ItemMap["bombs_marked_s"].Raw = fmt.Sprintf("%d x 10", dungeon.BombsMarked)
+			PostMenu.ItemMap["wrong_marks_s"].Raw = fmt.Sprintf("%d x -5", dungeon.WrongMarks)
+			PostMenu.ItemMap["total_score_s"].Raw = fmt.Sprintf("%d", score)
 			dungeon.ScoreTimer = timing.New(5.)
-			InitializePostGameMenu()
+			PostMenu.Open()
+			menuStack = append(menuStack, PostMenu)
 		case 3:
 
 		case 4:

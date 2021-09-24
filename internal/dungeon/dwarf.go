@@ -91,9 +91,11 @@ type Dwarf struct {
 	jumpEnd    bool
 	distFell   float64
 
-	digging  bool
-	marking  bool
-	climbing bool
+	digging   bool
+	attacking bool
+	marking   bool
+	climbing  bool
+	airDig    bool
 
 	Health    *data.Health
 	DeadStop  bool
@@ -176,6 +178,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				},
 				3: func() {
 					d.digging = false
+					d.attacking = false
 				},
 			}), // digging
 			reanimator.NewAnimFromSheet("mark", dwarfSheet, []int{14}, reanimator.Tran, map[int]func() {
@@ -256,7 +259,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 		Check: func() int {
 			if d.Health.Dazed || d.Health.Dead {
 				return 0
-			} else if d.digging {
+			} else if d.digging || d.attacking {
 				return 1
 			} else if d.marking {
 				return 2
@@ -276,11 +279,15 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 
 func (d *Dwarf) Update(in *input.Input) {
 	loc1 := Dungeon.GetCave().GetTile(d.Transform.Pos)
+	if d.Physics.Grounded || d.climbing || d.Bubble != nil {
+		d.airDig = false
+	}
 	if d.Health.Dazed || d.Health.Dead {
 		if d.Bubble != nil {
 			d.Bubble.Pop()
 		}
 		d.digging = false
+		d.attacking = false
 		d.jumping = false
 		d.walking = false
 		d.climbing = false
@@ -332,7 +339,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		} else if !d.jpSelect {
 			d.hovered = Dungeon.GetCave().GetTile(in.World)
 		}
-		if d.hovered != nil {
+		if d.hovered != nil && !d.airDig {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			if in.Get("dig").JustPressed() && d.selectLegal {
 				if d.hovered.Solid {
@@ -362,7 +369,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				})
 			}
 		}
-		if len(d.tileQueue) > 0 && !d.digging && !d.marking {
+		if len(d.tileQueue) > 0 && !d.digging && !d.attacking && !d.marking {
 			next := d.tileQueue[0]
 			d.tileQueue = d.tileQueue[1:]
 			if next.t.Transform.Pos.X < d.Transform.Pos.X {
@@ -370,10 +377,10 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if next.t.Transform.Pos.X > d.Transform.Pos.X {
 				d.faceLeft = false
 			}
-			// todo: don't allow own tile to be attacked (hopefully this will keep the dwarf from dazing himself for now)
 			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange && !TileInTile(d.Transform.Pos, next.t.Transform.Pos) {
 				if next.a == 0 && next.t.Solid {
 					d.digging = true
+					d.attacking = false
 					d.jumping = false
 					d.walking = false
 					d.climbing = false
@@ -384,7 +391,8 @@ func (d *Dwarf) Update(in *input.Input) {
 					d.distFell = 0.
 					next.t.Mark(d.Transform.Pos)
 				} else if next.a == 2 {
-					d.digging = true
+					d.digging = false
+					d.attacking = true
 					d.jumping = false
 					d.walking = false
 					d.climbing = false
@@ -393,8 +401,11 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 			}
 		}
-		if d.digging {
-			d.Physics.Velocity = pixel.ZV
+		if d.digging || d.attacking {
+			if !d.Physics.Grounded && !d.airDig && d.Bubble == nil {
+				d.airDig = true
+			}
+			d.Physics.CancelMovement()
 		} else if d.Bubble != nil {
 			if in.Get("left").Pressed() && !in.Get("right").Pressed() {
 				d.faceLeft = true
@@ -416,7 +427,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			dwnlj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
 			dwnrj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
 			dwn1 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
-			dwn2 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.5))
+			dwn2 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.25))
 			right := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
 			left := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
 			canJump := (dwn1 != nil && dwn1.Solid) || (dwn2 != nil && dwn2.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid)
@@ -556,10 +567,6 @@ func (d *Dwarf) Update(in *input.Input) {
 	}
 	d.Transform.Flip = d.faceLeft
 	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
-	currLevel := int(-d.Transform.Pos.Y / world.TileSize)
-	if LowestLevel < currLevel && !d.Health.Dazed {
-		LowestLevel = currLevel
-	}
 }
 
 func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {

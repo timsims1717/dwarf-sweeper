@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ChunkSize = 16
+	ChunkSize = 32
 	ChunkCnt  = ChunkSize * ChunkSize
 )
 
