@@ -292,11 +292,6 @@ func Update(win *pixelgl.Window) {
 					ClearEnchantMenu()
 					newState = 0
 				}
-				if menuInput.Get("pause").JustPressed() {
-					menuInput.Get("pause").Consume()
-					PauseMenu.Open()
-					menuStack = append(menuStack, PauseMenu)
-				}
 			}
 		}
 	}

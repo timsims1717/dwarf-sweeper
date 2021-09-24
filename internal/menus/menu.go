@@ -59,6 +59,7 @@ type DwarfMenu struct {
 	StepV   float64
 	StepH   float64
 	Cam     *camera.Camera
+	Roll    bool
 
 	Center *transform.Transform
 	CTUL   *transform.Transform
@@ -113,21 +114,21 @@ func New(key string, rect pixel.Rect, cam *camera.Camera) *DwarfMenu {
 	}
 }
 
-func (m *DwarfMenu) AddItem(key, raw, sRaw string) *Item {
+func (m *DwarfMenu) AddItem(key, raw string) *Item {
 	if _, ok := m.ItemMap[key]; ok {
 		panic(fmt.Errorf("menu '%s' already has item '%s'", m.Key, key))
 	}
-	item := NewItem(key, raw, sRaw)
+	item := NewItem(key, raw)
 	m.ItemMap[key] = item
 	m.Items = append(m.Items, item)
 	return item
 }
 
-func (m *DwarfMenu) InsertItem(key, raw, sRaw string, i int) *Item {
+func (m *DwarfMenu) InsertItem(key, raw string, i int) *Item {
 	if _, ok := m.ItemMap[key]; ok {
 		panic(fmt.Errorf("menu '%s' already has item '%s'", m.Key, key))
 	}
-	item := NewItem(key, raw, sRaw)
+	item := NewItem(key, raw)
 	m.ItemMap[key] = item
 	if i < 0 {
 		i = 0
@@ -135,9 +136,7 @@ func (m *DwarfMenu) InsertItem(key, raw, sRaw string, i int) *Item {
 	if i >= len(m.Items) {
 		m.Items = append(m.Items, item)
 	} else {
-		second := m.Items[i:]
-		m.Items = append(m.Items[:i], item)
-		m.Items = append(m.Items, second...)
+		m.Items = append(m.Items[:i], append([]*Item{item}, m.Items[i:]...)...)
 	}
 	return item
 }
@@ -157,7 +156,7 @@ func (m *DwarfMenu) RemoveItem(key string) {
 			m.Items = []*Item{}
 		}
 	}
-	m.ItemMap[key] = nil
+	delete(m.ItemMap, key)
 }
 
 func (m *DwarfMenu) Open() {
@@ -201,23 +200,36 @@ func (m *DwarfMenu) Update(in *input.Input) {
 func (m *DwarfMenu) UpdateSize() {
 	minWidth := 8.
 	minHeight := 8.
-	for _, item := range m.Items {
+	sameLine := false
+	for i, item := range m.Items {
 		bW := item.Text.BoundsOf(item.Raw).W()
 		sW := 0.
-		if item.SRaw != "" {
-			sW = item.SText.BoundsOf(item.SRaw).W() + item.Text.BoundsOf("   ").W()
+		if !item.Right && i+1 < len(m.Items) && m.Items[i+1].Right {
+			next := m.Items[i+1]
+			sW = next.Text.BoundsOf(next.Raw).W() + next.Text.BoundsOf("   ").W()
+			sameLine = true
 		}
 		minWidth = math.Max((bW + sW) * 1.4, minWidth)
-		minHeight += item.Text.LineHeight
+		if !sameLine {
+			minHeight += item.Text.LineHeight
+		}
+		sameLine = false
 	}
 	minWidth = math.Floor(math.Max(minWidth + 30., m.Rect.W()))
 	minHeight = math.Floor(math.Max(minHeight, m.Rect.H()))
 	m.Rect = pixel.R(0., 0., minWidth, minHeight)
+	line := 0
 	for i, item := range m.Items {
-		item.Transform.Pos.Y = minHeight * 0.5 - float64(i + 1) * item.Text.LineHeight
-		item.Transform.Pos.X = minWidth * -0.5 + 20.
-		item.STransform.Pos.Y = item.Transform.Pos.Y
-		item.STransform.Pos.X = minWidth * 0.5 - 10.
+		if item.Right {
+			item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight
+			item.Transform.Pos.X = minWidth * 0.5 - 10.
+		} else {
+			item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight
+			item.Transform.Pos.X = minWidth*-0.5 + 20.
+		}
+		if item.Right || i >= len(m.Items)-1 || !m.Items[i+1].Right {
+			line++
+		}
 	}
 }
 
@@ -312,14 +324,16 @@ func (m *DwarfMenu) UpdateTransforms() {
 func (m *DwarfMenu) UpdateItems(in *input.Input) {
 	dir := -1
 	if in.Get("menuUp").JustPressed() {
-		in.Get("menuUp").Consume()
 		dir = 0
 	} else if in.Get("menuDown").JustPressed() {
-		in.Get("menuDown").Consume()
 		dir = 1
+	} else if in.Get("menuRight").JustPressed() {
+		dir = 2
+	} else if in.Get("menuLeft").JustPressed() {
+		dir = 3
 	}
 	if dir != -1 {
-		m.GetNextHover(dir, m.Hovered)
+		m.GetNextHover(dir, m.Hovered, in)
 	} else if in.MouseMoved {
 		//point := m.Trans.Mat.Unproject(in.World)
 		//point.X += m.Rect.W() * 0.5
@@ -371,22 +385,67 @@ func (m *DwarfMenu) UpdateItems(in *input.Input) {
 	}
 }
 
-func (m *DwarfMenu) GetNextHover(dir, curr int) {
+func (m *DwarfMenu) setHover(nextI int) {
+	next := m.Items[nextI]
+	m.Items[m.Hovered].Hovered = false
+	next.Hovered = true
+	m.Hovered = nextI
+	sfx.SoundPlayer.PlaySound("click", 2.0)
+}
+
+func (m *DwarfMenu) GetNextHover(dir, curr int, in *input.Input) {
+	if dir == 0 || dir == 1 {
+		m.GetNextHoverVert(dir, curr, in)
+	} else {
+		m.GetNextHoverHor(dir, curr, in)
+	}
+}
+
+func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *input.Input) {
+	this := m.Items[curr]
+	nextI := -1
+	if dir == 2 && !this.Right && curr < len(m.Items)-1 {
+		nextI = curr+1
+	} else if dir == 3 && this.Right && curr > 0 {
+		nextI = curr-1
+	}
+	if nextI != -1 {
+		next := m.Items[nextI]
+		if next.Right != this.Right && !next.Disabled && !next.NoHover {
+			m.setHover(nextI)
+			if dir == 2 {
+				in.Get("menuRight").Consume()
+			} else {
+				in.Get("menuLeft").Consume()
+			}
+		}
+	}
+}
+
+func (m *DwarfMenu) GetNextHoverVert(dir, curr int, in *input.Input) {
 	nextI := curr
 	if dir == 0 {
-		nextI += len(m.Items) - 1
+		nextI--
 	} else {
 		nextI++
+	}
+	if !m.Roll && (nextI >= len(m.Items) || nextI < 0) {
+		return
+	}
+	if nextI < 0 {
+		nextI += len(m.Items)
 	}
 	nextI %= len(m.Items)
 	next := m.Items[nextI]
 	if next.Disabled || next.NoHover {
-		m.GetNextHover(dir, nextI)
+		m.GetNextHoverVert(dir, nextI, in)
 	} else {
-		m.Items[m.Hovered].Hovered = false
-		next.Hovered = true
-		m.Hovered = nextI
-		sfx.SoundPlayer.PlaySound("click", 2.0)
+		m.setHover(nextI)
+		if dir == 0 {
+			in.Get("menuUp").Consume()
+		} else {
+			in.Get("menuDown").Consume()
+		}
 	}
 }
 
