@@ -1,6 +1,7 @@
 package dungeon
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
@@ -29,6 +30,7 @@ const (
 	AirAcceleration    = 10.
 	JumpVel            = 150.
 	DigRange           = 1.5
+	selectTimerSec     = 2.0
 )
 
 var (
@@ -71,7 +73,10 @@ type Dwarf struct {
 	faceLeft   bool
 
 	selectLegal bool
-	jpSelect    bool
+	gpSelect    bool
+	mouseSelect bool
+	selectTimer *timing.FrameTimer
+
 	hovered     *Tile
 	relative    pixel.Vec
 	digTile     *Tile
@@ -163,9 +168,21 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							BlocksDug += 1
 							d.digTile.Destroy(true)
 						} else {
+							var x, y float64
+							if d.Transform.Pos.X > d.digTile.Transform.Pos.X {
+								x = d.Transform.Pos.X - world.TileSize * 0.75
+							} else {
+								x = d.Transform.Pos.X + world.TileSize * 0.75
+							}
+							if d.Transform.Pos.Y > d.digTile.Transform.Pos.Y {
+								y = d.Transform.Pos.Y - world.TileSize * 0.75
+							} else {
+								y = d.Transform.Pos.Y + world.TileSize * 0.75
+							}
 							myecs.Manager.NewEntity().
 								AddComponent(myecs.AreaDmg, &data.AreaDamage{
-									Area:      []pixel.Vec{d.digTile.Transform.Pos},
+									Center:    pixel.V(x, y),
+									Radius:    world.TileSize * 1.5,
 									Amount:    d.ShovelDamage,
 									Dazed:     d.ShovelDazed,
 									Knockback: d.ShovelKnockback,
@@ -286,6 +303,10 @@ func (d *Dwarf) Update(in *input.Input) {
 		if d.Bubble != nil {
 			d.Bubble.Pop()
 		}
+		d.tileQueue = []struct{
+			a int
+			t *Tile
+		}{}
 		d.digging = false
 		d.attacking = false
 		d.jumping = false
@@ -307,12 +328,20 @@ func (d *Dwarf) Update(in *input.Input) {
 	}
 	if !d.Health.Dazed && !d.Health.Dead {
 		jpSelecting := in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.
-		if jpSelecting {
-			d.jpSelect = true
-		} else if in.MouseMoved {
-			d.jpSelect = false
+		moveSelecting := in.Get("left").Pressed() || in.Get("right").Pressed() || in.Get("up").Pressed() || in.Get("down").Pressed()
+		if jpSelecting && cfg.DigMode != data.Movement {
+			d.gpSelect = true
+			d.mouseSelect = false
+			d.selectTimer = timing.New(selectTimerSec)
+		} else if in.MouseMoved && cfg.DigMode != data.Movement {
+			d.mouseSelect = true
+			d.gpSelect = false
+			d.selectTimer = timing.New(selectTimerSec)
+		} else if d.selectTimer.UpdateDone() && cfg.DigMode != data.Dedicated {
+			d.gpSelect = false
+			d.mouseSelect = false
 		}
-		if d.jpSelect {
+		if d.gpSelect {
 			if jpSelecting {
 				x := in.Axes["targetX"].F
 				y := in.Axes["targetY"].F
@@ -336,10 +365,30 @@ func (d *Dwarf) Update(in *input.Input) {
 			p.X += d.relative.X
 			p.Y += d.relative.Y
 			d.hovered = Dungeon.GetCave().GetTile(p)
-		} else if !d.jpSelect {
+		} else if d.mouseSelect {
 			d.hovered = Dungeon.GetCave().GetTile(in.World)
+		} else if cfg.DigMode != data.Dedicated {
+			if moveSelecting {
+				x := 0.
+				y := 0.
+				if in.Get("left").Pressed() {
+					x = -world.TileSize
+				} else if in.Get("right").Pressed() {
+					x = world.TileSize
+				}
+				if in.Get("down").Pressed() {
+					y = -world.TileSize
+				} else if in.Get("up").Pressed() {
+					y = world.TileSize
+				}
+				d.relative = pixel.V(x, y)
+			}
+			p := d.Transform.Pos
+			p.X += d.relative.X
+			p.Y += d.relative.Y
+			d.hovered = Dungeon.GetCave().GetTile(p)
 		}
-		if d.hovered != nil && !d.airDig {
+		if d.hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			if in.Get("dig").JustPressed() && d.selectLegal {
 				if d.hovered.Solid {
@@ -414,9 +463,9 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.faceLeft = false
 				d.Bubble.Physics.SetVelX(BubbleVel, BubbleAcc)
 			}
-			if in.Get("lookUp").Pressed() && !in.Get("lookDown").Pressed() {
+			if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 				d.Bubble.Physics.SetVelY(BubbleVel, BubbleAcc)
-			} else if in.Get("lookDown").Pressed() && !in.Get("lookUp").Pressed() {
+			} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
 				d.Bubble.Physics.SetVelY(-BubbleVel, BubbleAcc)
 			}
 			d.walking = false
@@ -505,10 +554,10 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if !d.jumping && !d.toJump && d.Physics.Grounded {
 				wasWalking := d.walking
 				if math.Abs(d.Physics.Velocity.X) < 20.0 {
-					if in.Get("lookUp").Pressed() && !in.Get("lookDown").Pressed() {
+					if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 						d.distFell = 0.
 						camera.Cam.Up()
-					} else if in.Get("lookDown").Pressed() && !in.Get("lookUp").Pressed() {
+					} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
 						d.distFell = 0.
 						camera.Cam.Down()
 					}

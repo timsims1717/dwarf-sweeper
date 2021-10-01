@@ -13,13 +13,16 @@ import (
 type Item struct {
 	Key     string
 	Raw     string
+	Hint    string
 	Text    *text.Text
+	HText   *text.Text
 	clickFn func()
 	leftFn  func()
 	rightFn func()
 	Right   bool
 
 	Transform  *transform.Transform
+	HTransform *transform.Transform
 
 	TextColor color.RGBA
 
@@ -38,13 +41,23 @@ func NewItem(key, raw string) *Item {
 		V: transform.Bottom,
 	}
 	tran.Scalar = DefaultSize
+	htran := transform.NewTransform()
+	htran.Anchor = transform.Anchor{
+		H: transform.Left,
+		V: transform.Bottom,
+	}
+	htran.Scalar = HintSize
 	tex := text.New(pixel.ZV, typeface.BasicAtlas)
 	tex.LineHeight *= 1.5
+	htex := text.New(pixel.ZV, typeface.BasicAtlas)
+	htex.LineHeight *= 1.2
 	return &Item{
 		Key:        key,
 		Raw:        raw,
 		Text:       tex,
+		HText:      htex,
 		Transform:  tran,
+		HTransform: htran,
 		TextColor:  DefaultColor,
 	}
 }
@@ -71,6 +84,15 @@ func (i *Item) Update() {
 			i.Transform.Scalar = DefaultSize
 		}
 	}
+	if i.Hovered && !i.Disabled && i.Hint != "" {
+		i.HTransform.Pos = i.Transform.Pos
+		i.HText.Clear()
+		i.HText.Color = DefaultColor
+		fmt.Fprintln(i.HText, i.Hint)
+		i.HTransform.UIZoom = camera.Cam.GetZoomScale()
+		i.HTransform.UIPos = camera.Cam.APos
+		i.HTransform.Update()
+	}
 	i.Text.Clear()
 	i.Text.Color = i.TextColor
 	if i.Right {
@@ -86,6 +108,9 @@ func (i *Item) Draw(target pixel.Target) {
 	if i.Text != nil && !i.NoShow {
 		i.Text.Draw(target, i.Transform.Mat)
 	}
+	//if i.HText != nil && !i.NoShow && i.Hovered && !i.Disabled && i.Hint != "" {
+	//	i.HText.Draw(target, i.HTransform.Mat)
+	//}
 }
 
 func (i *Item) SetClickFn(fn func()) {

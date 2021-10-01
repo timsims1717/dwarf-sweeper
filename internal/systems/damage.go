@@ -2,7 +2,6 @@ package systems
 
 import (
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/timing"
@@ -22,22 +21,23 @@ func AreaDamageSystem() {
 				_, okH1 := tResult.Components[myecs.Health].(*data.Health)
 				_, okH2 := tResult.Components[myecs.Health].(*data.SimpleHealth)
 				if okT && (okH1 || okH2) {
-					for _, a := range area.Area {
-						if dungeon.TileInTile(tran.Pos, a) {
-							kb := area.Knockback
-							if area.KnockbackDecay {
-								p := tran.Pos.Sub(area.Source)
-								mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
-								kb = kb - (mag / world.TileSize)
-							}
-							tResult.Entity.AddComponent(myecs.Damage, &data.Damage{
-								Amount:    area.Amount,
-								Dazed:     area.Dazed,
-								Knockback: kb,
-								Source:    area.Source,
-								Override:  area.Override,
-							})
+					xt := area.Center.X - tran.Pos.X
+					yt := area.Center.Y - tran.Pos.Y
+					d2 := xt * xt + yt * yt
+					if d2 < area.Radius * area.Radius && (math.Abs(tran.Pos.X - area.Source.X) > 2.0 || math.Abs(tran.Pos.Y - area.Source.Y) > 2.0) {
+						kb := area.Knockback
+						if area.KnockbackDecay {
+							p := tran.Pos.Sub(area.Source)
+							mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
+							kb = kb - (mag / world.TileSize)
 						}
+						tResult.Entity.AddComponent(myecs.Damage, &data.Damage{
+							Amount:    area.Amount,
+							Dazed:     area.Dazed,
+							Knockback: kb,
+							Source:    area.Source,
+							Override:  area.Override,
+						})
 					}
 				}
 			}

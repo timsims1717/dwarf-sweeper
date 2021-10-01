@@ -1,40 +1,47 @@
 {
- "img": "entities.png",
+ "img": "menu.png",
  "sprites": [
   {
    "key": "menu_corner",
-   "x": 112,
-   "y": 88,
+   "x": 0,
+   "y": 8,
    "h": 8,
    "w": 8
   },
   {
    "key": "menu_side_h",
-   "x": 120,
-   "y": 88,
+   "x": 8,
+   "y": 8,
    "h": 8,
    "w": 8
   },
   {
    "key": "menu_side_v",
-   "x": 112,
-   "y": 80,
+   "x": 0,
+   "y": 0,
    "h": 8,
    "w": 8
   },
   {
    "key": "menu_inner",
-   "x": 120,
-   "y": 80,
+   "x": 8,
+   "y": 0,
    "h": 8,
    "w": 8
   },
   {
    "key": "menu_arrow",
-   "x": 128,
-   "y": 80,
+   "x": 27,
+   "y": 10,
    "h": 6,
    "w": 5
+  },
+  {
+   "key": "menu_side_entry",
+   "x": 16,
+   "y": 0,
+   "h": 12,
+   "w": 6
   }
  ]
 }

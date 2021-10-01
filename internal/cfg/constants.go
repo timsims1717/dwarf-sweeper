@@ -1,6 +1,9 @@
 package cfg
 
-import "github.com/faiface/pixel"
+import (
+	"dwarf-sweeper/internal/data"
+	"github.com/faiface/pixel"
+)
 
 const (
 	Title = "DwarfSweeper"
@@ -27,10 +30,13 @@ var (
 		pixel.V(1920, 1080),
 	}
 	ResStrings = []string{
-		" 800 x 600",
-		" 1280 x 960",
-		" 1600 x 900",
-		" 1920 x 1080",
+		"800x600",
+		"1280x960",
+		"1600x900",
+		"1920x1080",
 	}
 	ResIndex = 2
+
+	// Gameplay Settings
+	DigMode = data.Either
 )

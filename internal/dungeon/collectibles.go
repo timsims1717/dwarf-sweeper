@@ -19,7 +19,7 @@ const (
 	GemDiamond = "gem_diamond"
 	Beer       = "beer"
 	BubbleItem = "bubble_item"
-	Mushroom   = "mushroom"
+	Heart      = "heart_item"
 	XRayItem   = "xray_helmet"
 )
 
@@ -29,7 +29,7 @@ func InitCollectibles() {
 	gemSpr := img.Batchers[cfg.EntityKey].Sprites["gem_diamond"]
 	beerSpr := img.Batchers[cfg.EntityKey].Sprites["beer"]
 	bubbleSpr := img.Batchers[cfg.EntityKey].Sprites["bubble_item"]
-	mushroomSpr := img.Batchers[cfg.EntityKey].Sprites["mushroom"]
+	heartSpr := img.Batchers[cfg.EntityKey].Sprites["heart_item"]
 	xRaySpr := img.Batchers[cfg.EntityKey].Sprites["x-ray-helmet"]
 	Collectibles[GemDiamond] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
@@ -77,11 +77,11 @@ func InitCollectibles() {
 		},
 		Sprite: bubbleSpr,
 	}
-	Collectibles[Mushroom] = &data.Collectible{
+	Collectibles[Heart] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
 			return AddToInventory(&InvItem{
-				Name:   "mushroom",
-				Sprite: mushroomSpr,
+				Name:   "heart_item",
+				Sprite: heartSpr,
 				OnUse:  func() bool {
 					if Dungeon.Player.Health.Curr < Dungeon.Player.Health.Max {
 						Dungeon.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
@@ -95,7 +95,7 @@ func InitCollectibles() {
 				Unique: false,
 			})
 		},
-		Sprite: mushroomSpr,
+		Sprite: heartSpr,
 	}
 	Collectibles[XRayItem] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {

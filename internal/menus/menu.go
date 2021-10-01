@@ -22,12 +22,14 @@ var (
 	DisabledColor color.RGBA
 	DefaultSize   pixel.Vec
 	HoverSize     pixel.Vec
+	HintSize      pixel.Vec
 
 	corner *pixel.Sprite
 	sideV  *pixel.Sprite
 	sideH  *pixel.Sprite
 	inner  *pixel.Sprite
 	arrow  *pixel.Sprite
+	hintE  *pixel.Sprite
 )
 
 func Initialize() {
@@ -36,6 +38,7 @@ func Initialize() {
 	sideH = img.Batchers[cfg.MenuSprites].Sprites["menu_side_h"]
 	inner = img.Batchers[cfg.MenuSprites].Sprites["menu_inner"]
 	arrow = img.Batchers[cfg.MenuSprites].Sprites["menu_arrow"]
+	hintE = img.Batchers[cfg.MenuSprites].Sprites["menu_side_entry"]
 	DefaultColor = color.RGBA{
 		R: 74,
 		G: 84,
@@ -46,6 +49,7 @@ func Initialize() {
 	DisabledColor = colornames.Darkgray
 	DefaultSize = pixel.V(1.4, 1.4)
 	HoverSize = pixel.V(1.45, 1.45)
+	HintSize = pixel.V(0.8, 0.8)
 }
 
 type DwarfMenu struct {
@@ -53,7 +57,8 @@ type DwarfMenu struct {
 	ItemMap map[string]*Item
 	Items   []*Item
 	Hovered int
-	Trans   *transform.Transform
+	Hint    *HintBox
+	Tran    *transform.Transform
 	Rect    pixel.Rect
 	Closed  bool
 	closing bool
@@ -63,6 +68,7 @@ type DwarfMenu struct {
 	Cam     *camera.Camera
 	Roll    bool
 	backFn  func()
+	openFn  func()
 
 	Center *transform.Transform
 	CTUL   *transform.Transform
@@ -76,13 +82,13 @@ type DwarfMenu struct {
 	ArrowT *transform.Transform
 }
 
-func New(key string, rect pixel.Rect, cam *camera.Camera) *DwarfMenu {
+func New(key string, cam *camera.Camera) *DwarfMenu {
 	tran := transform.NewTransform()
 	tran.Anchor = transform.Anchor{
 		H: transform.Center,
 		V: transform.Center,
 	}
-	tran.SetRect(rect)
+	//tran.SetRect(rect)
 	Center := transform.NewTransform()
 	CTUL := transform.NewTransform()
 	CTUR := transform.NewTransform()
@@ -100,11 +106,13 @@ func New(key string, rect pixel.Rect, cam *camera.Camera) *DwarfMenu {
 	STR.Flip = true
 	STD.Flop = true
 	return &DwarfMenu{
+		Key:     key,
 		ItemMap: map[string]*Item{},
 		Items:   []*Item{},
-		Trans:   tran,
+		Hint:    NewHint(cam),
+		Tran:    tran,
 		Cam:     cam,
-		Rect:    rect,
+		Rect:    pixel.R(0., 0., 64., 64.),
 		StepV:   16.,
 		StepH:   16.,
 		Center:  Center,
@@ -178,6 +186,9 @@ func (m *DwarfMenu) Open() {
 			item.Hovered = false
 		}
 	}
+	if m.openFn != nil {
+		m.openFn()
+	}
 }
 
 func (m *DwarfMenu) Close() {
@@ -220,8 +231,9 @@ func (m *DwarfMenu) UpdateSize() {
 		}
 		sameLine = false
 	}
-	minWidth = math.Floor(math.Max(minWidth + 30., m.Rect.W()))
-	minHeight = math.Floor(math.Max(minHeight, m.Rect.H()))
+	minWidth += 30.
+	//minWidth = math.Floor(math.Max(minWidth, m.Rect.W()))
+	//minHeight = math.Floor(math.Max(minHeight, m.Rect.H()))
 	m.Rect = pixel.R(0., 0., minWidth, minHeight)
 	line := 0
 	for i, item := range m.Items {
@@ -276,8 +288,8 @@ func (m *DwarfMenu) UpdateView() {
 
 func (m *DwarfMenu) UpdateTransforms() {
 	if m.Cam != nil {
-		m.Trans.UIZoom = m.Cam.GetZoomScale()
-		m.Trans.UIPos = m.Cam.APos
+		m.Tran.UIZoom = m.Cam.GetZoomScale()
+		m.Tran.UIPos = m.Cam.APos
 		m.CTUL.UIZoom = m.Cam.GetZoomScale()
 		m.CTUL.UIPos = m.Cam.APos
 		m.CTUR.UIZoom = m.Cam.GetZoomScale()
@@ -312,18 +324,18 @@ func (m *DwarfMenu) UpdateTransforms() {
 	m.CTDL.Scalar = pixel.V(1.4, 1.4)
 	m.CTDL.Update()
 	m.STU.Pos = pixel.V(0., m.StepV)
-	m.STU.Scalar = pixel.V(1.4 * m.StepH * 0.1725, 1.4)
+	m.STU.Scalar = pixel.V(1.4 * m.StepH * 0.1735, 1.4)
 	m.STU.Update()
 	m.STR.Pos = pixel.V(m.StepH, 0.)
-	m.STR.Scalar = pixel.V(1.4, 1.4 * m.StepV * 0.1725)
+	m.STR.Scalar = pixel.V(1.4, 1.4 * m.StepV * 0.1735)
 	m.STR.Update()
 	m.STD.Pos = pixel.V(0., -m.StepV)
-	m.STD.Scalar = pixel.V(1.4 * m.StepH * 0.1725, 1.4)
+	m.STD.Scalar = pixel.V(1.4 * m.StepH * 0.1735, 1.4)
 	m.STD.Update()
 	m.STL.Pos = pixel.V(-m.StepH, 0.)
-	m.STL.Scalar = pixel.V(1.4, 1.4 * m.StepV * 0.1725)
+	m.STL.Scalar = pixel.V(1.4, 1.4 * m.StepV * 0.1735)
 	m.STL.Update()
-	m.Center.Scalar = pixel.V(1.4 * m.StepH * 0.1725, 1.4 * m.StepV * 0.1725)
+	m.Center.Scalar = pixel.V(1.4 * m.StepH * 0.1735, 1.4 * m.StepV * 0.1735)
 	m.Center.Update()
 	hovered := m.Items[m.Hovered]
 	m.ArrowT.Pos.Y = hovered.Transform.Pos.Y + hovered.Text.BoundsOf(hovered.Raw).H() * 0.5
@@ -334,7 +346,18 @@ func (m *DwarfMenu) UpdateTransforms() {
 	}
 	m.ArrowT.Scalar = pixel.V(1.4, 1.4)
 	m.ArrowT.Update()
-	m.Trans.Update()
+	if hovered.Hint != "" && m.opened {
+		m.Hint.Raw = hovered.Hint
+		m.Hint.UpdateSize()
+		m.Hint.Tran.Pos.X = m.STR.Pos.X + m.Hint.Rect.W() * 0.5 + 6.
+		m.Hint.Tran.Pos.Y = m.ArrowT.Pos.Y
+		m.Hint.Update()
+	} else {
+		m.Hint.Raw = ""
+		m.Hint.UpdateSize()
+		m.Hint.Update()
+	}
+	m.Tran.Update()
 }
 
 func (m *DwarfMenu) UpdateItems(in *input.Input) {
@@ -351,9 +374,6 @@ func (m *DwarfMenu) UpdateItems(in *input.Input) {
 	if dir != -1 {
 		m.GetNextHover(dir, m.Hovered, in)
 	} else if in.MouseMoved {
-		//point := m.Trans.Mat.Unproject(in.World)
-		//point.X += m.Rect.W() * 0.5
-		//point.X += m.Rect.H() * 0.5
 		for i, item := range m.Items {
 			if !item.Hovered && !item.Disabled && !item.NoHover {
 				b := item.Text.BoundsOf(item.Raw)
@@ -484,6 +504,7 @@ func (m *DwarfMenu) Draw(target pixel.Target) {
 			}
 		}
 	}
+	m.Hint.Draw(target)
 }
 
 func (m *DwarfMenu) Back() {
@@ -496,4 +517,8 @@ func (m *DwarfMenu) Back() {
 
 func (m *DwarfMenu) SetBackFn(fn func()) {
 	m.backFn = fn
+}
+
+func (m *DwarfMenu) SetOpenFn(fn func()) {
+	m.openFn = fn
 }

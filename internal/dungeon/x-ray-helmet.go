@@ -12,72 +12,6 @@ import (
 	"github.com/faiface/pixel"
 )
 
-//type XRayItem struct {
-//	Physics   *physics.Physics
-//	Transform *transform.Transform
-//	created   bool
-//	collect   *data.Collectible
-//	sprite    *pixel.Sprite
-//	entity    *ecs.Entity
-//	health    *data.Health
-//}
-//
-//func (x *XRayItem) Update() {
-//	if x.created {
-//		if x.collect.CollectedBy {
-//			if AddToInventory(&InvItem{
-//				Name:   "x-ray",
-//				Sprite: x.sprite,
-//				OnUse:  func() bool {
-//					//if Dungeon.Player.Bubble == nil {
-//						xray := &XRayHelmet{}
-//						xray.Create(pixel.Vec{})
-//						return true
-//					//} else {
-//					//	return false
-//					//}
-//				},
-//				Count:  1,
-//				Unique: true,
-//			}) {
-//				// todo: effects
-//				x.Delete()
-//			} else {
-//				x.collect.CollectedBy = false
-//			}
-//		} else if x.health.Dead {
-//			x.Delete()
-//		}
-//	}
-//}
-//
-//func (x *XRayItem) Create(pos pixel.Vec) {
-//	x.Physics, x.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
-//	x.Transform.Pos = pos
-//	x.created = true
-//	x.sprite = img.Batchers[entityKey].Sprites["x-ray-helmet"]
-//	x.collect = &data.Collectible{}
-//	x.health = &data.Health{
-//		Max:        1,
-//		Curr:       1,
-//		Override:   true,
-//	}
-//	x.entity = myecs.Manager.NewEntity().
-//		AddComponent(myecs.Entity, x).
-//		AddComponent(myecs.Transform, x.Transform).
-//		AddComponent(myecs.Physics, x.Physics).
-//		AddComponent(myecs.Collision, data.Collider{ GroundOnly: true }).
-//		AddComponent(myecs.Collect, x.collect).
-//		AddComponent(myecs.Health, x.health).
-//		AddComponent(myecs.Sprite, x.sprite).
-//		AddComponent(myecs.Batch, entityKey)
-//}
-//
-//func (x *XRayItem) Delete() {
-//	x.health.Delete()
-//	myecs.Manager.DisposeEntity(x.entity)
-//}
-
 type XRayHelmet struct {
 	sprite   pixel.Sprite
 	entity   *ecs.Entity
@@ -98,7 +32,7 @@ func (x *XRayHelmet) Update() {
 			a = world.Combine(a, n[6].Neighbors())
 			for _, c := range a {
 				tile := Dungeon.GetPlayerTile().Chunk.Get(c)
-				if tile.breakable && tile.Solid && tile.XRay != nil && !util.IsNil(tile.Entity) {
+				if tile != nil && tile.breakable && tile.Solid && tile.XRay != nil && !util.IsNil(tile.Entity) {
 					myecs.Manager.NewEntity().
 						AddComponent(myecs.Sprite, tile.XRay).
 						AddComponent(myecs.Transform, transform.NewTransform()).

@@ -59,18 +59,35 @@ var (
 			"debugText":   input.NewJoyless(pixelgl.KeyF4),
 			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
 		},
+		Mode: input.KeyboardMouse,
 	}
 	menuInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
-			"menuUp":      input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
-			"menuDown":    input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-			"menuLeft":    input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
-			"menuRight":   input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
-			"menuSelect":  input.New(pixelgl.KeySpace, pixelgl.ButtonA),
-			"menuBack":    input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
-			"pause":       input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
-			"click":       input.NewJoyless(pixelgl.MouseButtonLeft),
+			"menuUp": {
+				Key:   []pixelgl.Button{pixelgl.KeyW, pixelgl.KeyUp, pixelgl.KeyKP8},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadUp},
+			},
+			"menuDown": {
+				Key:   []pixelgl.Button{pixelgl.KeyS, pixelgl.KeyDown, pixelgl.KeyKP5},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadDown},
+			},
+			"menuLeft": {
+				Key:   []pixelgl.Button{pixelgl.KeyA, pixelgl.KeyLeft, pixelgl.KeyKP4},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadLeft},
+			},
+			"menuRight": {
+				Key:   []pixelgl.Button{pixelgl.KeyD, pixelgl.KeyRight, pixelgl.KeyKP6},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadRight},
+			},
+			"menuSelect": {
+				Key:   []pixelgl.Button{pixelgl.KeySpace, pixelgl.KeyEnter, pixelgl.KeyKPEnter},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonA},
+			},
+			"menuBack": input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
+			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+			"click": input.NewJoyless(pixelgl.MouseButtonLeft),
 		},
+		Mode: input.Any,
 	}
 	gameInput = &input.Input{
 		Axes: map[string]*input.AxisSet{
@@ -83,33 +100,36 @@ var (
 		},
 		Buttons: map[string]*input.ButtonSet{
 			"dig": {
-				Key:  pixelgl.MouseButtonLeft,
-				Axis: pixelgl.AxisRightTrigger,
-				GP:   1,
+				Key:   []pixelgl.Button{pixelgl.MouseButtonLeft, pixelgl.KeyLeftShift},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonX},
+				Axis:  pixelgl.AxisRightTrigger,
+				GP:    1,
 			},
 			"mark": {
-				Key:  pixelgl.MouseButtonRight,
-				Axis: pixelgl.AxisLeftTrigger,
-				GP:   1,
+				Key:   []pixelgl.Button{pixelgl.MouseButtonRight, pixelgl.KeyLeftControl},
+				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonY},
+				Axis:  pixelgl.AxisLeftTrigger,
+				GP:    1,
 			},
 			"left":      input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
 			"right":     input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
 			"jump":      input.New(pixelgl.KeySpace, pixelgl.ButtonA),
-			"lookUp":    input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
-			"lookDown":  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			"up":        input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			"down":      input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
 			"climbUp":   input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
 			"climbDown": input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-			"useItem":   input.New(pixelgl.KeyLeftShift, pixelgl.ButtonB),
+			"useItem":   input.New(pixelgl.KeyE, pixelgl.ButtonB),
 			"prevItem":  {
-				GPKey:  pixelgl.ButtonLeftBumper,
+				GPKey:  []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
 				Scroll: -1,
 			},
 			"nextItem":  {
-				GPKey:  pixelgl.ButtonRightBumper,
+				GPKey:  []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
 				Scroll: 1,
 			},
 		},
 		StickD: true,
+		Mode: input.KeyboardMouse,
 	}
 )
 
@@ -186,7 +206,7 @@ func Update(win *pixelgl.Window) {
 					dungeon.Dungeon.GetPlayer().Update(gameInput)
 					systems.AnimationSystem()
 					player.UpdateHUD()
-					if gameInput.Get("lookUp").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+					if gameInput.Get("up").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
 						newState = 5
 					}
 				}

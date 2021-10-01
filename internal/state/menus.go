@@ -8,32 +8,41 @@ import (
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/util"
 	"fmt"
-	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"strconv"
 )
 
 var (
-	MainMenu    *menus.DwarfMenu
-	PauseMenu   *menus.DwarfMenu
-	OptionsMenu *menus.DwarfMenu
-	EnchantMenu *menus.DwarfMenu
-	PostMenu    *menus.DwarfMenu
+	MainMenu       *menus.DwarfMenu
+	AudioMenu      *menus.DwarfMenu
+	GraphicsMenu   *menus.DwarfMenu
+	InputMenu      *menus.DwarfMenu
+	//KeybindingMenu *menus.DwarfMenu
+	PauseMenu      *menus.DwarfMenu
+	OptionsMenu    *menus.DwarfMenu
+	EnchantMenu    *menus.DwarfMenu
+	PostMenu       *menus.DwarfMenu
 )
 
 func InitializeMenus(win *pixelgl.Window) {
 	InitMainMenu(win)
 	InitOptionsMenu()
+	// todo: accessibility
+	InitAudioMenu()
+	InitGraphicsMenu()
+	InitInputMenu(win)
+	//InitKeybindingMenu()
 	InitPauseMenu(win)
 	InitEnchantMenu()
 	InitPostGameMenu()
 }
 
 func InitMainMenu(win *pixelgl.Window) {
-	MainMenu = menus.New("main", pixel.R(0., 0., 64., 64.), camera.Cam)
+	MainMenu = menus.New("main", camera.Cam)
 	start := MainMenu.AddItem("start", "Start Game")
 	options := MainMenu.AddItem("options", "Options")
 	credit := MainMenu.AddItem("credits", "Credits")
@@ -44,6 +53,7 @@ func InitMainMenu(win *pixelgl.Window) {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		newState = 4
 	})
+	start.Hint = "Start a new run!"
 	options.SetClickFn(func() {
 		OptionsMenu.Open()
 		menuStack = append(menuStack, OptionsMenu)
@@ -57,42 +67,105 @@ func InitMainMenu(win *pixelgl.Window) {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		win.SetClosed(true)
 	})
+	quit.Hint = "You're going to leave?"
 }
 
 func InitOptionsMenu() {
-	OptionsMenu = menus.New("options", pixel.R(0., 0., 64., 64.), camera.Cam)
+	OptionsMenu = menus.New("options", camera.Cam)
 	optionsTitle := OptionsMenu.AddItem("title", "Options")
-	volume := OptionsMenu.AddItem("s_volume", "Volume")
-	volumeR := OptionsMenu.AddItem("s_volume_r", strconv.Itoa(sfx.GetSoundVolume()))
-	vsync := OptionsMenu.AddItem("vsync", "VSync")
-	vsyncR := OptionsMenu.AddItem("vsync_r", "On")
-	fullscreen := OptionsMenu.AddItem("fullscreen", "Fullscreen")
-	fullscreenR := OptionsMenu.AddItem("fullscreen_r", "Off")
-	resolution := OptionsMenu.AddItem("resolution", "Resolution")
-	resolutionR := OptionsMenu.AddItem("resolution_r", cfg.ResStrings[cfg.ResIndex])
+	audioOptions := OptionsMenu.AddItem("audio", "Audio")
+	graphicsOptions := OptionsMenu.AddItem("graphics", "Graphics")
+	inputOptions := OptionsMenu.AddItem("input", "Input")
 	back := OptionsMenu.AddItem("back", "Back")
 
 	optionsTitle.NoHover = true
-	volume.SetRightFn(func() {
+	audioOptions.SetClickFn(func() {
+		AudioMenu.Open()
+		menuStack = append(menuStack, AudioMenu)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	graphicsOptions.SetClickFn(func() {
+		GraphicsMenu.Open()
+		menuStack = append(menuStack, GraphicsMenu)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	inputOptions.SetClickFn(func() {
+		InputMenu.Open()
+		menuStack = append(menuStack, InputMenu)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	back.SetClickFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		OptionsMenu.Close()
+	})
+}
+
+func InitAudioMenu() {
+	AudioMenu = menus.New("audio", camera.Cam)
+	audioTitle := AudioMenu.AddItem("title", "Audio Options")
+	soundVolume := AudioMenu.AddItem("s_volume", "Sound Volume")
+	soundVolumeR := AudioMenu.AddItem("s_volume_r", strconv.Itoa(sfx.GetSoundVolume()))
+	musicVolume := AudioMenu.AddItem("m_volume", "Music Volume")
+	musicVolumeR := AudioMenu.AddItem("m_volume_r", strconv.Itoa(sfx.GetMusicVolume()))
+	back := AudioMenu.AddItem("back", "Back")
+
+	audioTitle.NoHover = true
+	soundVolume.SetRightFn(func() {
 		n := sfx.GetSoundVolume() + 5
 		if n > 100 {
 			n = 100
 		}
 		sfx.SetSoundVolume(n)
-		volumeR.Raw = strconv.Itoa(n)
+		soundVolumeR.Raw = strconv.Itoa(n)
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
 	})
-	volume.SetLeftFn(func() {
+	soundVolume.SetLeftFn(func() {
 		n := sfx.GetSoundVolume() - 5
 		if n < 0 {
 			n = 0
 		}
 		sfx.SetSoundVolume(n)
-		volumeR.Raw = strconv.Itoa(n)
+		soundVolumeR.Raw = strconv.Itoa(n)
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
 	})
-	volumeR.NoHover = true
-	volumeR.Right = true
+	soundVolumeR.NoHover = true
+	soundVolumeR.Right = true
+	musicVolume.SetRightFn(func() {
+		n := sfx.GetMusicVolume() + 5
+		if n > 100 {
+			n = 100
+		}
+		sfx.SetMusicVolume(n)
+		musicVolumeR.Raw = strconv.Itoa(n)
+	})
+	musicVolume.SetLeftFn(func() {
+		n := sfx.GetMusicVolume() - 5
+		if n < 0 {
+			n = 0
+		}
+		sfx.SetMusicVolume(n)
+		musicVolumeR.Raw = strconv.Itoa(n)
+	})
+	musicVolumeR.NoHover = true
+	musicVolumeR.Right = true
+	back.SetClickFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		AudioMenu.Close()
+	})
+}
+
+func InitGraphicsMenu() {
+	GraphicsMenu = menus.New("graphics", camera.Cam)
+	graphicsTitle := GraphicsMenu.AddItem("title", "Graphics Options")
+	vsync := GraphicsMenu.AddItem("vsync", "VSync")
+	vsyncR := GraphicsMenu.AddItem("vsync_r", "On")
+	fullscreen := GraphicsMenu.AddItem("fullscreen", "Fullscreen")
+	fullscreenR := GraphicsMenu.AddItem("fullscreen_r", "Off")
+	resolution := GraphicsMenu.AddItem("resolution", "Resolution")
+	resolutionR := GraphicsMenu.AddItem("resolution_r", cfg.ResStrings[cfg.ResIndex])
+	back := GraphicsMenu.AddItem("back", "Back")
+
+	graphicsTitle.NoHover = true
 	vsync.SetClickFn(func() {
 		s := "On"
 		if cfg.VSync {
@@ -135,12 +208,161 @@ func InitOptionsMenu() {
 	resolutionR.NoHover = true
 	resolutionR.Right = true
 	back.SetClickFn(func() {
-		OptionsMenu.Close()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		GraphicsMenu.Close()
 	})
 }
 
+func InitInputMenu(win *pixelgl.Window) {
+	InputMenu = menus.New("input", camera.Cam)
+	inputTitle := InputMenu.AddItem("title", "Input Options")
+	device := InputMenu.AddItem("device", "Device")
+	deviceR := InputMenu.AddItem("device_r", "KB&Mouse")
+	digMode := InputMenu.AddItem("dig_mode", "Dig Mode")
+	digModeR := InputMenu.AddItem("dig_mode_r", "Either")
+	//keybindings := InputMenu.AddItem("keybindings", "Keybindings")
+	back := InputMenu.AddItem("back", "Back")
+
+	inputTitle.NoHover = true
+	rfn1 := func() {
+		km := gameInput.Mode == input.KeyboardMouse
+		var js int
+		if km {
+			js = input.NextGamepad(win, -1)
+		} else {
+			js = input.NextGamepad(win, int(gameInput.Joystick))
+		}
+		if js != -1 {
+			deviceR.Raw = fmt.Sprintf("Gamepad %d", js)
+			gameInput.Joystick = pixelgl.Joystick(js)
+			gameInput.Mode = input.Gamepad
+			device.Hint = win.JoystickName(pixelgl.Joystick(js))
+			if cfg.DigMode == data.Dedicated {
+				digMode.Hint = "Use the right stick to aim for digging and marking."
+			}
+		} else {
+			deviceR.Raw = "KB&Mouse"
+			gameInput.Joystick = pixelgl.JoystickLast
+			gameInput.Mode = input.KeyboardMouse
+			device.Hint = ""
+			if cfg.DigMode == data.Dedicated {
+				digMode.Hint = "Use the mouse to aim for digging and marking."
+			}
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	lfn1 := func() {
+		km := gameInput.Mode == input.KeyboardMouse
+		var js int
+		if km {
+			js = input.PrevGamepad(win, -1)
+		} else {
+			js = input.PrevGamepad(win, int(gameInput.Joystick))
+		}
+		if js != -1 {
+			deviceR.Raw = fmt.Sprintf("Gamepad %d (%s)", js, win.JoystickName(pixelgl.Joystick(js)))
+			gameInput.Joystick = pixelgl.Joystick(js)
+			gameInput.Mode = input.Gamepad
+			if cfg.DigMode == data.Dedicated {
+				digMode.Hint = "Use the right stick to aim for digging and marking."
+			}
+		} else {
+			deviceR.Raw = "KB&Mouse"
+			gameInput.Joystick = pixelgl.JoystickLast
+			gameInput.Mode = input.KeyboardMouse
+			if cfg.DigMode == data.Dedicated {
+				digMode.Hint = "Use the mouse to aim for digging and marking."
+			}
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	device.SetClickFn(rfn1)
+	device.SetRightFn(rfn1)
+	device.SetLeftFn(lfn1)
+	deviceR.Right = true
+	deviceR.NoHover = true
+	rfn2 := func() {
+		var dm data.DigMode
+		switch cfg.DigMode {
+		case data.Either:
+			dm = data.Movement
+			digMode.Hint = "Use the movement keys to aim for digging and marking."
+		case data.Movement:
+			dm = data.Dedicated
+			if gameInput.Mode == input.KeyboardMouse {
+				digMode.Hint = "Use the mouse to aim for digging and marking."
+			} else {
+				digMode.Hint = "Use the right stick to aim for digging and marking."
+			}
+		case data.Dedicated:
+			dm = data.Either
+			digMode.Hint = ""
+		}
+		cfg.DigMode = int(dm)
+		digModeR.Raw = dm.String()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	lfn2 := func() {
+		var dm data.DigMode
+		switch cfg.DigMode {
+		case data.Either:
+			dm = data.Dedicated
+			if gameInput.Mode == input.KeyboardMouse {
+				digMode.Hint = "Use the mouse to aim for digging and marking."
+			} else {
+				digMode.Hint = "Use the right stick to aim for digging and marking."
+			}
+		case data.Movement:
+			dm = data.Either
+			digMode.Hint = ""
+		case data.Dedicated:
+			dm = data.Movement
+			digMode.Hint = "Use the movement keys to aim for digging and marking."
+		}
+		cfg.DigMode = int(dm)
+		digModeR.Raw = dm.String()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	digMode.SetClickFn(rfn2)
+	digMode.SetRightFn(rfn2)
+	digMode.SetLeftFn(lfn2)
+	digModeR.Right = true
+	digModeR.NoHover = true
+	//keybindings.SetClickFn(func() {
+	//	KeybindingMenu.Open()
+	//	menuStack = append(menuStack, KeybindingMenu)
+	//	sfx.SoundPlayer.PlaySound("click", 2.0)
+	//})
+	back.SetClickFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		InputMenu.Close()
+	})
+}
+
+//func InitKeybindingMenu() {
+//	KeybindingMenu = menus.New("keybindings", pixel.R(0., 0., 64., 64.), camera.Cam)
+//	keybindingTitle := KeybindingMenu.AddItem("title", "Keybindings")
+//	left := KeybindingMenu.AddItem("left", "Move Left")
+//	leftR := KeybindingMenu.AddItem("left_r", "A,DPad-L")
+//	right := KeybindingMenu.AddItem("right", "Move Right")
+//	up := KeybindingMenu.AddItem("up", "Climb Up")
+//	down := KeybindingMenu.AddItem("down", "Climb Down")
+//	jump := KeybindingMenu.AddItem("jump", "Jump")
+//	dig := KeybindingMenu.AddItem("dig", "Dig")
+//	mark := KeybindingMenu.AddItem("mark", "Mark")
+//	use := KeybindingMenu.AddItem("use", "Use Item")
+//	prev := KeybindingMenu.AddItem("prev", "Prev Item")
+//	next := KeybindingMenu.AddItem("next", "Next Item")
+//	back := KeybindingMenu.AddItem("back", "Back")
+//
+//	keybindingTitle.NoHover = true
+//	back.SetClickFn(func() {
+//		KeybindingMenu.Close()
+//	})
+//}
+
 func InitPauseMenu(win *pixelgl.Window) {
-	PauseMenu = menus.New("pause", pixel.R(0., 0., 64., 64.), camera.Cam)
+	PauseMenu = menus.New("pause", camera.Cam)
 	pauseTitle := PauseMenu.AddItem("title", "Paused")
 	resume := PauseMenu.AddItem("resume", "Resume")
 	options := PauseMenu.AddItem("options", "Options")
@@ -169,12 +391,13 @@ func InitPauseMenu(win *pixelgl.Window) {
 }
 
 func InitEnchantMenu() {
-	EnchantMenu = menus.New("enchant", pixel.R(0., 0., 64., 64.), camera.Cam)
-	chooseTitle := EnchantMenu.AddItem("title", "Choose an Enchantment")
+	EnchantMenu = menus.New("enchant", camera.Cam)
+	chooseTitle := EnchantMenu.AddItem("title", "Enchant!")
 	skip := EnchantMenu.AddItem("skip", "Skip")
 
 	chooseTitle.NoHover = true
 	skip.SetClickFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
 		EnchantMenu.CloseInstant()
 		ClearEnchantMenu()
 		newState = 0
@@ -220,6 +443,7 @@ func FillEnchantMenu() bool {
 		ClearEnchantMenu()
 		newState = 0
 	})
+	option1.Hint = e1.Desc
 	if e2 != nil {
 		option2 := EnchantMenu.InsertItem("option2", e2.Title, 2)
 		option2.SetClickFn(func() {
@@ -229,6 +453,7 @@ func FillEnchantMenu() bool {
 			ClearEnchantMenu()
 			newState = 0
 		})
+		option2.Hint = e2.Desc
 	}
 	if e3 != nil {
 		option3 := EnchantMenu.InsertItem("option3", e3.Title, 3)
@@ -239,12 +464,13 @@ func FillEnchantMenu() bool {
 			ClearEnchantMenu()
 			newState = 0
 		})
+		option3.Hint = e3.Desc
 	}
 	return true
 }
 
 func InitPostGameMenu() {
-	PostMenu = menus.New("post", pixel.R(0., 0., 64., 64.), camera.Cam)
+	PostMenu = menus.New("post", camera.Cam)
 	PostMenu.SetBackFn(func() {})
 	blocksDug := PostMenu.AddItem("blocks", "Blocks Dug")
 	blocksDugS := PostMenu.AddItem("blocks_s", "")

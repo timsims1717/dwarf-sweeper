@@ -10,7 +10,7 @@ import (
 
 const (
 	ChunkSize = 32
-	ChunkCnt  = ChunkSize * ChunkSize
+	ChunkArea = ChunkSize * ChunkSize
 )
 
 type Chunk struct {
@@ -23,9 +23,9 @@ type Chunk struct {
 
 func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 	// Array of 1024 bools
-	list := [ChunkCnt]bool{}
+	list := [ChunkArea]bool{}
 	// fill first 10-20% with true
-	bCount := random.CaveGen.Intn(ChunkCnt / int(100 * (cave.bombPMax - cave.bombPMin))) + ChunkCnt / int(100 * cave.bombPMin)
+	bCount := random.CaveGen.Intn(ChunkArea/ int(100 * (cave.bombPMax - cave.bombPMin))) + ChunkArea/ int(100 * cave.bombPMin)
 	for i := 0; i < bCount; i++ {
 		list[i] = true
 	}
@@ -82,7 +82,7 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 				tile.Entity = &BombItem{}
 				tile.XRay = img.Batchers[cfg.EntityKey].Sprites["bomb_unlit"]
 			case 1:
-				collectible = Mushroom
+				collectible = Heart
 			case 2:
 				collectible = Beer
 			case 3:
@@ -137,11 +137,6 @@ func (chunk *Chunk) Draw(target pixel.Target) {
 				}
 			}
 		}
-		//ul := chunk.Rows[0][0].Transform.Pos
-		//dr := chunk.Rows[ChunkSize-1][ChunkSize-1].Transform.Pos
-		//half := world.TileSize*0.5
-		//debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(ul.X-half, ul.Y+half), pixel.V(dr.X+half, ul.Y+half), 1.0)
-		//debug.AddLine(colornames.Green, imdraw.SharpEndShape, pixel.V(dr.X+half, ul.Y+half), pixel.V(dr.X+half, dr.Y-half), 1.0)
 	}
 }
 

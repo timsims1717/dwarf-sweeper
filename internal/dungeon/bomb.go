@@ -11,8 +11,14 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/world"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
+)
+
+const (
+	MineBaseKnockback = 25.
+	MineBaseRadius = 2.25
 )
 
 type Bomb struct {
@@ -37,10 +43,11 @@ func (b *Bomb) Update() {
 			}
 			myecs.Manager.NewEntity().
 			AddComponent(myecs.AreaDmg, &data.AreaDamage{
-				Area:           area,
+				Center:         b.Transform.Pos,
+				Radius:         MineBaseRadius * world.TileSize,
 				Amount:         1,
 				Dazed:          3.,
-				Knockback:      MineKnockback,
+				Knockback:      MineBaseKnockback,
 				KnockbackDecay: true,
 				Source:         b.Transform.Pos,
 				Override:       true,

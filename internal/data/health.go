@@ -48,7 +48,8 @@ type Damage struct {
 }
 
 type AreaDamage struct {
-	Area           []pixel.Vec
+	Center         pixel.Vec
+	Radius         float64
 	Amount         int
 	Dazed          float64
 	Knockback      float64

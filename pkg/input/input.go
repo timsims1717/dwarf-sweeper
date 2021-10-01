@@ -8,6 +8,27 @@ import (
 
 var Deadzone = 0.25
 
+type Mode int
+
+const (
+	Any = iota
+	KeyboardMouse
+	Gamepad
+)
+
+func (m Mode) String() string {
+	switch m {
+	case Any:
+		return "Any"
+	case KeyboardMouse:
+		return "Keyboard & Mouse"
+	case Gamepad:
+		return "Gamepad"
+	default:
+		return ""
+	}
+}
+
 type Input struct {
 	Cursor     pixel.Vec
 	World      pixel.Vec
@@ -19,6 +40,7 @@ type Input struct {
 	Buttons    map[string]*ButtonSet
 	Joystick   pixelgl.Joystick
 	StickD     bool
+	Mode       Mode
 	joyConn    bool
 }
 
@@ -30,7 +52,7 @@ func (i *Input) Update(win *pixelgl.Window) {
 	i.MouseMoved = !win.MousePreviousPosition().Eq(win.MousePosition())
 	i.joyConn = win.JoystickPresent(i.Joystick)
 
-	if i.joyConn {
+	if i.joyConn && i.Mode != KeyboardMouse {
 		for _, set := range i.Axes {
 			f := win.JoystickAxis(i.Joystick, set.A)
 			if f > Deadzone || f < -Deadzone {
@@ -42,87 +64,58 @@ func (i *Input) Update(win *pixelgl.Window) {
 	}
 
 	for _, set := range i.Buttons {
-		jp := false
-		p := false
-		jr := false
-		if i.joyConn && !set.noJoy {
-			if set.GP == 0 {
-				jp = win.JoystickJustPressed(i.Joystick, set.GPKey)
-				p = win.JoystickPressed(i.Joystick, set.GPKey)
-				jr = win.JoystickJustReleased(i.Joystick, set.GPKey)
+		wasPressed := set.Button.pressed
+		nowPressed := false
+		if i.joyConn && !set.noJoy && i.Mode != KeyboardMouse {
+			for _, g := range set.GPKey {
+				nowPressed = win.JoystickPressed(i.Joystick, g) || nowPressed
 				if i.StickD {
-					if set.GPKey == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -Deadzone {
-						jp = !set.Button.pressed
-						p = true
-						jr = false
-					} else if set.GPKey == pixelgl.ButtonDpadRight && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) > Deadzone {
-						jp = !set.Button.pressed
-						p = true
-						jr = false
+					if g == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -Deadzone {
+						nowPressed = true
+					} else if g == pixelgl.ButtonDpadRight && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) > Deadzone {
+						nowPressed = true
 					}
-					if set.GPKey == pixelgl.ButtonDpadUp && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) < -Deadzone {
-						jp = !set.Button.pressed
-						p = true
-						jr = false
-					} else if set.GPKey == pixelgl.ButtonDpadDown && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) > Deadzone {
-						jp = !set.Button.pressed
-						p = true
-						jr = false
+					if g == pixelgl.ButtonDpadUp && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) < -Deadzone {
+						nowPressed = true
+					} else if g == pixelgl.ButtonDpadDown && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) > Deadzone {
+						nowPressed = true
 					}
 				}
-			} else {
-				if (win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.GP > 0) || (win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.GP < 0) {
-					jp = !set.Button.pressed
-					p = true
-					jr = false
-				} else {
-					jr = set.Button.pressed
-					p = false
-					jp = false
+			}
+			if set.GP != 0 &&
+				((win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.GP > 0) ||
+					(win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.GP < 0)) {
+				nowPressed = true
+			}
+		}
+		if i.Mode != Gamepad {
+			for _, s := range set.Key {
+				nowPressed = win.Pressed(s) || nowPressed
+			}
+			if set.Scroll != 0 {
+				if (win.MouseScroll().Y > 0. && set.Scroll > 0) || (win.MouseScroll().Y < 0. && set.Scroll < 0) {
+					set.Button.pressed = true
 				}
 			}
 		}
-		if set.Scroll == 0 {
-			set.Button.justPressed = win.JustPressed(set.Key) || jp
-			set.Button.pressed = win.Pressed(set.Key) || p
-			set.Button.justReleased = win.JustReleased(set.Key) || jr
-		} else {
-			if (win.MouseScroll().Y > 0. && set.Scroll > 0) || (win.MouseScroll().Y < 0. && set.Scroll < 0) {
-				set.Button.justPressed = !set.Button.pressed || jp
-				set.Button.pressed = true
-				set.Button.justReleased = jr
-			} else {
-				set.Button.justReleased = set.Button.pressed || jr
-				set.Button.pressed = p
-				set.Button.justPressed = jp
-			}
-		}
+		set.Button.justPressed = nowPressed && !wasPressed
+		set.Button.pressed = nowPressed
+		set.Button.justReleased = !nowPressed && wasPressed
 		set.Button.consumed = set.Button.consumed && (set.Button.justPressed || set.Button.pressed || set.Button.justReleased)
 	}
 }
 
 func New(n pixelgl.Button, g pixelgl.GamepadButton) *ButtonSet {
 	return &ButtonSet{
-		Key:   n,
-		GPKey: g,
+		Key:   []pixelgl.Button{n},
+		GPKey: []pixelgl.GamepadButton{g},
 	}
 }
 
 func NewJoyless(n pixelgl.Button) *ButtonSet {
 	return &ButtonSet{
-		Key:   n,
+		Key:   []pixelgl.Button{n},
 		noJoy: true,
-	}
-}
-
-func (i *Input) SetStandard(s string, n pixelgl.Button) {
-	if b, ok := i.Buttons[s]; ok {
-		b.Key = n
-	} else {
-		i.Buttons[s] = &ButtonSet{
-			Button: Button{},
-			Key:    n,
-		}
 	}
 }
 
@@ -175,9 +168,9 @@ type AxisSet struct {
 
 type ButtonSet struct {
 	Button Button
-	Key    pixelgl.Button
+	Key    []pixelgl.Button
 	Scroll int
-	GPKey  pixelgl.GamepadButton
+	GPKey  []pixelgl.GamepadButton
 	Axis   pixelgl.GamepadAxis
 	GP     int
 	noJoy  bool
