@@ -39,3 +39,39 @@ func PrevGamepad(win *pixelgl.Window, curr int) int {
 	}
 	return -1
 }
+
+func GamepadString(b pixelgl.GamepadButton) string {
+	switch b {
+	case pixelgl.ButtonA:
+		return "A"
+	case pixelgl.ButtonB:
+		return "B"
+	case pixelgl.ButtonX:
+		return "X"
+	case pixelgl.ButtonY:
+		return "Y"
+	case pixelgl.ButtonLeftBumper:
+		return "LBump"
+	case pixelgl.ButtonRightBumper:
+		return "RBump"
+	case pixelgl.ButtonBack:
+		return "Back"
+	case pixelgl.ButtonStart:
+		return "Start"
+	case pixelgl.ButtonGuide:
+		return "Guide"
+	case pixelgl.ButtonLeftThumb:
+		return "LThumb"
+	case pixelgl.ButtonRightThumb:
+		return "RThumb"
+	case pixelgl.ButtonDpadUp:
+		return "DUp"
+	case pixelgl.ButtonDpadRight:
+		return "DRight"
+	case pixelgl.ButtonDpadDown:
+		return "DDown"
+	case pixelgl.ButtonDpadLeft:
+		return "DLeft"
+	}
+	return "unknown"
+}

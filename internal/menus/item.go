@@ -11,27 +11,32 @@ import (
 )
 
 type Item struct {
-	Key     string
-	Raw     string
-	Hint    string
-	Text    *text.Text
-	HText   *text.Text
-	clickFn func()
-	leftFn  func()
-	rightFn func()
-	Right   bool
+	Key   string
+	Raw   string
+	Hint  string
+	Text  *text.Text
+	HText *text.Text
+
+	clickFn   func()
+	leftFn    func()
+	rightFn   func()
+	hoverFn   func()
+	unHoverFn func()
 
 	Transform  *transform.Transform
 	HTransform *transform.Transform
 
 	TextColor color.RGBA
 
+	Right    bool
 	Hovered  bool
 	Disabled bool
 	NoHover  bool
 	NoShow   bool
 	hovered  bool
 	disabled bool
+	noShowT  bool
+	CurrLine int
 }
 
 func NewItem(key, raw string) *Item {
@@ -105,12 +110,17 @@ func (i *Item) Update() {
 }
 
 func (i *Item) Draw(target pixel.Target) {
-	if i.Text != nil && !i.NoShow {
+	if i.Text != nil && !i.NoShow && !i.noShowT {
 		i.Text.Draw(target, i.Transform.Mat)
 	}
-	//if i.HText != nil && !i.NoShow && i.Hovered && !i.Disabled && i.Hint != "" {
-	//	i.HText.Draw(target, i.HTransform.Mat)
-	//}
+}
+
+func (i *Item) SetHoverFn(fn func()) {
+	i.hoverFn = fn
+}
+
+func (i *Item) SetUnhoverFn(fn func()) {
+	i.unHoverFn = fn
 }
 
 func (i *Item) SetClickFn(fn func()) {

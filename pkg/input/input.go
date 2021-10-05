@@ -66,6 +66,7 @@ func (i *Input) Update(win *pixelgl.Window) {
 	for _, set := range i.Buttons {
 		wasPressed := set.Button.pressed
 		nowPressed := false
+		repeated := false
 		if i.joyConn && !set.noJoy && i.Mode != KeyboardMouse {
 			for _, g := range set.GPKey {
 				nowPressed = win.JoystickPressed(i.Joystick, g) || nowPressed
@@ -91,16 +92,18 @@ func (i *Input) Update(win *pixelgl.Window) {
 		if i.Mode != Gamepad {
 			for _, s := range set.Key {
 				nowPressed = win.Pressed(s) || nowPressed
+				repeated = win.Repeated(s) || repeated
 			}
 			if set.Scroll != 0 {
 				if (win.MouseScroll().Y > 0. && set.Scroll > 0) || (win.MouseScroll().Y < 0. && set.Scroll < 0) {
-					set.Button.pressed = true
+					nowPressed = true
 				}
 			}
 		}
 		set.Button.justPressed = nowPressed && !wasPressed
 		set.Button.pressed = nowPressed
 		set.Button.justReleased = !nowPressed && wasPressed
+		set.Button.repeated = repeated
 		set.Button.consumed = set.Button.consumed && (set.Button.justPressed || set.Button.pressed || set.Button.justReleased)
 	}
 }
@@ -142,6 +145,7 @@ type Button struct {
 	justPressed  bool
 	pressed      bool
 	justReleased bool
+	repeated     bool
 	consumed     bool
 }
 
@@ -155,6 +159,10 @@ func (t *Button) Pressed() bool {
 
 func (t *Button) JustReleased() bool {
 	return t.justReleased && !t.consumed
+}
+
+func (t *Button) Repeated() bool {
+	return t.repeated
 }
 
 func (t *Button) Consume() {

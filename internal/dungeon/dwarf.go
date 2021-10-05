@@ -524,9 +524,9 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if d.climbing {
 				if canClimb {
 					d.distFell = 0.
-					if in.Get("climbUp").Pressed() && !in.Get("climbDown").Pressed() {
+					if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 						d.Physics.SetVelY(d.ClimbSpeed, 0.)
-					} else if in.Get("climbDown").Pressed() && !in.Get("climbUp").Pressed() {
+					} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
 						d.Physics.SetVelY(-d.ClimbSpeed, 0.)
 					} else {
 						d.Physics.SetVelY(0., 0.)
@@ -539,7 +539,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				} else {
 					d.climbing = false
 				}
-			} else if canClimb && !d.toJump && in.Get("climbUp").Pressed() {
+			} else if canClimb && !d.toJump && in.Get("up").Pressed() {
 				d.climbing = true
 				d.walking = false
 				d.jumping = false
@@ -606,11 +606,11 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 			}
 		}
-		if in.Get("prevItem").JustPressed() {
+		if in.Get("prev").JustPressed() {
 			PrevItem()
-		} else if in.Get("nextItem").JustPressed() {
+		} else if in.Get("next").JustPressed() {
 			NextItem()
-		} else if in.Get("useItem").JustPressed() {
+		} else if in.Get("use").JustPressed() {
 			UseEquipped()
 		}
 	}
