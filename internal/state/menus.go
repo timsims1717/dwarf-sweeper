@@ -10,6 +10,7 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/util"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
@@ -191,7 +192,7 @@ func InitAudioMenu() {
 func InitGraphicsMenu() {
 	GraphicsMenu = menus.New("graphics", camera.Cam)
 	GraphicsMenu.Title = true
-	graphicsTitle := GraphicsMenu.AddItem("title", "Graphics Options")
+	graphicsTitle := GraphicsMenu.AddItem("title", "Gra^hics O^tions")
 	vsync := GraphicsMenu.AddItem("vsync", "VSync")
 	vsyncR := GraphicsMenu.AddItem("vsync_r", "On")
 	fullscreen := GraphicsMenu.AddItem("fullscreen", "Fullscreen")
@@ -256,7 +257,9 @@ func InitInputMenu(win *pixelgl.Window) {
 	device := InputMenu.AddItem("device", "Device")
 	deviceR := InputMenu.AddItem("device_r", "KB&Mouse")
 	digMode := InputMenu.AddItem("dig_mode", "Dig Mode")
-	digModeR := InputMenu.AddItem("dig_mode_r", "Either")
+	digModeR := InputMenu.AddItem("dig_mode_r", data.DigMode(cfg.DigMode).String())
+	deadzone := InputMenu.AddItem("deadzone", "Deadzone")
+	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", input.Deadzone))
 	leftStickA := InputMenu.AddItem("left_stick_a", "Move with")
 	leftStickR := InputMenu.AddItem("left_stick_r", "Yes")
 	leftStickB := InputMenu.AddItem("left_stick_b", " Left Stick")
@@ -311,6 +314,8 @@ func InitInputMenu(win *pixelgl.Window) {
 		leftStickA.NoShow = js == -1
 		leftStickB.NoShow = js == -1
 		leftStickR.NoShow = js == -1
+		deadzone.NoShow = js == -1
+		deadzoneR.NoShow = js == -1
 		UpdateKeybindings()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	}
@@ -341,6 +346,8 @@ func InitInputMenu(win *pixelgl.Window) {
 		leftStickA.NoShow = js == -1
 		leftStickB.NoShow = js == -1
 		leftStickR.NoShow = js == -1
+		deadzone.NoShow = js == -1
+		deadzoneR.NoShow = js == -1
 		UpdateKeybindings()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	}
@@ -405,6 +412,28 @@ func InitInputMenu(win *pixelgl.Window) {
 		gameInput.StickD = !gameInput.StickD
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	}
+	deadzone.NoShow = true
+	deadzone.SetRightFn(func() {
+		n := input.Deadzone + 0.05
+		if n > 0.5 {
+			n = 0.5
+		}
+		input.Deadzone = n
+		deadzoneR.Raw = fmt.Sprintf("%f", n)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	deadzone.SetLeftFn(func() {
+		n := input.Deadzone - 0.05
+		if n < 0.05 {
+			n = 0.05
+		}
+		input.Deadzone = n
+		deadzoneR.Raw = fmt.Sprintf("%f", n)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	deadzoneR.NoShow = true
+	deadzoneR.NoHover = true
+	deadzoneR.Right = true
 	leftStickA.SetClickFn(rfn3)
 	leftStickA.SetRightFn(rfn3)
 	leftStickA.SetLeftFn(rfn3)
@@ -497,30 +526,34 @@ func UpdateKeybinding(key string) {
 	r := InputMenu.ItemMap[fmt.Sprintf("%s_r", key)]
 	in := gameInput.Buttons[key]
 	builder := strings.Builder{}
+	var symKeys []string
 	first := true
 	if gameInput.Mode != input.Gamepad {
 		for _, k := range in.Key {
 			if first {
 				first = false
 			} else {
-				builder.WriteString(",")
+				builder.WriteString(" ")
 			}
-			builder.WriteString(k.String())
+			builder.WriteString(typeface.SymbolItem)
+			symKeys = append(symKeys, k.String())
 		}
 		if in.Scroll > 0 {
 			if first {
 				first = false
 			} else {
-				builder.WriteString(",")
+				builder.WriteString(" ")
 			}
-			builder.WriteString("MSU")
+			builder.WriteString(typeface.SymbolItem)
+			symKeys = append(symKeys, "MouseScrollUp")
 		} else if in.Scroll < 0 {
 			if first {
 				first = false
 			} else {
-				builder.WriteString(",")
+				builder.WriteString(" ")
 			}
-			builder.WriteString("MSD")
+			builder.WriteString(typeface.SymbolItem)
+			symKeys = append(symKeys, "MouseScrollDown")
 		}
 	}
 	if gameInput.Mode != input.KeyboardMouse {
@@ -528,12 +561,23 @@ func UpdateKeybinding(key string) {
 			if first {
 				first = false
 			} else {
-				builder.WriteString(",")
+				builder.WriteString(" ")
 			}
-			builder.WriteString(input.GamepadString(b))
+			builder.WriteString(typeface.SymbolItem)
+			symKeys = append(symKeys, input.GamepadString(b))
+		}
+		if in.GP != 0 {
+			if first {
+				first = false
+			} else {
+				builder.WriteString(" ")
+			}
+			builder.WriteString(typeface.SymbolItem)
+			symKeys = append(symKeys, input.AxisDirString(in.Axis, in.GP > 0))
 		}
 	}
 	r.Raw = builder.String()
+	r.Symbols = symKeys
 }
 
 func InitPauseMenu(win *pixelgl.Window) {

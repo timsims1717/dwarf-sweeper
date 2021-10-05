@@ -435,9 +435,6 @@ func GetAllJustPressedGamepad(win *pixelgl.Window, js pixelgl.Joystick) []pixelg
 		if win.JoystickJustPressed(js, pixelgl.ButtonStart) {
 			result = append(result, pixelgl.ButtonStart)
 		}
-		if win.JoystickJustPressed(js, pixelgl.ButtonGuide) {
-			result = append(result, pixelgl.ButtonGuide)
-		}
 		if win.JoystickJustPressed(js, pixelgl.ButtonLeftThumb) {
 			result = append(result, pixelgl.ButtonLeftThumb)
 		}
@@ -455,21 +452,6 @@ func GetAllJustPressedGamepad(win *pixelgl.Window, js pixelgl.Joystick) []pixelg
 		}
 		if win.JoystickJustPressed(js, pixelgl.ButtonDpadLeft) {
 			result = append(result, pixelgl.ButtonDpadLeft)
-		}
-		if win.JoystickJustPressed(js, pixelgl.ButtonLast) {
-			result = append(result, pixelgl.ButtonLast)
-		}
-		if win.JoystickJustPressed(js, pixelgl.ButtonCross) {
-			result = append(result, pixelgl.ButtonCross)
-		}
-		if win.JoystickJustPressed(js, pixelgl.ButtonCircle) {
-			result = append(result, pixelgl.ButtonCircle)
-		}
-		if win.JoystickJustPressed(js, pixelgl.ButtonSquare) {
-			result = append(result, pixelgl.ButtonSquare)
-		}
-		if win.JoystickJustPressed(js, pixelgl.ButtonTriangle) {
-			result = append(result, pixelgl.ButtonTriangle)
 		}
 	}
 	return result

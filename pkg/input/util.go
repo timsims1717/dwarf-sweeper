@@ -43,35 +43,82 @@ func PrevGamepad(win *pixelgl.Window, curr int) int {
 func GamepadString(b pixelgl.GamepadButton) string {
 	switch b {
 	case pixelgl.ButtonA:
-		return "A"
+		return "ButtonA"
 	case pixelgl.ButtonB:
-		return "B"
+		return "ButtonB"
 	case pixelgl.ButtonX:
-		return "X"
+		return "ButtonX"
 	case pixelgl.ButtonY:
-		return "Y"
+		return "ButtonY"
 	case pixelgl.ButtonLeftBumper:
-		return "LBump"
+		return "ButtonLeftBumper"
 	case pixelgl.ButtonRightBumper:
-		return "RBump"
+		return "ButtonRightBumper"
 	case pixelgl.ButtonBack:
-		return "Back"
+		return "ButtonBack"
 	case pixelgl.ButtonStart:
-		return "Start"
-	case pixelgl.ButtonGuide:
-		return "Guide"
+		return "ButtonStart"
 	case pixelgl.ButtonLeftThumb:
-		return "LThumb"
+		return "ButtonLeftThumb"
 	case pixelgl.ButtonRightThumb:
-		return "RThumb"
+		return "ButtonRightThumb"
 	case pixelgl.ButtonDpadUp:
-		return "DUp"
+		return "ButtonDpadUp"
 	case pixelgl.ButtonDpadRight:
-		return "DRight"
+		return "ButtonDpadRight"
 	case pixelgl.ButtonDpadDown:
-		return "DDown"
+		return "ButtonDpadDown"
 	case pixelgl.ButtonDpadLeft:
-		return "DLeft"
+		return "ButtonDpadLeft"
+	}
+	return "unknown"
+}
+
+func AxisString(a pixelgl.GamepadAxis) string {
+	switch a {
+	case pixelgl.AxisLeftX:
+		return "AxisLeftX"
+	case pixelgl.AxisLeftY:
+		return "AxisLeftY"
+	case pixelgl.AxisRightX:
+		return "AxisRightX"
+	case pixelgl.AxisRightY:
+		return "AxisRightY"
+	case pixelgl.AxisLeftTrigger:
+		return "AxisLeftTrigger"
+	case pixelgl.AxisRightTrigger:
+		return "AxisRightTrigger"
+	}
+	return "unknown"
+}
+
+func AxisDirString(a pixelgl.GamepadAxis, pos bool) string {
+	if pos {
+		switch a {
+		case pixelgl.AxisLeftX:
+			return "AxisLeftXPos"
+		case pixelgl.AxisLeftY:
+			return "AxisLeftYPos"
+		case pixelgl.AxisRightX:
+			return "AxisRightXPos"
+		case pixelgl.AxisRightY:
+			return "AxisRightYPos"
+		case pixelgl.AxisLeftTrigger:
+			return "AxisLeftTrigger"
+		case pixelgl.AxisRightTrigger:
+			return "AxisRightTrigger"
+		}
+	} else {
+		switch a {
+		case pixelgl.AxisLeftX:
+			return "AxisLeftXNeg"
+		case pixelgl.AxisLeftY:
+			return "AxisLeftYNeg"
+		case pixelgl.AxisRightX:
+			return "AxisRightXNeg"
+		case pixelgl.AxisRightY:
+			return "AxisRightYNeg"
+		}
 	}
 	return "unknown"
 }

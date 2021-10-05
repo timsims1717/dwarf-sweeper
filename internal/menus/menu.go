@@ -27,6 +27,7 @@ var (
 	DefaultSize   pixel.Vec
 	HoverSize     pixel.Vec
 	HintSize      pixel.Vec
+	SymbolScalar  float64
 
 	corner *pixel.Sprite
 	sideV  *pixel.Sprite
@@ -54,6 +55,7 @@ func Initialize() {
 	DefaultSize = pixel.V(1.4, 1.4)
 	HoverSize = pixel.V(1.45, 1.45)
 	HintSize = pixel.V(0.8, 0.8)
+	SymbolScalar = 0.8
 }
 
 type DwarfMenu struct {

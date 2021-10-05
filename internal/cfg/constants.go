@@ -38,5 +38,5 @@ var (
 	ResIndex = 2
 
 	// Gameplay Settings
-	DigMode = data.Either
+	DigMode = data.Dedicated
 )

@@ -5,7 +5,6 @@ import (
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
-	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/text"
 	"math"
@@ -96,10 +95,11 @@ func (h *HintBox) Update() {
 	h.Text.Clear()
 	h.Text.Color = DefaultColor
 	if h.Raw != "" {
-		lines := typeface.SetText(h.Text, h.Raw, h.MaxWidth)
-		for _, s := range lines {
-			fmt.Fprintln(h.Text, s)
-		}
+		typeface.SetText(h.Text, h.Raw, h.MaxWidth, typeface.DefaultAlign)
+		//lines := typeface.RawLines(h.Text, h.Raw, h.MaxWidth)
+		//for _, s := range lines {
+		//	fmt.Fprintln(h.Text, s)
+		//}
 	}
 }
 

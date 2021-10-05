@@ -1,7 +1,9 @@
 package menus
 
 import (
+	"dwarf-sweeper/internal/cfg"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
 	"fmt"
@@ -11,11 +13,13 @@ import (
 )
 
 type Item struct {
-	Key   string
-	Raw   string
-	Hint  string
-	Text  *text.Text
-	HText *text.Text
+	Key     string
+	Raw     string
+	Hint    string
+	Text    *text.Text
+	HText   *text.Text
+	Symbols []string
+	SymMats []pixel.Matrix
 
 	clickFn   func()
 	leftFn    func()
@@ -100,10 +104,25 @@ func (i *Item) Update() {
 	}
 	i.Text.Clear()
 	i.Text.Color = i.TextColor
+	align := typeface.DefaultAlign
 	if i.Right {
-		i.Text.Dot.X -= i.Text.BoundsOf(i.Raw).W()
+		align.H = typeface.Right
 	}
-	fmt.Fprintln(i.Text, i.Raw)
+	symPos := typeface.SetText(i.Text, i.Raw, 0., align)
+	if len(symPos) > 0 {
+		t := transform.NewTransform()
+		t.Scalar = i.Transform.Scalar.Scaled(SymbolScalar)
+		t.UIZoom = camera.Cam.GetZoomScale()
+		t.UIPos = camera.Cam.APos
+		i.SymMats = []pixel.Matrix{}
+		for _, pos := range symPos {
+			t.Pos = i.Transform.APos
+			t.Pos.X += pos.X
+			t.Pos.Y += pos.Y
+			t.Update()
+			i.SymMats = append(i.SymMats, t.Mat)
+		}
+	}
 	i.Transform.UIZoom = camera.Cam.GetZoomScale()
 	i.Transform.UIPos = camera.Cam.APos
 	i.Transform.Update()
@@ -112,6 +131,14 @@ func (i *Item) Update() {
 func (i *Item) Draw(target pixel.Target) {
 	if i.Text != nil && !i.NoShow && !i.noShowT {
 		i.Text.Draw(target, i.Transform.Mat)
+		if len(i.SymMats) == len(i.Symbols) {
+			for j := 0; j < len(i.Symbols); j++ {
+				sym := img.Batchers[cfg.MenuSprites].Sprites[i.Symbols[j]]
+				if sym != nil {
+					sym.Draw(target, i.SymMats[j])
+				}
+			}
+		}
 	}
 }
 
