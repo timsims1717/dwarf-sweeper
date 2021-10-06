@@ -14,6 +14,7 @@ import (
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/reanimator"
+	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
@@ -181,6 +182,8 @@ func Update(win *pixelgl.Window) {
 					menuInput.Get("pause").Consume()
 					if MenuClosed() && !dungeon.Dungeon.GetPlayer().Health.Dead {
 						OpenMenu(PauseMenu)
+						sfx.MusicPlayer.PauseMusic("game", true)
+						sfx.MusicPlayer.UnpauseOrNext("pause")
 					}
 				}
 			} else if state == 1 {
@@ -334,7 +337,15 @@ func updateState() {
 		// uninitialize
 		switch state {
 		case 0:
-
+			sfx.MusicPlayer.PauseMusic("game", true)
+		case 1:
+			sfx.MusicPlayer.PauseMusic("menu", true)
+		case 2:
+			sfx.MusicPlayer.PauseMusic("pause", true)
+		case 3:
+		case 4:
+		case 5:
+			sfx.MusicPlayer.PauseMusic("pause", true)
 		}
 		// initialize
 		switch newState {
@@ -345,6 +356,9 @@ func updateState() {
 				dungeon.GemsFound = 0
 				dungeon.BombsMarked = 0
 				dungeon.WrongMarks = 0
+				sfx.MusicPlayer.PlayNext("game")
+			} else {
+				sfx.MusicPlayer.PauseMusic("game", false)
 			}
 			dungeon.Dungeon.Level++
 
@@ -379,6 +393,7 @@ func updateState() {
 			if state != -1 {
 				OpenMenu(MainMenu)
 			}
+			sfx.MusicPlayer.PlayNext("menu")
 		case 2:
 			score := 0
 			score += dungeon.BlocksDug * 2
@@ -392,6 +407,7 @@ func updateState() {
 			PostMenu.ItemMap["total_score_s"].Raw = fmt.Sprintf("%d", score)
 			dungeon.ScoreTimer = timing.New(5.)
 			OpenMenu(PostMenu)
+			sfx.MusicPlayer.UnpauseOrNext("pause")
 		case 3:
 
 		case 4:
@@ -407,6 +423,7 @@ func updateState() {
 				ClearEnchantMenu()
 			} else {
 				OpenMenu(EnchantMenu)
+				sfx.MusicPlayer.UnpauseOrNext("pause")
 			}
 		}
 		state = newState

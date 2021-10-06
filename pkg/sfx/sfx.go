@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const sampleRate = beep.SampleRate(44100 * 4)
+const sampleRate = beep.SampleRate(44100)
 
 // Volumes are stored as integers from 0 to 100.
 var (
@@ -31,7 +31,7 @@ var (
 
 func init() {
 	random = rand.New(rand.NewSource(time.Now().Unix()))
-	err := speaker.Init(sampleRate, sampleRate.N(time.Second/100))
+	err := speaker.Init(sampleRate, sampleRate.N(time.Second/25))
 	if err != nil {
 		panic(err)
 	}
@@ -61,6 +61,18 @@ func getSoundVolume() float64 {
 	} else {
 		return float64(soundVolume*masterVolume)/2000. - 5.
 	}
+}
+
+func getMasterMuted() bool {
+	return masterMuted
+}
+
+func getMusicMuted() bool {
+	return masterMuted || musicMuted
+}
+
+func getSoundMuted() bool {
+	return masterMuted || soundMuted
 }
 
 //func getSfxVolume(key string) float64 {
@@ -97,6 +109,18 @@ func GetSoundVolume() int {
 	}
 }
 
+func GetMasterMuted() bool {
+	return masterMuted
+}
+
+func GetMusicMuted() bool {
+	return musicMuted
+}
+
+func GetSoundMuted() bool {
+	return soundMuted
+}
+
 //func GetSfxVolume(key string) int {
 //	if sfxMuted[key] {
 //		return 0
@@ -111,14 +135,22 @@ func MuteMaster(muted bool) {
 	speaker.Lock()
 	if muted {
 		masterMuted = true
-		MusicPlayer.volume.Silent = true
+		for _, set := range MusicPlayer.sets {
+			if set.volume != nil {
+				set.volume.Silent = true
+			}
+		}
 		for _, vol := range SoundPlayer.volumes {
 			vol.Silent = true
 		}
 	} else {
 		masterMuted = false
 		if !musicMuted {
-			MusicPlayer.volume.Silent = false
+			for _, set := range MusicPlayer.sets {
+				if set.volume != nil {
+					set.volume.Silent = false
+				}
+			}
 		}
 		if !soundMuted {
 			for _, vol := range SoundPlayer.volumes {
@@ -133,11 +165,19 @@ func MuteMusic(muted bool) {
 	speaker.Lock()
 	if muted {
 		musicMuted = true
-		MusicPlayer.volume.Silent = true
+		for _, set := range MusicPlayer.sets {
+			if set.volume != nil {
+				set.volume.Silent = true
+			}
+		}
 	} else {
 		musicMuted = false
 		if !masterMuted {
-			MusicPlayer.volume.Silent = false
+			for _, set := range MusicPlayer.sets {
+				if set.volume != nil {
+					set.volume.Silent = false
+				}
+			}
 		}
 	}
 	speaker.Unlock()
@@ -167,16 +207,22 @@ func SetMasterVolume(v int) {
 	speaker.Lock()
 	if v == 0 {
 		masterMuted = true
-		if MusicPlayer.volume != nil {
-			MusicPlayer.volume.Silent = true
+		for _, set := range MusicPlayer.sets {
+			if set.volume != nil {
+				set.volume.Silent = true
+			}
 		}
 		for _, vol := range SoundPlayer.volumes {
 			vol.Silent = true
 		}
 	} else {
 		masterMuted = false
-		if !musicMuted && MusicPlayer.volume != nil {
-			MusicPlayer.volume.Silent = false
+		if !musicMuted {
+			for _, set := range MusicPlayer.sets {
+				if set.volume != nil {
+					set.volume.Silent = false
+				}
+			}
 		}
 		if !soundMuted {
 			for _, vol := range SoundPlayer.volumes {
@@ -192,13 +238,19 @@ func SetMusicVolume(v int) {
 	speaker.Lock()
 	if v == 0 {
 		musicMuted = true
-		if MusicPlayer.volume != nil {
-			MusicPlayer.volume.Silent = true
+		for _, set := range MusicPlayer.sets {
+			if set.volume != nil {
+				set.volume.Silent = true
+			}
 		}
 	} else {
 		musicMuted = false
-		if !masterMuted && MusicPlayer.volume != nil {
-			MusicPlayer.volume.Silent = false
+		if !masterMuted {
+			for _, set := range MusicPlayer.sets {
+				if set.volume != nil {
+					set.volume.Silent = false
+				}
+			}
 		}
 	}
 	musicVolume = v

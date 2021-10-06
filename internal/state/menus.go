@@ -582,6 +582,10 @@ func UpdateKeybinding(key string) {
 func InitPauseMenu(win *pixelgl.Window) {
 	PauseMenu = menus.New("pause", camera.Cam)
 	PauseMenu.Title = true
+	PauseMenu.SetCloseFn(func() {
+		sfx.MusicPlayer.PauseMusic("pause", true)
+		sfx.MusicPlayer.UnpauseOrNext("game")
+	})
 	pauseTitle := PauseMenu.AddItem("title", "Paused")
 	resume := PauseMenu.AddItem("resume", "Resume")
 	options := PauseMenu.AddItem("options", "Options")

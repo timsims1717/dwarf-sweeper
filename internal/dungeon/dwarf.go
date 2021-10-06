@@ -616,14 +616,14 @@ func (d *Dwarf) Update(in *input.Input) {
 	}
 	d.Transform.Flip = d.faceLeft
 	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
-}
-
-func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
-	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
 	if d.walking && d.walkTimer.UpdateDone() {
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
 		d.walkTimer = timing.New(stepTime)
 	}
+}
+
+func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
+	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
 	if d.hovered != nil && !d.Health.Dazed {
 		if d.hovered.Solid && d.selectLegal {
 			particles.CreateStaticParticle("target", d.hovered.Transform.Pos)

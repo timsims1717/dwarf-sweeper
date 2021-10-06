@@ -86,6 +86,19 @@ func run() {
 	sfx.SoundPlayer.RegisterSound("assets/sound/step4.wav", "step4")
 	sfx.SoundPlayer.RegisterSound("assets/sound/clink.wav", "clink")
 
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Crab Nebula.wav", "crab")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Frozen In Time.mp3", "frozen")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/No Light.mp3", "no_light")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Prairie Oyster.wav", "oyster")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Sable.wav", "sable")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Space Cruise.mp3", "cruise")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Twin Turbo.wav", "turbo")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Voyage.wav", "voyage")
+
+	sfx.MusicPlayer.SetTracks("menu", []string{"crab"})
+	sfx.MusicPlayer.SetTracks("pause", []string{"sable"})
+	sfx.MusicPlayer.NewSet("game", []string{"frozen", "no_light", "oyster", "cruise", "turbo", "voyage"}, true, 0., 2.)
+
 	timing.Reset()
 	win.Show()
 	for !win.Closed() {
@@ -102,6 +115,7 @@ func run() {
 
 		state.Draw(win)
 		debug.Draw(win)
+		sfx.MusicPlayer.Update()
 		win.Update()
 		win.SetVSync(constants.VSync)
 		if constants.ChangeScreenSize {

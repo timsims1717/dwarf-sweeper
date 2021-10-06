@@ -28,7 +28,7 @@ func init() {
 }
 
 func (p *soundPlayer) RegisterSound(path, key string) error {
-	errMsg := "register sound"
+	errMsg := fmt.Sprintf("register sound %s", key)
 	streamer, format, err := loadSoundFile(path)
 	if err != nil {
 		return errors.Wrap(err, errMsg)
