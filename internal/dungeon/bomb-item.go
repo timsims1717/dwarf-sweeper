@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -39,7 +39,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 	b.Physics, b.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
-	b.sprite = img.Batchers[cfg.EntityKey].Sprites["bomb_unlit"]
+	b.sprite = img.Batchers[constants.EntityKey].Sprites["bomb_unlit"]
 	b.collect = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
 			return AddToInventory(&InvItem{
@@ -69,7 +69,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Collect, b.collect).
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
-		AddComponent(myecs.Batch, cfg.EntityKey)
+		AddComponent(myecs.Batch, constants.EntityKey)
 }
 
 func (b *BombItem) Delete() {

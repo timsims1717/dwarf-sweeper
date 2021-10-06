@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -88,7 +88,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 	m.created = true
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[cfg.EntityKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
+			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[constants.EntityKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
 				3: func() {
 					m.AtkTimer = timing.New(mmAtkWait)
 					ownCoords := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
@@ -109,9 +109,9 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 					m.Attack = false
 				},
 			}),
-			reanimator.NewAnimFromSprites("mm_fall", img.Batchers[cfg.EntityKey].Animations["mm_fall"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("mm_walk", img.Batchers[cfg.EntityKey].Animations["mm_walk"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("mm_idle", img.Batchers[cfg.EntityKey].Animations["mm_idle"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("mm_fall", img.Batchers[constants.EntityKey].Animations["mm_fall"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("mm_walk", img.Batchers[constants.EntityKey].Animations["mm_walk"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("mm_idle", img.Batchers[constants.EntityKey].Animations["mm_idle"].S, reanimator.Hold, nil),
 		),
 		Check: func() int {
 			if m.Attack {
@@ -132,7 +132,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		AddComponent(myecs.Physics, m.Physics).
 		AddComponent(myecs.Health, m.Health).
 		AddComponent(myecs.Collision, data.Collider{}).
-		AddComponent(myecs.Batch, cfg.EntityKey)
+		AddComponent(myecs.Batch, constants.EntityKey)
 }
 
 func (m *MadMonk) Delete() {

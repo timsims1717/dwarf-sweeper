@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
@@ -329,15 +329,15 @@ func (d *Dwarf) Update(in *input.Input) {
 	if !d.Health.Dazed && !d.Health.Dead {
 		jpSelecting := in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.
 		moveSelecting := in.Get("left").Pressed() || in.Get("right").Pressed() || in.Get("up").Pressed() || in.Get("down").Pressed()
-		if jpSelecting && cfg.DigMode != data.Movement {
+		if jpSelecting && constants.DigMode != data.Movement {
 			d.gpSelect = true
 			d.mouseSelect = false
 			d.selectTimer = timing.New(selectTimerSec)
-		} else if in.MouseMoved && cfg.DigMode != data.Movement {
+		} else if in.MouseMoved && constants.DigMode != data.Movement {
 			d.mouseSelect = true
 			d.gpSelect = false
 			d.selectTimer = timing.New(selectTimerSec)
-		} else if d.selectTimer.UpdateDone() && cfg.DigMode != data.Dedicated {
+		} else if d.selectTimer.UpdateDone() && constants.DigMode != data.Dedicated {
 			d.gpSelect = false
 			d.mouseSelect = false
 		}
@@ -367,7 +367,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.hovered = Dungeon.GetCave().GetTile(p)
 		} else if d.mouseSelect {
 			d.hovered = Dungeon.GetCave().GetTile(in.World)
-		} else if cfg.DigMode != data.Dedicated {
+		} else if constants.DigMode != data.Dedicated {
 			if moveSelecting {
 				x := 0.
 				y := 0.

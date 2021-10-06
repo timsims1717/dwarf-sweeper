@@ -1,7 +1,8 @@
 package main
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/config"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/menus"
@@ -19,27 +20,29 @@ import (
 )
 
 func run() {
-	world.SetTileSize(cfg.TileSize)
-	config := pixelgl.WindowConfig{
-		Title:  cfg.Title,
-		Bounds: pixel.R(0, 0, 1600, 900),
-		VSync: true,
+	world.SetTileSize(constants.TileSize)
+	config.LoadConfig()
+	res := constants.Resolutions[constants.ResIndex]
+	conf := pixelgl.WindowConfig{
+		Title:     constants.Title,
+		Bounds:    pixel.R(0, 0, res.X, res.Y),
+		VSync:     constants.VSync,
 		Invisible: true,
 	}
-	win, err := pixelgl.NewWindow(config)
+	if constants.FullScreen {
+		constants.ChangeScreenSize = true
+	}
+	win, err := pixelgl.NewWindow(conf)
 	if err != nil {
 		panic(err)
 	}
 	win.SetSmooth(false)
 
-	sfx.SetMasterVolume(75)
-	sfx.SetSoundVolume(75)
-
 	camera.Cam = camera.New(true)
-	camera.Cam.Opt.WindowScale = cfg.BaseH
+	camera.Cam.Opt.WindowScale = constants.BaseH
 	camera.Cam.SetZoom(4. / 3.)
 	camera.Cam.SetILock(true)
-	camera.Cam.SetSize(1600/900, cfg.BaseH)
+	camera.Cam.SetSize(res.X/res.Y, constants.BaseH)
 
 	debug.Initialize()
 
@@ -49,17 +52,17 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers[cfg.EntityKey] = img.NewBatcher(sheet, true)
+	img.Batchers[constants.EntityKey] = img.NewBatcher(sheet, true)
 	sheet2, err := img.LoadSpriteSheet("assets/img/big_entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers[cfg.BigEntityKey] = img.NewBatcher(sheet2, true)
+	img.Batchers[constants.BigEntityKey] = img.NewBatcher(sheet2, true)
 	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers[cfg.MenuSprites] = img.NewBatcher(menuSheet, false)
+	img.Batchers[constants.MenuSprites] = img.NewBatcher(menuSheet, false)
 
 	menus.Initialize()
 	state.InitializeMenus(win)
@@ -100,15 +103,24 @@ func run() {
 		state.Draw(win)
 		debug.Draw(win)
 		win.Update()
-		win.SetVSync(cfg.VSync)
-		if cfg.ChangeScreenSize {
-			cfg.ChangeScreenSize = false
-			//if (cfg.FullScreen && win.Monitor() == nil) || (!cfg.FullScreen && win.Monitor() != nil) {
-				pos := win.GetPos()
-				pos.X += win.Bounds().W() * 0.5
-				pos.Y += win.Bounds().H() * 0.5
-				var picked *pixelgl.Monitor
-				if len(pixelgl.Monitors()) > 1 {
+		win.SetVSync(constants.VSync)
+		if constants.ChangeScreenSize {
+			constants.ChangeScreenSize = false
+			pos := win.GetPos()
+			pos.X += win.Bounds().W() * 0.5
+			pos.Y += win.Bounds().H() * 0.5
+			var picked *pixelgl.Monitor
+			if len(pixelgl.Monitors()) > 1 {
+				for _, m := range pixelgl.Monitors() {
+					x, y := m.Position()
+					w, h := m.Size()
+					if pos.X >= x && pos.X <= x+w && pos.Y >= y && pos.Y <= y+h {
+						picked = m
+						break
+					}
+				}
+				if picked == nil {
+					pos = win.GetPos()
 					for _, m := range pixelgl.Monitors() {
 						x, y := m.Position()
 						w, h := m.Size()
@@ -117,28 +129,17 @@ func run() {
 							break
 						}
 					}
-					if picked == nil {
-						pos = win.GetPos()
-						for _, m := range pixelgl.Monitors() {
-							x, y := m.Position()
-							w, h := m.Size()
-							if pos.X >= x && pos.X <= x+w && pos.Y >= y && pos.Y <= y+h {
-								picked = m
-								break
-							}
-						}
-					}
 				}
-				if picked == nil {
-					picked = pixelgl.PrimaryMonitor()
-				}
-				if cfg.FullScreen {
-					win.SetMonitor(picked)
-				} else {
-					win.SetMonitor(nil)
-				}
-			//}
-			res := cfg.Resolutions[cfg.ResIndex]
+			}
+			if picked == nil {
+				picked = pixelgl.PrimaryMonitor()
+			}
+			if constants.FullScreen {
+				win.SetMonitor(picked)
+			} else {
+				win.SetMonitor(nil)
+			}
+			res := constants.Resolutions[constants.ResIndex]
 			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
 			camera.Cam.SetSize(res.X / res.Y, res.Y)
 		}

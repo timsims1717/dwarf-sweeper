@@ -1,11 +1,13 @@
 package state
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/config"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/enchants"
 	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/player"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/input"
@@ -56,12 +58,12 @@ func UpdateMenus(win *pixelgl.Window) {
 			}
 		} else if currMenu.Key == "keybinding" && currMenu.IsOpen() {
 			if menuInput.Get("inputClear").JustPressed() {
-				input.ClearInput(gameInput, KeyString)
+				input.ClearInput(player.GameInput, KeyString)
 				menuInput.Get("inputClear").Consume()
 				currMenu.Close()
 			} else {
-				if input.CheckAssign(win, gameInput, KeyString) {
-					gameInput.Buttons[KeyString].Button.Consume()
+				if input.CheckAssign(win, player.GameInput, KeyString) {
+					player.GameInput.Buttons[KeyString].Button.Consume()
 					currMenu.Close()
 				}
 			}
@@ -137,6 +139,7 @@ func InitOptionsMenu() {
 func InitAudioMenu() {
 	AudioMenu = menus.New("audio", camera.Cam)
 	AudioMenu.Title = true
+	AudioMenu.SetCloseFn(config.SaveAsync)
 	audioTitle := AudioMenu.AddItem("title", "Audio Options")
 	soundVolume := AudioMenu.AddItem("s_volume", "Sound Volume")
 	soundVolumeR := AudioMenu.AddItem("s_volume_r", strconv.Itoa(sfx.GetSoundVolume()))
@@ -192,53 +195,60 @@ func InitAudioMenu() {
 func InitGraphicsMenu() {
 	GraphicsMenu = menus.New("graphics", camera.Cam)
 	GraphicsMenu.Title = true
-	graphicsTitle := GraphicsMenu.AddItem("title", "Gra^hics O^tions")
+	GraphicsMenu.SetCloseFn(config.SaveAsync)
+	graphicsTitle := GraphicsMenu.AddItem("title", "Graphics Options")
 	vsync := GraphicsMenu.AddItem("vsync", "VSync")
-	vsyncR := GraphicsMenu.AddItem("vsync_r", "On")
+	vsyncR := GraphicsMenu.AddItem("vsync_r", "Off")
 	fullscreen := GraphicsMenu.AddItem("fullscreen", "Fullscreen")
 	fullscreenR := GraphicsMenu.AddItem("fullscreen_r", "Off")
 	resolution := GraphicsMenu.AddItem("resolution", "Resolution")
-	resolutionR := GraphicsMenu.AddItem("resolution_r", cfg.ResStrings[cfg.ResIndex])
+	resolutionR := GraphicsMenu.AddItem("resolution_r", constants.ResStrings[constants.ResIndex])
 	back := GraphicsMenu.AddItem("back", "Back")
 
 	graphicsTitle.NoHover = true
 	vsync.SetClickFn(func() {
-		if cfg.VSync {
-			vsyncR.Raw = "Off"
-		} else {
+		constants.VSync = !constants.VSync
+		if constants.VSync {
 			vsyncR.Raw = "On"
+		} else {
+			vsyncR.Raw = "Off"
 		}
-		cfg.VSync = !cfg.VSync
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
+	if constants.VSync {
+		vsyncR.Raw = "On"
+	}
+	if constants.FullScreen {
+		fullscreenR.Raw = "On"
+	}
 	vsyncR.NoHover = true
 	vsyncR.Right = true
 	fullscreen.SetClickFn(func() {
-		if cfg.FullScreen {
-			fullscreenR.Raw = "Off"
-		} else {
+		constants.FullScreen = !constants.FullScreen
+		if constants.FullScreen {
 			fullscreenR.Raw = "On"
+		} else {
+			fullscreenR.Raw = "Off"
 		}
-		cfg.FullScreen = !cfg.FullScreen
-		cfg.ChangeScreenSize = true
+		constants.ChangeScreenSize = true
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	fullscreenR.NoHover = true
 	fullscreenR.Right = true
 	fn := func() {
-		cfg.ResIndex += 1
-		cfg.ResIndex %= len(cfg.Resolutions)
-		cfg.ChangeScreenSize = true
-		resolutionR.Raw = cfg.ResStrings[cfg.ResIndex]
+		constants.ResIndex += 1
+		constants.ResIndex %= len(constants.Resolutions)
+		constants.ChangeScreenSize = true
+		resolutionR.Raw = constants.ResStrings[constants.ResIndex]
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	}
 	resolution.SetClickFn(fn)
 	resolution.SetRightFn(fn)
 	resolution.SetLeftFn(func() {
-		cfg.ResIndex += len(cfg.Resolutions) - 1
-		cfg.ResIndex %= len(cfg.Resolutions)
-		cfg.ChangeScreenSize = true
-		resolutionR.Raw = cfg.ResStrings[cfg.ResIndex]
+		constants.ResIndex += len(constants.Resolutions) - 1
+		constants.ResIndex %= len(constants.Resolutions)
+		constants.ChangeScreenSize = true
+		resolutionR.Raw = constants.ResStrings[constants.ResIndex]
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	resolutionR.NoHover = true
@@ -253,11 +263,12 @@ func InitInputMenu(win *pixelgl.Window) {
 	InputMenu = menus.New("input", camera.Cam)
 	InputMenu.Title = true
 	InputMenu.SetOpenFn(UpdateKeybindings)
+	InputMenu.SetCloseFn(config.SaveAsync)
 	inputTitle := InputMenu.AddItem("title", "Input Options")
 	device := InputMenu.AddItem("device", "Device")
-	deviceR := InputMenu.AddItem("device_r", "KB&Mouse")
+	deviceR := InputMenu.AddItem("device_r", "")
 	digMode := InputMenu.AddItem("dig_mode", "Dig Mode")
-	digModeR := InputMenu.AddItem("dig_mode_r", data.DigMode(cfg.DigMode).String())
+	digModeR := InputMenu.AddItem("dig_mode_r", data.DigMode(constants.DigMode).String())
 	deadzone := InputMenu.AddItem("deadzone", "Deadzone")
 	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", input.Deadzone))
 	leftStickA := InputMenu.AddItem("left_stick_a", "Move with")
@@ -285,71 +296,72 @@ func InitInputMenu(win *pixelgl.Window) {
 	nextR := InputMenu.AddItem("next_r", "E")
 	back := InputMenu.AddItem("back", "Back")
 
-	inputTitle.NoHover = true
-	rfn1 := func() {
-		km := gameInput.Mode == input.KeyboardMouse
-		var js int
-		if km {
-			js = input.NextGamepad(win, -1)
-		} else {
-			js = input.NextGamepad(win, int(gameInput.Joystick))
-		}
-		if js != -1 {
-			deviceR.Raw = fmt.Sprintf("Gamepad %d", js+1)
-			gameInput.Joystick = pixelgl.Joystick(js)
-			gameInput.Mode = input.Gamepad
-			device.Hint = win.JoystickName(pixelgl.Joystick(js))
-			if cfg.DigMode == data.Dedicated {
+	digModeHint := func() {
+		switch constants.DigMode {
+		case data.Dedicated:
+			if player.GameInput.Mode == input.KeyboardMouse {
+				digMode.Hint = "Use the mouse to aim for digging and marking."
+			} else {
 				digMode.Hint = "Use the right stick to aim for digging and marking."
 			}
-		} else {
-			deviceR.Raw = "KB&Mouse"
-			gameInput.Joystick = pixelgl.JoystickLast
-			gameInput.Mode = input.KeyboardMouse
+		case data.Either:
+			digMode.Hint = ""
+		case data.Movement:
+			digMode.Hint = "Use the movement keys to aim for digging and marking."
+		}
+	}
+	digModeHint()
+	deviceUpdate := func() {
+		km := player.GameInput.Mode == input.KeyboardMouse
+		if km {
 			device.Hint = ""
-			if cfg.DigMode == data.Dedicated {
-				digMode.Hint = "Use the mouse to aim for digging and marking."
+			deviceR.Raw = "KB&Mouse"
+		} else {
+			device.Hint = win.JoystickName(player.GameInput.Joystick)
+			deviceR.Raw = fmt.Sprintf("Gamepad %d", player.GameInput.Joystick+1)
+		}
+		leftStickA.NoShow = km
+		leftStickB.NoShow = km
+		leftStickR.NoShow = km
+		deadzone.NoShow = km
+		deadzoneR.NoShow = km
+	}
+	deviceUpdate()
+
+	inputTitle.NoHover = true
+	deviceSwitch := func(prev bool) {
+		km := player.GameInput.Mode == input.KeyboardMouse
+		var js int
+		if prev {
+			if km {
+				js = input.PrevGamepad(win, -1)
+			} else {
+				js = input.PrevGamepad(win, int(player.GameInput.Joystick))
+			}
+		} else {
+			if km {
+				js = input.NextGamepad(win, -1)
+			} else {
+				js = input.NextGamepad(win, int(player.GameInput.Joystick))
 			}
 		}
-		leftStickA.NoShow = js == -1
-		leftStickB.NoShow = js == -1
-		leftStickR.NoShow = js == -1
-		deadzone.NoShow = js == -1
-		deadzoneR.NoShow = js == -1
+		if js != -1 {
+			player.GameInput.Joystick = pixelgl.Joystick(js)
+			player.GameInput.Mode = input.Gamepad
+		} else {
+			player.GameInput.Joystick = pixelgl.JoystickLast
+			player.GameInput.Mode = input.KeyboardMouse
+		}
 		UpdateKeybindings()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
+		digModeHint()
+		deviceUpdate()
+	}
+	rfn1 := func() {
+		deviceSwitch(false)
 	}
 	lfn1 := func() {
-		km := gameInput.Mode == input.KeyboardMouse
-		var js int
-		if km {
-			js = input.PrevGamepad(win, -1)
-		} else {
-			js = input.PrevGamepad(win, int(gameInput.Joystick))
-		}
-		if js != -1 {
-			deviceR.Raw = fmt.Sprintf("Gamepad %d", js+1)
-			gameInput.Joystick = pixelgl.Joystick(js)
-			gameInput.Mode = input.Gamepad
-			device.Hint = win.JoystickName(pixelgl.Joystick(js))
-			if cfg.DigMode == data.Dedicated {
-				digMode.Hint = "Use the right stick to aim for digging and marking."
-			}
-		} else {
-			deviceR.Raw = "KB&Mouse"
-			gameInput.Joystick = pixelgl.JoystickLast
-			gameInput.Mode = input.KeyboardMouse
-			if cfg.DigMode == data.Dedicated {
-				digMode.Hint = "Use the mouse to aim for digging and marking."
-			}
-		}
-		leftStickA.NoShow = js == -1
-		leftStickB.NoShow = js == -1
-		leftStickR.NoShow = js == -1
-		deadzone.NoShow = js == -1
-		deadzoneR.NoShow = js == -1
-		UpdateKeybindings()
-		sfx.SoundPlayer.PlaySound("click", 2.0)
+		deviceSwitch(true)
 	}
 	device.SetClickFn(rfn1)
 	device.SetRightFn(rfn1)
@@ -358,61 +370,39 @@ func InitInputMenu(win *pixelgl.Window) {
 	deviceR.NoHover = true
 	rfn2 := func() {
 		var dm data.DigMode
-		switch cfg.DigMode {
+		switch constants.DigMode {
 		case data.Either:
 			dm = data.Movement
-			digMode.Hint = "Use the movement keys to aim for digging and marking."
 		case data.Movement:
 			dm = data.Dedicated
-			if gameInput.Mode == input.KeyboardMouse {
-				digMode.Hint = "Use the mouse to aim for digging and marking."
-			} else {
-				digMode.Hint = "Use the right stick to aim for digging and marking."
-			}
 		case data.Dedicated:
 			dm = data.Either
-			digMode.Hint = ""
 		}
-		cfg.DigMode = int(dm)
+		constants.DigMode = int(dm)
 		digModeR.Raw = dm.String()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
+		digModeHint()
 	}
 	lfn2 := func() {
 		var dm data.DigMode
-		switch cfg.DigMode {
+		switch constants.DigMode {
 		case data.Either:
 			dm = data.Dedicated
-			if gameInput.Mode == input.KeyboardMouse {
-				digMode.Hint = "Use the mouse to aim for digging and marking."
-			} else {
-				digMode.Hint = "Use the right stick to aim for digging and marking."
-			}
 		case data.Movement:
 			dm = data.Either
-			digMode.Hint = ""
 		case data.Dedicated:
 			dm = data.Movement
-			digMode.Hint = "Use the movement keys to aim for digging and marking."
 		}
-		cfg.DigMode = int(dm)
+		constants.DigMode = int(dm)
 		digModeR.Raw = dm.String()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
+		digModeHint()
 	}
 	digMode.SetClickFn(rfn2)
 	digMode.SetRightFn(rfn2)
 	digMode.SetLeftFn(lfn2)
 	digModeR.Right = true
 	digModeR.NoHover = true
-	rfn3 := func() {
-		if gameInput.StickD {
-			leftStickR.Raw = "No"
-		} else {
-			leftStickR.Raw = "Yes"
-		}
-		gameInput.StickD = !gameInput.StickD
-		sfx.SoundPlayer.PlaySound("click", 2.0)
-	}
-	deadzone.NoShow = true
 	deadzone.SetRightFn(func() {
 		n := input.Deadzone + 0.05
 		if n > 0.5 {
@@ -431,9 +421,17 @@ func InitInputMenu(win *pixelgl.Window) {
 		deadzoneR.Raw = fmt.Sprintf("%f", n)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
-	deadzoneR.NoShow = true
 	deadzoneR.NoHover = true
 	deadzoneR.Right = true
+	rfn3 := func() {
+		player.GameInput.StickD = !player.GameInput.StickD
+		if player.GameInput.StickD {
+			leftStickR.Raw = "Yes"
+		} else {
+			leftStickR.Raw = "No"
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
 	leftStickA.SetClickFn(rfn3)
 	leftStickA.SetRightFn(rfn3)
 	leftStickA.SetLeftFn(rfn3)
@@ -443,13 +441,14 @@ func InitInputMenu(win *pixelgl.Window) {
 	leftStickA.SetUnhoverFn(func() {
 		leftStickB.Hovered = false
 	})
-	leftStickA.NoShow = true
-	leftStickB.NoShow = true
 	leftStickB.NoHover = true
-	leftStickR.NoShow = true
 	leftStickR.NoHover = true
 	leftStickR.Right = true
-
+	if player.GameInput.StickD {
+		leftStickR.Raw = "Yes"
+	} else {
+		leftStickR.Raw = "No"
+	}
 	keyFn := func(item *menus.Item) func() {
 		return func() {
 			OpenKeybindingMenu(item.Raw, item.Key)
@@ -524,12 +523,12 @@ func UpdateKeybindings() {
 
 func UpdateKeybinding(key string) {
 	r := InputMenu.ItemMap[fmt.Sprintf("%s_r", key)]
-	in := gameInput.Buttons[key]
+	in := player.GameInput.Buttons[key]
 	builder := strings.Builder{}
 	var symKeys []string
 	first := true
-	if gameInput.Mode != input.Gamepad {
-		for _, k := range in.Key {
+	if player.GameInput.Mode != input.Gamepad {
+		for _, k := range in.Keys {
 			if first {
 				first = false
 			} else {
@@ -556,8 +555,8 @@ func UpdateKeybinding(key string) {
 			symKeys = append(symKeys, "MouseScrollDown")
 		}
 	}
-	if gameInput.Mode != input.KeyboardMouse {
-		for _, b := range in.GPKey {
+	if player.GameInput.Mode != input.KeyboardMouse {
+		for _, b := range in.Buttons {
 			if first {
 				first = false
 			} else {
@@ -566,14 +565,14 @@ func UpdateKeybinding(key string) {
 			builder.WriteString(typeface.SymbolItem)
 			symKeys = append(symKeys, input.GamepadString(b))
 		}
-		if in.GP != 0 {
+		if in.AxisV != 0 {
 			if first {
 				first = false
 			} else {
 				builder.WriteString(" ")
 			}
 			builder.WriteString(typeface.SymbolItem)
-			symKeys = append(symKeys, input.AxisDirString(in.Axis, in.GP > 0))
+			symKeys = append(symKeys, input.AxisDirString(in.Axis, in.AxisV > 0))
 		}
 	}
 	r.Raw = builder.String()

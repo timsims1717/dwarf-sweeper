@@ -1,7 +1,7 @@
 package menus
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
@@ -133,7 +133,7 @@ func (i *Item) Draw(target pixel.Target) {
 		i.Text.Draw(target, i.Transform.Mat)
 		if len(i.SymMats) == len(i.Symbols) {
 			for j := 0; j < len(i.Symbols); j++ {
-				sym := img.Batchers[cfg.MenuSprites].Sprites[i.Symbols[j]]
+				sym := img.Batchers[constants.MenuSprites].Sprites[i.Symbols[j]]
 				if sym != nil {
 					sym.Draw(target, i.SymMats[j])
 				}

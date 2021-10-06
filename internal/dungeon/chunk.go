@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
@@ -67,7 +67,7 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 				Tile: tile,
 				FuseLength: tile.Chunk.Cave.fuseLen,
 			}
-			tile.XRay = img.Batchers[cfg.EntityKey].Sprites["bomb_fuse"]
+			tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
 		} else if random.CaveGen.Intn(cave.gemRate) == 0 {
 			collect := Collectibles[GemDiamond]
 			tile.Entity = &CollectibleItem{
@@ -80,7 +80,7 @@ func GenerateChunk(coords world.Coords, cave *Cave) *Chunk {
 			switch random.CaveGen.Intn(5) {
 			case 0:
 				tile.Entity = &BombItem{}
-				tile.XRay = img.Batchers[cfg.EntityKey].Sprites["bomb_unlit"]
+				tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_unlit"]
 			case 1:
 				collectible = Heart
 			case 2:

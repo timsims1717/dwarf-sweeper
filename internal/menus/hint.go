@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultMax = 116.
+	DefaultMax = 96.
 )
 
 type HintBox struct {

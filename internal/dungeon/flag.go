@@ -1,7 +1,7 @@
 package dungeon
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -33,7 +33,7 @@ func (f *Flag) Create(from pixel.Vec) {
 	f.created = true
 	f.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("flag_hang", img.Batchers[cfg.EntityKey].Animations["flag_hang"].S, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.EntityKey].Animations["flag_hang"].S, reanimator.Loop, nil),
 		),
 		Check: func() int {
 			return 0
@@ -43,7 +43,7 @@ func (f *Flag) Create(from pixel.Vec) {
 		AddComponent(myecs.Entity, f).
 		AddComponent(myecs.Transform, f.Transform).
 		AddComponent(myecs.Animation, f.Reanimator).
-		AddComponent(myecs.Batch, cfg.EntityKey)
+		AddComponent(myecs.Batch, constants.EntityKey)
 }
 
 func (f *Flag) Delete() {

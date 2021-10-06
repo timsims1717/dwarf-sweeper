@@ -64,24 +64,24 @@ var (
 	menuInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
 			"menuUp": {
-				Key:   []pixelgl.Button{pixelgl.KeyW, pixelgl.KeyUp, pixelgl.KeyKP8},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadUp},
+				Keys:    []pixelgl.Button{pixelgl.KeyW, pixelgl.KeyUp, pixelgl.KeyKP8},
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonDpadUp},
 			},
 			"menuDown": {
-				Key:   []pixelgl.Button{pixelgl.KeyS, pixelgl.KeyDown, pixelgl.KeyKP5},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadDown},
+				Keys:    []pixelgl.Button{pixelgl.KeyS, pixelgl.KeyDown, pixelgl.KeyKP5},
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonDpadDown},
 			},
 			"menuLeft": {
-				Key:   []pixelgl.Button{pixelgl.KeyA, pixelgl.KeyLeft, pixelgl.KeyKP4},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadLeft},
+				Keys:    []pixelgl.Button{pixelgl.KeyA, pixelgl.KeyLeft, pixelgl.KeyKP4},
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonDpadLeft},
 			},
 			"menuRight": {
-				Key:   []pixelgl.Button{pixelgl.KeyD, pixelgl.KeyRight, pixelgl.KeyKP6},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonDpadRight},
+				Keys:    []pixelgl.Button{pixelgl.KeyD, pixelgl.KeyRight, pixelgl.KeyKP6},
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonDpadRight},
 			},
 			"menuSelect": {
-				Key:   []pixelgl.Button{pixelgl.KeySpace, pixelgl.KeyEnter, pixelgl.KeyKPEnter},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonA},
+				Keys:    []pixelgl.Button{pixelgl.KeySpace, pixelgl.KeyEnter, pixelgl.KeyKPEnter},
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonA},
 			},
 			"menuBack": input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
 			"inputClear": input.New(pixelgl.KeyF1, pixelgl.ButtonBack),
@@ -92,51 +92,9 @@ var (
 			"scrollDown":  {
 				Scroll: -1,
 			},
-		},
-		Mode: input.Any,
-	}
-	gameInput = &input.Input{
-		Axes: map[string]*input.AxisSet{
-			"targetX": {
-				A: pixelgl.AxisRightX,
-			},
-			"targetY": {
-				A: pixelgl.AxisRightY,
-			},
-		},
-		Buttons: map[string]*input.ButtonSet{
-			"dig": {
-				Key:   []pixelgl.Button{pixelgl.MouseButtonLeft, pixelgl.KeyLeftShift},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonX},
-				Axis:  pixelgl.AxisRightTrigger,
-				GP:    1,
-			},
-			"mark": {
-				Key:   []pixelgl.Button{pixelgl.MouseButtonRight, pixelgl.KeyLeftControl},
-				GPKey: []pixelgl.GamepadButton{pixelgl.ButtonY},
-				Axis:  pixelgl.AxisLeftTrigger,
-				GP:    1,
-			},
-			"left":      input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
-			"right":     input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
-			"jump":      input.New(pixelgl.KeySpace, pixelgl.ButtonA),
-			"up":        input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
-			"down":      input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-			"use":   input.New(pixelgl.KeyF, pixelgl.ButtonB),
-			"prev":  {
-				Key:    []pixelgl.Button{pixelgl.KeyQ},
-				GPKey:  []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
-				Scroll: -1,
-			},
-			"next":  {
-				Key:    []pixelgl.Button{pixelgl.KeyE},
-				GPKey:  []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
-				Scroll: 1,
-			},
 			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
-		StickD: true,
-		Mode: input.KeyboardMouse,
+		Mode: input.Any,
 	}
 )
 
@@ -144,7 +102,7 @@ func Update(win *pixelgl.Window) {
 	updateState()
 	debugInput.Update(win)
 	menuInput.Update(win)
-	gameInput.Update(win)
+	player.GameInput.Update(win)
 	if debugInput.Get("debug").JustPressed() {
 		if debug.Debug {
 			fmt.Println("DEBUG OFF")
@@ -201,10 +159,10 @@ func Update(win *pixelgl.Window) {
 					systems.EntitySystem()
 					particles.Update()
 					vfx.Update()
-					dungeon.Dungeon.GetPlayer().Update(gameInput)
+					dungeon.Dungeon.GetPlayer().Update(player.GameInput)
 					systems.AnimationSystem()
 					player.UpdateHUD()
-					if gameInput.Get("up").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+					if player.GameInput.Get("up").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
 						newState = 5
 					}
 				}
@@ -219,8 +177,8 @@ func Update(win *pixelgl.Window) {
 						newState = 2
 					}
 				}
-				if gameInput.Get("pause").JustPressed() {
-					gameInput.Get("pause").Consume()
+				if menuInput.Get("pause").JustPressed() {
+					menuInput.Get("pause").Consume()
 					if MenuClosed() && !dungeon.Dungeon.GetPlayer().Health.Dead {
 						OpenMenu(PauseMenu)
 					}
@@ -245,7 +203,7 @@ func Update(win *pixelgl.Window) {
 				systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
-				dungeon.Dungeon.GetPlayer().Update(gameInput)
+				dungeon.Dungeon.GetPlayer().Update(player.GameInput)
 				systems.AnimationSystem()
 				player.UpdateHUD()
 				UpdateMenus(win)
@@ -288,7 +246,7 @@ func Draw(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, gameInput)
+		dungeon.Dungeon.GetPlayer().Draw(win, player.GameInput)
 		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
@@ -313,7 +271,7 @@ func Draw(win *pixelgl.Window) {
 		}
 	} else if state == 2 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, gameInput)
+		dungeon.Dungeon.GetPlayer().Draw(win, player.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
@@ -353,7 +311,7 @@ func Draw(win *pixelgl.Window) {
 		credits.Draw(win)
 	} else if state == 5 {
 		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, gameInput)
+		dungeon.Dungeon.GetPlayer().Draw(win, player.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {

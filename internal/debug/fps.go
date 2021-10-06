@@ -1,7 +1,7 @@
 package debug
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/timing"
@@ -19,7 +19,7 @@ func InitializeFPS() {
 	col := colornames.Aliceblue
 	col.A = 90
 	fpsText = menu.NewItemText("", col, pixel.V(1., 1.), menu.Left, menu.Bottom)
-	fpsText.Transform.Pos = pixel.V(cfg.BaseW * -0.5, cfg.BaseH * -0.5 + 2)
+	fpsText.Transform.Pos = pixel.V(constants.BaseW * -0.5, constants.BaseH * -0.5 + 2)
 }
 
 func DrawFPS(win *pixelgl.Window) {

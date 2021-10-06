@@ -1,7 +1,7 @@
 package debug
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/menu"
 	"github.com/faiface/pixel"
@@ -17,7 +17,7 @@ func InitializeText() {
 	col := colornames.Aliceblue
 	col.A = 90
 	debugText = menu.NewItemText("", col, pixel.V(1., 1.), menu.Left, menu.Top)
-	debugText.Transform.Pos = pixel.V(cfg.BaseW * -0.5, cfg.BaseH * 0.5)
+	debugText.Transform.Pos = pixel.V(constants.BaseW * -0.5, constants.BaseH * 0.5)
 }
 
 func DrawText(win *pixelgl.Window) {

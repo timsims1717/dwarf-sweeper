@@ -1,7 +1,7 @@
 package player
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/dungeon"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
@@ -35,21 +35,21 @@ func InitHUD() {
 		tran.Anchor.H = transform.Left
 		tran.Anchor.V = transform.Center
 		tran.Scalar = pixel.V(1.6, 1.6)
-		tran.Pos = pixel.V(cfg.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, cfg.BaseH * 0.5 - world.TileSize)
+		tran.Pos = pixel.V(constants.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, constants.BaseH * 0.5 - world.TileSize)
 		heartTransforms = append(heartTransforms, tran)
 	}
 	gemTransform = transform.NewTransform()
 	gemTransform.Anchor.H = transform.Left
 	gemTransform.Anchor.V = transform.Center
 	gemTransform.Scalar = pixel.V(1.6, 1.6)
-	gemTransform.Pos = pixel.V(cfg.BaseW * -0.5 + 8., cfg.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	gemTransform.Pos = pixel.V(constants.BaseW * -0.5 + 8., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
 	gemNumberItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Center)
-	gemNumberItem.Transform.Pos = pixel.V(cfg.BaseW * -0.5 + 24., cfg.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	gemNumberItem.Transform.Pos = pixel.V(constants.BaseW * -0.5 + 24., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
 	itemTransform = transform.NewTransform()
 	itemTransform.Anchor.H = transform.Right
 	itemTransform.Anchor.V = transform.Center
 	itemTransform.Scalar = pixel.V(1.6, 1.6)
-	itemTransform.Pos = pixel.V(cfg.BaseW * 0.5 - 8., cfg.BaseH * 0.5 - world.TileSize)
+	itemTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - world.TileSize)
 	tmpAnimation = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
 			reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers["entities"].Animations["heart_temp_1"].S, reanimator.Hold, nil),
@@ -85,7 +85,7 @@ func UpdateHUD() {
 			tran.Anchor.H = transform.Left
 			tran.Anchor.V = transform.Center
 			tran.Scalar = pixel.V(1.6, 1.6)
-			tran.Pos = pixel.V(cfg.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, cfg.BaseH * 0.5 - world.TileSize)
+			tran.Pos = pixel.V(constants.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, constants.BaseH * 0.5 - world.TileSize)
 			heartTransforms = append(heartTransforms, tran)
 		}
 	}

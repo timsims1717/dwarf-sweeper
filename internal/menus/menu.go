@@ -1,7 +1,7 @@
 package menus
 
 import (
-	"dwarf-sweeper/internal/cfg"
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
@@ -38,12 +38,12 @@ var (
 )
 
 func Initialize() {
-	corner = img.Batchers[cfg.MenuSprites].Sprites["menu_corner"]
-	sideV = img.Batchers[cfg.MenuSprites].Sprites["menu_side_v"]
-	sideH = img.Batchers[cfg.MenuSprites].Sprites["menu_side_h"]
-	inner = img.Batchers[cfg.MenuSprites].Sprites["menu_inner"]
-	arrow = img.Batchers[cfg.MenuSprites].Sprites["menu_arrow"]
-	hintE = img.Batchers[cfg.MenuSprites].Sprites["menu_side_entry"]
+	corner = img.Batchers[constants.MenuSprites].Sprites["menu_corner"]
+	sideV = img.Batchers[constants.MenuSprites].Sprites["menu_side_v"]
+	sideH = img.Batchers[constants.MenuSprites].Sprites["menu_side_h"]
+	inner = img.Batchers[constants.MenuSprites].Sprites["menu_inner"]
+	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
+	hintE = img.Batchers[constants.MenuSprites].Sprites["menu_side_entry"]
 	DefaultColor = color.RGBA{
 		R: 74,
 		G: 84,

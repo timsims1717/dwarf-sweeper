@@ -68,7 +68,7 @@ func (i *Input) Update(win *pixelgl.Window) {
 		nowPressed := false
 		repeated := false
 		if i.joyConn && !set.noJoy && i.Mode != KeyboardMouse {
-			for _, g := range set.GPKey {
+			for _, g := range set.Buttons {
 				nowPressed = win.JoystickPressed(i.Joystick, g) || nowPressed
 				if i.StickD {
 					if g == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -Deadzone {
@@ -83,14 +83,14 @@ func (i *Input) Update(win *pixelgl.Window) {
 					}
 				}
 			}
-			if set.GP != 0 &&
-				((win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.GP > 0) ||
-					(win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.GP < 0)) {
+			if set.AxisV != 0 &&
+				((win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.AxisV > 0) ||
+					(win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.AxisV < 0)) {
 				nowPressed = true
 			}
 		}
 		if i.Mode != Gamepad {
-			for _, s := range set.Key {
+			for _, s := range set.Keys {
 				nowPressed = win.Pressed(s) || nowPressed
 				repeated = win.Repeated(s) || repeated
 			}
@@ -110,14 +110,14 @@ func (i *Input) Update(win *pixelgl.Window) {
 
 func New(n pixelgl.Button, g pixelgl.GamepadButton) *ButtonSet {
 	return &ButtonSet{
-		Key:   []pixelgl.Button{n},
-		GPKey: []pixelgl.GamepadButton{g},
+		Keys:    []pixelgl.Button{n},
+		Buttons: []pixelgl.GamepadButton{g},
 	}
 }
 
 func NewJoyless(n pixelgl.Button) *ButtonSet {
 	return &ButtonSet{
-		Key:   []pixelgl.Button{n},
+		Keys:  []pixelgl.Button{n},
 		noJoy: true,
 	}
 }
@@ -175,11 +175,11 @@ type AxisSet struct {
 }
 
 type ButtonSet struct {
-	Button Button
-	Key    []pixelgl.Button
-	Scroll int
-	GPKey  []pixelgl.GamepadButton
-	Axis   pixelgl.GamepadAxis
-	GP     int
-	noJoy  bool
+	Button  Button
+	Keys    []pixelgl.Button        `toml:"keys"`
+	Scroll  int                     `toml:"scroll"`
+	Buttons []pixelgl.GamepadButton `toml:"buttons"`
+	Axis    pixelgl.GamepadAxis     `toml:"axis"`
+	AxisV   int                     `toml:"axis_v"`
+	noJoy   bool
 }
