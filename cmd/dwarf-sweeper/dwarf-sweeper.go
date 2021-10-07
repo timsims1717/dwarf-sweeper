@@ -4,7 +4,7 @@ import (
 	"dwarf-sweeper/internal/config"
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/state"
@@ -66,7 +66,7 @@ func run() {
 
 	menus.Initialize()
 	state.InitializeMenus(win)
-	dungeon.InitCollectibles()
+	descent.InitCollectibles()
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/blast1.wav", "blast1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")

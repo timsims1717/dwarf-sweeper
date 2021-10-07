@@ -1,8 +1,9 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/img"
@@ -18,8 +19,7 @@ import (
 type Mine struct {
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
-	FuseLength float64
-	Tile       *Tile
+	Tile       *cave.Tile
 	created    bool
 	explode    bool
 	Reanimator *reanimator.Tree
@@ -27,8 +27,10 @@ type Mine struct {
 }
 
 func (m *Mine) Update() {
-	if m.created && m.explode {
-		if m.Timer.UpdateDone() {
+	if m.created {
+		if m.Timer.UpdateDone() || m.explode {
+			CaveBombsLeft--
+			CaveBlownUpBombs++
 			area := []pixel.Vec{ m.Transform.Pos }
 			for _, n := range m.Tile.SubCoords.Neighbors() {
 				t := m.Tile.Chunk.Get(n)
@@ -57,7 +59,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 	m.Transform = transform.NewTransform()
 	m.Transform.Pos = pos
 	m.created = true
-	m.Timer = timing.New(0.25)
+	m.Timer = timing.New(constants.MineFuse)
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
 			reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold, nil),
@@ -68,7 +70,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 			}),
 		),
 		Check: func() int {
-			if m.FuseLength * 0.5 > m.Timer.Elapsed() {
+			if constants.MineFuse * 0.5 > m.Timer.Elapsed() {
 				return 0
 			} else {
 				return 1

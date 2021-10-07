@@ -2,7 +2,8 @@ package state
 
 import (
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/descent/generate"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
@@ -44,8 +45,10 @@ Thanks for playing!`
 )
 
 var (
-	state      = -1
-	newState   = 1
+	switchState = true
+	state       = -1
+	newState    = 1
+
 	debugPause = false
 	menuStack  []*menus.DwarfMenu
 	timer      *timing.FrameTimer
@@ -54,6 +57,7 @@ var (
 	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
 	debugInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
+			"debugTest":   input.NewJoyless(pixelgl.KeyF7),
 			"debugPause":  input.NewJoyless(pixelgl.KeyF9),
 			"debugResume": input.NewJoyless(pixelgl.KeyF10),
 			"debug":       input.NewJoyless(pixelgl.KeyF3),
@@ -120,8 +124,15 @@ func Update(win *pixelgl.Window) {
 		}
 		debug.Text = !debug.Text
 	}
-	if debugInput.Get("debugInv").JustPressed() && dungeon.Dungeon.GetPlayer() != nil {
-		dungeon.Dungeon.GetPlayer().Health.Inv = !dungeon.Dungeon.GetPlayer().Health.Inv
+	if debugInput.Get("debugInv").JustPressed() && descent.Descent.GetPlayer() != nil {
+		descent.Descent.GetPlayer().Health.Inv = !descent.Descent.GetPlayer().Health.Inv
+	}
+	if debugInput.Get("debugTest").JustPressed() {
+		newState = 0
+		switchState = true
+		descent.Descent.Type = descent.Minesweeper
+		descent.Descent.Level = 10
+		descent.Descent.Start = true
 	}
 	if win.Focused() {
 		frame := false
@@ -138,16 +149,15 @@ func Update(win *pixelgl.Window) {
 		}
 		if !debugPause || frame {
 			if state == 0 {
-				bl, tr := dungeon.Dungeon.GetCave().CurrentBoundaries()
+				bl, tr := descent.Descent.GetCave().CurrentBoundaries()
 				bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
 				bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
 				tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
 				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
-				camera.Cam.Restrict(bl, tr)
 				reanimator.Update()
 				UpdateMenus(win)
 				if MenuClosed() {
-					dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+					descent.Update()
 					systems.PhysicsSystem()
 					systems.CollisionSystem()
 					systems.ParentSystem()
@@ -160,27 +170,30 @@ func Update(win *pixelgl.Window) {
 					systems.EntitySystem()
 					particles.Update()
 					vfx.Update()
-					dungeon.Dungeon.GetPlayer().Update(player.GameInput)
+					descent.Descent.GetPlayer().Update(player.GameInput)
 					systems.AnimationSystem()
 					player.UpdateHUD()
-					if player.GameInput.Get("up").JustPressed() && dungeon.Dungeon.GetPlayerTile().IsExit() {
+					if player.GameInput.Get("up").JustPressed() &&
+						descent.Descent.GetPlayerTile().IsExit() &&
+						descent.Descent.CanExit() {
 						newState = 5
 					}
 				}
-				if dead, ok := timerKeys["death"]; (!ok || !dead) && dungeon.Dungeon.GetPlayer().Health.Dead {
+				camera.Cam.Restrict(bl, tr)
+				if dead, ok := timerKeys["death"]; (!ok || !dead) && descent.Descent.GetPlayer().Health.Dead {
 					timer = timing.New(5.)
 					timerKeys["death"] = true
 				}
 				if dead, ok := timerKeys["death"]; ok && dead {
 					timer.Update()
-					if (timer.Elapsed() > 2. && dungeon.Dungeon.GetPlayer().DeadStop) ||
-						(timer.Elapsed() > 4. && dungeon.Dungeon.GetPlayer().Health.Dead) {
+					if (timer.Elapsed() > 2. && descent.Descent.GetPlayer().DeadStop) ||
+						(timer.Elapsed() > 4. && descent.Descent.GetPlayer().Health.Dead) {
 						newState = 2
 					}
 				}
 				if menuInput.Get("pause").JustPressed() {
 					menuInput.Get("pause").Consume()
-					if MenuClosed() && !dungeon.Dungeon.GetPlayer().Health.Dead {
+					if MenuClosed() && !descent.Descent.GetPlayer().Health.Dead {
 						OpenMenu(PauseMenu)
 						sfx.MusicPlayer.PauseMusic("game", true)
 						sfx.MusicPlayer.UnpauseOrNext("pause")
@@ -199,14 +212,14 @@ func Update(win *pixelgl.Window) {
 				//debug.AddText(fmt.Sprintf("Input Curr: %d", InputMenu.Items[InputMenu.Hovered].CurrLine))
 			} else if state == 2 {
 				reanimator.Update()
-				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				descent.Update()
 				systems.PhysicsSystem()
 				systems.TransformSystem()
 				systems.CollisionSystem()
 				systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
-				dungeon.Dungeon.GetPlayer().Update(player.GameInput)
+				descent.Descent.GetPlayer().Update(player.GameInput)
 				systems.AnimationSystem()
 				player.UpdateHUD()
 				UpdateMenus(win)
@@ -226,7 +239,7 @@ func Update(win *pixelgl.Window) {
 				newState = 0
 			} else if state == 5 {
 				reanimator.Update()
-				dungeon.Dungeon.GetCave().Update(dungeon.Dungeon.GetPlayer().Transform.Pos)
+				descent.Update()
 				particles.Update()
 				vfx.Update()
 				player.UpdateHUD()
@@ -248,8 +261,8 @@ func Draw(win *pixelgl.Window) {
 		batcher.Clear()
 	}
 	if state == 0 {
-		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, player.GameInput)
+		descent.Descent.GetCave().Draw(win)
+		descent.Descent.GetPlayer().Draw(win, player.GameInput)
 		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
@@ -273,8 +286,8 @@ func Draw(win *pixelgl.Window) {
 			m.Draw(win)
 		}
 	} else if state == 2 {
-		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, player.GameInput)
+		descent.Descent.GetCave().Draw(win)
+		descent.Descent.GetPlayer().Draw(win, player.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
@@ -285,27 +298,27 @@ func Draw(win *pixelgl.Window) {
 		particles.Draw(win)
 		vfx.Draw(win)
 		player.DrawHUD(win)
-		dungeon.ScoreTimer.Update()
-		since := dungeon.ScoreTimer.Elapsed()
-		if since > dungeon.BlocksDugTimer {
-			PostMenu.ItemMap["blocks"].NoShow = false
-			PostMenu.ItemMap["blocks_s"].NoShow = false
+		descent.ScoreTimer.Update()
+		since := descent.ScoreTimer.Elapsed()
+		if since > descent.BlocksDugTimer {
+			PostMenu.ItemMap["blocks"].NoDraw = false
+			PostMenu.ItemMap["blocks_s"].NoDraw = false
 		}
-		if since > dungeon.GemsFoundTimer {
-			PostMenu.ItemMap["gem_count"].NoShow = false
-			PostMenu.ItemMap["gem_count_s"].NoShow = false
+		if since > descent.GemsFoundTimer {
+			PostMenu.ItemMap["gem_count"].NoDraw = false
+			PostMenu.ItemMap["gem_count_s"].NoDraw = false
 		}
-		if since > dungeon.BombsMarkedTimer {
-			PostMenu.ItemMap["bombs_marked"].NoShow = false
-			PostMenu.ItemMap["bombs_marked_s"].NoShow = false
+		if since > descent.BombsMarkedTimer {
+			PostMenu.ItemMap["bombs_marked"].NoDraw = false
+			PostMenu.ItemMap["bombs_marked_s"].NoDraw = false
 		}
-		if since > dungeon.WrongMarksTimer {
-			PostMenu.ItemMap["wrong_marks"].NoShow = false
-			PostMenu.ItemMap["wrong_marks_s"].NoShow = false
+		if since > descent.WrongMarksTimer {
+			PostMenu.ItemMap["wrong_marks"].NoDraw = false
+			PostMenu.ItemMap["wrong_marks_s"].NoDraw = false
 		}
-		if since > dungeon.TotalScoreTimer {
-			PostMenu.ItemMap["total_score"].NoShow = false
-			PostMenu.ItemMap["total_score_s"].NoShow = false
+		if since > descent.TotalScoreTimer {
+			PostMenu.ItemMap["total_score"].NoDraw = false
+			PostMenu.ItemMap["total_score_s"].NoDraw = false
 		}
 		for _, m := range menuStack {
 			m.Draw(win)
@@ -313,8 +326,8 @@ func Draw(win *pixelgl.Window) {
 	} else if state == 3 {
 		credits.Draw(win)
 	} else if state == 5 {
-		dungeon.Dungeon.GetCave().Draw(win)
-		dungeon.Dungeon.GetPlayer().Draw(win, player.GameInput)
+		descent.Descent.GetCave().Draw(win)
+		descent.Descent.GetPlayer().Draw(win, player.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
@@ -332,9 +345,10 @@ func Draw(win *pixelgl.Window) {
 }
 
 func updateState() {
-	if state != newState {
+	if state != newState || switchState {
 		timerKeys = make(map[string]bool)
 		// uninitialize
+		clearMenus()
 		switch state {
 		case 0:
 			sfx.MusicPlayer.PauseMusic("game", true)
@@ -351,34 +365,42 @@ func updateState() {
 		switch newState {
 		case 0:
 			systems.DeleteAllEntities()
-			if dungeon.Dungeon.Start {
-				dungeon.BlocksDug = 0
-				dungeon.GemsFound = 0
-				dungeon.BombsMarked = 0
-				dungeon.WrongMarks = 0
+			if descent.Descent.Start {
+				if descent.Descent.Player != nil {
+					descent.Descent.Player.Delete()
+					descent.Descent.Player = nil
+				}
+				descent.ResetStats()
 				sfx.MusicPlayer.PlayNext("game")
 			} else {
+				descent.ResetCaveStats()
 				sfx.MusicPlayer.PauseMusic("game", false)
 			}
-			dungeon.Dungeon.Level++
+			descent.Descent.Level++
 
 			sheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
 			if err != nil {
 				panic(err)
 			}
-			dungeon.Dungeon.SetCave(dungeon.NewRoomyCave(sheet, dungeon.Dungeon.Level, -1, 1, 2))
-			//dungeon.CurrCave = dungeon.NewInfiniteCave(sheet)
+			switch descent.Descent.Type {
+			case descent.Normal:
+				descent.Descent.SetCave(generate.NewRoomyCave(sheet, descent.Descent.Level, -1, 1, 2))
+			case descent.Infinite:
+				descent.Descent.SetCave(generate.NewInfiniteCave(sheet))
+			case descent.Minesweeper:
+				descent.Descent.SetCave(generate.NewMinesweeperCave(sheet, descent.Descent.Level))
+			}
 
-			if dungeon.Dungeon.Player != nil {
-				dungeon.Dungeon.Player.Transform.Pos = dungeon.Dungeon.GetCave().GetStart()
+			if descent.Descent.Player != nil {
+				descent.Descent.Player.Transform.Pos = descent.Descent.GetCave().GetStart()
 			} else {
-				dungeon.Dungeon.SetPlayer(dungeon.NewDwarf(dungeon.Dungeon.GetCave().GetStart()))
+				descent.Descent.SetPlayer(descent.NewDwarf(descent.Descent.GetCave().GetStart()))
 			}
-			if dungeon.Dungeon.Start {
+			if descent.Descent.Start {
 				player.InitHUD()
-				dungeon.Inventory = []*dungeon.InvItem{}
+				descent.Inventory = []*descent.InvItem{}
 			}
-			camera.Cam.SnapTo(dungeon.Dungeon.GetPlayer().Transform.Pos)
+			camera.Cam.SnapTo(descent.Descent.GetPlayer().Transform.Pos)
 
 			particles.Clear()
 			vfx.Clear()
@@ -386,7 +408,7 @@ func updateState() {
 
 			reanimator.SetFrameRate(10)
 			reanimator.Reset()
-			dungeon.Dungeon.Start = false
+			descent.Descent.Start = false
 		case 1:
 			title.Transform.Pos = pixel.V(0., 75.)
 			camera.Cam.SnapTo(pixel.ZV)
@@ -395,28 +417,25 @@ func updateState() {
 			}
 			sfx.MusicPlayer.PlayNext("menu")
 		case 2:
+			descent.AddStats()
 			score := 0
-			score += dungeon.BlocksDug * 2
-			score += dungeon.GemsFound
-			score += dungeon.BombsMarked * 10
-			score -= dungeon.WrongMarks * 5
-			PostMenu.ItemMap["blocks_s"].Raw = fmt.Sprintf("%d x  2", dungeon.BlocksDug)
-			PostMenu.ItemMap["gem_count_s"].Raw = fmt.Sprintf("%d x  1", dungeon.GemsFound)
-			PostMenu.ItemMap["bombs_marked_s"].Raw = fmt.Sprintf("%d x 10", dungeon.BombsMarked)
-			PostMenu.ItemMap["wrong_marks_s"].Raw = fmt.Sprintf("%d x -5", dungeon.WrongMarks)
+			score += descent.BlocksDug * 2
+			score += descent.GemsFound
+			score += descent.BombsMarked * 10
+			score -= descent.WrongMarks * 5
+			PostMenu.ItemMap["blocks_s"].Raw = fmt.Sprintf("%d x  2", descent.BlocksDug)
+			PostMenu.ItemMap["gem_count_s"].Raw = fmt.Sprintf("%d x  1", descent.GemsFound)
+			PostMenu.ItemMap["bombs_marked_s"].Raw = fmt.Sprintf("%d x 10", descent.BombsMarked)
+			PostMenu.ItemMap["wrong_marks_s"].Raw = fmt.Sprintf("%d x -5", descent.WrongMarks)
 			PostMenu.ItemMap["total_score_s"].Raw = fmt.Sprintf("%d", score)
-			dungeon.ScoreTimer = timing.New(5.)
+			descent.ScoreTimer = timing.New(5.)
 			OpenMenu(PostMenu)
 			sfx.MusicPlayer.UnpauseOrNext("pause")
 		case 3:
 
 		case 4:
-			dungeon.Dungeon.Level = 0
-			dungeon.Dungeon.Start = true
-			if dungeon.Dungeon.Player != nil {
-				dungeon.Dungeon.Player.Delete()
-				dungeon.Dungeon.Player = nil
-			}
+			descent.Descent.Level = 0
+			descent.Descent.Start = true
 		case 5:
 			success := FillEnchantMenu()
 			if !success {
@@ -425,7 +444,14 @@ func updateState() {
 				OpenMenu(EnchantMenu)
 				sfx.MusicPlayer.UnpauseOrNext("pause")
 			}
+			descent.AddStats()
+			if descent.Descent.Type == descent.Normal {
+				descent.Descent.Type = descent.Minesweeper
+			} else {
+				descent.Descent.Type = descent.Normal
+			}
 		}
 		state = newState
+		switchState = false
 	}
 }

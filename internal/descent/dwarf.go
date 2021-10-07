@@ -1,9 +1,10 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
+	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
@@ -37,7 +38,7 @@ var (
 	ClimbSpeed      = 50.
 	Speed           = 80.
 	MaxJump         = 4
-	ShovelKnockback = 5.
+	ShovelKnockback = 8.
 	ShovelDazed     = 2.
 	ShovelDamage    = 0
 )
@@ -77,12 +78,12 @@ type Dwarf struct {
 	mouseSelect bool
 	selectTimer *timing.FrameTimer
 
-	hovered     *Tile
+	hovered     *cave.Tile
 	relative    pixel.Vec
-	digTile     *Tile
+	digTile     *cave.Tile
 	tileQueue   []struct{
 		a int
-		t *Tile
+		t *cave.Tile
 	}
 
 	walkTimer *timing.FrameTimer
@@ -165,7 +166,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				1: func() {
 					if d.digTile != nil {
 						if d.digTile.Solid {
-							BlocksDug += 1
+							CaveBlocksDug++
 							d.digTile.Destroy(true)
 						} else {
 							var x, y float64
@@ -295,7 +296,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 }
 
 func (d *Dwarf) Update(in *input.Input) {
-	loc1 := Dungeon.GetCave().GetTile(d.Transform.Pos)
+	loc1 := Descent.GetCave().GetTile(d.Transform.Pos)
 	if d.Physics.Grounded || d.climbing || d.Bubble != nil {
 		d.airDig = false
 	}
@@ -305,7 +306,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 		d.tileQueue = []struct{
 			a int
-			t *Tile
+			t *cave.Tile
 		}{}
 		d.digging = false
 		d.attacking = false
@@ -364,9 +365,9 @@ func (d *Dwarf) Update(in *input.Input) {
 			p := d.Transform.Pos
 			p.X += d.relative.X
 			p.Y += d.relative.Y
-			d.hovered = Dungeon.GetCave().GetTile(p)
+			d.hovered = Descent.GetCave().GetTile(p)
 		} else if d.mouseSelect {
-			d.hovered = Dungeon.GetCave().GetTile(in.World)
+			d.hovered = Descent.GetCave().GetTile(in.World)
 		} else if constants.DigMode != data.Dedicated {
 			if moveSelecting {
 				x := 0.
@@ -386,7 +387,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			p := d.Transform.Pos
 			p.X += d.relative.X
 			p.Y += d.relative.Y
-			d.hovered = Dungeon.GetCave().GetTile(p)
+			d.hovered = Descent.GetCave().GetTile(p)
 		}
 		if d.hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
@@ -394,7 +395,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				if d.hovered.Solid {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
-						t *Tile
+						t *cave.Tile
 					}{
 						a: 0,
 						t: d.hovered,
@@ -402,7 +403,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				} else {
 					d.tileQueue = append(d.tileQueue, struct{
 						a int
-						t *Tile
+						t *cave.Tile
 					}{
 						a: 2,
 						t: d.hovered,
@@ -411,7 +412,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if in.Get("mark").JustPressed() && d.hovered.Solid && d.selectLegal {
 				d.tileQueue = append(d.tileQueue, struct{
 					a int
-					t *Tile
+					t *cave.Tile
 				}{
 					a: 1,
 					t: d.hovered,
@@ -426,7 +427,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if next.t.Transform.Pos.X > d.Transform.Pos.X {
 				d.faceLeft = false
 			}
-			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange && !TileInTile(d.Transform.Pos, next.t.Transform.Pos) {
+			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange && !cave.TileInTile(d.Transform.Pos, next.t.Transform.Pos) {
 				if next.a == 0 && next.t.Solid {
 					d.digging = true
 					d.attacking = false
@@ -438,7 +439,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				} else if next.a == 1 && next.t.Solid {
 					d.marking = true
 					d.distFell = 0.
-					next.t.Mark(d.Transform.Pos)
+					Mark(next.t)
 				} else if next.a == 2 {
 					d.digging = false
 					d.attacking = true
@@ -473,12 +474,12 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.climbing = false
 			d.distFell = 0.
 		} else if !d.marking {
-			dwnlj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
-			dwnrj := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
-			dwn1 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
-			dwn2 := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.25))
-			right := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
-			left := Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
+			dwnlj := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
+			dwnrj := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
+			dwn1 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
+			dwn2 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.25))
+			right := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
+			left := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
 			canJump := (dwn1 != nil && dwn1.Solid) || (dwn2 != nil && dwn2.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid)
 			canClimb := (right != nil && right.Solid) || (left != nil && left.Solid)
 
@@ -590,7 +591,7 @@ func (d *Dwarf) Update(in *input.Input) {
 						in.Get("jump").Consume()
 						d.jumping = false
 						d.jumpEnd = true
-						d.jumpTarget = Dungeon.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y+world.TileSize*1.0)).Transform.Pos.Y
+						d.jumpTarget = Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y+world.TileSize*1.0)).Transform.Pos.Y
 					}
 					if d.jumpEnd {
 						if d.jumpTarget > d.Transform.Pos.Y {
@@ -653,4 +654,18 @@ func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
 func (d *Dwarf) Delete() {
 	d.Health.Delete()
 	myecs.Manager.DisposeEntity(d.Entity)
+}
+
+func Mark(tile *cave.Tile) {
+	if tile != nil && tile.Solid && !tile.Destroyed && tile.Type != cave.Wall {
+		if !tile.Marked {
+			tile.Marked = true
+			f := &Flag{
+				Tile: tile,
+			}
+			f.Create(pixel.ZV)
+		} else {
+			tile.Marked = false
+		}
+	}
 }

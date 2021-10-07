@@ -1,17 +1,27 @@
 package systems
 
 import (
+	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 func AnimationSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasAnimation) {
-		if anim, ok := result.Components[myecs.Animation].(*reanimator.Tree); ok {
-			anim.Update()
+		anim, ok := result.Components[myecs.Animation].(*reanimator.Tree)
+		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
+		if ok && okT {
+			dist := descent.Descent.GetPlayer().Transform.Pos.Sub(tran.Pos)
+			if math.Abs(dist.X) < 24. * world.TileSize && math.Abs(dist.Y) < 24. * world.TileSize {
+				anim.Update()
+			}
 		}
 	}
 }
@@ -22,8 +32,11 @@ func AnimationDraw() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
 		if okA && okT && okB && anim.CurrentSprite() != nil {
-			if batcher, ok := img.Batchers[bkey]; ok {
-				anim.CurrentSprite().Draw(batcher.Batch(), tran.Mat)
+			dist := camera.Cam.Pos.Sub(tran.Pos)
+			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
+				if batcher, ok := img.Batchers[bkey]; ok {
+					anim.CurrentSprite().Draw(batcher.Batch(), tran.Mat)
+				}
 			}
 		}
 	}
@@ -35,8 +48,11 @@ func SpriteDraw() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
 		if okS && okT && okB {
-			if batcher, ok := img.Batchers[bkey]; ok {
-				spr.Draw(batcher.Batch(), tran.Mat)
+			dist := camera.Cam.Pos.Sub(tran.Pos)
+			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
+				if batcher, ok := img.Batchers[bkey]; ok {
+					spr.Draw(batcher.Batch(), tran.Mat)
+				}
 			}
 		}
 	}

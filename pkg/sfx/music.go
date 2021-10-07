@@ -145,7 +145,7 @@ func (p *musicPlayer) loadTrackInner(set *musicSet) error {
 		}
 		set.paused = false
 		set.interV = nil
-		fmt.Printf("playing track %s\n", set.next)
+		//fmt.Printf("playing track %s\n", set.next)
 		speaker.Unlock()
 		speaker.Play(beep.Seq(
 			beep.Resample(4, format.SampleRate, sampleRate, set.volume),

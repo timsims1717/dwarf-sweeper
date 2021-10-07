@@ -1,10 +1,13 @@
 package systems
 
 import (
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
+	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"math"
 )
 
 func PhysicsSystem() {
@@ -12,36 +15,39 @@ func PhysicsSystem() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		if okT && okP {
-			tran.LastPos = tran.Pos
-			tran.Pos.X += timing.DT * phys.Velocity.X
-			tran.Pos.Y += timing.DT * phys.Velocity.Y
-			if !phys.GravityOff && !phys.YJustSet {
-				if phys.Velocity.Y > -phys.Terminal {
-					phys.Velocity.Y -= phys.Gravity * timing.DT
-				}
-				if phys.Velocity.Y <= -phys.Terminal {
-					phys.Velocity.Y = -phys.Terminal
-				}
-			}
-			phys.YJustSet = false
-			if !phys.FrictionOff && !phys.XJustSet {
-				friction := phys.AirFriction
-				if phys.Grounded {
-					friction = phys.Friction
-				}
-				if phys.Velocity.X > 0. {
-					phys.Velocity.X -= friction * timing.DT
-					if phys.Velocity.X < 0. {
-						phys.Velocity.X = 0
+			dist := camera.Cam.Pos.Sub(tran.Pos)
+			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
+				tran.LastPos = tran.Pos
+				tran.Pos.X += timing.DT * phys.Velocity.X
+				tran.Pos.Y += timing.DT * phys.Velocity.Y
+				if !phys.GravityOff && !phys.YJustSet {
+					if phys.Velocity.Y > -phys.Terminal {
+						phys.Velocity.Y -= phys.Gravity * timing.DT
 					}
-				} else if phys.Velocity.X < 0. {
-					phys.Velocity.X += friction * timing.DT
+					if phys.Velocity.Y <= -phys.Terminal {
+						phys.Velocity.Y = -phys.Terminal
+					}
+				}
+				phys.YJustSet = false
+				if !phys.FrictionOff && !phys.XJustSet {
+					friction := phys.AirFriction
+					if phys.Grounded {
+						friction = phys.Friction
+					}
 					if phys.Velocity.X > 0. {
-						phys.Velocity.X = 0
+						phys.Velocity.X -= friction * timing.DT
+						if phys.Velocity.X < 0. {
+							phys.Velocity.X = 0
+						}
+					} else if phys.Velocity.X < 0. {
+						phys.Velocity.X += friction * timing.DT
+						if phys.Velocity.X > 0. {
+							phys.Velocity.X = 0
+						}
 					}
 				}
+				phys.XJustSet = false
 			}
-			phys.XJustSet = false
 		}
 	}
 }

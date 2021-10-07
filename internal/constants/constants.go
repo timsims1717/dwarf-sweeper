@@ -12,6 +12,7 @@ const (
 
 	// Tile Constants
 	TileSize = 16.0
+	DrawDistance = 24.0 * TileSize
 
 	// Batcher Keys
 	EntityKey    = "entities"
@@ -22,6 +23,16 @@ const (
 	LinuxDir = "/.local/share/DwarfSweeper"
 	WinDir   = "/Documents/My Games/DwarfSweeper"
 	MacDir   = "/Library/Application Support/DwarfSweeper"
+
+	// Descent Constants
+
+	ChunkSize = 32
+	ChunkArea = ChunkSize * ChunkSize
+
+	BaseFuse = 1.5
+	MineFuse = 0.2
+	BaseGem  = 20
+	BaseItem = 50
 )
 
 var (

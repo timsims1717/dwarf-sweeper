@@ -2,7 +2,7 @@ package player
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -19,18 +19,20 @@ import (
 )
 
 var (
-	heartTransforms []*transform.Transform
-	lastGem         int
-	gemTimer        *timing.FrameTimer
-	gemTransform    *transform.Transform
-	gemNumberItem   *menu.ItemText
-	itemTransform   *transform.Transform
-	tmpAnimation    *reanimator.Tree
+	heartTransforms    []*transform.Transform
+	lastGem            int
+	gemTimer           *timing.FrameTimer
+	gemTransform       *transform.Transform
+	gemNumberItem      *menu.ItemText
+	itemTransform      *transform.Transform
+	bombCountTransform *transform.Transform
+	bombCountItem      *menu.ItemText
+	tmpAnimation       *reanimator.Tree
 )
 
 func InitHUD() {
 	heartTransforms = []*transform.Transform{}
-	for i := 0; i < dungeon.Dungeon.Player.Health.Max; i++ {
+	for i := 0; i < descent.Descent.Player.Health.Max; i++ {
 		tran := transform.NewTransform()
 		tran.Anchor.H = transform.Left
 		tran.Anchor.V = transform.Center
@@ -50,6 +52,13 @@ func InitHUD() {
 	itemTransform.Anchor.V = transform.Center
 	itemTransform.Scalar = pixel.V(1.6, 1.6)
 	itemTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - world.TileSize)
+	bombCountTransform = transform.NewTransform()
+	bombCountTransform.Anchor.H = transform.Right
+	bombCountTransform.Anchor.V = transform.Center
+	bombCountTransform.Scalar = pixel.V(1.6, 1.6)
+	bombCountTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	bombCountItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Right, menu.Center)
+	bombCountItem.Transform.Pos = pixel.V(constants.BaseW * 0.5 + 5., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
 	tmpAnimation = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
 			reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers["entities"].Animations["heart_temp_1"].S, reanimator.Hold, nil),
@@ -58,10 +67,10 @@ func InitHUD() {
 			reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers["entities"].Animations["heart_temp_4"].S, reanimator.Hold, nil),
 		),
 		Check: func() int {
-			if dungeon.Dungeon.Player.Health.TempHPTimer == nil {
+			if descent.Descent.Player.Health.TempHPTimer == nil {
 				return 0
 			}
-			perc := dungeon.Dungeon.Player.Health.TempHPTimer.Perc()
+			perc := descent.Descent.Player.Health.TempHPTimer.Perc()
 			if perc < 0.25 {
 				return 0
 			} else if perc < 0.5 {
@@ -77,7 +86,7 @@ func InitHUD() {
 }
 
 func UpdateHUD() {
-	thp := dungeon.Dungeon.Player.Health.Max + dungeon.Dungeon.Player.Health.TempHP
+	thp := descent.Descent.Player.Health.Max + descent.Descent.Player.Health.TempHP
 	if len(heartTransforms) != thp {
 		heartTransforms = []*transform.Transform{}
 		for i := 0; i < thp; i++ {
@@ -89,14 +98,28 @@ func UpdateHUD() {
 			heartTransforms = append(heartTransforms, tran)
 		}
 	}
-	if dungeon.GemsFound != lastGem {
-		lastGem = dungeon.GemsFound
+	if descent.GemsFound != lastGem {
+		lastGem = descent.GemsFound
 		gemNumberItem.SetText(fmt.Sprintf("x%d", lastGem))
 		gemTimer = timing.New(3.0)
 	} else if lastGem == 0 || gemTimer == nil {
 		gemTimer = timing.New(0.0)
 	}
 	gemTimer.Update()
+	if descent.Descent.Type == descent.Minesweeper {
+		num := descent.CaveBombsLeft - (descent.CaveWrongMarks + descent.CaveBombsMarked)
+		if num == 0 {
+			if descent.CaveWrongMarks > 0 {
+				bombCountItem.TextColor = colornames.Orangered
+			} else {
+				bombCountItem.TextColor = colornames.Forestgreen
+			}
+		} else {
+			bombCountItem.TextColor = colornames.Aliceblue
+		}
+		bombCountItem.SetText(fmt.Sprintf("x%d", num))
+		bombCountTransform.Pos.X = bombCountItem.Transform.Pos.X - (bombCountItem.Text.Bounds().W() + 6.) * 1.6
+	}
 }
 
 func DrawHUD(win *pixelgl.Window) {
@@ -106,7 +129,7 @@ func DrawHUD(win *pixelgl.Window) {
 		tran.Update()
 	}
 	i := 0
-	hp := dungeon.Dungeon.Player.Health
+	hp := descent.Descent.Player.Health
 	for i < hp.Curr && i < len(heartTransforms) {
 		img.Batchers["entities"].Sprites["heart_full"].Draw(win, heartTransforms[i].Mat)
 		i++
@@ -133,7 +156,17 @@ func DrawHUD(win *pixelgl.Window) {
 	itemTransform.UIZoom = camera.Cam.GetZoomScale()
 	itemTransform.Update()
 	img.Batchers["entities"].Sprites["item_box"].Draw(win, itemTransform.Mat)
-	if len(dungeon.Inventory) > 0 && dungeon.InvIndex < len(dungeon.Inventory) {
-		dungeon.Inventory[dungeon.InvIndex].Sprite.Draw(win, itemTransform.Mat)
+	if len(descent.Inventory) > 0 && descent.InvIndex < len(descent.Inventory) {
+		descent.Inventory[descent.InvIndex].Sprite.Draw(win, itemTransform.Mat)
+	}
+	if descent.Descent.Type == descent.Minesweeper {
+		bombCountTransform.UIPos = camera.Cam.APos
+		bombCountTransform.UIZoom = camera.Cam.GetZoomScale()
+		bombCountTransform.Update()
+		bombCountItem.Transform.UIPos = camera.Cam.APos
+		bombCountItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+		bombCountItem.Update(pixel.Rect{})
+		img.Batchers["entities"].Sprites["bomb_fuse"].Draw(win, bombCountTransform.Mat)
+		bombCountItem.Draw(win)
 	}
 }

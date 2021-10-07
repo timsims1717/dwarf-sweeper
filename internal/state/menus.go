@@ -4,7 +4,7 @@ import (
 	"dwarf-sweeper/internal/config"
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/enchants"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/player"
@@ -22,6 +22,7 @@ import (
 
 var (
 	MainMenu       *menus.DwarfMenu
+	StartMenu      *menus.DwarfMenu
 	AudioMenu      *menus.DwarfMenu
 	GraphicsMenu   *menus.DwarfMenu
 	InputMenu      *menus.DwarfMenu
@@ -35,6 +36,7 @@ var (
 
 func InitializeMenus(win *pixelgl.Window) {
 	InitMainMenu(win)
+	InitStartMenu()
 	InitOptionsMenu()
 	// todo: accessibility
 	InitAudioMenu()
@@ -80,6 +82,10 @@ func OpenMenu(menu *menus.DwarfMenu) {
 	menuStack = append(menuStack, menu)
 }
 
+func clearMenus() {
+	menuStack = []*menus.DwarfMenu{}
+}
+
 func InitMainMenu(win *pixelgl.Window) {
 	MainMenu = menus.New("main", camera.Cam)
 	MainMenu.Title = true
@@ -89,11 +95,9 @@ func InitMainMenu(win *pixelgl.Window) {
 	quit := MainMenu.AddItem("quit", "Quit")
 
 	start.SetClickFn(func() {
-		MainMenu.CloseInstant()
+		OpenMenu(StartMenu)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		newState = 4
 	})
-	start.Hint = "Start a new run!"
 	options.SetClickFn(func() {
 		OpenMenu(OptionsMenu)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -107,6 +111,33 @@ func InitMainMenu(win *pixelgl.Window) {
 		win.SetClosed(true)
 	})
 	quit.Hint = "You're going to leave?"
+}
+
+func InitStartMenu() {
+	StartMenu = menus.New("start", camera.Cam)
+	StartMenu.Title = true
+	normal := StartMenu.AddItem("normal", "Normal Descent")
+	infinite := StartMenu.AddItem("infinite", "Infinite Cave")
+	back := StartMenu.AddItem("back", "Back")
+
+	normal.SetClickFn(func() {
+		StartMenu.CloseInstant()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		descent.Descent.Type = descent.Normal
+		newState = 4
+	})
+	normal.Hint = "Start a new run through a variety of caves!"
+	infinite.SetClickFn(func() {
+		StartMenu.CloseInstant()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		descent.Descent.Type = descent.Infinite
+		newState = 4
+	})
+	infinite.Hint = "Survive in a cave that never ends!"
+	back.SetClickFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		StartMenu.Close()
+	})
 }
 
 func InitOptionsMenu() {
@@ -320,11 +351,11 @@ func InitInputMenu(win *pixelgl.Window) {
 			device.Hint = win.JoystickName(player.GameInput.Joystick)
 			deviceR.Raw = fmt.Sprintf("Gamepad %d", player.GameInput.Joystick+1)
 		}
-		leftStickA.NoShow = km
-		leftStickB.NoShow = km
-		leftStickR.NoShow = km
-		deadzone.NoShow = km
-		deadzoneR.NoShow = km
+		leftStickA.Ignore = km
+		leftStickB.Ignore = km
+		leftStickR.Ignore = km
+		deadzone.Ignore = km
+		deadzoneR.Ignore = km
 	}
 	deviceUpdate()
 
@@ -635,7 +666,7 @@ func ClearEnchantMenu() {
 
 func FillEnchantMenu() bool {
 	ClearEnchantMenu()
-	pe := dungeon.Dungeon.GetPlayer().Enchants
+	pe := descent.Descent.GetPlayer().Enchants
 	list := enchants.Enchantments
 	for _, i := range pe {
 		if len(list) > 1 {
@@ -710,30 +741,30 @@ func InitPostGameMenu() {
 	backToMenu := PostMenu.AddItem("menu", "Main Menu")
 
 	blocksDug.NoHover = true
-	blocksDug.NoShow = true
+	blocksDug.NoDraw = true
 	blocksDugS.Right = true
 	blocksDugS.NoHover = true
-	blocksDugS.NoShow = true
+	blocksDugS.NoDraw = true
 	gems.NoHover = true
-	gems.NoShow = true
+	gems.NoDraw = true
 	gemsS.Right = true
 	gemsS.NoHover = true
-	gemsS.NoShow = true
+	gemsS.NoDraw = true
 	bombs.NoHover = true
-	bombs.NoShow = true
+	bombs.NoDraw = true
 	bombsS.Right = true
 	bombsS.NoHover = true
-	bombsS.NoShow = true
+	bombsS.NoDraw = true
 	wrongMarks.NoHover = true
-	wrongMarks.NoShow = true
+	wrongMarks.NoDraw = true
 	wrongMarksS.Right = true
 	wrongMarksS.NoHover = true
-	wrongMarksS.NoShow = true
+	wrongMarksS.NoDraw = true
 	totalScore.NoHover = true
-	totalScore.NoShow = true
+	totalScore.NoDraw = true
 	totalScoreS.Right = true
 	totalScoreS.NoHover = true
-	totalScoreS.NoShow = true
+	totalScoreS.NoDraw = true
 	retry.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)

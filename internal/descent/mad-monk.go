@@ -1,4 +1,4 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -40,14 +40,14 @@ type MadMonk struct {
 }
 
 func (m *MadMonk) Update() {
-	if Dungeon.GetCave().PointLoaded(m.Transform.Pos) {
+	if Descent.GetCave().PointLoaded(m.Transform.Pos) {
 		if !m.Health.Dazed && !m.Health.Dead {
 			m.AtkTimer.Update()
 			if m.Physics.Grounded && !m.Attack {
-				ownCoords := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
-				playerCoords := Dungeon.GetPlayerTile().RCoords
+				ownCoords := Descent.GetCave().GetTile(m.Transform.Pos).RCoords
+				playerCoords := Descent.GetPlayerTile().RCoords
 				ownPos := m.Transform.Pos
-				playerPos := Dungeon.GetPlayer().Transform.Pos
+				playerPos := Descent.GetPlayer().Transform.Pos
 				if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y && m.AtkTimer.Done() {
 					m.Attack = true
 					m.faceLeft = ownCoords.X > playerCoords.X
@@ -91,12 +91,12 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[constants.EntityKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
 				3: func() {
 					m.AtkTimer = timing.New(mmAtkWait)
-					ownCoords := Dungeon.GetCave().GetTile(m.Transform.Pos).RCoords
-					playerCoords := Dungeon.GetPlayerTile().RCoords
+					ownCoords := Descent.GetCave().GetTile(m.Transform.Pos).RCoords
+					playerCoords := Descent.GetPlayerTile().RCoords
 					ownPos := m.Transform.Pos
-					playerPos := Dungeon.GetPlayer().Transform.Pos
+					playerPos := Descent.GetPlayer().Transform.Pos
 					if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
-						Dungeon.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
+						Descent.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
 							Amount:    1,
 							Dazed:     1.,
 							Knockback: 8.,

@@ -11,6 +11,7 @@ var (
 
 var (
 	Manager  = ecs.NewManager()
+	Unloaded = ecs.NewManager()
 
 	Temp = Manager.NewComponent()
 
@@ -32,10 +33,10 @@ var (
 
 	IsTemp = ecs.BuildTag(Temp)
 
-	HasAnimation   = ecs.BuildTag(Animation)
+	HasAnimation   = ecs.BuildTag(Animation, Transform)
 	HasAnimDrawing = ecs.BuildTag(Animation, Transform, Batch)
 	HasSprDrawing  = ecs.BuildTag(Sprite, Transform, Batch)
-	IsEntity       = ecs.BuildTag(Entity)
+	IsEntity       = ecs.BuildTag(Entity, Transform)
 
 	HasTransform  = ecs.BuildTag(Transform)
 	HasParent     = ecs.BuildTag(Transform, Parent)

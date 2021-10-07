@@ -1,6 +1,8 @@
-package dungeon
+package generate
 
 import (
+	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
@@ -15,7 +17,12 @@ const (
 	Down
 )
 
-func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb bool) []world.Coords {
+type Path struct {
+	Dir   Direction
+	Count int
+}
+
+func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb bool) []world.Coords {
 	var path []world.Coords
 	type pathDir struct {
 		l     bool
@@ -26,34 +33,38 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 		width int
 		wLeft bool
 	}
+	// initialize a starting width
 	pDir := pathDir{
 		last:  dir,
 		width: random.CaveGen.Intn(3) + 1,
 		wLeft: random.CaveGen.Intn(2) == 0,
 	}
 	curr := start
-	tile := cave.GetTileInt(curr.X, curr.Y)
+	tile := c.GetTileInt(curr.X, curr.Y)
+	// after finding each path tile, we will wall up all the un-pathed tiles around it
 	wallUp(tile, pDir.width < 3 && rb)
 	done := false
 	for !done {
+		// check each direction, see if we can go there
 		pDir.l = true
 		pDir.r = true
 		pDir.u = true
 		pDir.d = true
-		if curr.X < cave.left*ChunkSize+6 {
+		if curr.X < c.Left*constants.ChunkSize+6 {
 			pDir.l = false
 		}
-		if curr.X > (cave.right+1)*ChunkSize-6 {
+		if curr.X > (c.Right+1)*constants.ChunkSize-6 {
 			pDir.r = false
 		}
 		if curr.Y < 6 {
 			pDir.u = false
 		}
-		if curr.Y > (cave.bottom+1)*ChunkSize-6 {
+		if curr.Y > (c.Bottom+1)*constants.ChunkSize-6 {
 			pDir.d = false
 		}
 		n := pDir.last
 
+		// if we are within 8 of the end in both directions, head straight there
 		if util.Abs(curr.X - end.X) < 8 && util.Abs(curr.Y - end.Y) < 8 {
 			if curr.Y > end.Y {
 				n = Up
@@ -65,11 +76,13 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 				n = Right
 			}
 		} else {
+			// if we can't go the direction we were going, or in a 1/20 chance ...
 			if (n == Left && !pDir.l) ||
 				(n == Right && !pDir.r) ||
 				(n == Up && !pDir.u) ||
 				(n == Down && !pDir.d) ||
 				random.CaveGen.Intn(20) == 0 {
+				// choose a new direction, weighted to get us closer to the end
 				tC := 0
 				lC := 0
 				rC := 0
@@ -126,18 +139,19 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 						tC += t
 					}
 				}
-				c := random.CaveGen.Intn(tC)
-				if c < lC {
+				choice := random.CaveGen.Intn(tC)
+				if choice < lC {
 					n = Left
-				} else if c < rC {
+				} else if choice < rC {
 					n = Right
-				} else if c < uC {
+				} else if choice < uC {
 					n = Up
 				} else {
 					n = Down
 				}
 			}
 		}
+		// move to the next tile
 		if n == Left {
 			curr.X -= 1
 		} else if n == Right {
@@ -148,6 +162,7 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 			curr.Y += 1
 		}
 		pDir.last = n
+		// maybe change width
 		if random.CaveGen.Intn(20) == 0 {
 			two := random.CaveGen.Intn(3)
 			if pDir.width == 3 || pDir.width == 1 {
@@ -161,7 +176,8 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 				pDir.width = 3
 			}
 		}
-		tile = cave.GetTileInt(curr.X, curr.Y)
+		// wall up all tiles surrounding the touched tiles
+		tile = c.GetTileInt(curr.X, curr.Y)
 		wallUp(tile, pDir.width < 3 && rb)
 		ns := tile.SubCoords.Neighbors()
 		if pDir.width == 3 || (pDir.width == 2 && pDir.wLeft) {
@@ -195,27 +211,4 @@ func SemiStraightPath(cave *Cave, start, end world.Coords, dir Direction, rb boo
 func BranchOff(start world.Coords, dir Direction) {
 	// take off in that direction a random amount or until stopped by the edge
 	// return path
-}
-
-func wallUp(tile *Tile, noBomb bool) {
-	if tile != nil && !tile.neverChange && !tile.isChanged {
-		tile.Solid = true
-		tile.Type = Block
-		tile.breakable = true
-		if noBomb {
-			tile.bomb = false
-			tile.Entity = nil
-		}
-		tile.isChanged = true
-		tile.UpdateSprites()
-		for _, n := range tile.SubCoords.Neighbors() {
-			t := tile.Chunk.Get(n)
-			if t != nil && !t.neverChange && !t.isChanged {
-				t.Solid = true
-				t.Type = Wall
-				t.breakable = false
-				t.UpdateSprites()
-			}
-		}
-	}
 }

@@ -1,0 +1,187 @@
+package generate
+
+import (
+	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/random"
+	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/world"
+)
+
+func NewInfiniteCave(spriteSheet *img.SpriteSheet) *cave.Cave {
+	random.RandCaveSeed()
+	batcher := img.NewBatcher(spriteSheet, false)
+	newCave := cave.NewCave(batcher, false)
+	newCave.StartC = world.Coords{X: 16, Y: 9}
+	newCave.GemRate = constants.BaseGem
+	newCave.ItemRate = constants.BaseItem
+	newCave.FuseLen = constants.BaseFuse
+	newCave.BombPMin = 0.2
+	newCave.BombPMax = 0.3
+	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, newCave)
+	descent.FillChunk(chunk0)
+
+	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, newCave)
+	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, newCave)
+	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, newCave)
+	descent.FillChunk(chunkr1)
+	descent.FillChunk(chunkr2)
+	descent.FillChunk(chunkr3)
+
+	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, newCave)
+	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, newCave)
+	descent.FillChunk(chunkl1)
+	descent.FillChunk(chunkl2)
+
+	newCave.RChunks[chunk0.Coords] = chunk0
+	newCave.RChunks[chunkr1.Coords] = chunkr1
+	newCave.RChunks[chunkr2.Coords] = chunkr2
+	newCave.RChunks[chunkr3.Coords] = chunkr3
+
+	newCave.LChunks[chunkl1.Coords] = chunkl1
+	newCave.LChunks[chunkl2.Coords] = chunkl2
+	Entrance(newCave, world.Coords{X: 16, Y: 9}, 9, 5, 3, false)
+	return newCave
+}
+
+// requires at least 3 chunks wide
+func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) *cave.Cave {
+	random.RandCaveSeed()
+	batcher := img.NewBatcher(spriteSheet, false)
+	layers := makeLayers(left, right, bottom, 5, 7, 3)
+	start := random.CaveGen.Intn(3) // 0 = left, 1 = mid, 2 = right
+	end := random.CaveGen.Intn(2)
+	if start == 0 {
+		end++
+	} else if start == 1 && end == 1 {
+		end = random.CaveGen.Intn(2)
+	}
+	startT := layers[0][start]
+	exitT := layers[2][end]
+	newCave := cave.NewCave(batcher, true)
+	newCave.Left = left
+	newCave.Right = right
+	newCave.Bottom = bottom
+	newCave.StartC = startT
+	newCave.GemRate = constants.BaseGem
+	newCave.ItemRate = constants.BaseItem
+	newCave.FuseLen = constants.BaseFuse
+	newCave.BombPMin = 0.1
+	newCave.BombPMax = 0.2
+	for i := 1; i < level; i += 2 {
+		newCave.BombPMin += 0.02
+		newCave.BombPMax += 0.02
+	}
+	if newCave.BombPMin > 0.3 {
+		newCave.BombPMin = 0.3
+	}
+	if newCave.BombPMax > 0.4 {
+		newCave.BombPMax = 0.4
+	}
+	for i := 2; i < level; i += 2 {
+		newCave.FuseLen -= 0.1
+	}
+	if newCave.FuseLen < 0.4 {
+		newCave.FuseLen = 0.4
+	}
+	CreateChunks(newCave)
+	// generate entrance (at y level 9, x between l + 10 and r - 10)
+	Entrance(newCave, startT, 11, 5, 4, false)
+	box := startT
+	box.X -= 8
+	box.Y -= 9
+	RectRoom(newCave, box, 17, 12)
+	// generate exit (between y level 4 and 10, x between l + 10 and r - 10)
+	Exit(newCave, exitT, 7, 3, 1, true)
+	box = exitT
+	box.X -= 5
+	box.Y -= 5
+	RectRoom(newCave, box, 11, 8)
+	newCave.MarkAsNotChanged()
+	// generate paths and/or cycles from entrance to exit
+	path := SemiStraightPath(newCave, startT, exitT, Left, false)
+	path = append(path, SemiStraightPath(newCave, startT, exitT, Right, false)...)
+	startT.X -= 2
+	path = append(path, SemiStraightPath(newCave, startT, exitT, Down, false)...)
+	startT.X += 4
+	path = append(path, SemiStraightPath(newCave, startT, exitT, Down, false)...)
+	// generate path branching from orig paths
+
+	// place rectangles at random points on all paths, esp at or near dead ends
+	count := random.CaveGen.Intn(constants.ChunkSize/ 3) + constants.ChunkSize/ 3
+	for i := 0; i < count; i++ {
+		include := path[random.CaveGen.Intn(len(path))]
+		//fmt.Printf("rect room includes: (%d,%d)\n", include.X, include.Y)
+		RandRectRoom(newCave, 7, (constants.ChunkSize/ 4) * 3, include)
+	}
+	//num := random.CaveGen.Intn(8) + 12
+	//for i := 0; i < num; i++ {
+	//	RectRoom(cave, 5, 20)
+	//}
+	for _, ch := range newCave.LChunks {
+		descent.FillChunk(ch)
+	}
+	for _, ch := range newCave.RChunks {
+		descent.FillChunk(ch)
+	}
+	newCave.PrintCaveToTerminal()
+	return newCave
+}
+
+func makeLayers(left, right, bottom, marginH, marginT, marginB int) [3][3]world.Coords {
+	if marginH >= constants.ChunkSize/ 2 {
+		marginH = constants.ChunkSize/ 2 - 1
+	}
+	layer1 := [3]world.Coords{
+		{
+			X: left *constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize- marginH),
+			Y: marginT + random.CaveGen.Intn(3),
+		},
+		{
+			X: (left + 1) *constants.ChunkSize + random.CaveGen.Intn((right - left - 1) *constants.ChunkSize),
+			Y: marginT + random.CaveGen.Intn(3),
+		},
+		{
+			X: (right + 1) *constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize- marginH),
+			Y: marginT + random.CaveGen.Intn(3),
+		},
+	}
+	layer2 := [3]world.Coords{
+		{
+			X: left *constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize- marginH),
+			Y: constants.ChunkSize + random.CaveGen.Intn((bottom - 1) *constants.ChunkSize),
+		},
+		{
+			X: (left + 1) *constants.ChunkSize + random.CaveGen.Intn((right - left - 1) *constants.ChunkSize),
+			Y: constants.ChunkSize + random.CaveGen.Intn((bottom - 1) *constants.ChunkSize),
+		},
+		{
+			X: (right + 1) *constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize- marginH),
+			Y: constants.ChunkSize + random.CaveGen.Intn((bottom - 1) *constants.ChunkSize),
+		},
+	}
+	layer3 := [3]world.Coords{
+		{
+			X: left *constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize- marginH),
+			Y: (bottom + 1) *constants.ChunkSize - marginB - random.CaveGen.Intn(6),
+		},
+		{
+			X: (left + 1) *constants.ChunkSize + random.CaveGen.Intn((right - left - 1) *constants.ChunkSize),
+			Y: (bottom + 1) *constants.ChunkSize - marginB - random.CaveGen.Intn(6),
+		},
+		{
+			X: (right + 1) *constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize- marginH),
+			Y: (bottom + 1) *constants.ChunkSize - marginB - random.CaveGen.Intn(6),
+		},
+	}
+	//fmt.Println("Layers:")
+	//fmt.Println("TOP - Left:", layer1[0], "Mid:", layer1[1], "Right:", layer1[2])
+	//fmt.Println("MID - Left:", layer2[0], "Mid:", layer2[1], "Right:", layer2[2])
+	//fmt.Println("BOT - Left:", layer3[0], "Mid:", layer3[1], "Right:", layer3[2])
+	return [3][3]world.Coords{
+		layer1,
+		layer2,
+		layer3,
+	}
+}

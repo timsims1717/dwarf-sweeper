@@ -286,7 +286,7 @@ func (m *DwarfMenu) UpdateSize() {
 	lines := 0
 	tLines := 0
 	for i, item := range m.Items {
-		if item.NoShow {
+		if item.Ignore {
 			item.noShowT = true
 			continue
 		}
@@ -574,7 +574,7 @@ func (m *DwarfMenu) GetNextHoverVert(dir, curr int, right bool, in *input.Input)
 	}
 	nextI %= len(m.Items)
 	next := m.Items[nextI]
-	if next.Disabled || next.NoHover || next.NoShow || next.Right != right {
+	if next.Disabled || next.NoHover || next.Ignore || next.Right != right {
 		m.GetNextHoverVert(dir, nextI, right, in)
 	} else {
 		m.setHover(nextI)

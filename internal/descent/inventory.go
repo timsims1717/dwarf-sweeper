@@ -1,4 +1,4 @@
-package dungeon
+package descent
 
 import "github.com/faiface/pixel"
 

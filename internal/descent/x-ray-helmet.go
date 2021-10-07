@@ -1,4 +1,4 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -25,14 +25,14 @@ func (x *XRayHelmet) Update() {
 		if x.Timer.UpdateDone() {
 			x.Delete()
 		} else {
-			n := Dungeon.GetPlayerTile().SubCoords.Neighbors()
+			n := Descent.GetPlayerTile().SubCoords.Neighbors()
 			a := world.Combine(n, n[0].Neighbors())
 			a = world.Combine(a, n[2].Neighbors())
 			a = world.Combine(a, n[4].Neighbors())
 			a = world.Combine(a, n[6].Neighbors())
 			for _, c := range a {
-				tile := Dungeon.GetPlayerTile().Chunk.Get(c)
-				if tile != nil && tile.breakable && tile.Solid && tile.XRay != nil && !util.IsNil(tile.Entity) {
+				tile := Descent.GetPlayerTile().Chunk.Get(c)
+				if tile != nil && tile.Breakable && tile.Solid && tile.XRay != nil && !util.IsNil(tile.Entity) {
 					myecs.Manager.NewEntity().
 						AddComponent(myecs.Sprite, tile.XRay).
 						AddComponent(myecs.Transform, transform.NewTransform()).
@@ -52,7 +52,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	t1.Offset = pixel.V(-world.TileSize, world.TileSize)
 	e1 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t1).
-		AddComponent(myecs.Parent, Dungeon.Player.Transform).
+		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
 		AddComponent(myecs.Batch, constants.BigEntityKey)
 	t2 := transform.NewTransform()
@@ -60,7 +60,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	t2.Flip = true
 	e2 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t2).
-		AddComponent(myecs.Parent, Dungeon.Player.Transform).
+		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
 		AddComponent(myecs.Batch, constants.BigEntityKey)
 	t3 := transform.NewTransform()
@@ -69,7 +69,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	t3.Flop = true
 	e3 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t3).
-		AddComponent(myecs.Parent, Dungeon.Player.Transform).
+		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
 		AddComponent(myecs.Batch, constants.BigEntityKey)
 	t4 := transform.NewTransform()
@@ -77,7 +77,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	t4.Flop = true
 	e4 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t4).
-		AddComponent(myecs.Parent, Dungeon.Player.Transform).
+		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
 		AddComponent(myecs.Batch, constants.BigEntityKey)
 	x.entities = [4]*ecs.Entity{e1, e2, e3, e4}

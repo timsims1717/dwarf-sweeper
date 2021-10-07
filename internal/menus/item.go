@@ -36,7 +36,8 @@ type Item struct {
 	Hovered  bool
 	Disabled bool
 	NoHover  bool
-	NoShow   bool
+	Ignore   bool
+	NoDraw   bool
 	hovered  bool
 	disabled bool
 	noShowT  bool
@@ -129,7 +130,7 @@ func (i *Item) Update() {
 }
 
 func (i *Item) Draw(target pixel.Target) {
-	if i.Text != nil && !i.NoShow && !i.noShowT {
+	if i.Text != nil && !i.Ignore && !i.noShowT && !i.NoDraw {
 		i.Text.Draw(target, i.Transform.Mat)
 		if len(i.SymMats) == len(i.Symbols) {
 			for j := 0; j < len(i.Symbols); j++ {

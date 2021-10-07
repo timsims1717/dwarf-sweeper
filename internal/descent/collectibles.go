@@ -1,4 +1,4 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -33,7 +33,7 @@ func InitCollectibles() {
 	xRaySpr := img.Batchers[constants.EntityKey].Sprites["x-ray-helmet"]
 	Collectibles[GemDiamond] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
-			GemsFound++
+			CaveGemsFound++
 			particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_1","sparkle_2","sparkle_3","sparkle_4","sparkle_5"}, pos, 1.0, 1.0, 0.5)
 			sfx.SoundPlayer.PlaySound("clink", 1.0)
 			return true
@@ -46,7 +46,7 @@ func InitCollectibles() {
 				Name:   "beer",
 				Sprite: beerSpr,
 				OnUse:  func() bool {
-					Dungeon.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
+					Descent.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
 						TmpAmount: 1,
 					})
 					return true
@@ -63,7 +63,7 @@ func InitCollectibles() {
 				Name:   "bubble",
 				Sprite: bubbleSpr,
 				OnUse:  func() bool {
-					if Dungeon.Player.Bubble == nil {
+					if Descent.Player.Bubble == nil {
 						bubble := &Bubble{}
 						bubble.Create(pixel.Vec{})
 						return true
@@ -83,8 +83,8 @@ func InitCollectibles() {
 				Name:   "heart_item",
 				Sprite: heartSpr,
 				OnUse:  func() bool {
-					if Dungeon.Player.Health.Curr < Dungeon.Player.Health.Max {
-						Dungeon.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
+					if Descent.Player.Health.Curr < Descent.Player.Health.Max {
+						Descent.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
 							Amount: 1,
 						})
 						return true
@@ -123,7 +123,7 @@ type CollectibleItem struct {
 	Physics   *physics.Physics
 	Transform *transform.Transform
 	created   bool
-	collect   *data.Collectible
+	Collect   *data.Collectible
 	sprite    *pixel.Sprite
 	entity    *ecs.Entity
 	health    *data.SimpleHealth
@@ -139,14 +139,14 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 	b.Physics, b.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
-	b.sprite = b.collect.Sprite
+	b.sprite = b.Collect.Sprite
 	b.health = &data.SimpleHealth{}
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Physics, b.Physics).
 		AddComponent(myecs.Collision, data.Collider{ GroundOnly: true }).
-		AddComponent(myecs.Collect, b.collect).
+		AddComponent(myecs.Collect, b.Collect).
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
 		AddComponent(myecs.Batch, constants.EntityKey)

@@ -1,4 +1,4 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -39,8 +39,8 @@ func (b *Bubble) Create(_ pixel.Vec) {
 	b.Physics = physics.New()
 	b.Physics.Gravity = 50.
 	b.Physics.Friction = 200.
-	Dungeon.Player.Entity.AddComponent(myecs.Physics, b.Physics)
-	Dungeon.Player.Bubble = b
+	Descent.Player.Entity.AddComponent(myecs.Physics, b.Physics)
+	Descent.Player.Bubble = b
 	b.created = true
 	b.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
@@ -62,7 +62,7 @@ func (b *Bubble) Create(_ pixel.Vec) {
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
-		AddComponent(myecs.Parent, Dungeon.Player.Transform).
+		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
 		AddComponent(myecs.Batch, constants.BigEntityKey)
 }
@@ -77,8 +77,8 @@ func (b *Bubble) Delete() {
 func (b *Bubble) Pop() {
 	b.popped = true
 	b.entity.RemoveComponent(myecs.Parent)
-	b.Transform.Pos = Dungeon.Player.Transform.Pos
-	Dungeon.Player.Physics.Velocity = b.Physics.Velocity
-	Dungeon.Player.Entity.AddComponent(myecs.Physics, Dungeon.Player.Physics)
-	Dungeon.Player.Bubble = nil
+	b.Transform.Pos = Descent.Player.Transform.Pos
+	Descent.Player.Physics.Velocity = b.Physics.Velocity
+	Descent.Player.Entity.AddComponent(myecs.Physics, Descent.Player.Physics)
+	Descent.Player.Bubble = nil
 }

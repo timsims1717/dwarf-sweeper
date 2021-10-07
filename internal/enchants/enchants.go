@@ -2,19 +2,19 @@ package enchants
 
 import (
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/dungeon"
+	"dwarf-sweeper/internal/descent"
 )
 
 func AddEnchantment(e1 *data.Enchantment) {
 	for i, e := range Enchantments {
 		if e.Key == e1.Key {
-			for _, in := range dungeon.Dungeon.GetPlayer().Enchants {
+			for _, in := range descent.Descent.GetPlayer().Enchants {
 				if in == i {
 					return
 				}
 			}
 			e1.OnGain()
-			dungeon.Dungeon.GetPlayer().Enchants = append(dungeon.Dungeon.GetPlayer().Enchants, i)
+			descent.Descent.GetPlayer().Enchants = append(descent.Descent.GetPlayer().Enchants, i)
 			return
 		}
 	}
@@ -24,7 +24,7 @@ func RemoveEnchantment(e1 *data.Enchantment) {
 	for i, e := range Enchantments {
 		if e.Key == e1.Key {
 			index := -1
-			for j, in := range dungeon.Dungeon.GetPlayer().Enchants {
+			for j, in := range descent.Descent.GetPlayer().Enchants {
 				if in == i {
 					index = j
 				}
@@ -33,10 +33,10 @@ func RemoveEnchantment(e1 *data.Enchantment) {
 				return
 			}
 			e1.OnLose()
-			if len(dungeon.Dungeon.GetPlayer().Enchants) > 1 {
-				dungeon.Dungeon.GetPlayer().Enchants = append(dungeon.Dungeon.GetPlayer().Enchants[:index], dungeon.Dungeon.GetPlayer().Enchants[index+1:]...)
+			if len(descent.Descent.GetPlayer().Enchants) > 1 {
+				descent.Descent.GetPlayer().Enchants = append(descent.Descent.GetPlayer().Enchants[:index], descent.Descent.GetPlayer().Enchants[index+1:]...)
 			} else {
-				dungeon.Dungeon.GetPlayer().Enchants = []int{}
+				descent.Descent.GetPlayer().Enchants = []int{}
 			}
 			return
 		}
@@ -46,58 +46,69 @@ func RemoveEnchantment(e1 *data.Enchantment) {
 var Enchantments = []*data.Enchantment{
 	{
 		OnGain: func () {
-			dungeon.Dungeon.GetPlayer().MaxJump++
+			descent.Descent.GetPlayer().MaxJump++
 		},
 		OnLose: func () {
-			dungeon.Dungeon.GetPlayer().MaxJump--
+			descent.Descent.GetPlayer().MaxJump--
 		},
 		Key:    "jump1",
 		Title:  "Jumping",
-		Desc:   "Increases jump height.",
+		Desc:   "Increases your jump height.",
 	},
 	{
 		OnGain: func () {
-			dungeon.Dungeon.GetPlayer().ClimbSpeed += 15.
+			descent.Descent.GetPlayer().ClimbSpeed += 15.
 		},
 		OnLose: func () {
-			dungeon.Dungeon.GetPlayer().ClimbSpeed -= 15.
+			descent.Descent.GetPlayer().ClimbSpeed -= 15.
 		},
 		Key:    "climb1",
 		Title:  "Clambering",
-		Desc:   "Increases climb speed.",
+		Desc:   "Increases your climb speed.",
 	},
 	{
 		OnGain: func () {
-			dungeon.Dungeon.GetPlayer().Speed += 25.
+			descent.Descent.GetPlayer().Speed += 25.
 		},
 		OnLose: func () {
-			dungeon.Dungeon.GetPlayer().Speed -= 25.
+			descent.Descent.GetPlayer().Speed -= 25.
 		},
 		Key:    "run1",
 		Title:  "Running",
-		Desc:   "Increases running speed.",
+		Desc:   "Increases your running speed.",
 	},
 	{
 		OnGain: func () {
-			dungeon.Dungeon.GetPlayer().Health.Max += 1
-			dungeon.Dungeon.GetPlayer().Health.Curr += 1
+			descent.Descent.GetPlayer().Health.Max += 1
+			descent.Descent.GetPlayer().Health.Curr += 1
 		},
 		OnLose: func () {
-			dungeon.Dungeon.GetPlayer().Health.Max -= 1
+			descent.Descent.GetPlayer().Health.Max -= 1
 		},
 		Key:    "health",
 		Title:  "Heartiness",
-		Desc:   "Increases max health.",
+		Desc:   "Increases your max health.",
 	},
 	{
 		OnGain: func () {
-			dungeon.Dungeon.GetPlayer().ShovelDamage += 1
+			descent.Descent.GetPlayer().ShovelDamage += 1
 		},
 		OnLose: func () {
-			dungeon.Dungeon.GetPlayer().ShovelDamage -= 1
+			descent.Descent.GetPlayer().ShovelDamage -= 1
 		},
 		Key:    "damage",
 		Title:  "Sharpness",
 		Desc:   "Shovel deals damage to enemies.",
+	},
+	{
+		OnGain: func () {
+			descent.Descent.GetPlayer().ShovelKnockback += 0.3
+		},
+		OnLose: func () {
+			descent.Descent.GetPlayer().ShovelKnockback -= 0.3
+		},
+		Key:    "knockback",
+		Title:  "Batting",
+		Desc:   "Increases your shovel's knockback.",
 	},
 }

@@ -1,8 +1,9 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -25,7 +26,7 @@ type Bomb struct {
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
 	FuseLength float64
-	Tile       *Tile
+	Tile       *cave.Tile
 	created    bool
 	explode    bool
 	Reanimator *reanimator.Tree
@@ -35,6 +36,8 @@ type Bomb struct {
 func (b *Bomb) Update() {
 	if b.created {
 		if b.explode{
+			CaveBombsLeft--
+			CaveBlownUpBombs++
 			area := []pixel.Vec{b.Transform.Pos}
 			for _, n := range b.Tile.SubCoords.Neighbors(){
 				t := b.Tile.Chunk.Get(n)

@@ -1,4 +1,4 @@
-package dungeon
+package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -25,10 +25,10 @@ type BombItem struct {
 
 func (b *BombItem) Update() {
 	if b.health.Dead {
-		tile := Dungeon.GetCave().GetTile(b.Transform.Pos)
+		tile := Descent.GetCave().GetTile(b.Transform.Pos)
 		bomb := Bomb{
-			Tile: tile,
-			FuseLength: BaseFuse,
+			Tile:       tile,
+			FuseLength: constants.BaseFuse,
 		}
 		bomb.Create(tile.Transform.Pos)
 		b.Delete()
@@ -46,10 +46,10 @@ func (b *BombItem) Create(pos pixel.Vec) {
 				Name:   "bomb",
 				Sprite: b.sprite,
 				OnUse:  func() bool {
-					tile := Dungeon.GetCave().GetTile(Dungeon.Player.Transform.Pos)
+					tile := Descent.GetCave().GetTile(Descent.Player.Transform.Pos)
 					bomb := Bomb{
-						Tile: tile,
-						FuseLength: BaseFuse,
+						Tile:       tile,
+						FuseLength: constants.BaseFuse,
 					}
 					bomb.Create(tile.Transform.Pos)
 					return true
