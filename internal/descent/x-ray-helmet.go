@@ -82,6 +82,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 		AddComponent(myecs.Batch, constants.BigEntityKey)
 	x.entities = [4]*ecs.Entity{e1, e2, e3, e4}
 	x.entity = myecs.Manager.NewEntity().
+		AddComponent(myecs.Transform, Descent.Player.Transform).
 		AddComponent(myecs.Entity, x)
 }
 

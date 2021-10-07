@@ -1,6 +1,7 @@
 package state
 
 import (
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate"
@@ -128,11 +129,26 @@ func Update(win *pixelgl.Window) {
 		descent.Descent.GetPlayer().Health.Inv = !descent.Descent.GetPlayer().Health.Inv
 	}
 	if debugInput.Get("debugTest").JustPressed() {
-		newState = 0
-		switchState = true
-		descent.Descent.Type = descent.Minesweeper
-		descent.Descent.Level = 10
-		descent.Descent.Start = true
+		//newState = 0
+		//switchState = true
+		//descent.Descent.Type = descent.Minesweeper
+		//descent.Descent.Level = 10
+		//descent.Descent.Start = true
+		descent.AddToInventory(&descent.InvItem{
+			Name:   "xray",
+			Sprite: img.Batchers[constants.EntityKey].Sprites["x-ray-helmet"],
+			OnUse:  func() bool {
+				//if Dungeon.Player.Bubble == nil {
+				xray := &descent.XRayHelmet{}
+				xray.Create(pixel.Vec{})
+				return true
+				//} else {
+				//	return false
+				//}
+			},
+			Count:  1,
+			Unique: true,
+		})
 	}
 	if win.Focused() {
 		frame := false
