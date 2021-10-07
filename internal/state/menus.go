@@ -104,7 +104,7 @@ func InitMainMenu(win *pixelgl.Window) {
 	})
 	credit.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		newState = 3
+		SwitchState(3)
 	})
 	quit.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -124,14 +124,14 @@ func InitStartMenu() {
 		StartMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Descent.Type = descent.Normal
-		newState = 4
+		SwitchState(4)
 	})
 	normal.Hint = "Start a new run through a variety of caves!"
 	infinite.SetClickFn(func() {
 		StartMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Descent.Type = descent.Infinite
-		newState = 4
+		SwitchState(4)
 	})
 	infinite.Hint = "Survive in a cave that never ends!"
 	back.SetClickFn(func() {
@@ -634,7 +634,7 @@ func InitPauseMenu(win *pixelgl.Window) {
 	})
 	mainMenu.SetClickFn(func() {
 		PauseMenu.CloseInstant()
-		newState = 1
+		SwitchState(4)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	quit.SetClickFn(func() {
@@ -654,7 +654,7 @@ func InitEnchantMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		EnchantMenu.CloseInstant()
 		ClearEnchantMenu()
-		newState = 0
+		SwitchState(0)
 	})
 }
 
@@ -695,7 +695,7 @@ func FillEnchantMenu() bool {
 		enchants.AddEnchantment(e1)
 		EnchantMenu.CloseInstant()
 		ClearEnchantMenu()
-		newState = 0
+		SwitchState(0)
 	})
 	option1.Hint = e1.Desc
 	if e2 != nil {
@@ -705,7 +705,7 @@ func FillEnchantMenu() bool {
 			enchants.AddEnchantment(e2)
 			EnchantMenu.CloseInstant()
 			ClearEnchantMenu()
-			newState = 0
+			SwitchState(0)
 		})
 		option2.Hint = e2.Desc
 	}
@@ -716,7 +716,7 @@ func FillEnchantMenu() bool {
 			enchants.AddEnchantment(e3)
 			EnchantMenu.CloseInstant()
 			ClearEnchantMenu()
-			newState = 0
+			SwitchState(0)
 		})
 		option3.Hint = e3.Desc
 	}
@@ -768,12 +768,12 @@ func InitPostGameMenu() {
 	retry.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		newState = 4
+		SwitchState(4)
 	})
 	backToMenu.Right = true
 	backToMenu.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		newState = 1
+		SwitchState(1a)
 	})
 }

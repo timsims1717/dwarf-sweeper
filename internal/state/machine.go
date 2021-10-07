@@ -192,7 +192,7 @@ func Update(win *pixelgl.Window) {
 					if player.GameInput.Get("up").JustPressed() &&
 						descent.Descent.GetPlayerTile().IsExit() &&
 						descent.Descent.CanExit() {
-						newState = 5
+						SwitchState(5)
 					}
 				}
 				camera.Cam.Restrict(bl, tr)
@@ -204,7 +204,7 @@ func Update(win *pixelgl.Window) {
 					timer.Update()
 					if (timer.Elapsed() > 2. && descent.Descent.GetPlayer().DeadStop) ||
 						(timer.Elapsed() > 4. && descent.Descent.GetPlayer().Health.Dead) {
-						newState = 2
+						SwitchState(2)
 					}
 				}
 				if menuInput.Get("pause").JustPressed() {
@@ -240,7 +240,7 @@ func Update(win *pixelgl.Window) {
 				player.UpdateHUD()
 				UpdateMenus(win)
 				if MenuClosed() {
-					newState = 1
+					SwitchState(1)
 				}
 			} else if state == 3 {
 				credits.Transform.UIPos = camera.Cam.APos
@@ -249,10 +249,10 @@ func Update(win *pixelgl.Window) {
 				if menuInput.Get("back").JustPressed() || menuInput.Get("click").JustPressed() {
 					menuInput.Get("back").Consume()
 					menuInput.Get("click").Consume()
-					newState = 1
+					SwitchState(1)
 				}
 			} else if state == 4 {
-				newState = 0
+				SwitchState(0)
 			} else if state == 5 {
 				reanimator.Update()
 				descent.Update()
@@ -262,7 +262,7 @@ func Update(win *pixelgl.Window) {
 				UpdateMenus(win)
 				if MenuClosed() {
 					ClearEnchantMenu()
-					newState = 0
+					SwitchState(0)
 				}
 			}
 		}
@@ -469,5 +469,12 @@ func updateState() {
 		}
 		state = newState
 		switchState = false
+	}
+}
+
+func SwitchState(s int) {
+	if !switchState {
+		switchState = true
+		newState = s
 	}
 }
