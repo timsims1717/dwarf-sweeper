@@ -17,6 +17,8 @@ const (
 	BubbleAcc = 5.
 )
 
+var BubbleSec = 12.
+
 type Bubble struct {
 	Physics    *physics.Physics
 	Transform  *transform.Transform
@@ -34,7 +36,7 @@ func (b *Bubble) Update() {
 }
 
 func (b *Bubble) Create(_ pixel.Vec) {
-	b.Timer = timing.New(12.)
+	b.Timer = timing.New(BubbleSec)
 	b.Transform = transform.NewTransform()
 	b.Physics = physics.New()
 	b.Physics.Gravity = 50.

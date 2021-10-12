@@ -3,6 +3,7 @@ package main
 import (
 	"dwarf-sweeper/internal/config"
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
@@ -45,6 +46,7 @@ func run() {
 	camera.Cam.SetSize(res.X/res.Y, constants.BaseH)
 
 	debug.Initialize()
+	credits.Initialize()
 
 	vfx.Initialize()
 	particles.Initialize()

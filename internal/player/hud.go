@@ -16,6 +16,7 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
+	"strconv"
 )
 
 var (
@@ -25,6 +26,7 @@ var (
 	gemTransform       *transform.Transform
 	gemNumberItem      *menu.ItemText
 	itemTransform      *transform.Transform
+	itemCountItem      *menu.ItemText
 	bombCountTransform *transform.Transform
 	bombCountItem      *menu.ItemText
 	tmpAnimation       *reanimator.Tree
@@ -52,6 +54,8 @@ func InitHUD() {
 	itemTransform.Anchor.V = transform.Center
 	itemTransform.Scalar = pixel.V(1.6, 1.6)
 	itemTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - world.TileSize)
+	itemCountItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(0.8, 0.8), menu.Right, menu.Bottom)
+	itemCountItem.Transform.Pos = pixel.V(constants.BaseW * 0.5, constants.BaseH * 0.5 - world.TileSize * 1.5)
 	bombCountTransform = transform.NewTransform()
 	bombCountTransform.Anchor.H = transform.Right
 	bombCountTransform.Anchor.V = transform.Center
@@ -61,10 +65,10 @@ func InitHUD() {
 	bombCountItem.Transform.Pos = pixel.V(constants.BaseW * 0.5 + 5., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
 	tmpAnimation = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers["entities"].Animations["heart_temp_1"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers["entities"].Animations["heart_temp_2"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers["entities"].Animations["heart_temp_3"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers["entities"].Animations["heart_temp_4"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers[constants.MenuSprites].Animations["heart_temp_1"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers[constants.MenuSprites].Animations["heart_temp_2"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers[constants.MenuSprites].Animations["heart_temp_3"].S, reanimator.Hold, nil),
+			reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers[constants.MenuSprites].Animations["heart_temp_4"].S, reanimator.Hold, nil),
 		),
 		Check: func() int {
 			if descent.Descent.Player.Health.TempHPTimer == nil {
@@ -106,6 +110,11 @@ func UpdateHUD() {
 		gemTimer = timing.New(0.0)
 	}
 	gemTimer.Update()
+	if len(descent.Inventory) > 0 && descent.InvIndex < len(descent.Inventory) {
+		itemCountItem.SetText(strconv.Itoa(descent.Inventory[descent.InvIndex].Count))
+	} else {
+		itemCountItem.SetText("")
+	}
 	if descent.Descent.Type == descent.Minesweeper {
 		num := descent.CaveBombsLeft - (descent.CaveWrongMarks + descent.CaveBombsMarked)
 		if num == 0 {
@@ -131,7 +140,7 @@ func DrawHUD(win *pixelgl.Window) {
 	i := 0
 	hp := descent.Descent.Player.Health
 	for i < hp.Curr && i < len(heartTransforms) {
-		img.Batchers["entities"].Sprites["heart_full"].Draw(win, heartTransforms[i].Mat)
+		img.Batchers[constants.MenuSprites].Sprites["heart_full"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}
 	for i < hp.TempHP + hp.Curr && i < len(heartTransforms) {
@@ -139,7 +148,7 @@ func DrawHUD(win *pixelgl.Window) {
 		i++
 	}
 	for i < util.Min(hp.Max + hp.TempHP, hp.Max) && i < len(heartTransforms) {
-		img.Batchers["entities"].Sprites["heart_empty"].Draw(win, heartTransforms[i].Mat)
+		img.Batchers[constants.MenuSprites].Sprites["heart_empty"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}
 	if !gemTimer.Done() {
@@ -149,16 +158,28 @@ func DrawHUD(win *pixelgl.Window) {
 		gemNumberItem.Transform.UIPos = camera.Cam.APos
 		gemNumberItem.Transform.UIZoom = camera.Cam.GetZoomScale()
 		gemNumberItem.Update(pixel.Rect{})
-		img.Batchers["entities"].Sprites["gem_diamond"].Draw(win, gemTransform.Mat)
+		img.Batchers[constants.EntityKey].Sprites["gem_diamond"].Draw(win, gemTransform.Mat)
 		gemNumberItem.Draw(win)
 	}
 	itemTransform.UIPos = camera.Cam.APos
 	itemTransform.UIZoom = camera.Cam.GetZoomScale()
 	itemTransform.Update()
-	img.Batchers["entities"].Sprites["item_box"].Draw(win, itemTransform.Mat)
+	img.Batchers[constants.MenuSprites].Sprites["item_box"].Draw(win, itemTransform.Mat)
 	if len(descent.Inventory) > 0 && descent.InvIndex < len(descent.Inventory) {
-		descent.Inventory[descent.InvIndex].Sprite.Draw(win, itemTransform.Mat)
+		item := descent.Inventory[descent.InvIndex]
+		item.Sprite.Draw(win, itemTransform.Mat)
+		if item.Timer != nil {
+			i := 1
+			for float64(i) / 16. < item.Timer.Perc() {
+				i++
+			}
+			img.Batchers[constants.MenuSprites].Sprites[fmt.Sprintf("item_timer_%d", i)].Draw(win, itemTransform.Mat)
+		}
 	}
+	itemCountItem.Transform.UIPos = camera.Cam.APos
+	itemCountItem.Transform.UIZoom = camera.Cam.GetZoomScale()
+	itemCountItem.Update(pixel.Rect{})
+	itemCountItem.Draw(win)
 	if descent.Descent.Type == descent.Minesweeper {
 		bombCountTransform.UIPos = camera.Cam.APos
 		bombCountTransform.UIZoom = camera.Cam.GetZoomScale()
@@ -166,7 +187,7 @@ func DrawHUD(win *pixelgl.Window) {
 		bombCountItem.Transform.UIPos = camera.Cam.APos
 		bombCountItem.Transform.UIZoom = camera.Cam.GetZoomScale()
 		bombCountItem.Update(pixel.Rect{})
-		img.Batchers["entities"].Sprites["bomb_fuse"].Draw(win, bombCountTransform.Mat)
+		img.Batchers[constants.EntityKey].Sprites["bomb_fuse"].Draw(win, bombCountTransform.Mat)
 		bombCountItem.Draw(win)
 	}
 }

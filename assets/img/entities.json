@@ -4,45 +4,6 @@
  "width": 16,
  "sprites": [
   {
-   "key": "heart_full",
-   "x": 0,
-   "y": 80
-  },
-  {
-   "key": "heart_empty",
-   "x": 16,
-   "y": 80
-  },
-  {
-   "key": "item_box",
-   "x": 32,
-   "y": 80
-  },
-  {
-   "key": "heart_temp_1",
-   "anim": true,
-   "x": 48,
-   "y": 80
-  },
-  {
-   "key": "heart_temp_2",
-   "anim": true,
-   "x": 64,
-   "y": 80
-  },
-  {
-   "key": "heart_temp_3",
-   "anim": true,
-   "x": 80,
-   "y": 80
-  },
-  {
-   "key": "heart_temp_4",
-   "anim": true,
-   "x": 96,
-   "y": 80
-  },
-  {
    "key": "bomb_unlit",
    "anim": true,
    "x": 0,
@@ -92,28 +53,45 @@
   },
   {
    "key": "gem_diamond",
-   "x": 0,
-   "y": 48
+   "x": 1,
+   "y": 51,
+   "h": 10,
+   "w": 14
   },
   {
    "key": "bubble_item",
-   "x": 16,
-   "y": 48
+   "x": 18,
+   "y": 50,
+   "h": 12,
+   "w": 12
   },
   {
-   "key": "heart_item",
-   "x": 32,
-   "y": 48
+   "key": "apple",
+   "x": 34,
+   "y": 50,
+   "h": 12,
+   "w": 12
   },
   {
    "key": "beer",
-   "x": 48,
-   "y": 48
+   "x": 50,
+   "y": 50,
+   "h": 12,
+   "w": 12
   },
   {
    "key": "x-ray-helmet",
-   "x": 64,
-   "y": 48
+   "x": 66,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "bomb_item",
+   "x": 82,
+   "y": 48,
+   "h": 16,
+   "w": 12
   },
   {
    "key": "flag_hang",

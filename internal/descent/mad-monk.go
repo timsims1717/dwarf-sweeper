@@ -131,7 +131,9 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		AddComponent(myecs.Animation, m.Reanimator).
 		AddComponent(myecs.Physics, m.Physics).
 		AddComponent(myecs.Health, m.Health).
-		AddComponent(myecs.Collision, data.Collider{}).
+		AddComponent(myecs.Collision, data.Collider{
+			Hitbox: pixel.R(0., 0., 16., 16.),
+		}).
 		AddComponent(myecs.Batch, constants.EntityKey)
 }
 

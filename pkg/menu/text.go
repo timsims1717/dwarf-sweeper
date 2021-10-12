@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/text"
+	"golang.org/x/image/colornames"
 	"image/color"
 )
 
@@ -110,7 +111,13 @@ func (t *ItemText) Update(r pixel.Rect) {
 }
 
 func (t *ItemText) Draw(target pixel.Target) {
-	t.Text.Draw(target, t.Transform.Mat)
+	if t.TextColor.A < 255 {
+		col := colornames.White
+		col.A = t.TextColor.A
+		t.Text.DrawColorMask(target, t.Transform.Mat, col)
+	} else {
+		t.Text.Draw(target, t.Transform.Mat)
+	}
 }
 
 func (t *ItemText) SetMaxWidth(w float64) {

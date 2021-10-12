@@ -39,13 +39,13 @@ func CollisionSystem() {
 				//	p *physics.Physics
 				//}
 				if !coll.GroundOnly {
-					collDist := world.TileSize * collisionDistance
 					for _, result1 := range myecs.Manager.Query(myecs.HasCollision) {
 						tran1, okT1 := result1.Components[myecs.Transform].(*transform.Transform)
 						coll1, okC1 := result1.Components[myecs.Collision].(data.Collider)
 						phys1, okP1 := result1.Components[myecs.Physics].(*physics.Physics)
 						distX := math.Abs(tran.Pos.X - tran1.Pos.X)
-						if okT1 && okC1 && okP1 && !coll1.GroundOnly && distX < collDist && math.Abs(tran1.Pos.Y-tran.Pos.Y) < world.TileSize {
+						collDist := (coll.Hitbox.W() + coll1.Hitbox.W()) * 0.5 * collisionDistance
+						if okT1 && okC1 && okP1 && !coll1.GroundOnly && distX < collDist && math.Abs(tran1.Pos.Y-tran.Pos.Y) < (coll.Hitbox.H() + coll1.Hitbox.H()) * 0.5 {
 							if tran.Pos.X < tran1.Pos.X {
 								tran.Pos.X -= math.Min(collisionPush*timing.DT, math.Abs(distX-collDist)*0.5)
 								tran1.Pos.X += math.Min(collisionPush*timing.DT, math.Abs(distX-collDist)*0.5)
@@ -72,11 +72,12 @@ func CollisionSystem() {
 				done := false
 				var next pixel.Vec
 				count := 0
+				stepSize := math.Min(math.Min(coll.Hitbox.W(), coll.Hitbox.H()), world.TileSize)*0.5
 				for !done {
 					posChange := tran.Pos.Sub(lastPos)
 					mag := util.Magnitude(posChange)
-					if mag > world.TileSize*0.5 {
-						posChange = util.Normalize(posChange).Scaled(world.TileSize * 0.5)
+					if mag > stepSize {
+						posChange = util.Normalize(posChange).Scaled(stepSize)
 						next = lastPos.Add(posChange)
 					} else {
 						next = tran.Pos
@@ -126,15 +127,17 @@ func CollisionSystem() {
 						dwn := descent.Descent.GetCave().GetTile(pixel.V(next.X, next.Y-world.TileSize*0.6))
 						dwnl := descent.Descent.GetCave().GetTile(pixel.V(next.X-world.TileSize*0.3, next.Y-world.TileSize*0.6))
 						dwnr := descent.Descent.GetCave().GetTile(pixel.V(next.X+world.TileSize*0.3, next.Y-world.TileSize*0.6))
-						if ((up != nil && up.Solid) || (upl != nil && upl.Solid) || (upr != nil && upr.Solid)) && next.Y >= loc.Transform.Pos.Y {
-							next.Y = loc.Transform.Pos.Y
+						uY := loc.Transform.Pos.Y + (world.TileSize - coll.Hitbox.H()) * 0.5
+						dY := loc.Transform.Pos.Y - (world.TileSize - coll.Hitbox.H()) * 0.5
+						if ((up != nil && up.Solid) || (upl != nil && upl.Solid) || (upr != nil && upr.Solid)) && next.Y >= uY {
+							next.Y = uY
 							if phys.Velocity.Y > 0 {
 								phys.Velocity.Y = 0
 								stopped = true
 							}
 						}
-						if ((dwn != nil && dwn.Solid) || (dwnr != nil && dwnr.Solid) || (dwnl != nil && dwnl.Solid)) && next.Y <= loc.Transform.Pos.Y {
-							next.Y = loc.Transform.Pos.Y
+						if ((dwn != nil && dwn.Solid) || (dwnr != nil && dwnr.Solid) || (dwnl != nil && dwnl.Solid)) && next.Y <= dY {
+							next.Y = dY
 							if phys.Velocity.Y < 0 {
 								phys.Velocity.Y = 0
 								stopped = true
@@ -146,8 +149,10 @@ func CollisionSystem() {
 						}
 						right := descent.Descent.GetCave().GetTile(pixel.V(next.X+world.TileSize, next.Y))
 						left := descent.Descent.GetCave().GetTile(pixel.V(next.X-world.TileSize, next.Y))
-						if right != nil && right.Solid && next.X >= loc.Transform.Pos.X {
-							next.X = loc.Transform.Pos.X
+						rX := loc.Transform.Pos.X + (world.TileSize - coll.Hitbox.W()) * 0.5
+						lX := loc.Transform.Pos.X - (world.TileSize - coll.Hitbox.W()) * 0.5
+						if right != nil && right.Solid && next.X >= rX {
+							next.X = rX
 							if phys.Velocity.X > 0 {
 								if phys.RagDoll {
 									phys.Velocity.X = phys.Velocity.X * -0.6
@@ -158,8 +163,8 @@ func CollisionSystem() {
 								}
 							}
 						}
-						if left != nil && left.Solid && next.X <= loc.Transform.Pos.X {
-							next.X = loc.Transform.Pos.X
+						if left != nil && left.Solid && next.X <= lX {
+							next.X = lX
 							if phys.Velocity.X < 0 {
 								if phys.RagDoll {
 									phys.Velocity.X = phys.Velocity.X * -0.6

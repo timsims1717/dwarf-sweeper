@@ -19,7 +19,7 @@ import (
 
 const (
 	MineBaseKnockback = 25.
-	MineBaseRadius = 2.25
+	MineBaseRadius = 1.99
 )
 
 type Bomb struct {

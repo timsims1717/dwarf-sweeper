@@ -2,6 +2,7 @@ package state
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate"
@@ -27,22 +28,6 @@ import (
 
 const (
 	titleString  = `DwarfSweeper`
-	creditString = `DwarfSweeper
-
-
-Made by Tim Sims for Ludum Dare 48
-(DEEPER AND DEEPER)
-using Pixel, a 2d Engine written in Go.
-
-Sound from the PMSFX Sampler March 2021
-
-Special Thanks:
-My wife Kaylan,
-Marshall and Clark,
-faiface, the Ludum Dare LD48 team,
-and YOU!
-
-Thanks for playing!`
 )
 
 var (
@@ -54,7 +39,6 @@ var (
 	menuStack  []*menus.DwarfMenu
 	timer      *timing.FrameTimer
 	timerKeys  map[string]bool
-	credits    = menu.NewItemText(creditString, colornames.Aliceblue, pixel.V(1., 1.), menu.Center, menu.Center)
 	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
 	debugInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
@@ -137,17 +121,13 @@ func Update(win *pixelgl.Window) {
 		descent.AddToInventory(&descent.InvItem{
 			Name:   "xray",
 			Sprite: img.Batchers[constants.EntityKey].Sprites["x-ray-helmet"],
-			OnUse:  func() bool {
-				//if Dungeon.Player.Bubble == nil {
+			OnUse:  func() {
 				xray := &descent.XRayHelmet{}
 				xray.Create(pixel.Vec{})
-				return true
-				//} else {
-				//	return false
-				//}
 			},
-			Count:  1,
-			Unique: true,
+			Count: 1,
+			Limit: 1,
+			Sec:   descent.XRaySec,
 		})
 	}
 	if win.Focused() {
@@ -187,6 +167,7 @@ func Update(win *pixelgl.Window) {
 					particles.Update()
 					vfx.Update()
 					descent.Descent.GetPlayer().Update(player.GameInput)
+					descent.UpdateInventory()
 					systems.AnimationSystem()
 					player.UpdateHUD()
 					if player.GameInput.Get("up").JustPressed() &&
@@ -219,9 +200,16 @@ func Update(win *pixelgl.Window) {
 				title.Transform.UIPos = camera.Cam.APos
 				title.Transform.UIZoom = camera.Cam.GetZoomScale()
 				title.Update(pixel.Rect{})
-				UpdateMenus(win)
-				if MenuClosed() && menuInput.AnyJustPressed(true) {
-					OpenMenu(MainMenu)
+				if credits.Opened() {
+					credits.Update()
+					if menuInput.AnyJustPressed(true) {
+						credits.Close()
+					}
+				} else {
+					UpdateMenus(win)
+					if MenuClosed() && menuInput.AnyJustPressed(true) {
+						OpenMenu(MainMenu)
+					}
 				}
 				//debug.AddText(fmt.Sprintf("Input TLines: %d", InputMenu.TLines))
 				//debug.AddText(fmt.Sprintf("Input Top: %d", InputMenu.Top))
@@ -240,15 +228,6 @@ func Update(win *pixelgl.Window) {
 				player.UpdateHUD()
 				UpdateMenus(win)
 				if MenuClosed() {
-					SwitchState(1)
-				}
-			} else if state == 3 {
-				credits.Transform.UIPos = camera.Cam.APos
-				credits.Transform.UIZoom = camera.Cam.GetZoomScale()
-				credits.Update(pixel.Rect{})
-				if menuInput.Get("back").JustPressed() || menuInput.Get("click").JustPressed() {
-					menuInput.Get("back").Consume()
-					menuInput.Get("click").Consume()
 					SwitchState(1)
 				}
 			} else if state == 4 {
@@ -301,6 +280,9 @@ func Draw(win *pixelgl.Window) {
 		for _, m := range menuStack {
 			m.Draw(win)
 		}
+		if credits.Opened() {
+			credits.Draw(win)
+		}
 	} else if state == 2 {
 		descent.Descent.GetCave().Draw(win)
 		descent.Descent.GetPlayer().Draw(win, player.GameInput)
@@ -339,8 +321,6 @@ func Draw(win *pixelgl.Window) {
 		for _, m := range menuStack {
 			m.Draw(win)
 		}
-	} else if state == 3 {
-		credits.Draw(win)
 	} else if state == 5 {
 		descent.Descent.GetCave().Draw(win)
 		descent.Descent.GetPlayer().Draw(win, player.GameInput)
@@ -372,7 +352,6 @@ func updateState() {
 			sfx.MusicPlayer.PauseMusic("menu", true)
 		case 2:
 			sfx.MusicPlayer.PauseMusic("pause", true)
-		case 3:
 		case 4:
 		case 5:
 			sfx.MusicPlayer.PauseMusic("pause", true)
@@ -389,6 +368,11 @@ func updateState() {
 				descent.ResetStats()
 				sfx.MusicPlayer.PlayNext("game")
 			} else {
+				if descent.Descent.Type == descent.Normal {
+					descent.Descent.Type = descent.Minesweeper
+				} else {
+					descent.Descent.Type = descent.Normal
+				}
 				descent.ResetCaveStats()
 				sfx.MusicPlayer.PauseMusic("game", false)
 			}
@@ -447,8 +431,6 @@ func updateState() {
 			descent.ScoreTimer = timing.New(5.)
 			OpenMenu(PostMenu)
 			sfx.MusicPlayer.UnpauseOrNext("pause")
-		case 3:
-
 		case 4:
 			descent.Descent.Level = 0
 			descent.Descent.Start = true
@@ -461,11 +443,6 @@ func updateState() {
 				sfx.MusicPlayer.UnpauseOrNext("pause")
 			}
 			descent.AddStats()
-			if descent.Descent.Type == descent.Normal {
-				descent.Descent.Type = descent.Minesweeper
-			} else {
-				descent.Descent.Type = descent.Normal
-			}
 		}
 		state = newState
 		switchState = false

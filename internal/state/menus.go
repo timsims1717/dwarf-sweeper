@@ -3,6 +3,7 @@ package state
 import (
 	"dwarf-sweeper/internal/config"
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/enchants"
@@ -13,7 +14,6 @@ import (
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/typeface"
-	"dwarf-sweeper/pkg/util"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
 	"strconv"
@@ -104,7 +104,7 @@ func InitMainMenu(win *pixelgl.Window) {
 	})
 	credit.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		SwitchState(3)
+		credits.Open()
 	})
 	quit.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -666,29 +666,11 @@ func ClearEnchantMenu() {
 
 func FillEnchantMenu() bool {
 	ClearEnchantMenu()
-	pe := descent.Descent.GetPlayer().Enchants
-	list := enchants.Enchantments
-	for _, i := range pe {
-		if len(list) > 1 {
-			list = append(list[:i], list[i+1:]...)
-		} else {
-			return false
-		}
-	}
-	choices := util.RandomSampleRange(util.Min(len(list), 3), 0, len(list), random.CaveGen)
-	var e1, e2, e3 *data.Enchantment
-	for i, c := range choices {
-		if i == 0 {
-			e1 = list[c]
-		} else if i == 1 {
-			e2 = list[c]
-		} else if i == 2 {
-			e3 = list[c]
-		}
-	}
-	if e1 == nil {
+	choices := enchants.PickEnchantments()
+	if len(choices) == 0 {
 		return false
 	}
+	e1 := choices[0]
 	option1 := EnchantMenu.InsertItem("option1", e1.Title, 1)
 	option1.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -698,7 +680,8 @@ func FillEnchantMenu() bool {
 		SwitchState(0)
 	})
 	option1.Hint = e1.Desc
-	if e2 != nil {
+	if len(choices) > 1 {
+		e2 := choices[1]
 		option2 := EnchantMenu.InsertItem("option2", e2.Title, 2)
 		option2.SetClickFn(func() {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -709,7 +692,8 @@ func FillEnchantMenu() bool {
 		})
 		option2.Hint = e2.Desc
 	}
-	if e3 != nil {
+	if len(choices) > 2 {
+		e3 := choices[2]
 		option3 := EnchantMenu.InsertItem("option3", e3.Title, 3)
 		option3.SetClickFn(func() {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -774,6 +758,6 @@ func InitPostGameMenu() {
 	backToMenu.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		SwitchState(1a)
+		SwitchState(1)
 	})
 }

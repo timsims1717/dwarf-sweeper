@@ -121,9 +121,9 @@ func FillChunk(ch *cave.Chunk) {
 					switch random.CaveGen.Intn(5) {
 					case 0:
 						tile.Entity = &BombItem{}
-						tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_unlit"]
+						tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_item"]
 					case 1:
-						collectible = Heart
+						collectible = Apple
 					case 2:
 						collectible = Beer
 					case 3:

@@ -38,7 +38,7 @@ var (
 	ClimbSpeed      = 50.
 	Speed           = 80.
 	MaxJump         = 4
-	ShovelKnockback = 8.
+	ShovelKnockback = 6.
 	ShovelDazed     = 2.
 	ShovelDamage    = 0
 )
@@ -67,9 +67,10 @@ type Dwarf struct {
 	DwarfStats
 	Physics    *physics.Physics
 	Transform  *transform.Transform
+	Collider   data.Collider
 	Reanimator *reanimator.Tree
 	Entity     *ecs.Entity
-	Enchants   []int
+	Enchants   []string
 	EnchantMax int
 	faceLeft   bool
 
@@ -286,10 +287,14 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			}
 		},
 	}, "idle")
+	d.Collider = data.Collider{
+		Hitbox: pixel.R(0., 0., 16., 16.),
+		CanPass: true,
+	}
 	d.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
 		AddComponent(myecs.Physics, d.Physics).
-		AddComponent(myecs.Collision, data.Collider{ CanPass: true }).
+		AddComponent(myecs.Collision, d.Collider).
 		AddComponent(myecs.Animation, d.Reanimator).
 		AddComponent(myecs.Health, d.Health)
 	return d

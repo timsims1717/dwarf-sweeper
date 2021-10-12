@@ -11,7 +11,6 @@ var (
 
 var (
 	Manager  = ecs.NewManager()
-	Unloaded = ecs.NewManager()
 
 	Temp = Manager.NewComponent()
 
@@ -42,7 +41,7 @@ var (
 	HasParent     = ecs.BuildTag(Transform, Parent)
 	HasPhysics    = ecs.BuildTag(Transform, Physics)
 	HasCollision  = ecs.BuildTag(Transform, Physics, Collision)
-	IsCollectible = ecs.BuildTag(Transform, Collect)
+	IsCollectible = ecs.BuildTag(Transform, Collision, Collect)
 
 	HasAreaDamage = ecs.BuildTag(AreaDmg)
 	HasHealing    = ecs.BuildTag(Health, Healing)

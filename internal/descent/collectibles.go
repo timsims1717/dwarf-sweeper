@@ -19,7 +19,7 @@ const (
 	GemDiamond = "gem_diamond"
 	Beer       = "beer"
 	BubbleItem = "bubble_item"
-	Heart      = "heart_item"
+	Apple      = "apple"
 	XRayItem   = "xray_helmet"
 )
 
@@ -29,7 +29,7 @@ func InitCollectibles() {
 	gemSpr := img.Batchers[constants.EntityKey].Sprites["gem_diamond"]
 	beerSpr := img.Batchers[constants.EntityKey].Sprites["beer"]
 	bubbleSpr := img.Batchers[constants.EntityKey].Sprites["bubble_item"]
-	heartSpr := img.Batchers[constants.EntityKey].Sprites["heart_item"]
+	appleSpr := img.Batchers[constants.EntityKey].Sprites["apple"]
 	xRaySpr := img.Batchers[constants.EntityKey].Sprites["x-ray-helmet"]
 	Collectibles[GemDiamond] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
@@ -45,14 +45,13 @@ func InitCollectibles() {
 			return AddToInventory(&InvItem{
 				Name:   "beer",
 				Sprite: beerSpr,
-				OnUse:  func() bool {
+				OnUse:  func() {
 					Descent.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
-						TmpAmount: 1,
+						TmpAmount: 2,
 					})
-					return true
 				},
-				Count:  1,
-				Unique: false,
+				Count: 1,
+				Limit: 2,
 			})
 		},
 		Sprite: beerSpr,
@@ -62,57 +61,44 @@ func InitCollectibles() {
 			return AddToInventory(&InvItem{
 				Name:   "bubble",
 				Sprite: bubbleSpr,
-				OnUse:  func() bool {
-					if Descent.Player.Bubble == nil {
-						bubble := &Bubble{}
-						bubble.Create(pixel.Vec{})
-						return true
-					} else {
-						return false
+				OnUse:  func() {
+					if Descent.Player.Bubble != nil {
+						Descent.Player.Bubble.Pop()
 					}
+					bubble := &Bubble{}
+					bubble.Create(pixel.Vec{})
 				},
-				Count:  1,
-				Unique: true,
+				Count: 1,
+				Limit: 1,
+				Sec:   BubbleSec,
 			})
 		},
 		Sprite: bubbleSpr,
 	}
-	Collectibles[Heart] = &data.Collectible{
+	Collectibles[Apple] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
-			return AddToInventory(&InvItem{
-				Name:   "heart_item",
-				Sprite: heartSpr,
-				OnUse:  func() bool {
-					if Descent.Player.Health.Curr < Descent.Player.Health.Max {
-						Descent.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
-							Amount: 1,
-						})
-						return true
-					}
-					return false
-				},
-				Count:  1,
-				Unique: false,
-			})
+			if Descent.Player.Health.Curr < Descent.Player.Health.Max {
+				Descent.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
+					Amount: 1,
+				})
+				return true
+			}
+			return false
 		},
-		Sprite: heartSpr,
+		Sprite: appleSpr,
 	}
 	Collectibles[XRayItem] = &data.Collectible{
-		OnCollect: func(pos pixel.Vec) bool {
+		OnCollect: func(_ pixel.Vec) bool {
 			return AddToInventory(&InvItem{
 				Name:   "xray",
 				Sprite: xRaySpr,
-				OnUse:  func() bool {
-					//if Dungeon.Player.Bubble == nil {
-						xray := &XRayHelmet{}
-						xray.Create(pixel.Vec{})
-						return true
-					//} else {
-					//	return false
-					//}
+				OnUse:  func() {
+					xray := &XRayHelmet{}
+					xray.Create(pixel.Vec{})
 				},
-				Count:  1,
-				Unique: true,
+				Count: 1,
+				Limit: 1,
+				Sec:   XRaySec,
 			})
 		},
 		Sprite: xRaySpr,
@@ -145,7 +131,10 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Physics, b.Physics).
-		AddComponent(myecs.Collision, data.Collider{ GroundOnly: true }).
+		AddComponent(myecs.Collision, data.Collider{
+			Hitbox: b.Collect.Sprite.Frame(),
+			GroundOnly: true,
+		}).
 		AddComponent(myecs.Collect, b.Collect).
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).

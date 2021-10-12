@@ -12,6 +12,8 @@ import (
 	"github.com/faiface/pixel"
 )
 
+var XRaySec = 16.
+
 type XRayHelmet struct {
 	sprite   pixel.Sprite
 	entity   *ecs.Entity
@@ -46,7 +48,7 @@ func (x *XRayHelmet) Update() {
 }
 
 func (x *XRayHelmet) Create(_ pixel.Vec) {
-	x.Timer = timing.New(16.)
+	x.Timer = timing.New(XRaySec)
 	x.created = true
 	t1 := transform.NewTransform()
 	t1.Offset = pixel.V(-world.TileSize, world.TileSize)

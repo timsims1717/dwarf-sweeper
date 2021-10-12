@@ -119,6 +119,9 @@ func RandomSampleRange(k, a, b int, rando *rand.Rand) []int {
 		j := rando.Intn(i)
 		res[i], res[j] = res[j], res[i]
 	}
+	if k > len(res) {
+		return res
+	}
 	return res[:k]
 }
 
