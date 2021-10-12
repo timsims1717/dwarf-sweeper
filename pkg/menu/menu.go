@@ -45,7 +45,7 @@ func (m *Menu) AddItem(key string, item *Item) {
 	m.Items[key] = item
 }
 
-func (m *Menu) Update(world pixel.Vec, clicked *input.Button) {
+func (m *Menu) Update(world pixel.Vec, clicked *input.ButtonSet) {
 	if m.Show {
 		if m.TransformEffect != nil {
 			m.TransformEffect.Update()

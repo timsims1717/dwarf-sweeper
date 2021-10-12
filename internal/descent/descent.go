@@ -2,10 +2,16 @@ package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
+	"fmt"
+	"github.com/faiface/pixel"
 )
 
 type CaveType int
@@ -24,6 +30,8 @@ type descent struct {
 	Player   *Dwarf
 	Start    bool
 	Type     CaveType
+	ExitPop  *menus.PopUp
+	canExit  bool
 }
 
 func Update() {
@@ -51,14 +59,24 @@ func Update() {
 			}
 		}
 		Descent.Cave.Update()
+		switch Descent.Type {
+		case Minesweeper:
+			Descent.canExit = CaveBombsMarked == CaveBombsLeft && CaveWrongMarks < 1
+			Descent.ExitPop.Raw = "Mark all the remaining bombs to exit."
+		case Infinite:
+			Descent.canExit = false
+		default:
+			Descent.canExit = true
+		}
+		if Descent.canExit {
+			Descent.ExitPop.Raw = fmt.Sprintf("%s to Exit", typeface.SymbolItem)
+			Descent.ExitPop.Symbols = []string{data.GameInput.FirstKey("up")}
+		}
 	}
 }
 
 func (d *descent) CanExit() bool {
-	if d.Type == Minesweeper {
-		return CaveBombsMarked == CaveBombsLeft && CaveWrongMarks < 1
-	}
-	return true
+	return d.canExit
 }
 
 func (d *descent) GetCave() *cave.Cave {
@@ -116,28 +134,49 @@ func FillChunk(ch *cave.Chunk) {
 					}
 					tile.XRay = collect.Sprite
 				} else if random.CaveGen.Intn(ch.Cave.ItemRate) == 0 && tile.Solid && tile.Breakable {
-					collectible := ""
-					//collectible = XRayItem
-					switch random.CaveGen.Intn(5) {
-					case 0:
-						tile.Entity = &BombItem{}
-						tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_item"]
-					case 1:
-						collectible = Apple
-					case 2:
-						collectible = Beer
-					case 3:
-						collectible = BubbleItem
-					case 4:
-						collectible = XRayItem
-					}
-					if collectible != "" {
-						collect := Collectibles[collectible]
-						tile.Entity = &CollectibleItem{
-							Collect: collect,
-						}
-						tile.XRay = collect.Sprite
-					}
+					tile.Solid = false
+					tile.Breakable = false
+					tile.Type = cave.Empty
+					tile.UpdateSprites()
+					popUp := menus.NewPopUp(fmt.Sprintf("%s to open", typeface.SymbolItem), nil)
+					popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
+					popUp.Dist = world.TileSize
+					e := myecs.Manager.NewEntity()
+					e.AddComponent(myecs.Transform, tile.Transform).
+						AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_closed"]).
+						AddComponent(myecs.Batch, constants.EntityKey).
+						AddComponent(myecs.PopUp, popUp).
+						AddComponent(myecs.Interact, &data.Interact{
+							OnInteract: func(pos pixel.Vec) bool {
+								collectible := ""
+								switch random.CaveGen.Intn(5) {
+								case 0:
+									item := &BombItem{}
+									item.Create(pos)
+								case 1:
+									collectible = Apple
+								case 2:
+									collectible = Beer
+								case 3:
+									collectible = BubbleItem
+								case 4:
+									collectible = XRayItem
+								}
+								if collectible != "" {
+									item := &CollectibleItem{
+										Collect: Collectibles[collectible],
+									}
+									item.Create(pos)
+								}
+								e.AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_opened"])
+								e.RemoveComponent(myecs.Interact)
+								e.RemoveComponent(myecs.PopUp)
+								return true
+							},
+							Distance:   world.TileSize,
+							Interacted: false,
+							Remove:     false,
+						})
 				} else if random.CaveGen.Intn(75) == 0 && tile.Solid && tile.Breakable {
 					tile.Entity = &MadMonk{}
 				}

@@ -7,6 +7,7 @@ import (
 
 var (
 	Count = 0
+	Clear = false
 )
 
 var (
@@ -18,12 +19,14 @@ var (
 	Batch     = Manager.NewComponent()
 	Sprite    = Manager.NewComponent()
 	Entity    = Manager.NewComponent()
+	PopUp     = Manager.NewComponent()
 
 	Physics   = Manager.NewComponent()
 	Transform = Manager.NewComponent()
 	Parent    = Manager.NewComponent()
 	Collision = Manager.NewComponent()
 	Collect   = Manager.NewComponent()
+	Interact  = Manager.NewComponent()
 
 	Health  = Manager.NewComponent()
 	Healing = Manager.NewComponent()
@@ -36,12 +39,14 @@ var (
 	HasAnimDrawing = ecs.BuildTag(Animation, Transform, Batch)
 	HasSprDrawing  = ecs.BuildTag(Sprite, Transform, Batch)
 	IsEntity       = ecs.BuildTag(Entity, Transform)
+	HasPopUp       = ecs.BuildTag(PopUp, Transform)
 
 	HasTransform  = ecs.BuildTag(Transform)
 	HasParent     = ecs.BuildTag(Transform, Parent)
 	HasPhysics    = ecs.BuildTag(Transform, Physics)
 	HasCollision  = ecs.BuildTag(Transform, Physics, Collision)
 	IsCollectible = ecs.BuildTag(Transform, Collision, Collect)
+	CanInteract   = ecs.BuildTag(Transform, Interact)
 
 	HasAreaDamage = ecs.BuildTag(AreaDmg)
 	HasHealing    = ecs.BuildTag(Health, Healing)
@@ -63,3 +68,5 @@ type AnEntity interface {
 	Create(pixel.Vec)
 	Delete()
 }
+
+type ClearFlag bool

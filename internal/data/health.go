@@ -25,7 +25,7 @@ type Health struct {
 	TempInv      bool
 	TempInvTimer *timing.FrameTimer
 	TempInvSec   float64
-	Override     bool
+	Immune       []DamageType
 }
 
 func (h *Health) Delete() {
@@ -37,6 +37,13 @@ func (h *Health) Delete() {
 		h.DazedVFX = nil
 	}
 }
+type DamageType int
+
+const (
+	Blast = iota
+	Shovel
+	Enemy
+)
 
 type Damage struct {
 	Amount    int
@@ -44,18 +51,18 @@ type Damage struct {
 	Knockback float64
 	Angle     *float64
 	Source    pixel.Vec
-	Override  bool
+	Type      DamageType
 }
 
 type AreaDamage struct {
-	Center         pixel.Vec
-	Radius         float64
 	Amount         int
 	Dazed          float64
 	Knockback      float64
-	KnockbackDecay bool
+	Type           DamageType
 	Source         pixel.Vec
-	Override       bool
+	Center         pixel.Vec
+	Radius         float64
+	KnockbackDecay bool
 }
 
 type Heal struct {

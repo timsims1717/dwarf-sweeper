@@ -75,6 +75,7 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, level int) *cave.Cave {
 	newCave.StartC = world.Coords{X: 12, Y: h * constants.ChunkSize - 8}
 	exitC := newCave.StartC
 	exitC.X += chal.Width + 13
+	newCave.ExitC = exitC
 	pathS := newCave.StartC
 	pathS.X -= 2
 	pathS.Y += 1

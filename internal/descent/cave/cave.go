@@ -22,6 +22,7 @@ type Cave struct {
 	Right       int
 	Bottom      int
 	StartC      world.Coords
+	ExitC       world.Coords
 	BombPMin    float64
 	BombPMax    float64
 	FuseLen     float64
@@ -185,8 +186,12 @@ func (c *Cave) GetTile(v pixel.Vec) *Tile {
 	return chunk.Get(tl)
 }
 
-func (c *Cave) GetStart() pixel.Vec {
-	return c.GetTileInt(c.StartC.X, c.StartC.Y).Transform.Pos
+func (c *Cave) GetStart() *Tile {
+	return c.GetTileInt(c.StartC.X, c.StartC.Y)
+}
+
+func (c *Cave) GetExit() *Tile {
+	return c.GetTileInt(c.ExitC.X, c.ExitC.Y)
 }
 
 func (c *Cave) MarkAsNotChanged() {

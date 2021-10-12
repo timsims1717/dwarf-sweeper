@@ -22,10 +22,16 @@ func CollectSystem() {
 					!descent.Descent.GetPlayer().Health.Dazed &&
 					!descent.Descent.GetPlayer().Health.Dead {
 					if math.Abs(descent.Descent.GetPlayer().Transform.Pos.X-tran.Pos.X) < (descent.Descent.GetPlayer().Collider.Hitbox.W() + collider.Hitbox.W()) * 0.5 &&
-					math.Abs(descent.Descent.GetPlayer().Transform.Pos.Y-tran.Pos.Y) < (descent.Descent.GetPlayer().Collider.Hitbox.H() + collider.Hitbox.H()) * 0.5 {
-						if coll.OnCollect(tran.Pos) {
-							coll.Collected = true
-							myecs.Manager.DisposeEntity(result.Entity)
+						math.Abs(descent.Descent.GetPlayer().Transform.Pos.Y-tran.Pos.Y) < (descent.Descent.GetPlayer().Collider.Hitbox.H() + collider.Hitbox.H()) * 0.5 {
+						pickUp := data.GameInput.Get("interact").JustPressed()
+						if coll.AutoCollect || pickUp {
+							if coll.OnCollect(tran.Pos) {
+								coll.Collected = true
+								myecs.Manager.DisposeEntity(result.Entity)
+								if pickUp {
+									data.GameInput.Get("interact").Consume()
+								}
+							}
 						}
 					}
 				}

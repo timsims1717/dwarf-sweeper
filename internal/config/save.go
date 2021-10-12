@@ -2,7 +2,7 @@ package config
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"errors"
@@ -74,25 +74,23 @@ func init() {
 				Down:  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
 				Jump:  input.New(pixelgl.KeySpace, pixelgl.ButtonA),
 				Dig: &input.ButtonSet{
-					Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft, pixelgl.KeyLeftShift},
+					Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft},
 					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonX},
 					Axis:    pixelgl.AxisRightTrigger,
 					AxisV:   1,
 				},
 				Mark: &input.ButtonSet{
-					Keys:    []pixelgl.Button{pixelgl.MouseButtonRight, pixelgl.KeyLeftControl},
-					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonY},
+					Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
 					Axis:    pixelgl.AxisLeftTrigger,
 					AxisV:   1,
 				},
-				Use: input.New(pixelgl.KeyF, pixelgl.ButtonB),
+				Use:      input.New(pixelgl.KeyE, pixelgl.ButtonB),
+				Interact: input.New(pixelgl.KeyQ, pixelgl.ButtonY),
 				Prev: &input.ButtonSet{
-					Keys:    []pixelgl.Button{pixelgl.KeyQ},
 					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
 					Scroll:  -1,
 				},
 				Next: &input.ButtonSet{
-					Keys:    []pixelgl.Button{pixelgl.KeyE},
 					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
 					Scroll:  1,
 				},
@@ -125,24 +123,25 @@ func LoadConfig() {
 	constants.FullScreen = conf.Graphics.FullS
 	constants.ResIndex = conf.Graphics.ResIn
 	if conf.Inputs.Gamepad < 0 {
-		player.GameInput.Mode = input.KeyboardMouse
+		data.GameInput.Mode = input.KeyboardMouse
 	} else {
-		player.GameInput.Mode = input.Gamepad
-		player.GameInput.Joystick = pixelgl.Joystick(conf.Inputs.Gamepad)
+		data.GameInput.Mode = input.Gamepad
+		data.GameInput.Joystick = pixelgl.Joystick(conf.Inputs.Gamepad)
 	}
 	constants.DigMode = conf.Inputs.DigMode
-	player.GameInput.StickD = conf.Inputs.LeftStick
+	data.GameInput.StickD = conf.Inputs.LeftStick
 	input.Deadzone = conf.Inputs.Deadzone
-	player.GameInput.Buttons["left"] = conf.Inputs.Left
-	player.GameInput.Buttons["right"] = conf.Inputs.Right
-	player.GameInput.Buttons["up"] = conf.Inputs.Up
-	player.GameInput.Buttons["down"] = conf.Inputs.Down
-	player.GameInput.Buttons["jump"] = conf.Inputs.Jump
-	player.GameInput.Buttons["dig"] = conf.Inputs.Dig
-	player.GameInput.Buttons["mark"] = conf.Inputs.Mark
-	player.GameInput.Buttons["use"] = conf.Inputs.Use
-	player.GameInput.Buttons["prev"] = conf.Inputs.Prev
-	player.GameInput.Buttons["next"] = conf.Inputs.Next
+	data.GameInput.Buttons["left"] = conf.Inputs.Left
+	data.GameInput.Buttons["right"] = conf.Inputs.Right
+	data.GameInput.Buttons["up"] = conf.Inputs.Up
+	data.GameInput.Buttons["down"] = conf.Inputs.Down
+	data.GameInput.Buttons["jump"] = conf.Inputs.Jump
+	data.GameInput.Buttons["dig"] = conf.Inputs.Dig
+	data.GameInput.Buttons["mark"] = conf.Inputs.Mark
+	data.GameInput.Buttons["use"] = conf.Inputs.Use
+	data.GameInput.Buttons["interact"] = conf.Inputs.Interact
+	data.GameInput.Buttons["prev"] = conf.Inputs.Prev
+	data.GameInput.Buttons["next"] = conf.Inputs.Next
 	mu.Unlock()
 }
 
@@ -164,24 +163,25 @@ func SaveConfig() {
 	conf.Graphics.FullS = constants.FullScreen
 	conf.Graphics.ResIn = constants.ResIndex
 
-	if player.GameInput.Mode == input.KeyboardMouse {
+	if data.GameInput.Mode == input.KeyboardMouse {
 		conf.Inputs.Gamepad = -1
 	} else {
-		conf.Inputs.Gamepad = int(player.GameInput.Joystick)
+		conf.Inputs.Gamepad = int(data.GameInput.Joystick)
 	}
 	conf.Inputs.DigMode = constants.DigMode
-	conf.Inputs.LeftStick = player.GameInput.StickD
+	conf.Inputs.LeftStick = data.GameInput.StickD
 	conf.Inputs.Deadzone = input.Deadzone
-	conf.Inputs.Left = player.GameInput.Buttons["left"]
-	conf.Inputs.Right = player.GameInput.Buttons["right"]
-	conf.Inputs.Up = player.GameInput.Buttons["up"]
-	conf.Inputs.Down = player.GameInput.Buttons["down"]
-	conf.Inputs.Jump = player.GameInput.Buttons["jump"]
-	conf.Inputs.Dig = player.GameInput.Buttons["dig"]
-	conf.Inputs.Mark = player.GameInput.Buttons["mark"]
-	conf.Inputs.Use = player.GameInput.Buttons["use"]
-	conf.Inputs.Prev = player.GameInput.Buttons["prev"]
-	conf.Inputs.Next = player.GameInput.Buttons["next"]
+	conf.Inputs.Left = data.GameInput.Buttons["left"]
+	conf.Inputs.Right = data.GameInput.Buttons["right"]
+	conf.Inputs.Up = data.GameInput.Buttons["up"]
+	conf.Inputs.Down = data.GameInput.Buttons["down"]
+	conf.Inputs.Jump = data.GameInput.Buttons["jump"]
+	conf.Inputs.Dig = data.GameInput.Buttons["dig"]
+	conf.Inputs.Mark = data.GameInput.Buttons["mark"]
+	conf.Inputs.Use = data.GameInput.Buttons["use"]
+	conf.Inputs.Interact = data.GameInput.Buttons["interact"]
+	conf.Inputs.Prev = data.GameInput.Buttons["prev"]
+	conf.Inputs.Next = data.GameInput.Buttons["next"]
 	encode := toml.NewEncoder(file)
 	err = encode.Encode(conf)
 	if err != nil {

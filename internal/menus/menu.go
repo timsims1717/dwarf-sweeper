@@ -9,6 +9,7 @@ import (
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
+	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
 	"golang.org/x/image/colornames"
@@ -18,6 +19,8 @@ import (
 
 const (
 	MaxLines = 10
+	VStep = 300.
+	HStep = 400.
 )
 
 var (
@@ -34,7 +37,7 @@ var (
 	sideH  *pixel.Sprite
 	inner  *pixel.Sprite
 	arrow  *pixel.Sprite
-	hintE  *pixel.Sprite
+	hintA  *pixel.Sprite
 )
 
 func Initialize() {
@@ -43,7 +46,7 @@ func Initialize() {
 	sideH = img.Batchers[constants.MenuSprites].Sprites["menu_side_h"]
 	inner = img.Batchers[constants.MenuSprites].Sprites["menu_inner"]
 	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
-	hintE = img.Batchers[constants.MenuSprites].Sprites["menu_side_entry"]
+	hintA = img.Batchers[constants.MenuSprites].Sprites["menu_side_entry"]
 	DefaultColor = color.RGBA{
 		R: 74,
 		G: 84,
@@ -56,6 +59,7 @@ func Initialize() {
 	HoverSize = pixel.V(1.45, 1.45)
 	HintSize = pixel.V(0.8, 0.8)
 	SymbolScalar = 0.8
+	DefaultDist = world.TileSize * 4.
 }
 
 type DwarfMenu struct {
@@ -350,13 +354,13 @@ func (m *DwarfMenu) UpdateSize() {
 func (m *DwarfMenu) UpdateBox() {
 	if !m.closing {
 		if m.StepV < m.Rect.H() * 0.5 {
-			m.StepV += timing.DT * 300.
+			m.StepV += timing.DT * VStep
 		}
 		if m.StepV > m.Rect.H() * 0.5 {
 			m.StepV = m.Rect.H() * 0.5
 		}
 		if m.StepH < m.Rect.W() * 0.5 {
-			m.StepH += timing.DT * 400.
+			m.StepH += timing.DT * HStep
 		}
 		if m.StepH > m.Rect.W() * 0.5 {
 			m.StepH = m.Rect.W() * 0.5
@@ -366,13 +370,13 @@ func (m *DwarfMenu) UpdateBox() {
 		}
 	} else {
 		if m.StepV > 16. {
-			m.StepV -= timing.DT * 300.
+			m.StepV -= timing.DT * VStep
 		}
 		if m.StepV < 16. {
 			m.StepV = 16.
 		}
 		if m.StepH > 16. {
-			m.StepH -= timing.DT * 400.
+			m.StepH -= timing.DT * HStep
 		}
 		if m.StepH < 16. {
 			m.StepH = 16.
@@ -408,6 +412,7 @@ func (m *DwarfMenu) UpdateTransforms() {
 		m.ArrowT.UIZoom = m.Cam.GetZoomScale()
 		m.ArrowT.UIPos = m.Cam.APos
 	}
+	m.Tran.Update()
 	m.CTUL.Pos = pixel.V(-m.StepH, m.StepV)
 	m.CTUL.Scalar = pixel.V(1.4, 1.4)
 	m.CTUL.Update()
@@ -454,7 +459,6 @@ func (m *DwarfMenu) UpdateTransforms() {
 		m.Hint.UpdateSize()
 		m.Hint.Update()
 	}
-	m.Tran.Update()
 }
 
 func (m *DwarfMenu) UpdateItems(in *input.Input) {

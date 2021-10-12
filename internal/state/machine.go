@@ -1,8 +1,8 @@
 package state
 
 import (
-	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/credits"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate"
@@ -92,7 +92,7 @@ func Update(win *pixelgl.Window) {
 	updateState()
 	debugInput.Update(win)
 	menuInput.Update(win)
-	player.GameInput.Update(win)
+	data.GameInput.Update(win)
 	if debugInput.Get("debug").JustPressed() {
 		if debug.Debug {
 			fmt.Println("DEBUG OFF")
@@ -113,22 +113,11 @@ func Update(win *pixelgl.Window) {
 		descent.Descent.GetPlayer().Health.Inv = !descent.Descent.GetPlayer().Health.Inv
 	}
 	if debugInput.Get("debugTest").JustPressed() {
-		//newState = 0
-		//switchState = true
-		//descent.Descent.Type = descent.Minesweeper
-		//descent.Descent.Level = 10
-		//descent.Descent.Start = true
-		descent.AddToInventory(&descent.InvItem{
-			Name:   "xray",
-			Sprite: img.Batchers[constants.EntityKey].Sprites["x-ray-helmet"],
-			OnUse:  func() {
-				xray := &descent.XRayHelmet{}
-				xray.Create(pixel.Vec{})
-			},
-			Count: 1,
-			Limit: 1,
-			Sec:   descent.XRaySec,
-		})
+		newState = 0
+		switchState = true
+		descent.Descent.Type = descent.Minesweeper
+		descent.Descent.Level = 1
+		descent.Descent.Start = true
 	}
 	if win.Focused() {
 		frame := false
@@ -159,18 +148,20 @@ func Update(win *pixelgl.Window) {
 					systems.ParentSystem()
 					systems.TransformSystem()
 					systems.CollectSystem()
+					systems.InteractSystem()
 					systems.HealingSystem()
 					systems.AreaDamageSystem()
 					systems.DamageSystem()
 					systems.HealthSystem()
 					systems.EntitySystem()
+					systems.PopUpSystem()
 					particles.Update()
 					vfx.Update()
-					descent.Descent.GetPlayer().Update(player.GameInput)
+					descent.Descent.GetPlayer().Update(data.GameInput)
 					descent.UpdateInventory()
 					systems.AnimationSystem()
 					player.UpdateHUD()
-					if player.GameInput.Get("up").JustPressed() &&
+					if data.GameInput.Get("up").JustPressed() &&
 						descent.Descent.GetPlayerTile().IsExit() &&
 						descent.Descent.CanExit() {
 						SwitchState(5)
@@ -202,13 +193,15 @@ func Update(win *pixelgl.Window) {
 				title.Update(pixel.Rect{})
 				if credits.Opened() {
 					credits.Update()
-					if menuInput.AnyJustPressed(true) {
+					if pressed, _ := menuInput.AnyJustPressed(true); pressed {
 						credits.Close()
 					}
 				} else {
 					UpdateMenus(win)
-					if MenuClosed() && menuInput.AnyJustPressed(true) {
+					pressed, mode := menuInput.AnyJustPressed(true)
+					if MenuClosed() && pressed {
 						OpenMenu(MainMenu)
+						data.GameInput.Mode = mode
 					}
 				}
 				//debug.AddText(fmt.Sprintf("Input TLines: %d", InputMenu.TLines))
@@ -223,7 +216,7 @@ func Update(win *pixelgl.Window) {
 				systems.EntitySystem()
 				particles.Update()
 				vfx.Update()
-				descent.Descent.GetPlayer().Update(player.GameInput)
+				descent.Descent.GetPlayer().Update(data.GameInput)
 				systems.AnimationSystem()
 				player.UpdateHUD()
 				UpdateMenus(win)
@@ -257,7 +250,7 @@ func Draw(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		descent.Descent.GetCave().Draw(win)
-		descent.Descent.GetPlayer().Draw(win, player.GameInput)
+		descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
@@ -268,6 +261,7 @@ func Draw(win *pixelgl.Window) {
 		}
 		particles.Draw(win)
 		vfx.Draw(win)
+		systems.PopUpDraw(win)
 		player.DrawHUD(win)
 		for _, m := range menuStack {
 			m.Draw(win)
@@ -285,7 +279,7 @@ func Draw(win *pixelgl.Window) {
 		}
 	} else if state == 2 {
 		descent.Descent.GetCave().Draw(win)
-		descent.Descent.GetPlayer().Draw(win, player.GameInput)
+		descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
@@ -323,7 +317,7 @@ func Draw(win *pixelgl.Window) {
 		}
 	} else if state == 5 {
 		descent.Descent.GetCave().Draw(win)
-		descent.Descent.GetPlayer().Draw(win, player.GameInput)
+		descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		for _, batcher := range img.Batchers {
@@ -359,6 +353,9 @@ func updateState() {
 		// initialize
 		switch newState {
 		case 0:
+			myecs.Clear = true
+			systems.ManagementSystem()
+			myecs.Clear = false
 			systems.DeleteAllEntities()
 			if descent.Descent.Start {
 				if descent.Descent.Player != nil {
@@ -392,15 +389,20 @@ func updateState() {
 			}
 
 			if descent.Descent.Player != nil {
-				descent.Descent.Player.Transform.Pos = descent.Descent.GetCave().GetStart()
+				descent.Descent.Player.Transform.Pos = descent.Descent.GetCave().GetStart().Transform.Pos
 			} else {
-				descent.Descent.SetPlayer(descent.NewDwarf(descent.Descent.GetCave().GetStart()))
+				descent.Descent.SetPlayer(descent.NewDwarf(descent.Descent.GetCave().GetStart().Transform.Pos))
 			}
 			if descent.Descent.Start {
 				player.InitHUD()
 				descent.Inventory = []*descent.InvItem{}
 			}
 			camera.Cam.SnapTo(descent.Descent.GetPlayer().Transform.Pos)
+			descent.Descent.ExitPop = menus.NewPopUp("", nil)
+			myecs.Manager.NewEntity().
+				AddComponent(myecs.PopUp, descent.Descent.ExitPop).
+				AddComponent(myecs.Transform, descent.Descent.GetCave().GetExit().Transform).
+				AddComponent(myecs.Temp, myecs.ClearFlag(false))
 
 			particles.Clear()
 			vfx.Clear()

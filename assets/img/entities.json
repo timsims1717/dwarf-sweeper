@@ -4,6 +4,16 @@
  "width": 16,
  "sprites": [
   {
+   "key": "chest_closed",
+   "x": 0,
+   "y": 80
+  },
+  {
+   "key": "chest_opened",
+   "x": 16,
+   "y": 80
+  },
+  {
    "key": "bomb_unlit",
    "anim": true,
    "x": 0,

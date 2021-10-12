@@ -96,10 +96,6 @@ func (h *HintBox) Update() {
 	h.Text.Color = DefaultColor
 	if h.Raw != "" {
 		typeface.SetText(h.Text, h.Raw, h.MaxWidth, typeface.DefaultAlign)
-		//lines := typeface.RawLines(h.Text, h.Raw, h.MaxWidth)
-		//for _, s := range lines {
-		//	fmt.Fprintln(h.Text, s)
-		//}
 	}
 }
 
@@ -118,13 +114,13 @@ func (h *HintBox) UpdateSize() {
 		}
 		h.Rect = pixel.R(0.,0., width, height)
 		if h.StepV < h.Rect.H() * 0.5 {
-			h.StepV += timing.DT * 400.
+			h.StepV += timing.DT * VStep
 		}
 		if h.StepV > h.Rect.H() * 0.5 {
 			h.StepV = h.Rect.H() * 0.5
 		}
 		if h.StepH < h.Rect.W() * 0.5 {
-			h.StepH += timing.DT * 400.
+			h.StepH += timing.DT * HStep
 		}
 		if h.StepH > h.Rect.W() * 0.5 {
 			h.StepH = h.Rect.W() * 0.5
@@ -134,13 +130,13 @@ func (h *HintBox) UpdateSize() {
 		}
 	} else {
 		if h.StepV > 8. {
-			h.StepV -= timing.DT * 300.
+			h.StepV -= timing.DT * VStep
 		}
 		if h.StepV < 8. {
 			h.StepV = 8.
 		}
 		if h.StepH > 8. {
-			h.StepH -= timing.DT * 400.
+			h.StepH -= timing.DT * HStep
 		}
 		if h.StepH < 8. {
 			h.StepH = 8.
@@ -178,6 +174,7 @@ func (h *HintBox) UpdateTransforms() {
 		h.EntryT.UIZoom = h.Cam.GetZoomScale()
 		h.EntryT.UIPos = h.Cam.APos
 	}
+	h.Tran.Update()
 	h.CTUL.Pos = pixel.V(h.Tran.Pos.X-h.StepH, h.Tran.Pos.Y+h.StepV)
 	h.CTUL.Scalar = pixel.V(1.4, 1.4)
 	h.CTUL.Update()
@@ -205,12 +202,11 @@ func (h *HintBox) UpdateTransforms() {
 	h.Center.Pos = h.Tran.Pos
 	h.Center.Scalar = pixel.V(1.4 * h.StepH * 0.1735, 1.4 * h.StepV * 0.1735)
 	h.Center.Update()
-	h.EntryT.Pos = pixel.V(h.Tran.Pos.X-h.StepH-hintE.Frame().W()*7/6, h.Tran.Pos.Y)
+	h.EntryT.Pos = pixel.V(h.Tran.Pos.X-h.StepH-hintA.Frame().W()*7/6, h.Tran.Pos.Y)
 	h.EntryT.Scalar = pixel.V(1.4, 1.4)
 	h.EntryT.Update()
 	h.TTran.Pos = pixel.V(h.Tran.Pos.X-h.Rect.W() * 0.5, h.Tran.Pos.Y+(h.Rect.H()-h.Text.BoundsOf(h.Raw).H()) * 0.5)
 	h.TTran.Update()
-	h.Tran.Update()
 }
 
 func (h *HintBox) Draw(target pixel.Target) {
@@ -224,7 +220,7 @@ func (h *HintBox) Draw(target pixel.Target) {
 		corner.Draw(target, h.CTUR.Mat)
 		corner.Draw(target, h.CTDR.Mat)
 		corner.Draw(target, h.CTDL.Mat)
-		hintE.Draw(target, h.EntryT.Mat)
+		hintA.Draw(target, h.EntryT.Mat)
 		if !h.closing && h.opened && h.Raw != "" {
 			h.Text.Draw(target, h.TTran.Mat)
 		}

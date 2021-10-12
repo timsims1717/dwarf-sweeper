@@ -64,6 +64,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	newCave.Right = right
 	newCave.Bottom = bottom
 	newCave.StartC = startT
+	newCave.ExitC = exitT
 	newCave.GemRate = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
 	newCave.FuseLen = constants.BaseFuse

@@ -3,6 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
@@ -11,6 +12,9 @@ import (
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/typeface"
+	"dwarf-sweeper/pkg/world"
+	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 )
@@ -38,7 +42,8 @@ func InitCollectibles() {
 			sfx.SoundPlayer.PlaySound("clink", 1.0)
 			return true
 		},
-		Sprite: gemSpr,
+		Sprite:      gemSpr,
+		AutoCollect: true,
 	}
 	Collectibles[Beer] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
@@ -85,7 +90,8 @@ func InitCollectibles() {
 			}
 			return false
 		},
-		Sprite: appleSpr,
+		Sprite:      appleSpr,
+		AutoCollect: true,
 	}
 	Collectibles[XRayItem] = &data.Collectible{
 		OnCollect: func(_ pixel.Vec) bool {
@@ -122,7 +128,7 @@ func (b *CollectibleItem) Update() {
 }
 
 func (b *CollectibleItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
+	b.Physics, b.Transform = util.RandomVelocity(pos, 2.0, random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = b.Collect.Sprite
@@ -139,6 +145,12 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
 		AddComponent(myecs.Batch, constants.EntityKey)
+	if !b.Collect.AutoCollect {
+		popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
+		popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
+		popUp.Dist = (b.Collect.Sprite.Frame().W() + world.TileSize) * 0.5
+		b.entity.AddComponent(myecs.PopUp, popUp)
+	}
 }
 
 func (b *CollectibleItem) Delete() {

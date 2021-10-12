@@ -3,12 +3,16 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/util"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/typeface"
+	"dwarf-sweeper/pkg/world"
+	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 )
@@ -57,9 +61,12 @@ func (b *BombItem) Create(pos pixel.Vec) {
 				Limit: 3,
 			})
 		},
-		Sprite:    b.sprite,
+		Sprite: b.sprite,
 	}
 	b.health = &data.SimpleHealth{}
+	popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
+	popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
+	popUp.Dist = (b.collect.Sprite.Frame().W() + world.TileSize) * 0.5
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
@@ -71,6 +78,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Collect, b.collect).
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
+		AddComponent(myecs.PopUp, popUp).
 		AddComponent(myecs.Batch, constants.EntityKey)
 }
 

@@ -126,6 +126,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			Curr:         3,
 			TempInvSec:   3.,
 			DazeOverride: true,
+			Immune:       []data.DamageType{data.Shovel},
 		},
 	}
 	d.Reanimator = reanimator.New(&reanimator.Switch{
@@ -189,6 +190,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 									Dazed:     d.ShovelDazed,
 									Knockback: d.ShovelKnockback,
 									Source:    d.Transform.Pos,
+									Type:      data.Shovel,
 								})
 						}
 						sfx.SoundPlayer.PlaySound("shovel", 1.0)

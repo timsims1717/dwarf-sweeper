@@ -46,7 +46,6 @@ func (m *Mine) Update() {
 					Knockback:      MineBaseKnockback,
 					KnockbackDecay: true,
 					Source:         m.Transform.Pos,
-					Override:       true,
 				})
 			vfx.CreateExplosion(m.Tile.Transform.Pos)
 			sfx.SoundPlayer.PlaySound("blast1", -1.0)

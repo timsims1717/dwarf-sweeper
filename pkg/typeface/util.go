@@ -56,7 +56,7 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 					nb := b
 					for j := 0; j < len(syms); j++ {
 						if syms[j] >= nb {
-							symbols = append(symbols, pixel.V(txt.Dot.X + txt.BoundsOf(raw[nb:syms[j]]).W() + txt.BoundsOf(SymbolItem).W() * 0.5, txt.Dot.Y + txt.LineHeight * 0.5))
+							symbols = append(symbols, pixel.V(txt.Dot.X + txt.BoundsOf(raw[nb:syms[j]]).W() + txt.BoundsOf(SymbolItem).W() * 0.5, txt.Dot.Y))
 							fmt.Fprint(txt, raw[nb:syms[j]])
 							for range SymbolItem {
 								fmt.Fprint(txt, " ")
@@ -84,7 +84,7 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 		nb := b
 		for j := 0; j < len(syms); j++ {
 			if syms[j] >= nb {
-				symbols = append(symbols, pixel.V(txt.Dot.X + txt.BoundsOf(raw[nb:syms[j]]).W() + txt.BoundsOf(SymbolItem).W() * 0.5, txt.Dot.Y + txt.LineHeight * 0.5))
+				symbols = append(symbols, pixel.V(txt.Dot.X + txt.BoundsOf(raw[nb:syms[j]]).W() + txt.BoundsOf(SymbolItem).W() * 0.5, txt.Dot.Y))
 				fmt.Fprint(txt, raw[nb:syms[j]])
 				for range SymbolItem {
 					fmt.Fprint(txt, " ")

@@ -34,6 +34,7 @@ type inputs struct {
 	Dig       *input.ButtonSet `toml:"dig"`
 	Mark      *input.ButtonSet `toml:"mark"`
 	Use       *input.ButtonSet `toml:"use"`
+	Interact  *input.ButtonSet `toml:"interact"`
 	Prev      *input.ButtonSet `toml:"prev"`
 	Next      *input.ButtonSet `toml:"next"`
 }

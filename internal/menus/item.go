@@ -6,7 +6,6 @@ import (
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
-	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/text"
 	"image/color"
@@ -17,7 +16,6 @@ type Item struct {
 	Raw     string
 	Hint    string
 	Text    *text.Text
-	HText   *text.Text
 	Symbols []string
 	SymMats []pixel.Matrix
 
@@ -28,7 +26,6 @@ type Item struct {
 	unHoverFn func()
 
 	Transform  *transform.Transform
-	HTransform *transform.Transform
 
 	TextColor color.RGBA
 
@@ -51,23 +48,13 @@ func NewItem(key, raw string) *Item {
 		V: transform.Bottom,
 	}
 	tran.Scalar = DefaultSize
-	htran := transform.NewTransform()
-	htran.Anchor = transform.Anchor{
-		H: transform.Left,
-		V: transform.Bottom,
-	}
-	htran.Scalar = HintSize
 	tex := text.New(pixel.ZV, typeface.BasicAtlas)
 	tex.LineHeight *= 1.5
-	htex := text.New(pixel.ZV, typeface.BasicAtlas)
-	htex.LineHeight *= 1.2
 	return &Item{
 		Key:        key,
 		Raw:        raw,
 		Text:       tex,
-		HText:      htex,
 		Transform:  tran,
-		HTransform: htran,
 		TextColor:  DefaultColor,
 	}
 }
@@ -94,15 +81,6 @@ func (i *Item) Update() {
 			i.Transform.Scalar = DefaultSize
 		}
 	}
-	if i.Hovered && !i.Disabled && i.Hint != "" {
-		i.HTransform.Pos = i.Transform.Pos
-		i.HText.Clear()
-		i.HText.Color = DefaultColor
-		fmt.Fprintln(i.HText, i.Hint)
-		i.HTransform.UIZoom = camera.Cam.GetZoomScale()
-		i.HTransform.UIPos = camera.Cam.APos
-		i.HTransform.Update()
-	}
 	i.Text.Clear()
 	i.Text.Color = i.TextColor
 	align := typeface.DefaultAlign
@@ -119,7 +97,7 @@ func (i *Item) Update() {
 		for _, pos := range symPos {
 			t.Pos = i.Transform.APos
 			t.Pos.X += pos.X
-			t.Pos.Y += pos.Y
+			t.Pos.Y += pos.Y + i.Text.LineHeight * 0.5
 			t.Update()
 			i.SymMats = append(i.SymMats, t.Mat)
 		}

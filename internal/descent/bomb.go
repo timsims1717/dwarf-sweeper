@@ -53,7 +53,6 @@ func (b *Bomb) Update() {
 				Knockback:      MineBaseKnockback,
 				KnockbackDecay: true,
 				Source:         b.Transform.Pos,
-				Override:       true,
 			})
 			vfx.CreateExplosion(b.Tile.Transform.Pos)
 			sfx.SoundPlayer.PlaySound("blast1", 0.0)

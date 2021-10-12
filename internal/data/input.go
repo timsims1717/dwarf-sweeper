@@ -1,4 +1,4 @@
-package player
+package data
 
 import (
 	"dwarf-sweeper/pkg/input"
@@ -16,30 +16,28 @@ var GameInput = &input.Input{
 	},
 	Buttons: map[string]*input.ButtonSet{
 		"dig": {
-			Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft, pixelgl.KeyLeftShift},
+			Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft},
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonX},
 			Axis:    pixelgl.AxisRightTrigger,
 			AxisV:   1,
 		},
 		"mark": {
-			Keys:    []pixelgl.Button{pixelgl.MouseButtonRight, pixelgl.KeyLeftControl},
-			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonY},
+			Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
 			Axis:    pixelgl.AxisLeftTrigger,
 			AxisV:   1,
 		},
-		"left":  input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
-		"right": input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
-		"up":    input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
-		"down":  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-		"jump":  input.New(pixelgl.KeySpace, pixelgl.ButtonA),
-		"use":   input.New(pixelgl.KeyF, pixelgl.ButtonB),
+		"left":   input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
+		"right":  input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
+		"up":     input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+		"down":   input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+		"jump":   input.New(pixelgl.KeySpace, pixelgl.ButtonA),
+		"pickUp": input.New(pixelgl.KeyQ, pixelgl.ButtonY),
+		"use":    input.New(pixelgl.KeyE, pixelgl.ButtonB),
 		"prev": {
-			Keys:    []pixelgl.Button{pixelgl.KeyQ},
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
 			Scroll:  -1,
 		},
 		"next": {
-			Keys:    []pixelgl.Button{pixelgl.KeyE},
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
 			Scroll:  1,
 		},
