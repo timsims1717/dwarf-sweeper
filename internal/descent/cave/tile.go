@@ -28,19 +28,22 @@ var (
 type TileType int
 
 const (
-	Block = iota
-	Value
-	Wall
-	Deco
+	Deco = iota
 	Empty
+	Block
+	Block1
+	Block2
+	Wall
 )
 
 func (t TileType) String() string {
 	switch t {
 	case Block:
-		return "Block"
-	case Value:
-		return "Valuable"
+		return "Block-Diggable-Chain"
+	case Block1:
+		return "Block-Diggable"
+	case Block2:
+		return "Bombable"
 	case Wall:
 		return "Indestructible"
 	case Deco:
@@ -54,6 +57,7 @@ func (t TileType) String() string {
 
 type Tile struct {
 	Type       TileType
+	Special    bool
 	SubCoords  world.Coords
 	RCoords    world.Coords
 	BGSprite   *pixel.Sprite
@@ -64,10 +68,8 @@ type Tile struct {
 	XRay       *pixel.Sprite
 	Bomb       bool
 	Destroyed  bool
-	Breakable  bool
 	Fillable   bool
 	Cracked    bool
-	Solid      bool
 	Transform  *transform.Transform
 	Chunk      *Chunk
 	revealT    *timing.FrameTimer
@@ -95,8 +97,6 @@ func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 		BGSpriteS: startSprite,
 		BGSMatrix: pixel.IM,
 		Bomb:      bomb,
-		Breakable: true,
-		Solid:     true,
 		Transform: tran,
 		Chunk:     chunk,
 	}
@@ -118,12 +118,12 @@ func (tile *Tile) Update() {
 		tile.UpdateSprites()
 		tile.reload = false
 	}
-	if !tile.Destroyed && tile.destroying && tile.Breakable {
+	if !tile.Destroyed && tile.destroying && tile.Breakable() {
 		if tile.destroyT.UpdateDone() {
 			tile.Destroy(false)
 		}
 	}
-	if tile.Solid && !tile.Destroyed && tile.revealing && tile.Breakable {
+	if tile.Solid() && !tile.Destroyed && tile.revealing && tile.Breakable() {
 		if tile.revealT.UpdateDone() {
 			tile.Reveal(false)
 		}
@@ -143,28 +143,27 @@ func (tile *Tile) Draw(target pixel.Target) {
 }
 
 func (tile *Tile) ToDestroy() {
-	if tile != nil && !tile.Destroyed && !tile.destroying && tile.Breakable {
+	if tile != nil && !tile.Destroyed && !tile.destroying && tile.Breakable() {
 		tile.destroyT = timing.New(revealTimer)
 		tile.destroying = true
 	}
 }
 
 func (tile *Tile) Destroy(playSound bool) {
-	if tile != nil && !tile.Destroyed && tile.Breakable {
+	if tile != nil && !tile.Destroyed && tile.Breakable() {
 		if tile.DigTrigger != nil {
 			tile.DigTrigger(tile)
 		}
-		wasSolid := tile.Solid
+		wasSolid := tile.Solid()
 		tile.Chunk.Cave.UpdateBatch = true
 		tile.destroying = false
-		tile.Solid = false
 		tile.Type = Empty
 		ns := tile.SubCoords.Neighbors()
 		c := 0
 		for _, n := range ns {
 			t := tile.Chunk.Get(n)
 			if t != nil {
-				if t.Bomb && t.Breakable && t.Type != Wall {
+				if t.Bomb && t.Breakable() {
 					c++
 				}
 				t.UpdateSprites()
@@ -197,24 +196,23 @@ func (tile *Tile) Destroy(playSound bool) {
 }
 
 func (tile *Tile) ToReveal() {
-	if tile != nil && !tile.revealing && tile.Solid && tile.Breakable {
+	if tile != nil && !tile.revealing && tile.Solid() && tile.Breakable() {
 		tile.revealT = timing.New(revealTimer)
 		tile.revealing = true
 	}
 }
 
 func (tile *Tile) Reveal(instant bool) {
-	if tile != nil && !tile.Bomb && tile.Solid && tile.Breakable {
+	if tile != nil && !tile.Bomb && tile.Solid() && tile.Breakable() {
 		tile.Chunk.Cave.UpdateBatch = true
 		tile.revealing = false
-		tile.Solid = false
 		tile.Type = Empty
 		ns := tile.SubCoords.Neighbors()
 		c := 0
 		for _, n := range ns {
 			t := tile.Chunk.Get(n)
 			if t != nil {
-				if t.Bomb && t.Breakable && t.Type != Wall {
+				if t.Bomb && t.Breakable() {
 					c++
 				}
 				t.UpdateSprites()
@@ -250,10 +248,10 @@ func (tile *Tile) UpdateSprites() {
 		for i, n := range ns {
 			t := tile.Chunk.Get(n)
 			if t != nil {
-				if t.Bomb && t.Breakable && t.Type != Wall {
+				if t.Bomb && t.Breakable() {
 					c++
 				}
-				if t.Solid {
+				if t.Solid() {
 					ss[i] = true
 				}
 				if i%2 == 0 && !t.Destroyed {
@@ -268,7 +266,7 @@ func (tile *Tile) UpdateSprites() {
 		}
 		var s string
 		var m pixel.Matrix
-		if tile.Solid {
+		if tile.Solid() {
 			buf := new(bytes.Buffer)
 			for _, b := range ss {
 				if b {
@@ -295,7 +293,7 @@ func (tile *Tile) UpdateSprites() {
 			tile.BGSprite = tile.Chunk.Cave.Batcher.Sprites[s]
 		}
 		tile.FGSprite = nil
-		if !tile.Solid {
+		if !tile.Solid() {
 			switch c {
 			case 0:
 				tile.BGSprite = nil
@@ -332,7 +330,7 @@ func (tile *Tile) GetTileCode() string {
 			if t.Bomb {
 				c++
 			}
-			if t.Solid {
+			if t.Solid() {
 				bs[i] = true
 			}
 		}
@@ -350,4 +348,12 @@ func (tile *Tile) GetTileCode() string {
 
 func (tile *Tile) IsExit() bool {
 	return tile != nil && tile.Exit
+}
+
+func (tile *Tile) Breakable() bool {
+	return !(tile.Type == Wall || tile.Type == Empty)
+}
+
+func (tile *Tile) Solid() bool {
+	return !(tile.Type == Deco || tile.Type == Empty)
 }

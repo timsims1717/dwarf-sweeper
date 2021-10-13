@@ -34,7 +34,7 @@ func (x *XRayHelmet) Update() {
 			a = world.Combine(a, n[6].Neighbors())
 			for _, c := range a {
 				tile := Descent.GetPlayerTile().Chunk.Get(c)
-				if tile != nil && tile.Breakable && tile.Solid && tile.XRay != nil && !util.IsNil(tile.Entity) {
+				if tile != nil && tile.Breakable() && tile.Solid() && tile.XRay != nil && !util.IsNil(tile.Entity) {
 					myecs.Manager.NewEntity().
 						AddComponent(myecs.Sprite, tile.XRay).
 						AddComponent(myecs.Transform, transform.NewTransform()).

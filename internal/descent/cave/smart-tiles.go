@@ -68,10 +68,8 @@ func (c *Cave) SmartTileNum(list string) (string, pixel.Matrix) {
 func (c *Cave) SmartTileSolid(t TileType, list string) (string, pixel.Matrix) {
 	s := "blank"
 	switch t {
-	case Block:
+	case Block, Block1, Block2:
 		s = "block"
-	case Value:
-		s = "value"
 	case Wall:
 		s = "wall"
 	}

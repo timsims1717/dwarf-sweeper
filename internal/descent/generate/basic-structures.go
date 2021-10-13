@@ -25,13 +25,10 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 					if (x == l || x == r || y == t || y == b) || dx + dy + random.CaveGen.Intn(2) < curve + width / 8 {
 						if y == b && util.Abs(x - door.X) < 2 {
 							tile.Type = cave.Wall
-							tile.Breakable = false
 							tile.NeverChange = true
 						} else {
 							tile.Type = cave.Block
-							tile.Breakable = true
 						}
-						tile.Solid = true
 					} else {
 						ty := cave.Empty
 						s := ""
@@ -57,7 +54,6 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 							ty = cave.Deco
 							s = "door_tr"
 						}
-						tile.Solid = false
 						tile.Type = cave.TileType(ty)
 						tile.NeverChange = true
 						tile.BGSpriteS = s
@@ -66,7 +62,6 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 						} else {
 							tile.BGSprite = nil
 						}
-						tile.Breakable = false
 					}
 					tile.Bomb = false
 					tile.IsChanged = true
@@ -94,13 +89,10 @@ func Exit(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exi
 					if (x == l || x == r || y == t || y == b) || dx + dy + random.CaveGen.Intn(2) < curve + width / 8 {
 						if y == b && util.Abs(x - door.X) < 2 {
 							tile.Type = cave.Wall
-							tile.Breakable = false
 							tile.NeverChange = true
 						} else {
 							tile.Type = cave.Block
-							tile.Breakable = true
 						}
-						tile.Solid = true
 					} else {
 						ty := cave.Empty
 						s := ""
@@ -126,7 +118,6 @@ func Exit(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exi
 							ty = cave.Deco
 							s = "door_tr"
 						}
-						tile.Solid = false
 						tile.Type = cave.TileType(ty)
 						tile.NeverChange = true
 						tile.BGSpriteS = s
@@ -135,7 +126,6 @@ func Exit(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exi
 						} else {
 							tile.BGSprite = nil
 						}
-						tile.Breakable = false
 					}
 					tile.Bomb = false
 					tile.IsChanged = true
@@ -152,7 +142,6 @@ func Exit(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exi
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged {
 					tile.Type = cave.Wall
-					tile.Breakable = false
 					tile.NeverChange = true
 					tile.Bomb = false
 					tile.IsChanged = true
@@ -171,13 +160,9 @@ func RectRoom(c *cave.Cave, tl world.Coords, width, height int) {
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tl.X || x == tl.X+width-1 || y == tl.Y || y == tl.Y+height-1) {
 					tile.Type = cave.Wall
-					tile.Breakable = false
-					tile.Solid = true
 					tile.UpdateSprites()
 				} else if !tile.NeverChange && !tile.IsChanged {
-					tile.Solid = true
 					tile.Type = cave.Block
-					tile.Breakable = true
 					tile.IsChanged = true
 					tile.Fillable = true
 					tile.UpdateSprites()
@@ -206,13 +191,9 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) {
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
 					tile.Type = cave.Wall
-					tile.Breakable = false
-					tile.Solid = true
 					tile.UpdateSprites()
 				} else if !tile.NeverChange && !tile.IsChanged {
-					tile.Solid = true
 					tile.Type = cave.Block
-					tile.Breakable = true
 					tile.IsChanged = true
 					tile.Fillable = true
 					tile.UpdateSprites()

@@ -244,19 +244,23 @@ func (c *Cave) PrintCaveToTerminal() {
 			for x := c.Left * constants.ChunkSize; x < (c.Right+1)*constants.ChunkSize; x++ {
 				tile := c.GetTileInt(x, y)
 				if tile != nil {
-					switch tile.Type {
-					case Block, Value:
-						if tile.Bomb {
-							fmt.Print("ó")
-						} else {
-							fmt.Print("□")
+					if tile.Special {
+						fmt.Print("s")
+					} else {
+						switch tile.Type {
+						case Block, Block1, Block2:
+							if tile.Bomb {
+								fmt.Print("ó")
+							} else {
+								fmt.Print("□")
+							}
+						case Wall:
+							fmt.Print("▣")
+						case Deco:
+							fmt.Print("*")
+						case Empty:
+							fmt.Print(" ")
 						}
-					case Wall:
-						fmt.Print("▣")
-					case Deco:
-						fmt.Print("*")
-					case Empty:
-						fmt.Print(" ")
 					}
 				}
 			}

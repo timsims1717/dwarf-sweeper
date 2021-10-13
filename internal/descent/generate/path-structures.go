@@ -12,8 +12,8 @@ type Direction int
 
 const (
 	Left = iota
-	Right
 	Up
+	Right
 	Down
 )
 
@@ -22,8 +22,9 @@ type Path struct {
 	Count int
 }
 
-func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb bool) []world.Coords {
+func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb bool) ([]world.Coords, []world.Coords) {
 	var path []world.Coords
+	var deadends []world.Coords
 	type pathDir struct {
 		l     bool
 		r     bool
@@ -151,6 +152,10 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 				}
 			}
 		}
+		// if the new direction is the opposite of the last direction, it's a deadend
+		if util.Abs(int(pDir.last - n)) == 2 {
+			deadends = append(deadends, curr)
+		}
 		// move to the next tile
 		if n == Left {
 			curr.X -= 1
@@ -205,7 +210,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 			done = true
 		}
 	}
-	return path
+	return path, deadends
 }
 
 func BranchOff(start world.Coords, dir Direction) {

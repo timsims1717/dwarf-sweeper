@@ -22,7 +22,7 @@ type Flag struct {
 
 func (f *Flag) Update() {
 	if f.created {
-		if !f.Tile.Solid || f.Tile.Destroyed || !f.Tile.Marked {
+		if !f.Tile.Solid() || f.Tile.Destroyed || !f.Tile.Marked {
 			f.Delete()
 			// todo: particles?
 		}
@@ -57,7 +57,7 @@ func (f *Flag) Create(_ pixel.Vec) {
 
 func (f *Flag) Delete() {
 	f.Tile.Marked = false
-	if f.Tile.Solid {
+	if f.Tile.Solid() {
 		if f.correct {
 			CaveBombsMarked--
 			CaveCorrectMarks--

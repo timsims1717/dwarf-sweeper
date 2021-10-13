@@ -101,25 +101,38 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	RectRoom(newCave, box, 11, 8)
 	newCave.MarkAsNotChanged()
 	// generate paths and/or cycles from entrance to exit
-	path := SemiStraightPath(newCave, startT, exitT, Left, false)
-	path = append(path, SemiStraightPath(newCave, startT, exitT, Right, false)...)
+	path, deadends := SemiStraightPath(newCave, startT, exitT, Left, false)
+	p2, d2 := SemiStraightPath(newCave, startT, exitT, Right, false)
+	path = append(path, p2...)
+	deadends = append(deadends, d2...)
 	startT.X -= 2
-	path = append(path, SemiStraightPath(newCave, startT, exitT, Down, false)...)
+	p2, d2 = SemiStraightPath(newCave, startT, exitT, Down, false)
+	path = append(path, p2...)
+	deadends = append(deadends, d2...)
 	startT.X += 4
-	path = append(path, SemiStraightPath(newCave, startT, exitT, Down, false)...)
+	p2, d2 = SemiStraightPath(newCave, startT, exitT, Down, false)
+	path = append(path, p2...)
+	deadends = append(deadends, d2...)
 	// generate path branching from orig paths
 
 	// place rectangles at random points on all paths, esp at or near dead ends
-	count := random.CaveGen.Intn(constants.ChunkSize/ 3) + constants.ChunkSize/ 3
+	count := random.CaveGen.Intn(constants.ChunkSize / 3) + constants.ChunkSize / 3
 	for i := 0; i < count; i++ {
 		include := path[random.CaveGen.Intn(len(path))]
 		//fmt.Printf("rect room includes: (%d,%d)\n", include.X, include.Y)
 		RandRectRoom(newCave, 7, (constants.ChunkSize/ 4) * 3, include)
 	}
-	//num := random.CaveGen.Intn(8) + 12
-	//for i := 0; i < num; i++ {
-	//	RectRoom(cave, 5, 20)
-	//}
+	newCave.MarkAsNotChanged()
+
+	count = random.CaveGen.Intn(4) + 4
+	for i := 0; i < count; i++ {
+		s := path[random.CaveGen.Intn(len(path))]
+		dir := RandomDirection()
+		NoodleCave(newCave, s, dir)
+	}
+	for _, d := range deadends {
+		TreasureRoom(newCave, 6, 10, 2, d)
+	}
 	for _, ch := range newCave.LChunks {
 		descent.FillChunk(ch)
 	}

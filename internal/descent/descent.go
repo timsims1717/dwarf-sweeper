@@ -5,13 +5,11 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/menus"
-	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
-	"github.com/faiface/pixel"
 )
 
 type CaveType int
@@ -118,7 +116,7 @@ func IncreaseLevelInf() {
 func FillChunk(ch *cave.Chunk) {
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid && tile.Breakable && (tile.Fillable || !ch.Cave.Finite) {
+			if tile.Solid() && tile.Breakable() && (tile.Fillable || !ch.Cave.Finite) {
 				if tile.Bomb {
 					tile.Entity = &Bomb{
 						Tile:       tile,
@@ -127,57 +125,13 @@ func FillChunk(ch *cave.Chunk) {
 					CaveTotalBombs++
 					CaveBombsLeft++
 					tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
-				} else if random.CaveGen.Intn(ch.Cave.GemRate) == 0 && tile.Solid && tile.Breakable {
+				} else if random.CaveGen.Intn(ch.Cave.GemRate) == 0 && tile.Solid() && tile.Breakable() {
 					collect := Collectibles[GemDiamond]
 					tile.Entity = &CollectibleItem{
 						Collect: collect,
 					}
 					tile.XRay = collect.Sprite
-				} else if random.CaveGen.Intn(ch.Cave.ItemRate) == 0 && tile.Solid && tile.Breakable {
-					tile.Solid = false
-					tile.Breakable = false
-					tile.Type = cave.Empty
-					tile.UpdateSprites()
-					popUp := menus.NewPopUp(fmt.Sprintf("%s to open", typeface.SymbolItem), nil)
-					popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
-					popUp.Dist = world.TileSize
-					e := myecs.Manager.NewEntity()
-					e.AddComponent(myecs.Transform, tile.Transform).
-						AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_closed"]).
-						AddComponent(myecs.Batch, constants.EntityKey).
-						AddComponent(myecs.PopUp, popUp).
-						AddComponent(myecs.Interact, &data.Interact{
-							OnInteract: func(pos pixel.Vec) bool {
-								collectible := ""
-								switch random.CaveGen.Intn(5) {
-								case 0:
-									item := &BombItem{}
-									item.Create(pos)
-								case 1:
-									collectible = Apple
-								case 2:
-									collectible = Beer
-								case 3:
-									collectible = BubbleItem
-								case 4:
-									collectible = XRayItem
-								}
-								if collectible != "" {
-									item := &CollectibleItem{
-										Collect: Collectibles[collectible],
-									}
-									item.Create(pos)
-								}
-								e.AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_opened"])
-								e.RemoveComponent(myecs.Interact)
-								e.RemoveComponent(myecs.PopUp)
-								return true
-							},
-							Distance:   world.TileSize,
-							Interacted: false,
-							Remove:     false,
-						})
-				} else if random.CaveGen.Intn(75) == 0 && tile.Solid && tile.Breakable {
+				} else if random.CaveGen.Intn(75) == 0 && tile.Solid() && tile.Breakable() {
 					tile.Entity = &MadMonk{}
 				}
 			} else if tile.Bomb {
@@ -211,7 +165,7 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 	needBomb := nb
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid && tile.Breakable && tile.Fillable && t.RCoords != tile.RCoords {
+			if tile.Solid() && tile.Breakable() && tile.Fillable && t.RCoords != tile.RCoords {
 				if tile.Bomb {
 					tile.Entity = &Mine{
 						Tile:       tile,

@@ -31,6 +31,15 @@ func Max(a, b int) int {
 	return b
 }
 
+func Contains(i int, a []int) bool {
+	for _, as := range a {
+		if as == i {
+			return true
+		}
+	}
+	return false
+}
+
 func ContainsStr(s string, a []string) bool {
 	for _, as := range a {
 		if as == s {

@@ -167,7 +167,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			reanimator.NewAnimFromSheet("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, map[int]func() {
 				1: func() {
 					if d.digTile != nil {
-						if d.digTile.Solid {
+						if d.digTile.Solid() {
 							CaveBlocksDug++
 							d.digTile.Destroy(true)
 						} else {
@@ -399,7 +399,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		if d.hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			if in.Get("dig").JustPressed() && d.selectLegal {
-				if d.hovered.Solid {
+				if d.hovered.Solid() {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
 						t *cave.Tile
@@ -416,7 +416,7 @@ func (d *Dwarf) Update(in *input.Input) {
 						t: d.hovered,
 					})
 				}
-			} else if in.Get("mark").JustPressed() && d.hovered.Solid && d.selectLegal {
+			} else if in.Get("mark").JustPressed() && d.hovered.Solid() && d.selectLegal {
 				d.tileQueue = append(d.tileQueue, struct{
 					a int
 					t *cave.Tile
@@ -435,7 +435,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.faceLeft = false
 			}
 			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange && !cave.TileInTile(d.Transform.Pos, next.t.Transform.Pos) {
-				if next.a == 0 && next.t.Solid {
+				if next.a == 0 && next.t.Solid() {
 					d.digging = true
 					d.attacking = false
 					d.jumping = false
@@ -443,7 +443,7 @@ func (d *Dwarf) Update(in *input.Input) {
 					d.climbing = false
 					d.distFell = 0.
 					d.digTile = next.t
-				} else if next.a == 1 && next.t.Solid {
+				} else if next.a == 1 && next.t.Solid() {
 					d.marking = true
 					d.distFell = 0.
 					Mark(next.t)
@@ -487,8 +487,8 @@ func (d *Dwarf) Update(in *input.Input) {
 			dwn2 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.25))
 			right := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
 			left := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
-			canJump := (dwn1 != nil && dwn1.Solid) || (dwn2 != nil && dwn2.Solid) || (dwnlj != nil && dwnlj.Solid) || (dwnrj != nil && dwnrj.Solid)
-			canClimb := (right != nil && right.Solid) || (left != nil && left.Solid)
+			canJump := (dwn1 != nil && dwn1.Solid()) || (dwn2 != nil && dwn2.Solid()) || (dwnlj != nil && dwnlj.Solid()) || (dwnrj != nil && dwnrj.Solid())
+			canClimb := (right != nil && right.Solid()) || (left != nil && left.Solid())
 
 			xDir := 0
 			if in.Get("left").Pressed() && !in.Get("right").Pressed() {
@@ -539,9 +539,9 @@ func (d *Dwarf) Update(in *input.Input) {
 					} else {
 						d.Physics.SetVelY(0., 0.)
 					}
-					if right != nil && right.Solid && (left == nil || !left.Solid) {
+					if right != nil && right.Solid() && (left == nil || !left.Solid()) {
 						d.faceLeft = false
-					} else if left != nil && left.Solid && (right == nil || !right.Solid) {
+					} else if left != nil && left.Solid() && (right == nil || !right.Solid()) {
 						d.faceLeft = true
 					}
 				} else {
@@ -554,9 +554,9 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.toJump = false
 				d.distFell = 0.
 				d.Physics.SetVelY(d.ClimbSpeed, 0.)
-				if right != nil && right.Solid && (left == nil || !left.Solid) {
+				if right != nil && right.Solid() && (left == nil || !left.Solid()) {
 					d.faceLeft = false
-				} else if left != nil && left.Solid && (right == nil || !right.Solid) {
+				} else if left != nil && left.Solid() && (right == nil || !right.Solid()) {
 					d.faceLeft = true
 				}
 			} else if !d.jumping && !d.toJump && d.Physics.Grounded {
@@ -633,7 +633,7 @@ func (d *Dwarf) Update(in *input.Input) {
 func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
 	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
 	if d.hovered != nil && !d.Health.Dazed {
-		if d.hovered.Solid && d.selectLegal {
+		if d.hovered.Solid() && d.selectLegal {
 			particles.CreateStaticParticle("target", d.hovered.Transform.Pos)
 		} else {
 			particles.CreateStaticParticle("target_blank", d.hovered.Transform.Pos)
@@ -664,7 +664,7 @@ func (d *Dwarf) Delete() {
 }
 
 func Mark(tile *cave.Tile) {
-	if tile != nil && tile.Solid && !tile.Destroyed && tile.Type != cave.Wall {
+	if tile != nil && tile.Solid() && !tile.Destroyed && tile.Breakable() {
 		if !tile.Marked {
 			tile.Marked = true
 			f := &Flag{

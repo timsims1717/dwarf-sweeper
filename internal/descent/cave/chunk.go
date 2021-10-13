@@ -49,14 +49,13 @@ func NewChunk(coords world.Coords, c *Cave) *Chunk {
 			tile = NewTile(x, y, coords, false, chunk)
 			tile.Type = Wall
 			tile.NeverChange = true
-			tile.Breakable = false
 		} else if coords.Y == 0 && y == 0 {
 			tile = NewTile(x, y, coords, false, chunk)
 			tile.Type = Wall
 			tile.NeverChange = true
-			tile.Breakable = false
 		} else {
 			tile = NewTile(x, y, coords, b, chunk)
+			tile.Type = Wall
 		}
 		chunk.Rows[y][x] = tile
 		x++
