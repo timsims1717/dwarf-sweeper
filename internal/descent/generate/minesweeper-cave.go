@@ -85,6 +85,10 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, level int) *cave.Cave {
 	Outline(newCave, pathS, outline(chal))
 	Entrance(newCave, newCave.StartC, 5, 3, 0, false)
 	Entrance(newCave, exitC, 5, 3, 0, true)
+	for x := newCave.StartC.X+1; x < newCave.ExitC.X; x++ {
+		toBlock(newCave.GetTileInt(x, newCave.StartC.Y), false, false)
+	}
+	newCave.MarkAsNotChanged()
 	MineBlock(newCave, chal)
 	newCave.PrintCaveToTerminal()
 	return newCave
