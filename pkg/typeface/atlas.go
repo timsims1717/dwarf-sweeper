@@ -11,6 +11,7 @@ import (
 
 var (
 	BasicAtlas = text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	Atlases    = make(map[string]*text.Atlas)
 )
 
 func LoadTTF(path string, size float64) (font.Face, error) {
@@ -25,12 +26,12 @@ func LoadTTF(path string, size float64) (font.Face, error) {
 		return nil, err
 	}
 
-	font, err := truetype.Parse(bytes)
+	f, err := truetype.Parse(bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	return truetype.NewFace(font, &truetype.Options{
+	return truetype.NewFace(f, &truetype.Options{
 		Size:              size,
 		GlyphCacheEntries: 1,
 	}), nil

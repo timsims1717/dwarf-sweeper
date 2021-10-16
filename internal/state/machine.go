@@ -19,6 +19,7 @@ import (
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -35,6 +36,9 @@ var (
 	state       = -1
 	newState    = 1
 
+	Splash     *pixel.Sprite
+	splashTran *transform.Transform
+	splashScale = 0.4
 	debugPause = false
 	menuStack  []*menus.DwarfMenu
 	timer      *timing.FrameTimer
@@ -191,6 +195,10 @@ func Update(win *pixelgl.Window) {
 				title.Transform.UIPos = camera.Cam.APos
 				title.Transform.UIZoom = camera.Cam.GetZoomScale()
 				title.Update(pixel.Rect{})
+				splashTran.Scalar = pixel.V(splashScale, splashScale)
+				splashTran.UIPos = camera.Cam.APos
+				splashTran.UIZoom = camera.Cam.GetZoomScale()
+				splashTran.Update()
 				if credits.Opened() {
 					credits.Update()
 					if pressed, _ := menuInput.AnyJustPressed(true); pressed {
@@ -270,6 +278,7 @@ func Draw(win *pixelgl.Window) {
 		debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
 		debug.AddText(fmt.Sprintf("entity count: %d", myecs.Count))
 	} else if state == 1 {
+		Splash.Draw(win, splashTran.Mat)
 		title.Draw(win)
 		for _, m := range menuStack {
 			m.Draw(win)
@@ -413,6 +422,7 @@ func updateState() {
 			descent.Descent.Start = false
 		case 1:
 			title.Transform.Pos = pixel.V(0., 75.)
+			splashTran = transform.NewTransform()
 			camera.Cam.SnapTo(pixel.ZV)
 			if state != -1 {
 				OpenMenu(MainMenu)

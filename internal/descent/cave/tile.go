@@ -30,20 +30,20 @@ type TileType int
 const (
 	Deco = iota
 	Empty
-	Block
-	Block1
-	Block2
+	BlockCollapse
+	BlockDig
+	BlockBlast
 	Wall
 )
 
 func (t TileType) String() string {
 	switch t {
-	case Block:
-		return "Block-Diggable-Chain"
-	case Block1:
-		return "Block-Diggable"
-	case Block2:
-		return "Bombable"
+	case BlockCollapse:
+		return "Block-Collapse"
+	case BlockDig:
+		return "Block-Dig"
+	case BlockBlast:
+		return "Block-Blast"
 	case Wall:
 		return "Indestructible"
 	case Deco:
@@ -90,7 +90,7 @@ func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 	tran.Pos = pixel.V(float64(x + ch.X * constants.ChunkSize) * world.TileSize, -(float64(y + ch.Y * constants.ChunkSize) * world.TileSize))
 	spr := chunk.Cave.Batcher.Sprites[startSprite]
 	return &Tile{
-		Type:      Block,
+		Type:      BlockCollapse,
 		SubCoords: world.Coords{ X: x, Y: y },
 		RCoords:   world.Coords{ X: x + ch.X * constants.ChunkSize, Y: y + ch.Y * constants.ChunkSize},
 		BGSprite:  spr,
@@ -196,14 +196,14 @@ func (tile *Tile) Destroy(playSound bool) {
 }
 
 func (tile *Tile) ToReveal() {
-	if tile != nil && !tile.revealing && tile.Solid() && tile.Breakable() {
+	if tile != nil && !tile.revealing && tile.Solid() && tile.Breakable() && tile.Type == BlockCollapse {
 		tile.revealT = timing.New(revealTimer)
 		tile.revealing = true
 	}
 }
 
 func (tile *Tile) Reveal(instant bool) {
-	if tile != nil && !tile.Bomb && tile.Solid() && tile.Breakable() {
+	if tile != nil && !tile.Bomb && tile.Solid() && tile.Breakable() && tile.Type == BlockCollapse {
 		tile.Chunk.Cave.UpdateBatch = true
 		tile.revealing = false
 		tile.Type = Empty

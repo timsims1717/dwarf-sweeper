@@ -17,7 +17,7 @@ func toEmpty(tile *cave.Tile, perm, blank bool) {
 
 func toBlock(tile *cave.Tile, perm, bomb bool) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
-		tile.Type = cave.Block
+		tile.Type = cave.BlockCollapse
 		tile.Bomb = bomb
 		tile.IsChanged = true
 		tile.NeverChange = perm
@@ -37,7 +37,7 @@ func toWall(tile *cave.Tile, perm bool) {
 
 func wallUp(tile *cave.Tile, noBomb bool) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
-		tile.Type = cave.Block
+		tile.Type = cave.BlockCollapse
 		tile.Fillable = true
 		if noBomb {
 			tile.Bomb = false

@@ -65,7 +65,7 @@ func NewHint(cam *camera.Camera) *HintBox {
 	CTDL.Flop = true
 	STR.Flip = true
 	STD.Flop = true
-	tex := text.New(pixel.ZV, typeface.BasicAtlas)
+	tex := text.New(pixel.ZV, typeface.Atlases["main"])
 	tex.LineHeight *= 1.2
 	return &HintBox{
 		Text:     tex,
@@ -127,8 +127,11 @@ func (h *HintBox) UpdateSize() {
 		}
 		if h.StepH >= h.Rect.W() * 0.5 && h.StepV >= h.Rect.H() * 0.5 {
 			h.opened = true
+		} else {
+			h.opened = false
 		}
 	} else {
+		h.opened = false
 		if h.StepV > 8. {
 			h.StepV -= timing.DT * VStep
 		}

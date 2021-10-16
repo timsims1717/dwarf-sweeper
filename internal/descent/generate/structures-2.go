@@ -12,13 +12,13 @@ import (
 func NoodleCave(c *cave.Cave, start world.Coords, iDir Direction) {
 	t := start
 	dir := iDir
-	currType := cave.Block
+	currType := cave.BlockCollapse
 	chance := random.CaveGen.Intn(40) + 40
 	switch random.CaveGen.Intn(4) {
 	case 0,1,2:
 		currType = cave.Empty
 	case 3:
-		currType = cave.Block
+		currType = cave.BlockCollapse
 	//case 2:
 	//	currType = cave.Block1
 	}
@@ -56,7 +56,7 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir Direction) {
 			case 0:
 				currType = cave.Empty
 			case 1:
-				currType = cave.Block
+				currType = cave.BlockCollapse
 			}
 			// maybe change direction
 			change := random.CaveGen.Intn(4)

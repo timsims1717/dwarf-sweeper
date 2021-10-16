@@ -91,6 +91,7 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, level int) *cave.Cave {
 	newCave.MarkAsNotChanged()
 	MineBlock(newCave, chal)
 	newCave.PrintCaveToTerminal()
+	newCave.UpdateAllTileSprites()
 	return newCave
 }
 

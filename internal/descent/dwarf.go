@@ -32,6 +32,8 @@ const (
 	JumpVel            = 150.
 	DigRange           = 1.5
 	selectTimerSec     = 2.0
+	AngleSec           = 0.1
+	angleDiff          = 0.15
 )
 
 var (
@@ -78,6 +80,7 @@ type Dwarf struct {
 	gpSelect    bool
 	mouseSelect bool
 	selectTimer *timing.FrameTimer
+	angleTimer  *timing.FrameTimer
 
 	hovered     *cave.Tile
 	relative    pixel.Vec
@@ -303,6 +306,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 }
 
 func (d *Dwarf) Update(in *input.Input) {
+	d.angleTimer.Update()
 	loc1 := Descent.GetCave().GetTile(d.Transform.Pos)
 	if d.Physics.Grounded || d.climbing || d.Bubble != nil {
 		d.airDig = false
@@ -337,6 +341,10 @@ func (d *Dwarf) Update(in *input.Input) {
 	if !d.Health.Dazed && !d.Health.Dead {
 		jpSelecting := in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.
 		moveSelecting := in.Get("left").Pressed() || in.Get("right").Pressed() || in.Get("up").Pressed() || in.Get("down").Pressed()
+		jpMS := in.Get("left").JustPressed() || in.Get("right").JustPressed() || in.Get("up").JustPressed() || in.Get("down").JustPressed()
+		if in.Get("left").JustReleased() || in.Get("right").JustReleased() || in.Get("up").JustReleased() || in.Get("down").JustReleased() {
+			d.angleTimer = timing.New(AngleSec)
+		}
 		if jpSelecting && constants.DigMode != data.Movement {
 			d.gpSelect = true
 			d.mouseSelect = false
@@ -351,16 +359,21 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 		if d.gpSelect {
 			if jpSelecting {
-				x := in.Axes["targetX"].F
-				y := in.Axes["targetY"].F
-				if x > input.Deadzone || x < -input.Deadzone {
+				x := in.Axes["targetX"].R
+				y := in.Axes["targetY"].R
+				xA := math.Abs(x)
+				yA := math.Abs(y)
+				diff := math.Abs(x-y)
+				if xA > input.Deadzone ||
+					(yA > input.Deadzone && diff < angleDiff) {
 					if x > 0. {
 						x = world.TileSize
 					} else {
 						x = -world.TileSize
 					}
 				}
-				if y > input.Deadzone || y < -input.Deadzone {
+				if yA > input.Deadzone ||
+					(xA > input.Deadzone && diff < angleDiff) {
 					if y > 0. {
 						y = -world.TileSize
 					} else {
@@ -376,7 +389,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		} else if d.mouseSelect {
 			d.hovered = Descent.GetCave().GetTile(in.World)
 		} else if constants.DigMode != data.Dedicated {
-			if moveSelecting {
+			if moveSelecting && (jpMS || d.angleTimer.Done()) {
 				x := 0.
 				y := 0.
 				if in.Get("left").Pressed() {

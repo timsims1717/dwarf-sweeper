@@ -27,6 +27,7 @@ func addChest(tile *cave.Tile) {
 		AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_closed"]).
 		AddComponent(myecs.Batch, constants.EntityKey).
 		AddComponent(myecs.PopUp, popUp).
+		AddComponent(myecs.Temp, myecs.ClearFlag(false)).
 		AddComponent(myecs.Interact, &data.Interact{
 			OnInteract: func(pos pixel.Vec) bool {
 				collectible := ""

@@ -56,6 +56,7 @@ func (i *Input) Update(win *pixelgl.Window) {
 	if i.joyConn && i.Mode != KeyboardMouse {
 		for _, set := range i.Axes {
 			f := win.JoystickAxis(i.Joystick, set.A)
+			set.R = f
 			if f > Deadzone || f < -Deadzone {
 				set.F = f
 			} else {
@@ -220,6 +221,7 @@ func (bs *ButtonSet) Consume() {
 
 type AxisSet struct {
 	F float64
+	R float64
 	A pixelgl.GamepadAxis
 }
 

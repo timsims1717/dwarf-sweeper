@@ -14,9 +14,11 @@ import (
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/faiface/pixel/text"
 	"image/color"
 )
 
@@ -38,6 +40,8 @@ func run() {
 		panic(err)
 	}
 	win.SetSmooth(false)
+	mainFont, err := typeface.LoadTTF("assets/FR73PixD.ttf", 50.)
+	typeface.Atlases["main"] = text.NewAtlas(mainFont, text.ASCII)
 
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = constants.BaseH
@@ -50,6 +54,11 @@ func run() {
 
 	vfx.Initialize()
 	particles.Initialize()
+	splash, err := img.LoadImage("assets/img/splash.png")
+	if err != nil {
+		panic(err)
+	}
+	state.Splash = pixel.NewSprite(splash, splash.Bounds())
 	sheet, err := img.LoadSpriteSheet("assets/img/entities.json")
 	if err != nil {
 		panic(err)

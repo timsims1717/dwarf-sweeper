@@ -73,7 +73,7 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 	STR.Flip = true
 	STD.Flop = true
 	EntryT.Rot = math.Pi * 0.5
-	tex := text.New(pixel.ZV, typeface.BasicAtlas)
+	tex := text.New(pixel.ZV, typeface.Atlases["main"])
 	tex.LineHeight *= 1.2
 	return &PopUp{
 		Raw:      raw,
@@ -151,8 +151,11 @@ func (p *PopUp) UpdateSize() {
 		}
 		if p.StepH >= p.Rect.W() * 0.5 && p.StepV >= p.Rect.H() * 0.5 {
 			p.opened = true
+		} else {
+			p.opened = false
 		}
 	} else {
+		p.opened = false
 		if p.StepV > 8. {
 			p.StepV -= timing.DT * VStep
 		}

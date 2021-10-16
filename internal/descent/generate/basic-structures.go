@@ -27,7 +27,7 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 							tile.Type = cave.Wall
 							tile.NeverChange = true
 						} else {
-							tile.Type = cave.Block
+							tile.Type = cave.BlockCollapse
 						}
 					} else {
 						ty := cave.Empty
@@ -91,7 +91,7 @@ func Exit(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exi
 							tile.Type = cave.Wall
 							tile.NeverChange = true
 						} else {
-							tile.Type = cave.Block
+							tile.Type = cave.BlockCollapse
 						}
 					} else {
 						ty := cave.Empty
@@ -162,7 +162,7 @@ func RectRoom(c *cave.Cave, tl world.Coords, width, height int) {
 					tile.Type = cave.Wall
 					tile.UpdateSprites()
 				} else if !tile.NeverChange && !tile.IsChanged {
-					tile.Type = cave.Block
+					tile.Type = cave.BlockCollapse
 					tile.IsChanged = true
 					tile.Fillable = true
 					tile.UpdateSprites()
@@ -193,7 +193,7 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) {
 					tile.Type = cave.Wall
 					tile.UpdateSprites()
 				} else if !tile.NeverChange && !tile.IsChanged {
-					tile.Type = cave.Block
+					tile.Type = cave.BlockCollapse
 					tile.IsChanged = true
 					tile.Fillable = true
 					tile.UpdateSprites()

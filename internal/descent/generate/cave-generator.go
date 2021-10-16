@@ -140,6 +140,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 		descent.FillChunk(ch)
 	}
 	newCave.PrintCaveToTerminal()
+	newCave.UpdateAllTileSprites()
 	return newCave
 }
 

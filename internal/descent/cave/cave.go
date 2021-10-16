@@ -194,6 +194,23 @@ func (c *Cave) GetExit() *Tile {
 	return c.GetTileInt(c.ExitC.X, c.ExitC.Y)
 }
 
+func (c *Cave) UpdateAllTileSprites() {
+	for _, chunk := range c.RChunks {
+		for _, row := range chunk.Rows {
+			for _, tile := range row {
+				tile.UpdateSprites()
+			}
+		}
+	}
+	for _, chunk := range c.LChunks {
+		for _, row := range chunk.Rows {
+			for _, tile := range row {
+				tile.UpdateSprites()
+			}
+		}
+	}
+}
+
 func (c *Cave) MarkAsNotChanged() {
 	for _, chunk := range c.RChunks {
 		for _, row := range chunk.Rows {
@@ -248,7 +265,7 @@ func (c *Cave) PrintCaveToTerminal() {
 						fmt.Print("s")
 					} else {
 						switch tile.Type {
-						case Block, Block1, Block2:
+						case BlockCollapse, BlockDig, BlockBlast:
 							if tile.Bomb {
 								fmt.Print("ó")
 							} else {
