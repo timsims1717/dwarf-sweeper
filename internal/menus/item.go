@@ -48,7 +48,7 @@ func NewItem(key, raw string) *Item {
 		V: transform.Bottom,
 	}
 	tran.Scalar = DefaultSize
-	tex := text.New(pixel.ZV, typeface.Atlases["main"])
+	tex := text.New(pixel.ZV, typeface.BasicAtlas)
 	tex.LineHeight *= 1.5
 	return &Item{
 		Key:        key,

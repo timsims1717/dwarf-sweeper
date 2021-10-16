@@ -65,7 +65,7 @@ func NewHint(cam *camera.Camera) *HintBox {
 	CTDL.Flop = true
 	STR.Flip = true
 	STD.Flop = true
-	tex := text.New(pixel.ZV, typeface.Atlases["main"])
+	tex := text.New(pixel.ZV, typeface.BasicAtlas)
 	tex.LineHeight *= 1.2
 	return &HintBox{
 		Text:     tex,

@@ -73,7 +73,7 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 	STR.Flip = true
 	STD.Flop = true
 	EntryT.Rot = math.Pi * 0.5
-	tex := text.New(pixel.ZV, typeface.Atlases["main"])
+	tex := text.New(pixel.ZV, typeface.BasicAtlas)
 	tex.LineHeight *= 1.2
 	return &PopUp{
 		Raw:      raw,
