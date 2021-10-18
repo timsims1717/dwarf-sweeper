@@ -170,13 +170,13 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 					tile.Entity = &Mine{
 						Tile:       tile,
 					}
-					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine"]
+					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
 				} else if needBomb {
 					tile.Bomb = true
 					tile.Entity = &Mine{
 						Tile:       tile,
 					}
-					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine"]
+					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
 					needBomb = false
 				}
 			} else if tile.Bomb {

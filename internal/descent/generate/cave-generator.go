@@ -131,7 +131,13 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 		NoodleCave(newCave, s, dir)
 	}
 	for _, d := range deadends {
-		TreasureRoom(newCave, 6, 10, 2, d)
+		if random.CaveGen.Intn(3) == 0 {
+			// big
+			TreasureRoom(newCave, 6, 8, 2, d)
+		} else {
+			// small
+			TreasureRoom(newCave, 4, 6, 1, d)
+		}
 	}
 	for _, ch := range newCave.LChunks {
 		descent.FillChunk(ch)

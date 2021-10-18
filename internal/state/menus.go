@@ -296,8 +296,10 @@ func InitInputMenu(win *pixelgl.Window) {
 	inputTitle := InputMenu.AddItem("title", "Input Options")
 	device := InputMenu.AddItem("device", "Device")
 	deviceR := InputMenu.AddItem("device_r", "")
-	digMode := InputMenu.AddItem("dig_mode", "Dig Mode")
-	digModeR := InputMenu.AddItem("dig_mode_r", data.DigMode(constants.DigMode).String())
+	aimMode := InputMenu.AddItem("aim_mode", "Aim Mode")
+	aimModeR := InputMenu.AddItem("aim_mode_r", "")
+	digOn := InputMenu.AddItem("dig_on", "Dig On")
+	digOnR := InputMenu.AddItem("dig_on_r", "")
 	deadzone := InputMenu.AddItem("deadzone", "Deadzone")
 	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", input.Deadzone))
 	leftStickA := InputMenu.AddItem("left_stick_a", "Move with")
@@ -327,21 +329,20 @@ func InitInputMenu(win *pixelgl.Window) {
 	nextR := InputMenu.AddItem("next_r", "")
 	back := InputMenu.AddItem("back", "Back")
 
-	digModeHint := func() {
-		switch constants.DigMode {
-		case data.Dedicated:
+	aimModeUpdate := func() {
+		if constants.AimDedicated {
+			aimModeR.Raw = "Dedicated"
 			if data.GameInput.Mode == input.KeyboardMouse {
-				digMode.Hint = "Use the mouse to aim for digging and marking."
+				aimMode.Hint = "Use the mouse to aim for digging, marking, and attacking."
 			} else {
-				digMode.Hint = "Use the right stick to aim for digging and marking."
+				aimMode.Hint = "Use the right stick to aim for digging, marking, and attacking."
 			}
-		case data.Either:
-			digMode.Hint = ""
-		case data.Movement:
-			digMode.Hint = "Use the movement keys to aim for digging and marking."
+		} else {
+			aimModeR.Raw = "Movement"
+			aimMode.Hint = "Use the movement keys to aim for digging, marking, and attacking."
 		}
 	}
-	digModeHint()
+	aimModeUpdate()
 	deviceUpdate := func() {
 		km := data.GameInput.Mode == input.KeyboardMouse
 		if km {
@@ -358,6 +359,16 @@ func InitInputMenu(win *pixelgl.Window) {
 		deadzoneR.Ignore = km
 	}
 	deviceUpdate()
+	digOnUpdate := func() {
+		if constants.DigOnRelease {
+			digOnR.Raw = "On Release"
+			digOn.Hint = "Digging, Marking, and Attacking happen when you release the button."
+		} else {
+			digOnR.Raw = "On Press"
+			digOn.Hint = "Digging, Marking, and Attacking happen when you press the button."
+		}
+	}
+	digOnUpdate()
 
 	inputTitle.NoHover = true
 	deviceSwitch := func(prev bool) {
@@ -385,7 +396,7 @@ func InitInputMenu(win *pixelgl.Window) {
 		}
 		UpdateKeybindings()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		digModeHint()
+		aimModeUpdate()
 		deviceUpdate()
 	}
 	rfn1 := func() {
@@ -400,40 +411,25 @@ func InitInputMenu(win *pixelgl.Window) {
 	deviceR.Right = true
 	deviceR.NoHover = true
 	rfn2 := func() {
-		var dm data.DigMode
-		switch constants.DigMode {
-		case data.Either:
-			dm = data.Movement
-		case data.Movement:
-			dm = data.Dedicated
-		case data.Dedicated:
-			dm = data.Either
-		}
-		constants.DigMode = int(dm)
-		digModeR.Raw = dm.String()
+		constants.AimDedicated = !constants.AimDedicated
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		digModeHint()
+		aimModeUpdate()
 	}
-	lfn2 := func() {
-		var dm data.DigMode
-		switch constants.DigMode {
-		case data.Either:
-			dm = data.Dedicated
-		case data.Movement:
-			dm = data.Either
-		case data.Dedicated:
-			dm = data.Movement
-		}
-		constants.DigMode = int(dm)
-		digModeR.Raw = dm.String()
+	aimMode.SetClickFn(rfn2)
+	aimMode.SetRightFn(rfn2)
+	aimMode.SetLeftFn(rfn2)
+	aimModeR.Right = true
+	aimModeR.NoHover = true
+	fn3 := func() {
+		constants.DigOnRelease = !constants.DigOnRelease
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		digModeHint()
+		digOnUpdate()
 	}
-	digMode.SetClickFn(rfn2)
-	digMode.SetRightFn(rfn2)
-	digMode.SetLeftFn(lfn2)
-	digModeR.Right = true
-	digModeR.NoHover = true
+	digOn.SetClickFn(fn3)
+	digOn.SetRightFn(fn3)
+	digOn.SetLeftFn(fn3)
+	digOnR.Right = true
+	digOnR.NoHover = true
 	deadzone.SetRightFn(func() {
 		n := input.Deadzone + 0.05
 		if n > 0.5 {
@@ -520,7 +516,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	prevR.NoHover = true
 
 	InputMenu.SetOpenFn(func() {
-		digModeHint()
+		aimModeUpdate()
 		deviceUpdate()
 		UpdateKeybindings()
 	})

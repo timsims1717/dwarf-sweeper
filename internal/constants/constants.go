@@ -1,7 +1,6 @@
 package constants
 
 import (
-	"dwarf-sweeper/internal/data"
 	"github.com/faiface/pixel"
 )
 
@@ -61,5 +60,6 @@ var (
 	ResIndex = 2
 
 	// Input
-	DigMode = data.Dedicated
+	AimDedicated = true
+	DigOnRelease = true
 )

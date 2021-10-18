@@ -26,3 +26,10 @@ func AddLine(color color.RGBA, shape imdraw.EndShape, a, b pixel.Vec, thickness 
 	imd.Push(a, b)
 	imd.Polygon(thickness)
 }
+
+func AddCircle(color color.RGBA, c pixel.Vec, r float64) {
+	imd.Color = color
+	imd.EndShape = imdraw.NoEndShape
+	imd.Push(c)
+	imd.Circle(r, 0.)
+}

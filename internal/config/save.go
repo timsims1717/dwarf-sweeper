@@ -49,59 +49,65 @@ func init() {
 	constants.ConfigFile = constants.ConfigDir + "/config.toml"
 	_, err = os.Open(constants.ConfigFile)
 	if errors.Is(err, os.ErrNotExist) {
-		file, err := os.Create(constants.ConfigFile)
-		if err != nil {
-			panic(err)
-		}
-		conf := config{
-			Audio: audio{
-				SoundVolume: 75,
-				MusicVolume: 75,
-			},
-			Graphics: graphics{
-				VSync: true,
-				FullS: false,
-				ResIn: 2,
-			},
-			Inputs: inputs{
-				Gamepad:   -1,
-				DigMode:   2,
-				Deadzone:  0.25,
-				LeftStick: true,
-				Left:  input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
-				Right: input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
-				Up:    input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
-				Down:  input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-				Jump:  input.New(pixelgl.KeySpace, pixelgl.ButtonA),
-				Dig: &input.ButtonSet{
-					Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft},
-					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonX},
-					Axis:    pixelgl.AxisRightTrigger,
-					AxisV:   1,
-				},
-				Mark: &input.ButtonSet{
-					Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
-					Axis:    pixelgl.AxisLeftTrigger,
-					AxisV:   1,
-				},
-				Use:      input.New(pixelgl.KeyE, pixelgl.ButtonB),
-				Interact: input.New(pixelgl.KeyQ, pixelgl.ButtonY),
-				Prev: &input.ButtonSet{
-					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
-					Scroll:  -1,
-				},
-				Next: &input.ButtonSet{
-					Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
-					Scroll:  1,
-				},
-			},
-		}
-		encode := toml.NewEncoder(file)
-		err = encode.Encode(conf)
-		if err != nil {
-			panic(err)
-		}
+		CreateConfig()
 	} else if err != nil {
+		panic(err)
+	}
+}
+
+func CreateConfig() {
+	os.Remove(constants.ConfigFile)
+	file, err := os.Create(constants.ConfigFile)
+	if err != nil {
+		panic(err)
+	}
+	conf := config{
+		Audio: audio{
+			SoundVolume: 75,
+			MusicVolume: 75,
+		},
+		Graphics: graphics{
+			VSync: true,
+			FullS: false,
+			ResIn: 2,
+		},
+		Inputs: inputs{
+			Gamepad:      -1,
+			AimDedicated: true,
+			DigOnRelease: true,
+			Deadzone:     0.25,
+			LeftStick:    true,
+			Left:         input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
+			Right:        input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
+			Up:           input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+			Down:         input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+			Jump:         input.New(pixelgl.KeySpace, pixelgl.ButtonA),
+			Dig: &input.ButtonSet{
+				Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft},
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonX},
+				Axis:    pixelgl.AxisRightTrigger,
+				AxisV:   1,
+			},
+			Mark: &input.ButtonSet{
+				Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
+				Axis:    pixelgl.AxisLeftTrigger,
+				AxisV:   1,
+			},
+			Use:      input.New(pixelgl.KeyE, pixelgl.ButtonB),
+			Interact: input.New(pixelgl.KeyQ, pixelgl.ButtonY),
+			Prev: &input.ButtonSet{
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
+				Scroll:  -1,
+			},
+			Next: &input.ButtonSet{
+				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
+				Scroll:  1,
+			},
+		},
+	}
+	encode := toml.NewEncoder(file)
+	err = encode.Encode(conf)
+	if err != nil {
 		panic(err)
 	}
 }
@@ -115,6 +121,7 @@ func LoadConfig() {
 	var conf config
 	if _, err := toml.DecodeFile(constants.ConfigFile, &conf); err != nil {
 		fmt.Printf("couldn't decode configuration file: %s\n", err)
+		CreateConfig()
 		return
 	}
 	sfx.SetSoundVolume(conf.Audio.SoundVolume)
@@ -128,7 +135,8 @@ func LoadConfig() {
 		data.GameInput.Mode = input.Gamepad
 		data.GameInput.Joystick = pixelgl.Joystick(conf.Inputs.Gamepad)
 	}
-	constants.DigMode = conf.Inputs.DigMode
+	constants.AimDedicated = conf.Inputs.AimDedicated
+	constants.DigOnRelease = conf.Inputs.DigOnRelease
 	data.GameInput.StickD = conf.Inputs.LeftStick
 	input.Deadzone = conf.Inputs.Deadzone
 	data.GameInput.Buttons["left"] = conf.Inputs.Left
@@ -168,7 +176,8 @@ func SaveConfig() {
 	} else {
 		conf.Inputs.Gamepad = int(data.GameInput.Joystick)
 	}
-	conf.Inputs.DigMode = constants.DigMode
+	conf.Inputs.AimDedicated = constants.AimDedicated
+	conf.Inputs.DigOnRelease = constants.DigOnRelease
 	conf.Inputs.LeftStick = data.GameInput.StickD
 	conf.Inputs.Deadzone = input.Deadzone
 	conf.Inputs.Left = data.GameInput.Buttons["left"]

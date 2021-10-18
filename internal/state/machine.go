@@ -15,7 +15,6 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
-	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
@@ -24,11 +23,6 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
-)
-
-const (
-	titleString  = `DwarfSweeper`
 )
 
 var (
@@ -39,11 +33,14 @@ var (
 	Splash     *pixel.Sprite
 	splashTran *transform.Transform
 	splashScale = 0.4
+	Title      *pixel.Sprite
+	titleTran  *transform.Transform
+	titleScale = 0.4
+	titleY     = 70.
 	debugPause = false
 	menuStack  []*menus.DwarfMenu
 	timer      *timing.FrameTimer
 	timerKeys  map[string]bool
-	title      = menu.NewItemText(titleString, colornames.Aliceblue, pixel.V(3., 3.), menu.Center, menu.Center)
 	debugInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
 			"debugTest":   input.NewJoyless(pixelgl.KeyF7),
@@ -52,6 +49,8 @@ var (
 			"debug":       input.NewJoyless(pixelgl.KeyF3),
 			"debugText":   input.NewJoyless(pixelgl.KeyF4),
 			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
+			"debugSP":     input.NewJoyless(pixelgl.KeyKPAdd),
+			"debugSM":     input.NewJoyless(pixelgl.KeyKPSubtract),
 		},
 		Mode: input.KeyboardMouse,
 	}
@@ -123,6 +122,14 @@ func Update(win *pixelgl.Window) {
 		descent.Descent.Level = 1
 		descent.Descent.Start = true
 	}
+	if debugInput.Get("debugSP").JustPressed() {
+		splashScale *= 1.2
+		fmt.Printf("Splash Scale: %f\n", splashScale)
+	}
+	if debugInput.Get("debugSM").JustPressed() {
+		splashScale /= 1.2
+		fmt.Printf("Splash Scale: %f\n", splashScale)
+	}
 	if win.Focused() {
 		frame := false
 		if debugInput.Get("debugPause").JustPressed() {
@@ -192,9 +199,10 @@ func Update(win *pixelgl.Window) {
 					}
 				}
 			} else if state == 1 {
-				title.Transform.UIPos = camera.Cam.APos
-				title.Transform.UIZoom = camera.Cam.GetZoomScale()
-				title.Update(pixel.Rect{})
+				titleTran.Scalar = pixel.V(titleScale, titleScale)
+				titleTran.UIPos = camera.Cam.APos
+				titleTran.UIZoom = camera.Cam.GetZoomScale()
+				titleTran.Update()
 				splashTran.Scalar = pixel.V(splashScale, splashScale)
 				splashTran.UIPos = camera.Cam.APos
 				splashTran.UIZoom = camera.Cam.GetZoomScale()
@@ -279,7 +287,7 @@ func Draw(win *pixelgl.Window) {
 		debug.AddText(fmt.Sprintf("entity count: %d", myecs.Count))
 	} else if state == 1 {
 		Splash.Draw(win, splashTran.Mat)
-		title.Draw(win)
+		Title.Draw(win, titleTran.Mat)
 		for _, m := range menuStack {
 			m.Draw(win)
 		}
@@ -421,7 +429,8 @@ func updateState() {
 			reanimator.Reset()
 			descent.Descent.Start = false
 		case 1:
-			title.Transform.Pos = pixel.V(0., 75.)
+			titleTran = transform.NewTransform()
+			titleTran.Pos = pixel.V(0., titleY)
 			splashTran = transform.NewTransform()
 			camera.Cam.SnapTo(pixel.ZV)
 			if state != -1 {

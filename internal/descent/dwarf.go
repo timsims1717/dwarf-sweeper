@@ -21,6 +21,7 @@ import (
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 	"math"
 )
 
@@ -33,6 +34,7 @@ const (
 	DigRange           = 1.5
 	selectTimerSec     = 2.0
 	AngleSec           = 0.1
+	FacingSec          = 1.0
 	angleDiff          = 0.15
 )
 
@@ -77,17 +79,25 @@ type Dwarf struct {
 	faceLeft   bool
 
 	selectLegal bool
-	gpSelect    bool
-	mouseSelect bool
 	selectTimer *timing.FrameTimer
 	angleTimer  *timing.FrameTimer
+	facingTimer *timing.FrameTimer
 
+	facing struct{
+		x int
+		y int
+	}
 	hovered     *cave.Tile
 	relative    pixel.Vec
+	isRelative  bool
 	digTile     *cave.Tile
 	tileQueue   []struct{
 		a int
 		t *cave.Tile
+		f struct{
+			x int
+			y int
+		}
 	}
 
 	walkTimer *timing.FrameTimer
@@ -106,6 +116,8 @@ type Dwarf struct {
 	marking   bool
 	climbing  bool
 	airDig    bool
+	digHold   bool
+	markHold  bool
 
 	Health    *data.Health
 	DeadStop  bool
@@ -167,37 +179,47 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}
 				},
 			}),
+			reanimator.NewAnimFromSheet("dig_hold", dwarfSheet, []int{11}, reanimator.Hold, nil), // dig hold
+			reanimator.NewAnimFromSheet("mark_hold", dwarfSheet, []int{14}, reanimator.Hold, nil), // mark hold
 			reanimator.NewAnimFromSheet("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, map[int]func() {
 				1: func() {
 					if d.digTile != nil {
 						if d.digTile.Solid() {
 							CaveBlocksDug++
 							d.digTile.Destroy(true)
-						} else {
-							var x, y float64
-							if d.Transform.Pos.X > d.digTile.Transform.Pos.X {
-								x = d.Transform.Pos.X - world.TileSize * 0.75
-							} else {
-								x = d.Transform.Pos.X + world.TileSize * 0.75
-							}
-							if d.Transform.Pos.Y > d.digTile.Transform.Pos.Y {
-								y = d.Transform.Pos.Y - world.TileSize * 0.75
-							} else {
-								y = d.Transform.Pos.Y + world.TileSize * 0.75
-							}
-							myecs.Manager.NewEntity().
-								AddComponent(myecs.AreaDmg, &data.AreaDamage{
-									Center:    pixel.V(x, y),
-									Radius:    world.TileSize * 1.5,
-									Amount:    d.ShovelDamage,
-									Dazed:     d.ShovelDazed,
-									Knockback: d.ShovelKnockback,
-									Source:    d.Transform.Pos,
-									Type:      data.Shovel,
-								})
 						}
-						sfx.SoundPlayer.PlaySound("shovel", 1.0)
 						d.digTile = nil
+					}
+					var x, y float64
+					if d.facing.y < 0 {
+						y = d.Transform.Pos.Y - world.TileSize * 0.6
+					} else if d.facing.y > 0 {
+						y = d.Transform.Pos.Y + world.TileSize * 0.6
+					} else {
+						y = d.Transform.Pos.Y
+					}
+					if d.facing.x < 0 {
+						x = d.Transform.Pos.X - world.TileSize * 0.6
+					} else if d.facing.x > 0 {
+						x = d.Transform.Pos.X + world.TileSize * 0.6
+					} else {
+						x = d.Transform.Pos.X
+					}
+					myecs.Manager.NewEntity().
+						AddComponent(myecs.AreaDmg, &data.AreaDamage{
+							Center:    pixel.V(x, y),
+							Radius:    world.TileSize * 1.2,
+							Amount:    d.ShovelDamage,
+							Dazed:     d.ShovelDazed,
+							Knockback: d.ShovelKnockback,
+							Source:    d.Transform.Pos,
+							Type:      data.Shovel,
+						})
+					sfx.SoundPlayer.PlaySound("shovel", 1.0)
+					if debug.Debug {
+						col := colornames.White
+						col.A = 0
+						debug.AddCircle(col, pixel.V(x, y), world.TileSize * 1.2)
 					}
 				},
 				3: func() {
@@ -283,12 +305,16 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 		Check: func() int {
 			if d.Health.Dazed || d.Health.Dead {
 				return 0
-			} else if d.digging || d.attacking {
+			} else if d.digHold {
 				return 1
-			} else if d.marking {
+			} else if d.markHold {
 				return 2
-			} else {
+			} else if d.digging || d.attacking {
 				return 3
+			} else if d.marking {
+				return 4
+			} else {
+				return 5
 			}
 		},
 	}, "idle")
@@ -318,6 +344,10 @@ func (d *Dwarf) Update(in *input.Input) {
 		d.tileQueue = []struct{
 			a int
 			t *cave.Tile
+			f struct{
+				x int
+				y int
+			}
 		}{}
 		d.digging = false
 		d.attacking = false
@@ -327,7 +357,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		if d.Health.Dead {
 			if d.Physics.Grounded && !d.Physics.IsMovingX() && !d.DeadStop {
 				d.Physics.CancelMovement()
-				d.distFell = 150.
+				//d.distFell = 150.
 				d.DeadStop = true
 			}
 		} else if d.Physics.Grounded && !d.Physics.IsMovingX() &&
@@ -339,26 +369,8 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 	}
 	if !d.Health.Dazed && !d.Health.Dead {
-		jpSelecting := in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.
-		moveSelecting := in.Get("left").Pressed() || in.Get("right").Pressed() || in.Get("up").Pressed() || in.Get("down").Pressed()
-		jpMS := in.Get("left").JustPressed() || in.Get("right").JustPressed() || in.Get("up").JustPressed() || in.Get("down").JustPressed()
-		if in.Get("left").JustReleased() || in.Get("right").JustReleased() || in.Get("up").JustReleased() || in.Get("down").JustReleased() {
-			d.angleTimer = timing.New(AngleSec)
-		}
-		if jpSelecting && constants.DigMode != data.Movement {
-			d.gpSelect = true
-			d.mouseSelect = false
-			d.selectTimer = timing.New(selectTimerSec)
-		} else if in.MouseMoved && constants.DigMode != data.Movement {
-			d.mouseSelect = true
-			d.gpSelect = false
-			d.selectTimer = timing.New(selectTimerSec)
-		} else if d.selectTimer.UpdateDone() && constants.DigMode != data.Dedicated {
-			d.gpSelect = false
-			d.mouseSelect = false
-		}
-		if d.gpSelect {
-			if jpSelecting {
+		if constants.AimDedicated {
+			if in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0. {
 				x := in.Axes["targetX"].R
 				y := in.Axes["targetY"].R
 				xA := math.Abs(x)
@@ -381,14 +393,33 @@ func (d *Dwarf) Update(in *input.Input) {
 					}
 				}
 				d.relative = pixel.V(x, y)
+				d.isRelative = true
+			} else if in.MouseMoved {
+				d.hovered = Descent.GetCave().GetTile(in.World)
+				angle := d.Transform.Pos.Sub(in.World).Angle()
+				if angle > math.Pi * (5./8.) || angle < math.Pi * -(5./8.) {
+					d.facing.x = 1
+				} else if angle < math.Pi * (3./8.) && angle > math.Pi * -(3./8.) {
+					d.facing.x = -1
+				} else {
+					d.facing.x = 0
+				}
+				if angle > math.Pi/8. && angle < math.Pi * (7./8.) {
+					d.facing.y = -1
+				} else if angle < math.Pi/-8. && angle > math.Pi * -(7./8.) {
+					d.facing.y = 1
+				} else {
+					d.facing.y = 0
+				}
+				d.isRelative = false
+				d.facingTimer = timing.New(FacingSec)
 			}
-			p := d.Transform.Pos
-			p.X += d.relative.X
-			p.Y += d.relative.Y
-			d.hovered = Descent.GetCave().GetTile(p)
-		} else if d.mouseSelect {
-			d.hovered = Descent.GetCave().GetTile(in.World)
-		} else if constants.DigMode != data.Dedicated {
+		} else {
+			moveSelecting := in.Get("left").Pressed() || in.Get("right").Pressed() || in.Get("up").Pressed() || in.Get("down").Pressed()
+			jpMS := in.Get("left").JustPressed() || in.Get("right").JustPressed() || in.Get("up").JustPressed() || in.Get("down").JustPressed()
+			if in.Get("left").JustReleased() || in.Get("right").JustReleased() || in.Get("up").JustReleased() || in.Get("down").JustReleased() {
+				d.angleTimer = timing.New(AngleSec)
+			}
 			if moveSelecting && (jpMS || d.angleTimer.Done()) {
 				x := 0.
 				y := 0.
@@ -403,237 +434,296 @@ func (d *Dwarf) Update(in *input.Input) {
 					y = world.TileSize
 				}
 				d.relative = pixel.V(x, y)
+				d.isRelative = true
 			}
+		}
+		if d.isRelative {
 			p := d.Transform.Pos
 			p.X += d.relative.X
 			p.Y += d.relative.Y
 			d.hovered = Descent.GetCave().GetTile(p)
+			if d.relative.X < 0 {
+				d.facing.x = -1
+			} else if d.relative.X > 0 {
+				d.facing.x = 1
+			} else {
+				d.facing.x = 0
+			}
+			if d.relative.Y < 0 {
+				d.facing.y = -1
+			} else if d.relative.Y > 0 {
+				d.facing.y = 1
+			} else {
+				d.facing.y = 0
+			}
+			d.facingTimer = timing.New(FacingSec)
 		}
 		if d.hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
-			if in.Get("dig").JustPressed() && d.selectLegal {
-				if d.hovered.Solid() {
+			if (in.Get("dig").JustPressed() && !constants.DigOnRelease) || (in.Get("dig").JustReleased() && constants.DigOnRelease) {
+				if d.hovered.Solid() && d.selectLegal {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
 						t *cave.Tile
+						f struct{
+							x int
+							y int
+						}
 					}{
 						a: 0,
 						t: d.hovered,
+						f: d.facing,
 					})
 				} else {
 					d.tileQueue = append(d.tileQueue, struct{
 						a int
 						t *cave.Tile
+						f struct{
+							x int
+							y int
+						}
 					}{
 						a: 2,
-						t: d.hovered,
+						t: nil,
+						f: d.facing,
 					})
 				}
-			} else if in.Get("mark").JustPressed() && d.hovered.Solid() && d.selectLegal {
+			} else if ((in.Get("mark").JustPressed() && !constants.DigOnRelease) || (in.Get("mark").JustReleased() && constants.DigOnRelease)) && d.hovered.Solid() && d.selectLegal {
 				d.tileQueue = append(d.tileQueue, struct{
 					a int
 					t *cave.Tile
+					f struct{
+						x int
+						y int
+					}
 				}{
 					a: 1,
 					t: d.hovered,
+					f: d.facing,
 				})
 			}
 		}
 		if len(d.tileQueue) > 0 && !d.digging && !d.attacking && !d.marking {
 			next := d.tileQueue[0]
 			d.tileQueue = d.tileQueue[1:]
-			if next.t.Transform.Pos.X < d.Transform.Pos.X {
-				d.faceLeft = true
-			} else if next.t.Transform.Pos.X > d.Transform.Pos.X {
-				d.faceLeft = false
-			}
-			if math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange && !cave.TileInTile(d.Transform.Pos, next.t.Transform.Pos) {
-				if next.a == 0 && next.t.Solid() {
-					d.digging = true
-					d.attacking = false
-					d.jumping = false
-					d.walking = false
-					d.climbing = false
-					d.distFell = 0.
-					d.digTile = next.t
-				} else if next.a == 1 && next.t.Solid() {
-					d.marking = true
-					d.distFell = 0.
-					Mark(next.t)
-				} else if next.a == 2 {
-					d.digging = false
-					d.attacking = true
-					d.jumping = false
-					d.walking = false
-					d.climbing = false
-					d.distFell = 0.
-					d.digTile = next.t
+			d.facing = next.f
+			if next.t != nil {
+				if next.t.Transform.Pos.X < d.Transform.Pos.X {
+					d.faceLeft = true
+				} else if next.t.Transform.Pos.X > d.Transform.Pos.X {
+					d.faceLeft = false
 				}
+			}
+			digLegal := next.t != nil &&
+				math.Abs(d.Transform.Pos.X-next.t.Transform.Pos.X) < world.TileSize*DigRange &&
+				math.Abs(d.Transform.Pos.Y-next.t.Transform.Pos.Y) < world.TileSize*DigRange
+			if next.a == 0 && next.t.Solid() && digLegal {
+				d.digging = true
+				d.attacking = false
+				d.jumping = false
+				d.walking = false
+				d.distFell = 0.
+				d.digTile = next.t
+			} else if next.a == 1 && next.t.Solid() && digLegal {
+				d.marking = true
+				d.distFell = 0.
+				Mark(next.t)
+			} else {
+				d.digging = false
+				d.attacking = true
+				d.jumping = false
+				d.walking = false
+				d.distFell = 0.
+				d.digTile = nil
 			}
 		}
-		if d.digging || d.attacking {
-			if !d.Physics.Grounded && !d.airDig && d.Bubble == nil {
-				d.airDig = true
+		d.digHold = constants.DigOnRelease && in.Get("dig").Pressed() && !d.markHold
+		d.markHold = constants.DigOnRelease && in.Get("mark").Pressed() && !d.digHold
+		if d.digHold || d.markHold {
+			if d.climbing {
+				d.Physics.CancelMovement()
 			}
-			d.Physics.CancelMovement()
-		} else if d.Bubble != nil {
-			if in.Get("left").Pressed() && !in.Get("right").Pressed() {
-				d.faceLeft = true
-				d.Bubble.Physics.SetVelX(-BubbleVel, BubbleAcc)
-			} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
-				d.faceLeft = false
-				d.Bubble.Physics.SetVelX(BubbleVel, BubbleAcc)
-			}
-			if in.Get("up").Pressed() && !in.Get("down").Pressed() {
-				d.Bubble.Physics.SetVelY(BubbleVel, BubbleAcc)
-			} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
-				d.Bubble.Physics.SetVelY(-BubbleVel, BubbleAcc)
-			}
-			d.walking = false
+			d.digging = false
+			d.attacking = false
 			d.jumping = false
-			d.climbing = false
-			d.distFell = 0.
-		} else if !d.marking {
-			dwnlj := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
-			dwnrj := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
-			dwn1 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
-			dwn2 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.25))
-			right := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
-			left := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
-			canJump := (dwn1 != nil && dwn1.Solid()) || (dwn2 != nil && dwn2.Solid()) || (dwnlj != nil && dwnlj.Solid()) || (dwnrj != nil && dwnrj.Solid())
-			canClimb := (right != nil && right.Solid()) || (left != nil && left.Solid())
-
-			xDir := 0
-			if in.Get("left").Pressed() && !in.Get("right").Pressed() {
-				xDir = 1
-			} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
-				xDir = 2
-			}
-
-			switch xDir {
-			case 1:
-				if d.Physics.Grounded {
+			d.walking = false
+		} else {
+			if d.digging || d.attacking {
+				if !d.Physics.Grounded && !d.airDig && d.Bubble == nil {
+					d.airDig = true
+				}
+				d.Physics.CancelMovement()
+			} else if d.Bubble != nil {
+				if in.Get("left").Pressed() && !in.Get("right").Pressed() {
 					d.faceLeft = true
-					d.Physics.SetVelX(-d.Speed, GroundAcceleration)
-				} else {
-					d.Physics.SetVelX(-d.Speed, AirAcceleration)
-				}
-			case 2:
-				if d.Physics.Grounded {
+					d.Bubble.Physics.SetVelX(-BubbleVel, BubbleAcc)
+				} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
 					d.faceLeft = false
-					d.Physics.SetVelX(d.Speed, GroundAcceleration)
-				} else {
-					d.Physics.SetVelX(d.Speed, AirAcceleration)
+					d.Bubble.Physics.SetVelX(BubbleVel, BubbleAcc)
 				}
-			}
-			// Ground test, considered on the ground for jumping purposes until half a tile out
-			if !d.jumping && loc1 != nil && canJump && in.Get("jump").JustPressed() {
-				d.toJump = true
-				d.climbing = false
+				if in.Get("up").Pressed() && !in.Get("down").Pressed() {
+					d.Bubble.Physics.SetVelY(BubbleVel, BubbleAcc)
+				} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
+					d.Bubble.Physics.SetVelY(-BubbleVel, BubbleAcc)
+				}
 				d.walking = false
-				d.distFell = 0.
-				d.jumpTimer = timing.New(JumpDelay)
-			} else if d.toJump && d.jumpTimer.UpdateDone() {
+				d.jumping = false
 				d.climbing = false
-				d.toJump = false
-				d.walking = false
-				d.jumping = true
-				d.jumpOrigY = d.Transform.Pos.Y
-				sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
 				d.distFell = 0.
-				d.Physics.SetVelY(JumpVel, 0.)
-			} else if d.climbing {
-				if canClimb {
-					d.distFell = 0.
-					if in.Get("up").Pressed() && !in.Get("down").Pressed() {
-						d.Physics.SetVelY(d.ClimbSpeed, 0.)
-					} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
-						d.Physics.SetVelY(-d.ClimbSpeed, 0.)
+			} else if !d.marking {
+				dwnlj := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
+				dwnrj := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.4, d.Transform.Pos.Y-world.TileSize))
+				dwn1 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize))
+				dwn2 := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y-world.TileSize*1.25))
+				right := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X+world.TileSize*0.6, d.Transform.Pos.Y-world.TileSize*0.48))
+				left := Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X-world.TileSize*0.6, d.Transform.Pos.Y))
+				canJump := (dwn1 != nil && dwn1.Solid()) || (dwn2 != nil && dwn2.Solid()) || (dwnlj != nil && dwnlj.Solid()) || (dwnrj != nil && dwnrj.Solid())
+				canClimb := (right != nil && right.Solid()) || (left != nil && left.Solid())
+
+				xDir := 0
+				if in.Get("left").Pressed() && !in.Get("right").Pressed() {
+					xDir = 1
+				} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
+					xDir = 2
+				}
+
+				switch xDir {
+				case 1:
+					if d.Physics.Grounded {
+						d.faceLeft = true
+						d.Physics.SetVelX(-d.Speed, GroundAcceleration)
 					} else {
-						d.Physics.SetVelY(0., 0.)
+						d.Physics.SetVelX(-d.Speed, AirAcceleration)
 					}
+				case 2:
+					if d.Physics.Grounded {
+						d.faceLeft = false
+						d.Physics.SetVelX(d.Speed, GroundAcceleration)
+					} else {
+						d.Physics.SetVelX(d.Speed, AirAcceleration)
+					}
+				}
+				// Ground test, considered on the ground for jumping purposes until half a tile out
+				if !d.jumping && loc1 != nil && canJump && in.Get("jump").JustPressed() {
+					d.toJump = true
+					d.climbing = false
+					d.walking = false
+					d.distFell = 0.
+					d.jumpTimer = timing.New(JumpDelay)
+				} else if d.toJump && d.jumpTimer.UpdateDone() {
+					d.climbing = false
+					d.toJump = false
+					d.walking = false
+					d.jumping = true
+					d.jumpOrigY = d.Transform.Pos.Y
+					sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
+					d.distFell = 0.
+					d.Physics.SetVelY(JumpVel, 0.)
+				} else if d.climbing {
+					if canClimb && !in.Get("jump").JustPressed() {
+						d.distFell = 0.
+						if in.Get("up").Pressed() && !in.Get("down").Pressed() {
+							d.Physics.SetVelY(d.ClimbSpeed, 0.)
+						} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
+							d.Physics.SetVelY(-d.ClimbSpeed, 0.)
+						} else {
+							d.Physics.SetVelY(0., 0.)
+						}
+						if right != nil && right.Solid() && (left == nil || !left.Solid()) {
+							d.faceLeft = false
+						} else if left != nil && left.Solid() && (right == nil || !right.Solid()) {
+							d.faceLeft = true
+						}
+					} else {
+						d.climbing = false
+					}
+				} else if canClimb && !d.toJump && in.Get("up").Pressed() {
+					d.climbing = true
+					d.walking = false
+					d.jumping = false
+					d.toJump = false
+					d.distFell = 0.
+					d.Physics.SetVelY(d.ClimbSpeed, 0.)
 					if right != nil && right.Solid() && (left == nil || !left.Solid()) {
 						d.faceLeft = false
 					} else if left != nil && left.Solid() && (right == nil || !right.Solid()) {
 						d.faceLeft = true
 					}
-				} else {
-					d.climbing = false
-				}
-			} else if canClimb && !d.toJump && in.Get("up").Pressed() {
-				d.climbing = true
-				d.walking = false
-				d.jumping = false
-				d.toJump = false
-				d.distFell = 0.
-				d.Physics.SetVelY(d.ClimbSpeed, 0.)
-				if right != nil && right.Solid() && (left == nil || !left.Solid()) {
-					d.faceLeft = false
-				} else if left != nil && left.Solid() && (right == nil || !right.Solid()) {
-					d.faceLeft = true
-				}
-			} else if !d.jumping && !d.toJump && d.Physics.Grounded {
-				wasWalking := d.walking
-				if math.Abs(d.Physics.Velocity.X) < 20.0 {
-					if in.Get("up").Pressed() && !in.Get("down").Pressed() {
+				} else if !d.jumping && !d.toJump && d.Physics.Grounded {
+					wasWalking := d.walking
+					if math.Abs(d.Physics.Velocity.X) < 20.0 {
+						if in.Get("up").Pressed() && !in.Get("down").Pressed() {
+							d.distFell = 0.
+							camera.Cam.Up()
+						} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
+							d.distFell = 0.
+							camera.Cam.Down()
+						}
+						d.walking = false
+						d.climbing = false
+					} else if d.Physics.Velocity.X > 0. {
+						d.faceLeft = false
+						d.walking = true
+					} else if d.Physics.Velocity.X < 0. {
+						d.faceLeft = true
+						d.walking = true
+					}
+					if d.walking {
 						d.distFell = 0.
-						camera.Cam.Up()
-					} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
-						d.distFell = 0.
-						camera.Cam.Down()
-					}
-					d.walking = false
-					d.climbing = false
-				} else if d.Physics.Velocity.X > 0. {
-					d.faceLeft = false
-					d.walking = true
-				} else if d.Physics.Velocity.X < 0. {
-					d.faceLeft = true
-					d.walking = true
-				}
-				if d.walking {
-					d.distFell = 0.
-					if !wasWalking {
-						d.walkTimer = timing.New(stepTime)
-					}
-				}
-			} else {
-				d.walking = false
-				d.climbing = false
-				if d.jumping || d.jumpEnd {
-					height := int(((d.Transform.Pos.Y - d.jumpOrigY) + world.TileSize * 1.0) / world.TileSize)
-					if d.Physics.Velocity.Y <= 0. {
-						d.jumping = false
-						d.jumpEnd = false
-					} else if height < d.MaxJump - 1 && in.Get("jump").Pressed() {
-						d.Physics.SetVelY(JumpVel, 0.)
-					} else if !d.jumpEnd {
-						in.Get("jump").Consume()
-						d.jumping = false
-						d.jumpEnd = true
-						d.jumpTarget = Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y+world.TileSize*1.0)).Transform.Pos.Y
-					}
-					if d.jumpEnd {
-						if d.jumpTarget > d.Transform.Pos.Y {
-							d.Physics.SetVelY(0., 0.5)
-						} else {
-							d.Physics.SetVelY(0., 0.)
-							d.jumpEnd = false
+						if !wasWalking {
+							d.walkTimer = timing.New(stepTime)
 						}
 					}
-				}
-				if d.Physics.Velocity.Y < 0. {
-					d.distFell += math.Abs(d.Physics.Velocity.Y * timing.DT)
+				} else {
+					d.walking = false
+					d.climbing = false
+					if d.jumping || d.jumpEnd {
+						height := int(((d.Transform.Pos.Y - d.jumpOrigY) + world.TileSize*1.0) / world.TileSize)
+						if d.Physics.Velocity.Y <= 0. {
+							d.jumping = false
+							d.jumpEnd = false
+						} else if height < d.MaxJump-1 && in.Get("jump").Pressed() {
+							d.Physics.SetVelY(JumpVel, 0.)
+						} else if !d.jumpEnd {
+							in.Get("jump").Consume()
+							d.jumping = false
+							d.jumpEnd = true
+							d.jumpTarget = Descent.GetCave().GetTile(pixel.V(d.Transform.Pos.X, d.Transform.Pos.Y+world.TileSize*1.0)).Transform.Pos.Y
+						}
+						if d.jumpEnd {
+							if d.jumpTarget > d.Transform.Pos.Y {
+								d.Physics.SetVelY(0., 0.5)
+							} else {
+								d.Physics.SetVelY(0., 0.)
+								d.jumpEnd = false
+							}
+						}
+					}
+					if d.Physics.Velocity.Y < 0. {
+						d.distFell += math.Abs(d.Physics.Velocity.Y * timing.DT)
+					}
 				}
 			}
+			if in.Get("prev").JustPressed() {
+				PrevItem()
+			} else if in.Get("next").JustPressed() {
+				NextItem()
+			} else if in.Get("use").JustPressed() {
+				UseEquipped()
+			}
 		}
-		if in.Get("prev").JustPressed() {
-			PrevItem()
-		} else if in.Get("next").JustPressed() {
-			NextItem()
-		} else if in.Get("use").JustPressed() {
-			UseEquipped()
+	}
+	if d.facingTimer.UpdateDone() {
+		if d.faceLeft {
+			d.facing.x = -1
+		} else {
+			d.facing.x = 1
 		}
+		d.facing.y = 0
+	} else if d.facing.x < 0 && (d.digHold || d.markHold) {
+		d.faceLeft = true
+	} else if d.facing.x > 0 && (d.digHold || d.markHold) {
+		d.faceLeft = false
 	}
 	d.Transform.Flip = d.faceLeft
 	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
