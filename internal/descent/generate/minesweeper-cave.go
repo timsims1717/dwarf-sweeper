@@ -2,6 +2,7 @@ package generate
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
@@ -40,18 +41,18 @@ var (
 
 func outline(chal Challenge) []Path {
 	return []Path{
-		{Up, 3},
-		{Right, 4},
-		{Down, 1},
-		{Right, 3},
-		{Up, chal.Height},
-		{Right, chal.Width+3},
-		{Down, chal.Height},
-		{Right, 3},
-		{Up, 1},
-		{Right, 4},
-		{Down, 3},
-		{Left, chal.Width+15},
+		{data.Up, 3},
+		{data.Right, 4},
+		{data.Down, 1},
+		{data.Right, 3},
+		{data.Up, chal.Height},
+		{data.Right, chal.Width+3},
+		{data.Down, chal.Height},
+		{data.Right, 3},
+		{data.Up, 1},
+		{data.Right, 4},
+		{data.Down, 3},
+		{data.Left, chal.Width+15},
 	}
 }
 
@@ -117,7 +118,7 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 			tile.Fillable = true
 			tile.DigTrigger = func(tile *cave.Tile) {
 				if !begun {
-					descent.StartMinesweeper(c, tile)
+					StartMinesweeper(c, tile)
 					begun = true
 				}
 			}

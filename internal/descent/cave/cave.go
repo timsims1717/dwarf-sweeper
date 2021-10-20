@@ -14,6 +14,7 @@ import (
 type Cave struct {
 	RChunks     map[world.Coords]*Chunk
 	LChunks     map[world.Coords]*Chunk
+	FillChunk   func(chunk *Chunk)
 	Pivot       pixel.Vec
 	Finite      bool
 	UpdateBatch bool

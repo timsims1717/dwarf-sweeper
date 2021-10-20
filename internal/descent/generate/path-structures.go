@@ -2,27 +2,19 @@ package generate
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 )
 
-type Direction int
-
-const (
-	Left = iota
-	Up
-	Right
-	Down
-)
-
 type Path struct {
-	Dir   Direction
+	Dir   data.Direction
 	Count int
 }
 
-func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb bool) ([]world.Coords, []world.Coords) {
+func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction, rb bool) ([]world.Coords, []world.Coords) {
 	var path []world.Coords
 	var deadends []world.Coords
 	type pathDir struct {
@@ -30,7 +22,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 		r     bool
 		u     bool
 		d     bool
-		last  Direction
+		last  data.Direction
 		width int
 		wLeft bool
 	}
@@ -68,20 +60,20 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 		// if we are within 8 of the end in both directions, head straight there
 		if util.Abs(curr.X - end.X) < 8 && util.Abs(curr.Y - end.Y) < 8 {
 			if curr.Y > end.Y {
-				n = Up
+				n = data.Up
 			} else if curr.Y < end.Y {
-				n = Down
+				n = data.Down
 			} else if curr.X > end.X {
-				n = Left
+				n = data.Left
 			} else {
-				n = Right
+				n = data.Right
 			}
 		} else {
 			// if we can't go the direction we were going, or in a 1/20 chance ...
-			if (n == Left && !pDir.l) ||
-				(n == Right && !pDir.r) ||
-				(n == Up && !pDir.u) ||
-				(n == Down && !pDir.d) ||
+			if (n == data.Left && !pDir.l) ||
+				(n == data.Right && !pDir.r) ||
+				(n == data.Up && !pDir.u) ||
+				(n == data.Down && !pDir.d) ||
 				random.CaveGen.Intn(20) == 0 {
 				// choose a new direction, weighted to get us closer to the end
 				tC := 0
@@ -142,13 +134,13 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 				}
 				choice := random.CaveGen.Intn(tC)
 				if choice < lC {
-					n = Left
+					n = data.Left
 				} else if choice < rC {
-					n = Right
+					n = data.Right
 				} else if choice < uC {
-					n = Up
+					n = data.Up
 				} else {
-					n = Down
+					n = data.Down
 				}
 			}
 		}
@@ -157,11 +149,11 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 			deadends = append(deadends, curr)
 		}
 		// move to the next tile
-		if n == Left {
+		if n == data.Left {
 			curr.X -= 1
-		} else if n == Right {
+		} else if n == data.Right {
 			curr.X += 1
-		} else if n == Up {
+		} else if n == data.Up {
 			curr.Y -= 1
 		} else {
 			curr.Y += 1
@@ -213,7 +205,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir Direction, rb b
 	return path, deadends
 }
 
-func BranchOff(start world.Coords, dir Direction) {
+func BranchOff(start world.Coords, dir data.Direction) {
 	// take off in that direction a random amount or until stopped by the edge
 	// return path
 }

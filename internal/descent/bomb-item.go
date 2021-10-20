@@ -24,7 +24,7 @@ type BombItem struct {
 	collect   *data.Collectible
 	sprite    *pixel.Sprite
 	entity    *ecs.Entity
-	health    *data.SimpleHealth
+	health    *data.BlastHealth
 }
 
 func (b *BombItem) Update() {
@@ -63,7 +63,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 		},
 		Sprite: b.sprite,
 	}
-	b.health = &data.SimpleHealth{}
+	b.health = &data.BlastHealth{}
 	popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
 	popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
 	popUp.Dist = (b.collect.Sprite.Frame().W() + world.TileSize) * 0.5
@@ -71,7 +71,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Physics, b.Physics).
-		AddComponent(myecs.Collision, data.Collider{
+		AddComponent(myecs.Collision, &data.Collider{
 			Hitbox: b.sprite.Frame(),
 			GroundOnly: true,
 		}).

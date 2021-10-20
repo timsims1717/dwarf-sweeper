@@ -22,7 +22,7 @@ func TransformSystem() {
 				tran.Mat = tran.Mat.ScaledXY(pixel.ZV, pixel.V(1., -1.))
 			}
 			tran.Mat = tran.Mat.ScaledXY(pixel.ZV, tran.Scalar.Scaled(tran.UIZoom))
-			tran.Mat = tran.Mat.Rotated(pixel.ZV, tran.Rot)
+			tran.Mat = tran.Mat.Rotated(pixel.ZV, math.Pi * tran.Rot)
 			tran.Mat = tran.Mat.Moved(tran.APos.Scaled(tran.UIZoom))
 			tran.Mat = tran.Mat.Moved(tran.UIPos)
 		}

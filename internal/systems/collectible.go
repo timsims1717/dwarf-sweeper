@@ -14,7 +14,7 @@ func CollectSystem() {
 	for _, result := range myecs.Manager.Query(myecs.IsCollectible) {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		coll, okC := result.Components[myecs.Collect].(*data.Collectible)
-		collider, okC1 := result.Components[myecs.Collision].(data.Collider)
+		collider, okC1 := result.Components[myecs.Collision].(*data.Collider)
 		if okT && okC && okC1 {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {

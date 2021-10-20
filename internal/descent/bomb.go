@@ -44,16 +44,15 @@ func (b *Bomb) Update() {
 				t.Destroy(false)
 				area = append(area, t.Transform.Pos)
 			}
-			myecs.Manager.NewEntity().
-			AddComponent(myecs.AreaDmg, &data.AreaDamage{
-				Center:         b.Transform.Pos,
-				Radius:         MineBaseRadius * world.TileSize,
-				Amount:         1,
-				Dazed:          3.,
-				Knockback:      MineBaseKnockback,
-				KnockbackDecay: true,
-				Source:         b.Transform.Pos,
-			})
+			myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+					Center:         b.Transform.Pos,
+					Radius:         MineBaseRadius * world.TileSize,
+					Amount:         1,
+					Dazed:          3.,
+					Knockback:      MineBaseKnockback,
+					KnockbackDecay: true,
+					Source:         b.Transform.Pos,
+				})
 			vfx.CreateExplosion(b.Tile.Transform.Pos)
 			sfx.SoundPlayer.PlaySound("blast1", 0.0)
 			camera.Cam.Shake()

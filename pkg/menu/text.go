@@ -27,6 +27,8 @@ type ItemText struct {
 	DefaultColor color.RGBA
 	HoverColor   color.RGBA
 	ColorEffect  *transform.ColorEffect
+
+	NoShow       bool
 }
 
 type TextAlign int
@@ -111,12 +113,14 @@ func (t *ItemText) Update(r pixel.Rect) {
 }
 
 func (t *ItemText) Draw(target pixel.Target) {
-	if t.TextColor.A < 255 {
-		col := colornames.White
-		col.A = t.TextColor.A
-		t.Text.DrawColorMask(target, t.Transform.Mat, col)
-	} else {
-		t.Text.Draw(target, t.Transform.Mat)
+	if !t.NoShow {
+		if t.TextColor.A < 255 {
+			col := colornames.White
+			col.A = t.TextColor.A
+			t.Text.DrawColorMask(target, t.Transform.Mat, col)
+		} else {
+			t.Text.Draw(target, t.Transform.Mat)
+		}
 	}
 }
 

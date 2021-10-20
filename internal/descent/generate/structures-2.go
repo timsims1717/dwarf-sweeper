@@ -2,6 +2,7 @@ package generate
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
@@ -9,7 +10,7 @@ import (
 	"fmt"
 )
 
-func NoodleCave(c *cave.Cave, start world.Coords, iDir Direction) {
+func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 	t := start
 	dir := iDir
 	currType := cave.BlockCollapse
@@ -42,13 +43,13 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir Direction) {
 			}
 			// change to next tile
 			switch dir {
-			case Left:
+			case data.Left:
 				t.X--
-			case Right:
+			case data.Right:
 				t.X++
-			case Up:
+			case data.Up:
 				t.Y--
-			case Down:
+			case data.Down:
 				t.Y++
 			}
 			// change type
@@ -61,41 +62,41 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir Direction) {
 			// maybe change direction
 			change := random.CaveGen.Intn(4)
 			switch iDir {
-			case Left:
+			case data.Left:
 				switch change {
 				case 0:
-					dir = Up
+					dir = data.Up
 				case 1:
-					dir = Down
+					dir = data.Down
 				default:
-					dir = Left
+					dir = data.Left
 				}
-			case Right:
+			case data.Right:
 				switch change {
 				case 0:
-					dir = Up
+					dir = data.Up
 				case 1:
-					dir = Down
+					dir = data.Down
 				default:
-					dir = Right
+					dir = data.Right
 				}
-			case Up:
+			case data.Up:
 				switch change {
 				case 0:
-					dir = Left
+					dir = data.Left
 				case 1:
-					dir = Right
+					dir = data.Right
 				default:
-					dir = Up
+					dir = data.Up
 				}
-			case Down:
+			case data.Down:
 				switch change {
 				case 0:
-					dir = Left
+					dir = data.Left
 				case 1:
-					dir = Right
+					dir = data.Right
 				default:
-					dir = Down
+					dir = data.Down
 				}
 			}
 		}

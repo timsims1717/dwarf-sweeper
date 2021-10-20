@@ -8,7 +8,7 @@ import (
 	"math"
 )
 
-func (c *Cave) SmartTileNum(list string) (string, pixel.Matrix) {
+func SmartTileNum(list string) (string, pixel.Matrix) {
 	switch list {
 	case "1111":
 		return "num_0", pixel.IM
@@ -65,7 +65,7 @@ func (c *Cave) SmartTileNum(list string) (string, pixel.Matrix) {
 	}
 }
 
-func (c *Cave) SmartTileSolid(t TileType, list string) (string, pixel.Matrix) {
+func SmartTileSolid(t TileType, list string) (string, pixel.Matrix) {
 	s := "blank"
 	switch t {
 	case BlockCollapse, BlockDig, BlockBlast:

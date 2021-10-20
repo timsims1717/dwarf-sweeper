@@ -60,6 +60,7 @@ type Tile struct {
 	Special    bool
 	SubCoords  world.Coords
 	RCoords    world.Coords
+	SmartStr   string
 	BGSprite   *pixel.Sprite
 	BGSpriteS  string
 	BGSMatrix  pixel.Matrix
@@ -266,6 +267,7 @@ func (tile *Tile) UpdateSprites() {
 		}
 		var s string
 		var m pixel.Matrix
+		var smartStr string
 		if tile.Solid() {
 			buf := new(bytes.Buffer)
 			for _, b := range ss {
@@ -275,7 +277,8 @@ func (tile *Tile) UpdateSprites() {
 					buf.Write(zero)
 				}
 			}
-			s, m = tile.Chunk.Cave.SmartTileSolid(tile.Type, buf.String())
+			s, m = SmartTileSolid(tile.Type, buf.String())
+			smartStr = buf.String()
 		} else if c > 0 {
 			buf := new(bytes.Buffer)
 			for _, b := range bs {
@@ -285,12 +288,14 @@ func (tile *Tile) UpdateSprites() {
 					buf.Write(zero)
 				}
 			}
-			s, m = tile.Chunk.Cave.SmartTileNum(buf.String())
+			s, m = SmartTileNum(buf.String())
+			smartStr = buf.String()
 		}
-		if tile.BGSpriteS != s {
+		if tile.SmartStr != smartStr || tile.BGSpriteS != s {
 			tile.BGSMatrix = m
 			tile.BGSpriteS = s
 			tile.BGSprite = tile.Chunk.Cave.Batcher.Sprites[s]
+			tile.SmartStr = smartStr
 		}
 		tile.FGSprite = nil
 		if !tile.Solid() {

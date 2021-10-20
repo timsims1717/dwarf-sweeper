@@ -15,6 +15,7 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
+	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
@@ -23,6 +24,7 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 )
 
 var (
@@ -30,16 +32,19 @@ var (
 	state       = -1
 	newState    = 1
 
-	Splash     *pixel.Sprite
-	splashTran *transform.Transform
-	splashScale = 0.4
-	Title      *pixel.Sprite
-	titleTran  *transform.Transform
-	titleScale = 0.4
-	titleY     = 70.
-	debugPause = false
-	menuStack  []*menus.DwarfMenu
-	timer      *timing.FrameTimer
+	pressAKey      = menu.NewItemText("press any key", colornames.Aliceblue, pixel.V(1.4, 1.4), menu.Center, menu.Center)
+	pressAKeyTimer *timing.FrameTimer
+	pressAKeySec   = 1.0
+	Splash         *pixel.Sprite
+	splashTran     *transform.Transform
+	splashScale    = 0.4
+	Title          *pixel.Sprite
+	titleTran      *transform.Transform
+	titleScale     = 0.4
+	titleY         = 70.
+	debugPause     = false
+	menuStack      []*menus.DwarfMenu
+	timer          *timing.FrameTimer
 	timerKeys  map[string]bool
 	debugInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
@@ -154,6 +159,8 @@ func Update(win *pixelgl.Window) {
 				UpdateMenus(win)
 				if MenuClosed() {
 					descent.Update()
+					descent.Descent.GetPlayer().Update(data.GameInput)
+					systems.EntitySystem()
 					systems.PhysicsSystem()
 					systems.CollisionSystem()
 					systems.ParentSystem()
@@ -164,11 +171,10 @@ func Update(win *pixelgl.Window) {
 					systems.AreaDamageSystem()
 					systems.DamageSystem()
 					systems.HealthSystem()
-					systems.EntitySystem()
 					systems.PopUpSystem()
 					particles.Update()
 					vfx.Update()
-					descent.Descent.GetPlayer().Update(data.GameInput)
+					descent.Descent.GetPlayer().Update2()
 					descent.UpdateInventory()
 					systems.AnimationSystem()
 					player.UpdateHUD()
@@ -199,6 +205,13 @@ func Update(win *pixelgl.Window) {
 					}
 				}
 			} else if state == 1 {
+				pressAKey.Transform.UIPos = camera.Cam.APos
+				pressAKey.Transform.UIZoom = camera.Cam.GetZoomScale()
+				pressAKey.Update(pixel.Rect{})
+				if pressAKeyTimer.UpdateDone() {
+					pressAKey.NoShow = !pressAKey.NoShow
+					pressAKeyTimer = timing.New(pressAKeySec)
+				}
 				titleTran.Scalar = pixel.V(titleScale, titleScale)
 				titleTran.UIPos = camera.Cam.APos
 				titleTran.UIZoom = camera.Cam.GetZoomScale()
@@ -293,6 +306,8 @@ func Draw(win *pixelgl.Window) {
 		}
 		if credits.Opened() {
 			credits.Draw(win)
+		} else if MenuClosed() {
+			pressAKey.Draw(win)
 		}
 	} else if state == 2 {
 		descent.Descent.GetCave().Draw(win)
@@ -429,6 +444,9 @@ func updateState() {
 			reanimator.Reset()
 			descent.Descent.Start = false
 		case 1:
+			pressAKey.Transform.Pos = pixel.V(0., -75.)
+			pressAKey.NoShow = true
+			pressAKeyTimer = timing.New(0.5)
 			titleTran = transform.NewTransform()
 			titleTran.Pos = pixel.V(0., titleY)
 			splashTran = transform.NewTransform()

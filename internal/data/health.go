@@ -6,7 +6,7 @@ import (
 	"github.com/faiface/pixel"
 )
 
-type SimpleHealth struct {
+type BlastHealth struct {
 	Dead bool
 }
 
@@ -62,6 +62,7 @@ type AreaDamage struct {
 	Source         pixel.Vec
 	Center         pixel.Vec
 	Radius         float64
+	Rect           pixel.Rect
 	KnockbackDecay bool
 }
 

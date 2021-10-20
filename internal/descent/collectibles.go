@@ -118,7 +118,7 @@ type CollectibleItem struct {
 	Collect   *data.Collectible
 	sprite    *pixel.Sprite
 	entity    *ecs.Entity
-	health    *data.SimpleHealth
+	health    *data.BlastHealth
 }
 
 func (b *CollectibleItem) Update() {
@@ -132,12 +132,12 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = b.Collect.Sprite
-	b.health = &data.SimpleHealth{}
+	b.health = &data.BlastHealth{}
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Physics, b.Physics).
-		AddComponent(myecs.Collision, data.Collider{
+		AddComponent(myecs.Collision, &data.Collider{
 			Hitbox: b.Collect.Sprite.Frame(),
 			GroundOnly: true,
 		}).

@@ -12,8 +12,13 @@ type Physics struct {
 	YJustSet    bool
 	FrictionOff bool
 	GravityOff  bool
-	RagDoll     bool
+	RagDollX    bool
+	RagDollY    bool
+	NearGround  bool
 	Grounded    bool
+	Ceilinged   bool
+	RightWalled bool
+	LeftWalled  bool
 
 	// the "Constants"
 	Gravity     float64

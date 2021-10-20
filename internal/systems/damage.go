@@ -3,6 +3,7 @@ package systems
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/camera"
@@ -11,6 +12,7 @@ import (
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
+	"golang.org/x/image/colornames"
 	"math"
 )
 
@@ -20,28 +22,54 @@ func AreaDamageSystem() {
 		if ok {
 			dist := camera.Cam.Pos.Sub(area.Source)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
+				if debug.Debug {
+					if area.Radius > 0. {
+						col := colornames.White
+						debug.AddCircle(col, area.Center, area.Radius)
+					} else if area.Rect.W() > 0. && area.Rect.H() > 0. {
+						col := colornames.White
+						debug.AddRect(col, area.Center, area.Rect)
+					}
+				}
 				for _, tResult := range myecs.Manager.Query(myecs.HasHealth) {
 					tran, okT := tResult.Components[myecs.Transform].(*transform.Transform)
-					_, okH1 := tResult.Components[myecs.Health].(*data.Health)
-					_, okH2 := tResult.Components[myecs.Health].(*data.SimpleHealth)
+					hp, okH1 := tResult.Components[myecs.Health].(*data.Health)
+					_, okH2 := tResult.Components[myecs.Health].(*data.BlastHealth)
 					if okT && (okH1 || okH2) {
-						xt := area.Center.X - tran.Pos.X
-						yt := area.Center.Y - tran.Pos.Y
-						d2 := xt*xt + yt*yt
-						if d2 < area.Radius*area.Radius {
-							kb := area.Knockback
-							if area.KnockbackDecay {
-								p := tran.Pos.Sub(area.Source)
-								mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
-								kb = kb - (mag / world.TileSize)
+						immune := false
+						if okH1 {
+							for _, t := range hp.Immune {
+								if t == area.Type {
+									immune = true
+									break
+								}
 							}
-							tResult.Entity.AddComponent(myecs.Damage, &data.Damage{
-								Amount:    area.Amount,
-								Dazed:     area.Dazed,
-								Knockback: kb,
-								Source:    area.Source,
-								Type:      area.Type,
-							})
+						}
+						if !immune {
+							hit := false
+							if area.Radius > 0. {
+								xt := area.Center.X - tran.Pos.X
+								yt := area.Center.Y - tran.Pos.Y
+								d2 := xt*xt + yt*yt
+								hit = d2 < area.Radius*area.Radius
+							} else if area.Rect.W() > 0. && area.Rect.H() > 0. {
+								hit = area.Rect.Moved(area.Center).Moved(pixel.V(area.Rect.W()*-0.5, area.Rect.H()*-0.5)).Contains(tran.Pos)
+							}
+							if hit {
+								kb := area.Knockback
+								if area.KnockbackDecay {
+									p := tran.Pos.Sub(area.Source)
+									mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
+									kb = kb - (mag / world.TileSize)
+								}
+								tResult.Entity.AddComponent(myecs.Damage, &data.Damage{
+									Amount:    area.Amount,
+									Dazed:     area.Dazed,
+									Knockback: kb,
+									Source:    area.Source,
+									Type:      area.Type,
+								})
+							}
 						}
 					}
 				}
@@ -54,7 +82,7 @@ func AreaDamageSystem() {
 func DamageSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasDamage) {
 		hp, okH := result.Components[myecs.Health].(*data.Health)
-		hpS, okS := result.Components[myecs.Health].(*data.SimpleHealth)
+		hpB, okB := result.Components[myecs.Health].(*data.BlastHealth)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		dmg, okD := result.Components[myecs.Damage].(*data.Damage)
@@ -100,7 +128,10 @@ func DamageSystem() {
 						}
 						phys.SetVelX(dir.X*dmg.Knockback*world.TileSize, 0.)
 						phys.SetVelY(dir.Y*dmg.Knockback*world.TileSize, 0.)
-						phys.RagDoll = true
+						phys.RagDollX = true
+						if dir.Y < 0 && math.Abs(dir.X) < 4. && dmg.Knockback > 20. {
+							phys.RagDollY = true
+						}
 					}
 					if dmg.Dazed > 0.0 && hp.Curr > 0 {
 						hp.Dazed = true
@@ -120,14 +151,14 @@ func DamageSystem() {
 					}
 				}
 			}
-		} else if okS && okD && okP && okT {
+		} else if okB && okD && okP && okT {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				dmgAmt := dmg.Amount
-				if dmgAmt > 0 {
-					hpS.Dead = true
+				if dmgAmt > 0 && dmg.Type == data.Blast {
+					hpB.Dead = true
 				}
-				if dmg.Knockback > 0.0 {
+				if dmg.Knockback > 0.0 && dmg.Type == data.Shovel {
 					phys.CancelMovement()
 					var dir pixel.Vec
 					if dmg.Angle == nil {
@@ -142,7 +173,8 @@ func DamageSystem() {
 					}
 					phys.SetVelX(dir.X*dmg.Knockback*world.TileSize, 0.)
 					phys.SetVelY(dir.Y*dmg.Knockback*world.TileSize, 0.)
-					phys.RagDoll = true
+					phys.RagDollX = true
+					phys.RagDollY = true
 				}
 			}
 		}

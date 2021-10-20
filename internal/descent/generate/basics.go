@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
@@ -25,28 +26,28 @@ func Outline(c *cave.Cave, s world.Coords, fullPath []Path) {
 		for i := 0; i < path.Count; i++ {
 			toWall(c.GetTileInt(curr.X, curr.Y), true)
 			switch path.Dir {
-			case Left:
+			case data.Left:
 				curr.X--
-			case Right:
+			case data.Right:
 				curr.X++
-			case Up:
+			case data.Up:
 				curr.Y--
-			case Down:
+			case data.Down:
 				curr.Y++
 			}
 		}
 	}
 }
 
-func RandomDirection() Direction {
+func RandomDirection() data.Direction {
 	switch random.CaveGen.Intn(4) {
 	case 0:
-		return Left
+		return data.Left
 	case 1:
-		return Right
+		return data.Right
 	case 2:
-		return Up
+		return data.Up
 	default:
-		return Down
+		return data.Down
 	}
 }

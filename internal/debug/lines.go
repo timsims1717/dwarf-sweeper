@@ -33,3 +33,15 @@ func AddCircle(color color.RGBA, c pixel.Vec, r float64) {
 	imd.Push(c)
 	imd.Circle(r, 0.)
 }
+
+func AddRect(color color.RGBA, c pixel.Vec, r pixel.Rect) {
+	imd.Color = color
+	imd.EndShape = imdraw.NoEndShape
+	nr := r.Moved(c).Moved(pixel.V(r.W()*-0.5, r.H()*-0.5))
+	vt := nr.Vertices()
+	imd.Push(vt[0])
+	imd.Push(vt[1])
+	imd.Push(vt[2])
+	imd.Push(vt[3])
+	imd.Polygon(0.)
+}

@@ -2,7 +2,7 @@ package generate
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
@@ -13,6 +13,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *cave.Cave {
 	random.RandCaveSeed()
 	batcher := img.NewBatcher(spriteSheet, false)
 	newCave := cave.NewCave(batcher, false)
+	newCave.FillChunk = FillChunk
 	newCave.StartC = world.Coords{X: 16, Y: 9}
 	newCave.GemRate = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
@@ -20,19 +21,19 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *cave.Cave {
 	newCave.BombPMin = 0.2
 	newCave.BombPMax = 0.3
 	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, newCave)
-	descent.FillChunk(chunk0)
+	FillChunk(chunk0)
 
 	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, newCave)
 	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, newCave)
 	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, newCave)
-	descent.FillChunk(chunkr1)
-	descent.FillChunk(chunkr2)
-	descent.FillChunk(chunkr3)
+	FillChunk(chunkr1)
+	FillChunk(chunkr2)
+	FillChunk(chunkr3)
 
 	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, newCave)
 	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, newCave)
-	descent.FillChunk(chunkl1)
-	descent.FillChunk(chunkl2)
+	FillChunk(chunkl1)
+	FillChunk(chunkl2)
 
 	newCave.RChunks[chunk0.Coords] = chunk0
 	newCave.RChunks[chunkr1.Coords] = chunkr1
@@ -101,16 +102,16 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	RectRoom(newCave, box, 11, 8)
 	newCave.MarkAsNotChanged()
 	// generate paths and/or cycles from entrance to exit
-	path, deadends := SemiStraightPath(newCave, startT, exitT, Left, false)
-	p2, d2 := SemiStraightPath(newCave, startT, exitT, Right, false)
+	path, deadends := SemiStraightPath(newCave, startT, exitT, data.Left, false)
+	p2, d2 := SemiStraightPath(newCave, startT, exitT, data.Right, false)
 	path = append(path, p2...)
 	deadends = append(deadends, d2...)
 	startT.X -= 2
-	p2, d2 = SemiStraightPath(newCave, startT, exitT, Down, false)
+	p2, d2 = SemiStraightPath(newCave, startT, exitT, data.Down, false)
 	path = append(path, p2...)
 	deadends = append(deadends, d2...)
 	startT.X += 4
-	p2, d2 = SemiStraightPath(newCave, startT, exitT, Down, false)
+	p2, d2 = SemiStraightPath(newCave, startT, exitT, data.Down, false)
 	path = append(path, p2...)
 	deadends = append(deadends, d2...)
 	// generate path branching from orig paths
@@ -140,10 +141,10 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 		}
 	}
 	for _, ch := range newCave.LChunks {
-		descent.FillChunk(ch)
+		FillChunk(ch)
 	}
 	for _, ch := range newCave.RChunks {
-		descent.FillChunk(ch)
+		FillChunk(ch)
 	}
 	newCave.PrintCaveToTerminal()
 	newCave.UpdateAllTileSprites()
