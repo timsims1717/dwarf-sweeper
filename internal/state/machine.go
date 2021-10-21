@@ -10,6 +10,7 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/player"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -407,17 +408,21 @@ func updateState() {
 			}
 			descent.Descent.Level++
 
-			sheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
+			biome := "mine"
+			if random.Effects.Intn(2) == 0 {
+				biome = "dark"
+			}
+			sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
 			if err != nil {
 				panic(err)
 			}
 			switch descent.Descent.Type {
 			case descent.Normal:
-				descent.Descent.SetCave(generate.NewRoomyCave(sheet, descent.Descent.Level, -1, 1, 2))
+				descent.Descent.SetCave(generate.NewRoomyCave(sheet, biome, descent.Descent.Level, -1, 1, 2))
 			case descent.Infinite:
-				descent.Descent.SetCave(generate.NewInfiniteCave(sheet))
+				descent.Descent.SetCave(generate.NewInfiniteCave(sheet, biome))
 			case descent.Minesweeper:
-				descent.Descent.SetCave(generate.NewMinesweeperCave(sheet, descent.Descent.Level))
+				descent.Descent.SetCave(generate.NewMinesweeperCave(sheet, biome, descent.Descent.Level))
 			}
 
 			if descent.Descent.Player != nil {

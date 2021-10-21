@@ -53,10 +53,6 @@ func Initialize() {
 		panic(err)
 	}
 	PartBatcher = img.NewBatcher(partSheet, false)
-	// block particles
-	for i := 0; i < 8; i++ {
-		blocks = append(blocks, fmt.Sprintf("b_%d", i))
-	}
 }
 
 var PartBatcher *img.Batcher
@@ -91,9 +87,7 @@ func Clear() {
 	particles = []*particle{}
 }
 
-var blocks []string
-
-func BlockParticles(pos pixel.Vec) {
+func BlockParticles(pos pixel.Vec, biome string) {
 	c := random.Effects.Intn(3) + 4
 	for i := 0; i < c; i++ {
 		phys, tran := util.RandomVelocity(pos, 1.0, random.Effects)
@@ -104,7 +98,7 @@ func BlockParticles(pos pixel.Vec) {
 			tran.Flop = true
 		}
 		particles = append(particles, &particle{
-			Sprite:    PartBatcher.Sprites[blocks[random.Effects.Intn(len(blocks))]],
+			Sprite:    PartBatcher.Sprites[fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8))],
 			Transform: tran,
 			entity:    myecs.Manager.NewEntity().
 				AddComponent(myecs.Transform, tran).

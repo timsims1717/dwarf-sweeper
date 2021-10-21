@@ -238,6 +238,8 @@ func (s *Slug) Create(pos pixel.Vec) {
 	s.Health = &data.Health{
 		Max:          2,
 		Curr:         2,
+		Dazed:        true,
+		DazedTimer:   timing.New(3.),
 		TempInv:      true,
 		TempInvTimer: timing.New(1.),
 		TempInvSec:   1.,

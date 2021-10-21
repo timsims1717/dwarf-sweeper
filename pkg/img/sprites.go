@@ -32,6 +32,29 @@ func NewBatcher(sheet *SpriteSheet, auto bool) *Batcher {
 	return b
 }
 
+func (b *Batcher) GetFrame(key string, index int) *pixel.Sprite {
+	if a, ok := b.Animations[key]; ok {
+		if len(a.S) > index {
+			return a.S[index]
+		}
+	}
+	return nil
+}
+
+func (b *Batcher) GetSprite(key string) *pixel.Sprite {
+	if s, ok := b.Sprites[key]; ok {
+		return s
+	}
+	return nil
+}
+
+func (b *Batcher) GetAnimation(key string) *Animation {
+	if a, ok := b.Animations[key]; ok {
+		return a
+	}
+	return nil
+}
+
 func (b *Batcher) SetSpriteSheet(sheet *SpriteSheet) {
 	b.batch = pixel.NewBatch(&pixel.TrianglesData{}, sheet.Img)
 	b.Sprites = make(map[string]*pixel.Sprite)

@@ -56,7 +56,7 @@ func outline(chal Challenge) []Path {
 	}
 }
 
-func NewMinesweeperCave(spriteSheet *img.SpriteSheet, level int) *cave.Cave {
+func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *cave.Cave {
 	random.RandCaveSeed()
 	begun = false
 	chal := challenge(level)
@@ -69,7 +69,7 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, level int) *cave.Cave {
 		h++
 	}
 	batcher := img.NewBatcher(spriteSheet, false)
-	newCave := cave.NewCave(batcher, true)
+	newCave := cave.NewCave(batcher, biome, true)
 	newCave.Left = 0
 	newCave.Right = w
 	newCave.Bottom = h-1

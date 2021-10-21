@@ -4,6 +4,78 @@
  "width": 16,
  "sprites": [
   {
+   "key": "popper_out",
+   "anim": true,
+   "x": 0,
+   "y": 144
+  },
+  {
+   "key": "popper_out",
+   "anim": true,
+   "x": 16,
+   "y": 144
+  },
+  {
+   "key": "popper_out",
+   "anim": true,
+   "x": 32,
+   "y": 144
+  },
+  {
+   "key": "popper_out",
+   "anim": true,
+   "x": 48,
+   "y": 144
+  },
+  {
+   "key": "popper_out",
+   "anim": true,
+   "x": 64,
+   "y": 144
+  },
+  {
+   "key": "popper_up",
+   "anim": true,
+   "x": 80,
+   "y": 144
+  },
+  {
+   "key": "popper_diag",
+   "anim": true,
+   "x": 96,
+   "y": 144
+  },
+  {
+   "key": "popper_side",
+   "anim": true,
+   "x": 112,
+   "y": 144
+  },
+  {
+   "key": "bat_roost",
+   "anim": true,
+   "x": 0,
+   "y": 128
+  },
+  {
+   "key": "bat_fly",
+   "anim": true,
+   "x": 16,
+   "y": 128
+  },
+  {
+   "key": "bat_fly",
+   "anim": true,
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "bat_fly",
+   "anim": true,
+   "x": 48,
+   "y": 128
+  },
+  {
    "key": "slug_corner",
    "anim": true,
    "x": 0,

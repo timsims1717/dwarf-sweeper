@@ -19,25 +19,27 @@ type Cave struct {
 	Finite      bool
 	UpdateBatch bool
 	Batcher     *img.Batcher
-	Left        int
-	Right       int
-	Bottom      int
-	StartC      world.Coords
-	ExitC       world.Coords
-	BombPMin    float64
-	BombPMax    float64
-	FuseLen     float64
-	GemRate     int
-	ItemRate    int
+	Left     int
+	Right    int
+	Bottom   int
+	StartC   world.Coords
+	ExitC    world.Coords
+	BombPMin float64
+	BombPMax float64
+	FuseLen  float64
+	GemRate  int
+	ItemRate int
+	Biome    string
 }
 
-func NewCave(batcher *img.Batcher, finite bool) *Cave {
+func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
 	return &Cave{
 		RChunks:     make(map[world.Coords]*Chunk),
 		LChunks:     make(map[world.Coords]*Chunk),
 		Batcher:     batcher,
 		Finite:      finite,
 		UpdateBatch: true,
+		Biome:       biome,
 	}
 }
 

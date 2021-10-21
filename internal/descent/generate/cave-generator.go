@@ -9,10 +9,10 @@ import (
 	"dwarf-sweeper/pkg/world"
 )
 
-func NewInfiniteCave(spriteSheet *img.SpriteSheet) *cave.Cave {
+func NewInfiniteCave(spriteSheet *img.SpriteSheet, biome string) *cave.Cave {
 	random.RandCaveSeed()
 	batcher := img.NewBatcher(spriteSheet, false)
-	newCave := cave.NewCave(batcher, false)
+	newCave := cave.NewCave(batcher, biome, false)
 	newCave.FillChunk = FillChunk
 	newCave.StartC = world.Coords{X: 16, Y: 9}
 	newCave.GemRate = constants.BaseGem
@@ -47,7 +47,7 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet) *cave.Cave {
 }
 
 // requires at least 3 chunks wide
-func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) *cave.Cave {
+func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right, bottom int) *cave.Cave {
 	random.RandCaveSeed()
 	batcher := img.NewBatcher(spriteSheet, false)
 	layers := makeLayers(left, right, bottom, 5, 7, 3)
@@ -60,7 +60,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	}
 	startT := layers[0][start]
 	exitT := layers[2][end]
-	newCave := cave.NewCave(batcher, true)
+	newCave := cave.NewCave(batcher, biome,true)
 	newCave.Left = left
 	newCave.Right = right
 	newCave.Bottom = bottom
@@ -128,16 +128,20 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, level, left, right, bottom int) 
 	count = random.CaveGen.Intn(4) + 4
 	for i := 0; i < count; i++ {
 		s := path[random.CaveGen.Intn(len(path))]
-		dir := RandomDirection()
-		NoodleCave(newCave, s, dir)
+		if world.Distance(newCave.StartC, s) > 8 && world.Distance(newCave.ExitC, s) > 8 {
+			dir := RandomDirection()
+			NoodleCave(newCave, s, dir)
+		}
 	}
 	for _, d := range deadends {
-		if random.CaveGen.Intn(3) == 0 {
-			// big
-			TreasureRoom(newCave, 6, 8, 2, d)
-		} else {
-			// small
-			TreasureRoom(newCave, 4, 6, 1, d)
+		if world.Distance(newCave.StartC, d) > 8 && world.Distance(newCave.ExitC, d) > 8 {
+			if random.CaveGen.Intn(3) == 0 {
+				// big
+				TreasureRoom(newCave, 6, 8, 2, d)
+			} else {
+				// small
+				TreasureRoom(newCave, 4, 6, 1, d)
+			}
 		}
 	}
 	for _, ch := range newCave.LChunks {

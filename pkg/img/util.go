@@ -21,3 +21,10 @@ func LoadImage(path string) (pixel.Picture, error) {
 	}
 	return pixel.PictureDataFromImage(img), nil
 }
+
+func Reverse(s []*pixel.Sprite) []*pixel.Sprite {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
+}

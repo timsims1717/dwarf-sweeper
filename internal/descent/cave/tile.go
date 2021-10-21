@@ -185,7 +185,7 @@ func (tile *Tile) Destroy(playSound bool) {
 			tile.UpdateSprites()
 		}
 		if wasSolid {
-			particles.BlockParticles(tile.Transform.Pos)
+			particles.BlockParticles(tile.Transform.Pos, tile.Chunk.Cave.Biome)
 			if playSound {
 				sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
 			}
@@ -234,7 +234,7 @@ func (tile *Tile) Reveal(instant bool) {
 		}
 		tile.UpdateSprites()
 		if !instant {
-			particles.BlockParticles(tile.Transform.Pos)
+			particles.BlockParticles(tile.Transform.Pos, tile.Chunk.Cave.Biome)
 		}
 	}
 }

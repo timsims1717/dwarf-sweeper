@@ -32,7 +32,14 @@ func FillChunk(ch *cave.Chunk) {
 						tile.Entity = &descent.Slug{}
 					case 1:
 						tile.Entity = &descent.MadMonk{}
+					//case 2:
+					//	p := &descent.Popper{}
+					//	p.Create(tile.Transform.Pos)
 					}
+					//p := &descent.Popper{}
+					//p.Create(tile.Transform.Pos)
+				} else if random.CaveGen.Intn(50) == 0 && tile.Solid() && tile.Breakable() {
+					tile.Entity = &descent.Bat{}
 				}
 			} else if tile.Bomb {
 				tile.Bomb = false
