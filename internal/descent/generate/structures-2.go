@@ -40,6 +40,7 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 			for _, n := range ns {
 				tmp := c.GetTileInt(n.X, n.Y)
 				toBlock(tmp, false, tmp.Bomb)
+				tmp.Fillable = true
 			}
 			// change to next tile
 			switch dir {
@@ -122,8 +123,8 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 		for x := tlX; x < tlX+w; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
-				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) && !tile.Breakable() {
-					tile.Type = cave.Wall
+				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
+					tile.Type = cave.BlockDig
 					tile.UpdateSprites()
 				} else if !tile.NeverChange && !tile.IsChanged {
 					if y == tlY+h-2 && util.Contains(x, tC) {
@@ -131,7 +132,6 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 					}
 					tile.Type = cave.Empty
 					tile.IsChanged = true
-					tile.Fillable = false
 					tile.UpdateSprites()
 				}
 			}

@@ -24,8 +24,8 @@ func addChest(tile *cave.Tile) {
 	popUp.Dist = world.TileSize
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, tile.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_closed"]).
-		AddComponent(myecs.Batch, constants.EntityKey).
+		AddComponent(myecs.Sprite, img.Batchers[constants.TileEntityKey].Sprites["chest_closed"]).
+		AddComponent(myecs.Batch, constants.TileEntityKey).
 		AddComponent(myecs.PopUp, popUp).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false)).
 		AddComponent(myecs.Interact, &data.Interact{
@@ -50,7 +50,7 @@ func addChest(tile *cave.Tile) {
 					}
 					item.Create(pos)
 				}
-				e.AddComponent(myecs.Sprite, img.Batchers[constants.EntityKey].Sprites["chest_opened"])
+				e.AddComponent(myecs.Sprite, img.Batchers[constants.TileEntityKey].Sprites["chest_opened"])
 				e.RemoveComponent(myecs.Interact)
 				e.RemoveComponent(myecs.PopUp)
 				return true

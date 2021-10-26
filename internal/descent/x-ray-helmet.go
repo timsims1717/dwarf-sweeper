@@ -50,21 +50,22 @@ func (x *XRayHelmet) Update() {
 func (x *XRayHelmet) Create(_ pixel.Vec) {
 	x.Timer = timing.New(XRaySec)
 	x.created = true
+	ring := img.Batchers[constants.ParticleKey].Sprites["x-ray-ring"]
 	t1 := transform.NewTransform()
 	t1.Offset = pixel.V(-world.TileSize, world.TileSize)
 	e1 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t1).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, constants.BigEntityKey)
+		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Batch, constants.ParticleKey)
 	t2 := transform.NewTransform()
 	t2.Offset = pixel.V(world.TileSize, world.TileSize)
 	t2.Flip = true
 	e2 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t2).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, constants.BigEntityKey)
+		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Batch, constants.ParticleKey)
 	t3 := transform.NewTransform()
 	t3.Offset = pixel.V(world.TileSize, -world.TileSize)
 	t3.Flip = true
@@ -72,16 +73,16 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	e3 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t3).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, constants.BigEntityKey)
+		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Batch, constants.ParticleKey)
 	t4 := transform.NewTransform()
 	t4.Offset = pixel.V(-world.TileSize, -world.TileSize)
 	t4.Flop = true
 	e4 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t4).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[constants.BigEntityKey].Sprites["x-ray-ring"]).
-		AddComponent(myecs.Batch, constants.BigEntityKey)
+		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Batch, constants.ParticleKey)
 	x.entities = [4]*ecs.Entity{e1, e2, e3, e4}
 	x.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, Descent.Player.Transform).

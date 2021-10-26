@@ -15,13 +15,27 @@ var (
 	Flop     = pixel.IM.ScaledXY(pixel.ZV, pixel.V(1., -1.))
 	FlipFlop = pixel.IM.ScaledXY(pixel.ZV, pixel.V(-1., -1.))
 	Batchers = map[string]*Batcher{}
+	batchers []*Batcher
 )
+
+func DrawBatches(target pixel.Target) {
+	for _, batcher := range batchers {
+		if batcher.AutoDraw {
+			batcher.Draw(target)
+		}
+	}
+}
 
 type Batcher struct {
 	Sprites    map[string]*pixel.Sprite
 	Animations map[string]*Animation
 	batch      *pixel.Batch
 	AutoDraw   bool
+}
+
+func AddBatcher(key string, sheet *SpriteSheet, auto bool) {
+	Batchers[key] = NewBatcher(sheet, auto)
+	batchers = append(batchers, Batchers[key])
 }
 
 func NewBatcher(sheet *SpriteSheet, auto bool) *Batcher {
@@ -73,6 +87,10 @@ func (b *Batcher) Clear() {
 
 func (b *Batcher) Batch() *pixel.Batch {
 	return b.batch
+}
+
+func (b *Batcher) DrawSprite(key string, mat pixel.Matrix) {
+	b.Sprites[key].Draw(b.batch, mat)
 }
 
 func (b *Batcher) Draw(target pixel.Target) {

@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
@@ -100,16 +101,7 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	curr := c.StartC
 	curr.X += 7
 	x := curr.X
-	bCount := chal.Mines
-	list := make([]bool, chal.Width*chal.Height)
-	for i := 0; i < bCount; i++ {
-		list[i] = true
-	}
-	// randomize list
-	for i := len(list) - 1; i > 0; i-- {
-		j := random.CaveGen.Intn(i)
-		list[i], list[j] = list[j], list[i]
-	}
+	list := minesweeper.CreateBoard(chal.Width, chal.Height, chal.Mines, random.CaveGen).AsArray()
 	b := 0
 	for i := 0; i < chal.Height; i++ {
 		for j := 0; j < chal.Width; j++ {

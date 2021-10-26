@@ -158,6 +158,19 @@ func NewElements(els ...*switchEl) []*switchEl {
 	return els
 }
 
+func NewAnimFromSprite(key string, spr *pixel.Sprite, f Finish, triggers map[int]func()) *switchEl {
+	return &switchEl{
+		Switch: nil,
+		Anim: &Anim{
+			Key:      key,
+			S:        []*pixel.Sprite{spr},
+			Step:     0,
+			Finish:   f,
+			Triggers: triggers,
+		},
+	}
+}
+
 func NewAnimFromSprites(key string, spr []*pixel.Sprite, f Finish, triggers map[int]func()) *switchEl {
 	return &switchEl{
 		Switch: nil,

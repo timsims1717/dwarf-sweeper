@@ -44,10 +44,19 @@ func (b *Bubble) Create(_ pixel.Vec) {
 	Descent.Player.Entity.AddComponent(myecs.Physics, b.Physics)
 	Descent.Player.Bubble = b
 	b.created = true
+	vibe := img.Batchers[constants.ParticleKey].GetAnimation("bubble_vibe")
 	b.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bubble_vibe", img.Batchers[constants.BigEntityKey].Animations["bubble_vibe"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bubble_pop", img.Batchers[constants.BigEntityKey].Animations["bubble_pop"].S, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprites("bubble_vibe", []*pixel.Sprite{
+				vibe.S[0], vibe.S[0],
+				vibe.S[1], vibe.S[1],
+				vibe.S[2], vibe.S[2],
+				vibe.S[1], vibe.S[1],
+			}, reanimator.Loop, nil),
+			reanimator.NewAnimFromSprites("bubble_pop", []*pixel.Sprite{
+				img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
+				img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
+			}, reanimator.Tran, map[int]func() {
 				2: func() {
 					b.Delete()
 				},
@@ -66,7 +75,7 @@ func (b *Bubble) Create(_ pixel.Vec) {
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
-		AddComponent(myecs.Batch, constants.BigEntityKey)
+		AddComponent(myecs.Batch, constants.ParticleKey)
 }
 
 func (b *Bubble) Delete() {

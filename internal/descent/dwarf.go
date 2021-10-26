@@ -6,7 +6,6 @@ import (
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
@@ -83,21 +82,16 @@ type Dwarf struct {
 	angleTimer  *timing.FrameTimer
 	facingTimer *timing.FrameTimer
 
-	facing struct{
-		x int
-		y int
-	}
+	facing      pixel.Vec
 	hovered     *cave.Tile
 	relative    pixel.Vec
 	isRelative  bool
 	digTile     *cave.Tile
+	attackPoint pixel.Vec
 	tileQueue   []struct{
 		a int
 		t *cave.Tile
-		f struct{
-			x int
-			y int
-		}
+		f pixel.Vec
 	}
 
 	walkTimer *timing.FrameTimer
@@ -126,10 +120,6 @@ type Dwarf struct {
 }
 
 func NewDwarf(start pixel.Vec) *Dwarf {
-	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
-	if err != nil {
-		panic(err)
-	}
 	tran := transform.NewTransform()
 	tran.Pos = start
 	d := &Dwarf{
@@ -144,14 +134,17 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			Immune:       []data.DamageType{data.Shovel},
 		},
 	}
+	batcher := img.Batchers[constants.DwarfKey]
+	idleAnim := batcher.GetAnimation("idle")
+	climbAnim := batcher.GetAnimation("climb")
 	d.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
 			reanimator.NewSwitch(&reanimator.Switch{
 				Elements: reanimator.NewElements(
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-								reanimator.NewAnimFromSheet("hit_front", dwarfSheet, []int{15}, reanimator.Hold, nil), // hit_front
-								reanimator.NewAnimFromSheet("hit_back", dwarfSheet, []int{16}, reanimator.Hold, nil),  // hit_back
+								reanimator.NewAnimFromSprite("hit_front", batcher.GetSprite("hit_front"), reanimator.Hold, nil), // hit_front
+								reanimator.NewAnimFromSprite("hit_back", batcher.GetSprite("hit_front"), reanimator.Hold, nil),  // hit_back
 							),
 						Check: func() int {
 							if d.faceLeft {
@@ -169,7 +162,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							}
 						},
 					}),
-					reanimator.NewAnimFromSheet("flat", dwarfSheet, []int{17}, reanimator.Hold, nil), // flat
+					reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold, nil), // flat
 				),
 				Check: func() int {
 					if !d.Physics.Grounded {
@@ -179,42 +172,70 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}
 				},
 			}),
-			reanimator.NewAnimFromSheet("dig_hold", dwarfSheet, []int{11}, reanimator.Hold, nil), // dig hold
-			reanimator.NewAnimFromSheet("mark_hold", dwarfSheet, []int{14}, reanimator.Hold, nil), // mark hold
-			reanimator.NewAnimFromSheet("dig", dwarfSheet, []int{11, 12, 13}, reanimator.Tran, map[int]func() {
-				1: func() {
-					if d.digTile != nil {
-						if d.digTile.Solid() {
-							CaveBlocksDug++
-							d.digTile.Destroy(true)
+			reanimator.NewAnimFromSprite("dig_hold", batcher.GetSprite("dig"), reanimator.Hold, nil), // dig hold
+			reanimator.NewAnimFromSprite("mark_hold", batcher.GetSprite("mark"), reanimator.Hold, nil), // mark hold
+			reanimator.NewAnimFromSprites("dig", batcher.GetAnimation("dig").S, reanimator.Tran, map[int]func() {
+				0: func() {
+					if d.digTile == nil || !d.digTile.Solid() {
+						trans := transform.NewTransform()
+						trans.Pos = d.attackPoint
+						trans.Flip = d.faceLeft
+						key := "shovel_swipe"
+						if d.facing.X == 0. {
+							if d.faceLeft {
+								if d.facing.Y > 0. {
+									trans.Rot = -0.5
+								} else {
+									trans.Rot = 0.5
+								}
+							} else {
+								if d.facing.Y > 0. {
+									trans.Rot = 0.5
+								} else {
+									trans.Rot = -0.5
+								}
+							}
+						} else if d.facing.Y != 0. && d.facing.X != 0. {
+							key = "shovel_swipe_diag"
+							if d.facing.Y < 0. {
+								if d.faceLeft {
+									trans.Rot = 0.5
+								} else {
+									trans.Rot = -0.5
+								}
+							}
 						}
+						anim := img.Batchers[constants.ParticleKey].GetAnimation(key).S
+						e := myecs.Manager.NewEntity()
+						e.AddComponent(myecs.Animation, reanimator.NewSimple(
+								reanimator.NewAnimFromSprites("swipe", anim, reanimator.Done, map[int]func(){
+									3: func() {
+										myecs.Manager.DisposeEntity(e)
+									},
+								}).Anim,
+							)).
+							AddComponent(myecs.Transform, trans).
+							AddComponent(myecs.Batch, constants.ParticleKey).
+							AddComponent(myecs.Temp, myecs.ClearFlag(false))
+					}
+				},
+				1: func() {
+					if d.digTile != nil && d.digTile.Solid() {
+						CaveBlocksDug++
+						d.digTile.Destroy(true)
 						d.digTile = nil
-					}
-					var x, y float64
-					if d.facing.y < 0 {
-						y = d.Transform.Pos.Y - world.TileSize * 0.6
-					} else if d.facing.y > 0 {
-						y = d.Transform.Pos.Y + world.TileSize * 0.6
 					} else {
-						y = d.Transform.Pos.Y
+						myecs.Manager.NewEntity().
+							AddComponent(myecs.AreaDmg, &data.AreaDamage{
+								Center:    d.attackPoint,
+								Radius:    world.TileSize * 1.2,
+								Amount:    d.ShovelDamage,
+								Dazed:     d.ShovelDazed,
+								Knockback: d.ShovelKnockback,
+								Source:    d.Transform.Pos,
+								Type:      data.Shovel,
+							})
 					}
-					if d.facing.x < 0 {
-						x = d.Transform.Pos.X - world.TileSize * 0.6
-					} else if d.facing.x > 0 {
-						x = d.Transform.Pos.X + world.TileSize * 0.6
-					} else {
-						x = d.Transform.Pos.X
-					}
-					myecs.Manager.NewEntity().
-						AddComponent(myecs.AreaDmg, &data.AreaDamage{
-							Center:    pixel.V(x, y),
-							Radius:    world.TileSize * 1.2,
-							Amount:    d.ShovelDamage,
-							Dazed:     d.ShovelDazed,
-							Knockback: d.ShovelKnockback,
-							Source:    d.Transform.Pos,
-							Type:      data.Shovel,
-						})
 					sfx.SoundPlayer.PlaySound("shovel", 1.0)
 				},
 				3: func() {
@@ -222,7 +243,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					d.attacking = false
 				},
 			}), // digging
-			reanimator.NewAnimFromSheet("mark", dwarfSheet, []int{14}, reanimator.Tran, map[int]func() {
+			reanimator.NewAnimFromSprite("mark", batcher.GetSprite("mark"), reanimator.Tran, map[int]func() {
 				1: func() {
 					d.marking = false
 				},
@@ -231,11 +252,14 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				Elements: reanimator.NewElements(
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-							reanimator.NewAnimFromSheet("run", dwarfSheet, []int{4, 5, 6, 7}, reanimator.Loop, nil), // run
+							reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop, nil), // run
 							reanimator.NewSwitch(&reanimator.Switch{
 								Elements: reanimator.NewElements(
-									reanimator.NewAnimFromSheet("flat", dwarfSheet, []int{17}, reanimator.Hold, nil),         // flat
-									reanimator.NewAnimFromSheet("idle", dwarfSheet, []int{0, 1, 2, 3}, reanimator.Loop, nil), // idle
+									reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold, nil), // flat
+									reanimator.NewAnimFromSprites("idle", []*pixel.Sprite{
+										idleAnim.S[0], idleAnim.S[0],
+										idleAnim.S[1], idleAnim.S[1],
+									}, reanimator.Loop, nil), // idle
 								),
 								Check: func() int {
 									if d.distFell > 100. {
@@ -256,9 +280,9 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}),
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-							reanimator.NewAnimFromSheet("climb_up", dwarfSheet, []int{18,19,20,21}, reanimator.Loop, nil),  // climb_up
-							reanimator.NewAnimFromSheet("climb_dwn", dwarfSheet, []int{21,20,19,18}, reanimator.Loop, nil), // climb_dwn
-							reanimator.NewAnimFromSheet("climb_still", dwarfSheet, []int{18}, reanimator.Hold, nil),        // climb_still
+							reanimator.NewAnimFromSprites("climb_up", climbAnim.S, reanimator.Loop, nil), // climb_up
+							reanimator.NewAnimFromSprites("climb_dwn", img.Reverse(climbAnim.S), reanimator.Loop, nil), // climb_dwn
+							reanimator.NewAnimFromSprite("climb_still", climbAnim.S[3], reanimator.Hold, nil), // climb_still
 						),
 						Check: func() int {
 							if d.Physics.Velocity.Y > 0. {
@@ -272,8 +296,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}),
 					reanimator.NewSwitch(&reanimator.Switch{
 						Elements: reanimator.NewElements(
-							reanimator.NewAnimFromSheet("jump", dwarfSheet, []int{8, 9}, reanimator.Hold, nil), // jump
-							reanimator.NewAnimFromSheet("fall", dwarfSheet, []int{10}, reanimator.Hold, nil),   // fall
+							reanimator.NewAnimFromSprites("jump", batcher.GetAnimation("jump").S, reanimator.Hold, nil), // jump
+							reanimator.NewAnimFromSprite("fall", batcher.GetSprite("fall"), reanimator.Hold, nil),   // fall
 						),
 						Check: func() int {
 							if d.Physics.Velocity.Y > 0. || d.jumping || d.toJump || d.jumpEnd ||
@@ -338,10 +362,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		d.tileQueue = []struct {
 			a int
 			t *cave.Tile
-			f struct {
-				x int
-				y int
-			}
+			f pixel.Vec
 		}{}
 		d.digging = false
 		d.attacking = false
@@ -364,7 +385,9 @@ func (d *Dwarf) Update(in *input.Input) {
 	}
 	if !d.Health.Dazed && !d.Health.Dead {
 		if constants.AimDedicated {
-			if in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. || in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0. {
+			if in.Mode != input.KeyboardMouse &&
+				(in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. ||
+				in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.) {
 				x := in.Axes["targetX"].R
 				y := in.Axes["targetY"].R
 				xA := math.Abs(x)
@@ -388,25 +411,10 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 				d.relative = pixel.V(x, y)
 				d.isRelative = true
-			} else if in.MouseMoved {
+			} else if in.Mode != input.Gamepad {
 				d.hovered = Descent.GetCave().GetTile(in.World)
-				angle := d.Transform.Pos.Sub(in.World).Angle()
-				if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
-					d.facing.x = 1
-				} else if angle < math.Pi*(3./8.) && angle > math.Pi*-(3./8.) {
-					d.facing.x = -1
-				} else {
-					d.facing.x = 0
-				}
-				if angle > math.Pi/8. && angle < math.Pi*(7./8.) {
-					d.facing.y = -1
-				} else if angle < math.Pi/-8. && angle > math.Pi*-(7./8.) {
-					d.facing.y = 1
-				} else {
-					d.facing.y = 0
-				}
+				d.facingTimer = nil
 				d.isRelative = false
-				d.facingTimer = timing.New(FacingSec)
 			}
 		} else {
 			moveSelecting := in.Get("left").Pressed() || in.Get("right").Pressed() || in.Get("up").Pressed() || in.Get("down").Pressed()
@@ -436,64 +444,74 @@ func (d *Dwarf) Update(in *input.Input) {
 			p.X += d.relative.X
 			p.Y += d.relative.Y
 			d.hovered = Descent.GetCave().GetTile(p)
-			if d.relative.X < 0 {
-				d.facing.x = -1
-			} else if d.relative.X > 0 {
-				d.facing.x = 1
-			} else {
-				d.facing.x = 0
-			}
-			if d.relative.Y < 0 {
-				d.facing.y = -1
-			} else if d.relative.Y > 0 {
-				d.facing.y = 1
-			} else {
-				d.facing.y = 0
-			}
 			d.facingTimer = timing.New(FacingSec)
 		}
 		if d.hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
 			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
+			facing := pixel.ZV
 			if (in.Get("dig").JustPressed() && !constants.DigOnRelease) || (in.Get("dig").JustReleased() && constants.DigOnRelease) {
+				if in.Mode != input.Gamepad && constants.AimDedicated {
+					angle := d.Transform.Pos.Sub(in.World).Angle()
+					if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
+						facing.X = 1
+					} else if angle < math.Pi*(3./8.) && angle > math.Pi*-(3./8.) {
+						facing.X = -1
+					} else {
+						facing.X = 0
+					}
+					if angle > math.Pi/8. && angle < math.Pi*(7./8.) {
+						facing.Y = -1
+					} else if angle < math.Pi/-8. && angle > math.Pi*-(7./8.) {
+						facing.Y = 1
+					} else {
+						facing.Y = 0
+					}
+				} else if d.isRelative {
+					if d.relative.X < 0 {
+						facing.X = -1
+					} else if d.relative.X > 0 {
+						facing.X = 1
+					} else {
+						facing.X = 0
+					}
+					if d.relative.Y < 0 {
+						facing.Y = -1
+					} else if d.relative.Y > 0 {
+						facing.Y = 1
+					} else {
+						facing.Y = 0
+					}
+				}
 				if d.hovered.Solid() && d.selectLegal {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
 						t *cave.Tile
-						f struct {
-							x int
-							y int
-						}
+						f pixel.Vec
 					}{
 						a: 0,
 						t: d.hovered,
-						f: d.facing,
+						f: facing,
 					})
 				} else {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
 						t *cave.Tile
-						f struct {
-							x int
-							y int
-						}
+						f pixel.Vec
 					}{
 						a: 2,
 						t: nil,
-						f: d.facing,
+						f: facing,
 					})
 				}
 			} else if ((in.Get("mark").JustPressed() && !constants.DigOnRelease) || (in.Get("mark").JustReleased() && constants.DigOnRelease)) && d.hovered.Solid() && d.selectLegal {
 				d.tileQueue = append(d.tileQueue, struct {
 					a int
 					t *cave.Tile
-					f struct {
-						x int
-						y int
-					}
+					f pixel.Vec
 				}{
 					a: 1,
 					t: d.hovered,
-					f: d.facing,
+					f: facing,
 				})
 			}
 		}
@@ -523,6 +541,22 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.distFell = 0.
 				Mark(next.t)
 			} else {
+				var x, y float64
+				if d.facing.Y < 0 {
+					y = d.Transform.Pos.Y - world.TileSize * 0.6
+				} else if d.facing.Y > 0 {
+					y = d.Transform.Pos.Y + world.TileSize * 0.6
+				} else {
+					y = d.Transform.Pos.Y
+				}
+				if d.facing.X < 0 {
+					x = d.Transform.Pos.X - world.TileSize * 0.6
+				} else if d.facing.X > 0 {
+					x = d.Transform.Pos.X + world.TileSize * 0.6
+				} else {
+					x = d.Transform.Pos.X
+				}
+				d.attackPoint = pixel.V(x, y)
 				d.digging = false
 				d.attacking = true
 				d.jumping = false
@@ -541,8 +575,13 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.attacking = false
 			d.jumping = false
 			d.walking = false
+			if d.hovered.Transform.Pos.X < d.Transform.Pos.X {
+				d.facing.X = -1
+			} else {
+				d.facing.X = 1
+			}
 		} else {
-			if d.digging || d.attacking {
+			if d.digging || d.attacking || d.marking {
 				if !d.Physics.Grounded && !d.airDig && d.Bubble == nil {
 					d.airDig = true
 				}
@@ -564,7 +603,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.jumping = false
 				d.climbing = false
 				d.distFell = 0.
-			} else if !d.marking {
+			} else {
 				canJump := d.Physics.NearGround || d.Physics.Grounded
 				canClimb := d.Physics.RightWalled || d.Physics.LeftWalled
 
@@ -625,12 +664,13 @@ func (d *Dwarf) Update(in *input.Input) {
 							d.faceLeft = true
 						}
 					} else if in.Get("up").Pressed() && !d.Physics.Grounded &&
+						!(in.Get("left").Pressed() || in.Get("right").Pressed()) &&
 						((d.Collider.CDL && d.faceLeft) || (d.Collider.CDR && !d.faceLeft)) {
 						d.Physics.SetVelY(d.ClimbSpeed, 0.)
 						if d.faceLeft {
-							d.Physics.SetVelX(-LedgeClimbSpd, AirAcceleration)
+							d.Physics.SetVelX(-Speed, AirAcceleration)
 						} else {
-							d.Physics.SetVelX(LedgeClimbSpd, AirAcceleration)
+							d.Physics.SetVelX(Speed, AirAcceleration)
 						}
 					} else {
 						d.climbing = false
@@ -711,16 +751,16 @@ func (d *Dwarf) Update(in *input.Input) {
 			}
 		}
 	}
-	if d.facingTimer.UpdateDone() {
+	if d.facingTimer != nil && d.facingTimer.UpdateDone() {
 		if d.faceLeft {
-			d.facing.x = -1
+			d.facing.X = -1
 		} else {
-			d.facing.x = 1
+			d.facing.X = 1
 		}
-		d.facing.y = 0
-	} else if d.facing.x < 0 && (d.digHold || d.markHold || d.digging || d.marking || d.attacking) {
+		d.facing.Y = 0
+	} else if d.facing.X < 0 && (d.digHold || d.markHold || d.digging || d.marking || d.attacking) {
 		d.faceLeft = true
-	} else if d.facing.x > 0 && (d.digHold || d.markHold || d.digging || d.marking || d.attacking) {
+	} else if d.facing.X > 0 && (d.digHold || d.markHold || d.digging || d.marking || d.attacking) {
 		d.faceLeft = false
 	}
 
@@ -739,9 +779,9 @@ func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
 	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
 	if d.hovered != nil && !d.Health.Dazed {
 		if d.hovered.Solid() && d.selectLegal {
-			particles.CreateStaticParticle("target", d.hovered.Transform.Pos)
+			img.Batchers[constants.ParticleKey].DrawSprite("target", d.hovered.Transform.Mat)
 		} else {
-			particles.CreateStaticParticle("target_blank", d.hovered.Transform.Pos)
+			img.Batchers[constants.ParticleKey].DrawSprite("target_blank", d.hovered.Transform.Mat)
 		}
 	}
 	if debug.Text {

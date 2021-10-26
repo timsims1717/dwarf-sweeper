@@ -135,7 +135,7 @@ func (tile *Tile) Update() {
 func (tile *Tile) Draw(target pixel.Target) {
 	if !tile.Destroyed {
 		if tile.BGSprite != nil {
-			tile.BGSprite.Draw(target, tile.BGSMatrix.Moved(tile.Transform.Pos))
+			tile.BGSprite.Draw(target, tile.BGSMatrix.ScaledXY(pixel.ZV, pixel.V(1.0001, 1.0001)).Moved(tile.Transform.Pos))
 		}
 		if tile.FGSprite != nil {
 			tile.FGSprite.Draw(target, tile.Transform.Mat)

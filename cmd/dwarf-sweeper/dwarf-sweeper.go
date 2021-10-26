@@ -7,7 +7,6 @@ import (
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
-	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/state"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -53,7 +52,6 @@ func run() {
 	credits.Initialize()
 
 	vfx.Initialize()
-	particles.Initialize()
 	splash, err := img.LoadImage("assets/img/splash.png")
 	if err != nil {
 		panic(err)
@@ -64,21 +62,31 @@ func run() {
 		panic(err)
 	}
 	state.Title = pixel.NewSprite(title, title.Bounds())
+	sheet0, err := img.LoadSpriteSheet("assets/img/dwarf.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.DwarfKey, sheet0, false)
 	sheet, err := img.LoadSpriteSheet("assets/img/entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers[constants.EntityKey] = img.NewBatcher(sheet, true)
-	sheet2, err := img.LoadSpriteSheet("assets/img/big_entities.json")
+	img.AddBatcher(constants.EntityKey, sheet, true)
+	sheet2, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers[constants.BigEntityKey] = img.NewBatcher(sheet2, true)
+	img.AddBatcher(constants.TileEntityKey, sheet2, true)
+	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.ParticleKey, partSheet, true)
 	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
 	if err != nil {
 		panic(err)
 	}
-	img.Batchers[constants.MenuSprites] = img.NewBatcher(menuSheet, false)
+	img.AddBatcher(constants.MenuSprites, menuSheet, false)
 
 	menus.Initialize()
 	state.InitializeMenus(win)

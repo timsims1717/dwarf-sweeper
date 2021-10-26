@@ -8,7 +8,6 @@ import (
 	"dwarf-sweeper/internal/descent/generate"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/player"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/systems"
@@ -127,6 +126,11 @@ func Update(win *pixelgl.Window) {
 		descent.Descent.Type = descent.Minesweeper
 		descent.Descent.Level = 1
 		descent.Descent.Start = true
+		//b := minesweeper.CreateBoard(5, 5, 10, random.Effects)
+		//b.PrintToTerminalFull()
+		//b.RevealTilSolvable(random.Effects)
+		//b.PrintToTerminal()
+		//fmt.Printf("Was it solvable: %t", b.Solvable())
 	}
 	if debugInput.Get("debugSP").JustPressed() {
 		splashScale *= 1.2
@@ -136,136 +140,131 @@ func Update(win *pixelgl.Window) {
 		splashScale /= 1.2
 		fmt.Printf("Splash Scale: %f\n", splashScale)
 	}
-	if win.Focused() {
-		frame := false
-		if debugInput.Get("debugPause").JustPressed() {
-			if !debugPause {
-				fmt.Println("DEBUG PAUSE")
-				debugPause = true
-			} else {
-				frame = true
-			}
-		} else if debugInput.Get("debugResume").JustPressed() {
-			fmt.Println("DEBUG RESUME")
-			debugPause = false
+	frame := false
+	if debugInput.Get("debugPause").JustPressed() {
+		if !debugPause {
+			fmt.Println("DEBUG PAUSE")
+			debugPause = true
+		} else {
+			frame = true
 		}
-		if !debugPause || frame {
-			if state == 0 {
-				bl, tr := descent.Descent.GetCave().CurrentBoundaries()
-				bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
-				bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
-				tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
-				tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
-				reanimator.Update()
-				UpdateMenus(win)
-				if MenuClosed() {
-					descent.Update()
-					descent.Descent.GetPlayer().Update(data.GameInput)
-					systems.EntitySystem()
-					systems.PhysicsSystem()
-					systems.CollisionSystem()
-					systems.ParentSystem()
-					systems.TransformSystem()
-					systems.CollectSystem()
-					systems.InteractSystem()
-					systems.HealingSystem()
-					systems.AreaDamageSystem()
-					systems.DamageSystem()
-					systems.HealthSystem()
-					systems.PopUpSystem()
-					particles.Update()
-					vfx.Update()
-					descent.Descent.GetPlayer().Update2()
-					descent.UpdateInventory()
-					systems.AnimationSystem()
-					player.UpdateHUD()
-					if data.GameInput.Get("up").JustPressed() &&
-						descent.Descent.GetPlayerTile().IsExit() &&
-						descent.Descent.CanExit() {
-						SwitchState(5)
-					}
+	} else if debugInput.Get("debugResume").JustPressed() {
+		fmt.Println("DEBUG RESUME")
+		debugPause = false
+	}
+	if !debugPause || frame {
+		if state == 0 {
+			reanimator.Update()
+			UpdateMenus(win)
+			if menuInput.Get("pause").JustPressed() || !win.Focused() {
+				menuInput.Get("pause").Consume()
+				if MenuClosed() && !descent.Descent.GetPlayer().Health.Dead {
+					OpenMenu(PauseMenu)
+					sfx.MusicPlayer.PauseMusic("game", true)
+					sfx.MusicPlayer.UnpauseOrNext("pause")
 				}
-				camera.Cam.Restrict(bl, tr)
-				if dead, ok := timerKeys["death"]; (!ok || !dead) && descent.Descent.GetPlayer().Health.Dead {
-					timer = timing.New(5.)
-					timerKeys["death"] = true
-				}
-				if dead, ok := timerKeys["death"]; ok && dead {
-					timer.Update()
-					if (timer.Elapsed() > 2. && descent.Descent.GetPlayer().DeadStop) ||
-						(timer.Elapsed() > 4. && descent.Descent.GetPlayer().Health.Dead) {
-						SwitchState(2)
-					}
-				}
-				if menuInput.Get("pause").JustPressed() {
-					menuInput.Get("pause").Consume()
-					if MenuClosed() && !descent.Descent.GetPlayer().Health.Dead {
-						OpenMenu(PauseMenu)
-						sfx.MusicPlayer.PauseMusic("game", true)
-						sfx.MusicPlayer.UnpauseOrNext("pause")
-					}
-				}
-			} else if state == 1 {
-				pressAKey.Transform.UIPos = camera.Cam.APos
-				pressAKey.Transform.UIZoom = camera.Cam.GetZoomScale()
-				pressAKey.Update(pixel.Rect{})
-				if pressAKeyTimer.UpdateDone() {
-					pressAKey.NoShow = !pressAKey.NoShow
-					pressAKeyTimer = timing.New(pressAKeySec)
-				}
-				titleTran.Scalar = pixel.V(titleScale, titleScale)
-				titleTran.UIPos = camera.Cam.APos
-				titleTran.UIZoom = camera.Cam.GetZoomScale()
-				titleTran.Update()
-				splashTran.Scalar = pixel.V(splashScale, splashScale)
-				splashTran.UIPos = camera.Cam.APos
-				splashTran.UIZoom = camera.Cam.GetZoomScale()
-				splashTran.Update()
-				if credits.Opened() {
-					credits.Update()
-					if pressed, _ := menuInput.AnyJustPressed(true); pressed {
-						credits.Close()
-					}
-				} else {
-					UpdateMenus(win)
-					pressed, mode := menuInput.AnyJustPressed(true)
-					if MenuClosed() && pressed {
-						OpenMenu(MainMenu)
-						data.GameInput.Mode = mode
-					}
-				}
-				//debug.AddText(fmt.Sprintf("Input TLines: %d", InputMenu.TLines))
-				//debug.AddText(fmt.Sprintf("Input Top: %d", InputMenu.Top))
-				//debug.AddText(fmt.Sprintf("Input Curr: %d", InputMenu.Items[InputMenu.Hovered].CurrLine))
-			} else if state == 2 {
-				reanimator.Update()
+			}
+			if MenuClosed() {
 				descent.Update()
-				systems.PhysicsSystem()
-				systems.TransformSystem()
-				systems.CollisionSystem()
-				systems.EntitySystem()
-				particles.Update()
-				vfx.Update()
 				descent.Descent.GetPlayer().Update(data.GameInput)
+				systems.EntitySystem()
+				systems.PhysicsSystem()
+				systems.CollisionSystem()
+				systems.ParentSystem()
+				systems.TransformSystem()
+				systems.CollectSystem()
+				systems.InteractSystem()
+				systems.HealingSystem()
+				systems.AreaDamageSystem()
+				systems.DamageSystem()
+				systems.HealthSystem()
+				systems.PopUpSystem()
+				vfx.Update()
+				descent.Descent.GetPlayer().Update2()
+				descent.UpdateInventory()
 				systems.AnimationSystem()
 				player.UpdateHUD()
-				UpdateMenus(win)
-				if MenuClosed() {
-					SwitchState(1)
+				if data.GameInput.Get("up").JustPressed() &&
+					descent.Descent.GetPlayerTile().IsExit() &&
+					descent.Descent.CanExit() {
+					SwitchState(5)
 				}
-			} else if state == 4 {
+			}
+			if dead, ok := timerKeys["death"]; (!ok || !dead) && descent.Descent.GetPlayer().Health.Dead {
+				timer = timing.New(5.)
+				timerKeys["death"] = true
+			}
+			if dead, ok := timerKeys["death"]; ok && dead {
+				timer.Update()
+				if (timer.Elapsed() > 2. && descent.Descent.GetPlayer().DeadStop) ||
+					(timer.Elapsed() > 4. && descent.Descent.GetPlayer().Health.Dead) {
+					SwitchState(2)
+				}
+			}
+			bl, tr := descent.Descent.GetCave().CurrentBoundaries()
+			bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
+			bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
+			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
+			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
+			camera.Cam.Restrict(bl, tr)
+		} else if state == 1 {
+			pressAKey.Transform.UIPos = camera.Cam.APos
+			pressAKey.Transform.UIZoom = camera.Cam.GetZoomScale()
+			pressAKey.Update(pixel.Rect{})
+			if pressAKeyTimer.UpdateDone() {
+				pressAKey.NoShow = !pressAKey.NoShow
+				pressAKeyTimer = timing.New(pressAKeySec)
+			}
+			titleTran.Scalar = pixel.V(titleScale, titleScale)
+			titleTran.UIPos = camera.Cam.APos
+			titleTran.UIZoom = camera.Cam.GetZoomScale()
+			titleTran.Update()
+			splashTran.Scalar = pixel.V(splashScale, splashScale)
+			splashTran.UIPos = camera.Cam.APos
+			splashTran.UIZoom = camera.Cam.GetZoomScale()
+			splashTran.Update()
+			if credits.Opened() {
+				credits.Update()
+				if pressed, _ := menuInput.AnyJustPressed(true); pressed {
+					credits.Close()
+				}
+			} else {
+				UpdateMenus(win)
+				pressed, mode := menuInput.AnyJustPressed(true)
+				if MenuClosed() && pressed {
+					OpenMenu(MainMenu)
+					data.GameInput.Mode = mode
+				}
+			}
+			//debug.AddText(fmt.Sprintf("Input TLines: %d", InputMenu.TLines))
+			//debug.AddText(fmt.Sprintf("Input Top: %d", InputMenu.Top))
+			//debug.AddText(fmt.Sprintf("Input Curr: %d", InputMenu.Items[InputMenu.Hovered].CurrLine))
+		} else if state == 2 {
+			reanimator.Update()
+			descent.Update()
+			systems.PhysicsSystem()
+			systems.TransformSystem()
+			systems.CollisionSystem()
+			systems.EntitySystem()
+			vfx.Update()
+			descent.Descent.GetPlayer().Update(data.GameInput)
+			systems.AnimationSystem()
+			player.UpdateHUD()
+			UpdateMenus(win)
+			if MenuClosed() {
+				SwitchState(1)
+			}
+		} else if state == 4 {
+			SwitchState(0)
+		} else if state == 5 {
+			reanimator.Update()
+			descent.Update()
+			vfx.Update()
+			player.UpdateHUD()
+			UpdateMenus(win)
+			if MenuClosed() {
+				ClearEnchantMenu()
 				SwitchState(0)
-			} else if state == 5 {
-				reanimator.Update()
-				descent.Update()
-				particles.Update()
-				vfx.Update()
-				player.UpdateHUD()
-				UpdateMenus(win)
-				if MenuClosed() {
-					ClearEnchantMenu()
-					SwitchState(0)
-				}
 			}
 		}
 	}
@@ -284,12 +283,7 @@ func Draw(win *pixelgl.Window) {
 		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
-		for _, batcher := range img.Batchers {
-			if batcher.AutoDraw {
-				batcher.Draw(win)
-			}
-		}
-		particles.Draw(win)
+		img.DrawBatches(win)
 		vfx.Draw(win)
 		systems.PopUpDraw(win)
 		player.DrawHUD(win)
@@ -315,12 +309,7 @@ func Draw(win *pixelgl.Window) {
 		descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
-		for _, batcher := range img.Batchers {
-			if batcher.AutoDraw {
-				batcher.Draw(win)
-			}
-		}
-		particles.Draw(win)
+		img.DrawBatches(win)
 		vfx.Draw(win)
 		player.DrawHUD(win)
 		descent.ScoreTimer.Update()
@@ -353,12 +342,7 @@ func Draw(win *pixelgl.Window) {
 		descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
-		for _, batcher := range img.Batchers {
-			if batcher.AutoDraw {
-				batcher.Draw(win)
-			}
-		}
-		particles.Draw(win)
+		img.DrawBatches(win)
 		vfx.Draw(win)
 		player.DrawHUD(win)
 		for _, m := range menuStack {
@@ -441,7 +425,6 @@ func updateState() {
 				AddComponent(myecs.Transform, descent.Descent.GetCave().GetExit().Transform).
 				AddComponent(myecs.Temp, myecs.ClearFlag(false))
 
-			particles.Clear()
 			vfx.Clear()
 			//dungeon.Entities.Clear()
 

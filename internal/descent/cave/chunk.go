@@ -2,6 +2,7 @@ package cave
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
@@ -17,18 +18,13 @@ type Chunk struct {
 
 func NewChunk(coords world.Coords, c *Cave) *Chunk {
 	// Array of 1024 bools
-	list := [constants.ChunkArea]bool{}
+	var list []bool
 	// fill first BombPMin-BombPMax% with true
 	if c.BombPMax > 0. && c.BombPMin > 0. && c.BombPMax - c.BombPMin > 0. {
 		bCount := random.CaveGen.Intn(constants.ChunkArea/int(100*(c.BombPMax-c.BombPMin))) + constants.ChunkArea/int(100*c.BombPMin)
-		for i := 0; i < bCount; i++ {
-			list[i] = true
-		}
-		// randomize list
-		for i := len(list) - 1; i > 0; i-- {
-			j := random.CaveGen.Intn(i)
-			list[i], list[j] = list[j], list[i]
-		}
+		list = minesweeper.CreateBoard(constants.ChunkSize, constants.ChunkSize, bCount, random.CaveGen).AsArray()
+	} else {
+		list = make([]bool, constants.ChunkArea)
 	}
 	// create chunk, distribute bombs (trues), build tiles
 	chunk := &Chunk{

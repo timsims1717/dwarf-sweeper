@@ -4,27 +4,85 @@
  "width": 16,
  "singleRow": true,
  "sprites": [
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {}
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "jump",
+   "anim": true
+  },
+  {
+   "key": "jump",
+   "anim": true
+  },
+  {
+   "key": "fall",
+   "anim": true
+  },
+  {
+   "key": "dig",
+   "anim": true
+  },
+  {
+   "key": "dig",
+   "anim": true
+  },
+  {
+   "key": "dig",
+   "anim": true
+  },
+  {
+   "key": "mark",
+   "anim": true
+  },
+  {
+   "key": "hit_front",
+   "anim": true
+  },
+  {
+   "key": "hit_back",
+   "anim": true
+  },
+  {
+   "key": "flat",
+   "anim": true
+  },
+  {
+   "key": "climb",
+   "anim": true
+  },
+  {
+   "key": "climb",
+   "anim": true
+  },
+  {
+   "key": "climb",
+   "anim": true
+  },
+  {
+   "key": "climb",
+   "anim": true
+  }
  ]
 }

@@ -31,6 +31,7 @@ var (
 	EnchantMenu    *menus.DwarfMenu
 	PostMenu       *menus.DwarfMenu
 	KeyString      string
+	focused        bool
 )
 
 func InitializeMenus(win *pixelgl.Window) {
@@ -48,8 +49,16 @@ func InitializeMenus(win *pixelgl.Window) {
 }
 
 func UpdateMenus(win *pixelgl.Window) {
+	if win.Focused() && !focused {
+		focused = true
+	} else if !win.Focused() && focused {
+		focused = false
+	}
 	if len(menuStack) > 0 {
 		currMenu := menuStack[len(menuStack)-1]
+		if !win.Focused() {
+			currMenu.UnhoverAll()
+		}
 		currMenu.Update(menuInput)
 		if currMenu.Closed {
 			if len(menuStack) > 1 {

@@ -14,9 +14,11 @@ const (
 	DrawDistance = 24.0 * TileSize
 
 	// Batcher Keys
-	EntityKey    = "entities"
-	BigEntityKey = "big_entities"
-	MenuSprites  = "menu_sprites"
+	DwarfKey      = "dwarf"
+	EntityKey     = "entities"
+	TileEntityKey = "tile_entities"
+	MenuSprites   = "menu_sprites"
+	ParticleKey   = "particle_sprites"
 
 	// Config
 	LinuxDir = "/.local/share/DwarfSweeper"

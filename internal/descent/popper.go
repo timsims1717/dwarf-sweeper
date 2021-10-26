@@ -10,8 +10,6 @@ import (
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/util"
-	"dwarf-sweeper/pkg/world"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"math"
@@ -49,27 +47,29 @@ type Popper struct {
 }
 
 func (p *Popper) Update() {
-	if !p.Health.Dazed && !p.Health.Dead {
-		//action := p.action
-		//goUnder := false
-		ray := Descent.GetPlayer().Transform.Pos.Sub(p.Transform.Pos)
-		distance := util.Magnitude(ray)
-		//angle := ray.Angle()
-		// todo: blocked
-		if distance > world.TileSize * seekDist || distance > world.TileSize * fireDist {
-			//goUnder = true
-		}
-		switch p.action {
-		case Wait:
-			if distance < world.TileSize * seekDist {
-				//action = Seek
-			}
-		case Seek:
-			// todo: find target
-		}
-	} else {
-
-	}
+	//if !p.Health.Dazed && !p.Health.Dead {
+	//	action := p.action
+	//	ray := Descent.GetPlayer().Transform.Pos.Sub(p.Transform.Pos)
+	//	distance := util.Magnitude(ray)
+	//	angle := ray.Angle()
+	//	// todo: blocked
+	//	goUnder := distance > world.TileSize * seekDist || distance > world.TileSize * fireDist
+	//	wait := distance > world.TileSize * seekDist
+	//	switch p.action {
+	//	case Wait:
+	//		if !wait {
+	//			action = Seek
+	//		}
+	//	case Seek:
+	//		if wait {
+	//			action = Wait
+	//		} else {
+	//
+	//		}
+	//	}
+	//} else {
+	//
+	//}
 }
 
 func (p *Popper) Create(pos pixel.Vec) {

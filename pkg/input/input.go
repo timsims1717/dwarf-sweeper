@@ -45,85 +45,87 @@ type Input struct {
 }
 
 func (i *Input) Update(win *pixelgl.Window) {
-	updateConsume(win, i.Joystick)
-	i.Cursor = win.MousePosition()
-	i.World = camera.Cam.Mat.Unproject(win.MousePosition())
-	i.ScrollV = win.MouseScroll().Y
-	i.ScrollH = win.MouseScroll().X
-	i.MouseMoved = !win.MousePreviousPosition().Eq(win.MousePosition())
-	i.joyConn = win.JoystickPresent(i.Joystick)
+	if win.Focused() {
+		updateConsume(win, i.Joystick)
+		i.Cursor = win.MousePosition()
+		i.World = camera.Cam.Mat.Unproject(win.MousePosition())
+		i.ScrollV = win.MouseScroll().Y
+		i.ScrollH = win.MouseScroll().X
+		i.MouseMoved = !win.MousePreviousPosition().Eq(win.MousePosition())
+		i.joyConn = win.JoystickPresent(i.Joystick)
 
-	if i.joyConn && i.Mode != KeyboardMouse {
-		for _, set := range i.Axes {
-			f := win.JoystickAxis(i.Joystick, set.A)
-			set.R = f
-			if f > Deadzone || f < -Deadzone {
-				set.F = f
-			} else {
-				set.F = 0.
+		if i.joyConn && i.Mode != KeyboardMouse {
+			for _, set := range i.Axes {
+				f := win.JoystickAxis(i.Joystick, set.A)
+				set.R = f
+				if f > Deadzone || f < -Deadzone {
+					set.F = f
+				} else {
+					set.F = 0.
+				}
 			}
 		}
-	}
 
-	for _, set := range i.Buttons {
-		wasPressed := set.Button.pressed
-		nowPressed := false
-		modePressed := Any
-		repeated := false
-		if i.joyConn && !set.noJoy && i.Mode != KeyboardMouse {
-			for _, g := range set.Buttons {
-				if c, ok := consumeGamepad[g]; !ok || !c {
-					nowPressed = win.JoystickPressed(i.Joystick, g) || nowPressed
-					if win.JoystickPressed(i.Joystick, g) {
-						modePressed = Gamepad
-					}
-					if i.StickD {
-						if g == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -Deadzone {
-							nowPressed = true
-							modePressed = Gamepad
-						} else if g == pixelgl.ButtonDpadRight && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) > Deadzone {
-							nowPressed = true
+		for _, set := range i.Buttons {
+			wasPressed := set.Button.pressed
+			nowPressed := false
+			modePressed := Any
+			repeated := false
+			if i.joyConn && !set.noJoy && i.Mode != KeyboardMouse {
+				for _, g := range set.Buttons {
+					if c, ok := consumeGamepad[g]; !ok || !c {
+						nowPressed = win.JoystickPressed(i.Joystick, g) || nowPressed
+						if win.JoystickPressed(i.Joystick, g) {
 							modePressed = Gamepad
 						}
-						if g == pixelgl.ButtonDpadUp && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) < -Deadzone {
-							nowPressed = true
-							modePressed = Gamepad
-						} else if g == pixelgl.ButtonDpadDown && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) > Deadzone {
-							nowPressed = true
-							modePressed = Gamepad
+						if i.StickD {
+							if g == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -Deadzone {
+								nowPressed = true
+								modePressed = Gamepad
+							} else if g == pixelgl.ButtonDpadRight && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) > Deadzone {
+								nowPressed = true
+								modePressed = Gamepad
+							}
+							if g == pixelgl.ButtonDpadUp && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) < -Deadzone {
+								nowPressed = true
+								modePressed = Gamepad
+							} else if g == pixelgl.ButtonDpadDown && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) > Deadzone {
+								nowPressed = true
+								modePressed = Gamepad
+							}
 						}
 					}
 				}
+				if set.AxisV != 0 &&
+					((win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.AxisV > 0) ||
+						(win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.AxisV < 0)) {
+					nowPressed = true
+					modePressed = Gamepad
+				}
 			}
-			if set.AxisV != 0 &&
-				((win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.AxisV > 0) ||
-					(win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.AxisV < 0)) {
-				nowPressed = true
-				modePressed = Gamepad
-			}
-		}
-		if i.Mode != Gamepad {
-			for _, s := range set.Keys {
-				if c, ok := consumeKey[s]; !ok || !c {
-					nowPressed = win.Pressed(s) || nowPressed
-					repeated = win.Repeated(s) || repeated
-					if win.Pressed(s) {
+			if i.Mode != Gamepad {
+				for _, s := range set.Keys {
+					if c, ok := consumeKey[s]; !ok || !c {
+						nowPressed = win.Pressed(s) || nowPressed
+						repeated = win.Repeated(s) || repeated
+						if win.Pressed(s) {
+							modePressed = KeyboardMouse
+						}
+					}
+				}
+				if set.Scroll != 0 {
+					if (win.MouseScroll().Y > 0. && set.Scroll > 0) || (win.MouseScroll().Y < 0. && set.Scroll < 0) {
+						nowPressed = true
 						modePressed = KeyboardMouse
 					}
 				}
 			}
-			if set.Scroll != 0 {
-				if (win.MouseScroll().Y > 0. && set.Scroll > 0) || (win.MouseScroll().Y < 0. && set.Scroll < 0) {
-					nowPressed = true
-					modePressed = KeyboardMouse
-				}
-			}
+			set.Button.justPressed = nowPressed && !wasPressed
+			set.Button.pressed = nowPressed
+			set.Button.justReleased = !nowPressed && wasPressed
+			set.Button.repeated = repeated
+			set.LastMode = Mode(modePressed)
 		}
-		set.Button.justPressed = nowPressed && !wasPressed
-		set.Button.pressed = nowPressed
-		set.Button.justReleased = !nowPressed && wasPressed
-		set.Button.repeated = repeated
-		set.LastMode = Mode(modePressed)
 	}
 }
 

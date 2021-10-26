@@ -1,0 +1,19 @@
+{
+  "img": "tile_entities.png",
+  "sprites": [
+    {
+      "key": "chest_closed",
+      "x": 0,
+      "y": 0,
+      "h": 16,
+      "w": 16
+    },
+    {
+      "key": "chest_opened",
+      "x": 16,
+      "y": 0,
+      "h": 16,
+      "w": 16
+    }
+  ]
+}

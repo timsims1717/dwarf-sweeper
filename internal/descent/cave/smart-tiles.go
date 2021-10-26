@@ -68,8 +68,10 @@ func SmartTileNum(list string) (string, pixel.Matrix) {
 func SmartTileSolid(t TileType, list string) (string, pixel.Matrix) {
 	s := "blank"
 	switch t {
-	case BlockCollapse, BlockDig, BlockBlast:
+	case BlockCollapse, BlockBlast:
 		s = "block"
+	case BlockDig:
+		s = "blockb"
 	case Wall:
 		s = "wall"
 	}

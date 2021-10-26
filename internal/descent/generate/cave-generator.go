@@ -124,7 +124,6 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 		RandRectRoom(newCave, 7, (constants.ChunkSize/ 4) * 3, include)
 	}
 	newCave.MarkAsNotChanged()
-
 	count = random.CaveGen.Intn(4) + 4
 	for i := 0; i < count; i++ {
 		s := path[random.CaveGen.Intn(len(path))]
@@ -133,6 +132,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 			NoodleCave(newCave, s, dir)
 		}
 	}
+	newCave.MarkAsNotChanged()
 	for _, d := range deadends {
 		if world.Distance(newCave.StartC, d) > 8 && world.Distance(newCave.ExitC, d) > 8 {
 			if random.CaveGen.Intn(3) == 0 {
