@@ -1,25 +1,27 @@
 package myecs
 
 import (
+	"dwarf-sweeper/internal/data"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 )
 
 var (
 	Count = 0
-	Clear = false
 )
 
 var (
 	Manager  = ecs.NewManager()
 
 	Temp = Manager.NewComponent()
+	Func = Manager.NewComponent()
 
 	Animation = Manager.NewComponent()
 	Batch     = Manager.NewComponent()
 	Sprite    = Manager.NewComponent()
 	Entity    = Manager.NewComponent()
 	PopUp     = Manager.NewComponent()
+	VFX       = Manager.NewComponent()
 
 	Physics   = Manager.NewComponent()
 	Transform = Manager.NewComponent()
@@ -33,13 +35,15 @@ var (
 	Damage  = Manager.NewComponent()
 	AreaDmg = Manager.NewComponent()
 
-	IsTemp = ecs.BuildTag(Temp)
+	IsTemp  = ecs.BuildTag(Temp, Transform)
+	HasFunc = ecs.BuildTag(Func)
 
 	HasAnimation   = ecs.BuildTag(Animation, Transform)
 	HasAnimDrawing = ecs.BuildTag(Animation, Transform, Batch)
 	HasSprDrawing  = ecs.BuildTag(Sprite, Transform, Batch)
 	IsEntity       = ecs.BuildTag(Entity, Transform)
 	HasPopUp       = ecs.BuildTag(PopUp, Transform)
+	HasVFX         = ecs.BuildTag(VFX, Transform)
 
 	HasTransform  = ecs.BuildTag(Transform)
 	HasParent     = ecs.BuildTag(Transform, Parent)
@@ -70,3 +74,15 @@ type AnEntity interface {
 }
 
 type ClearFlag bool
+
+func AddEffect(entity *ecs.Entity, effect interface{}) {
+	if entity.HasComponent(VFX) {
+		if vfxC, ok := entity.GetComponentData(VFX); ok {
+			if vfx, ok := vfxC.(*data.VFX); ok {
+				vfx.Effects = append(vfx.Effects, effect)
+			}
+		}
+	} else {
+		entity.AddComponent(VFX, &data.VFX{Effects: []interface{}{effect}})
+	}
+}

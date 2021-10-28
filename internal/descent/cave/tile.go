@@ -56,34 +56,40 @@ func (t TileType) String() string {
 }
 
 type Tile struct {
-	Type       TileType
-	Special    bool
-	SubCoords  world.Coords
-	RCoords    world.Coords
-	SmartStr   string
-	BGSprite   *pixel.Sprite
-	BGSpriteS  string
-	BGSMatrix  pixel.Matrix
-	FGSprite   *pixel.Sprite
-	Entity     myecs.AnEntity
-	XRay       *pixel.Sprite
-	Bomb       bool
-	Destroyed  bool
-	Fillable   bool
-	Cracked    bool
-	Transform  *transform.Transform
-	Chunk      *Chunk
-	revealT    *timing.FrameTimer
-	revealing  bool
-	destroyT   *timing.FrameTimer
-	destroying bool
-	reload     bool
-	Marked     bool
-	Exit       bool
+	Type      TileType
+	Special   bool
+	SubCoords world.Coords
+	RCoords   world.Coords
+	Transform *transform.Transform
+	Chunk     *Chunk
+
+	SmartStr    string
+	BGSprite    *pixel.Sprite
+	BGSpriteS   string
+	BGMatrix    pixel.Matrix
+	FGSprite    *pixel.Sprite
+	FGSpriteS   string
+	FGMatrix    pixel.Matrix
+	Surrounded  bool
+	DSurrounded bool
+
+	Entity      myecs.AnEntity
+	XRay        *pixel.Sprite
+	Bomb        bool
+	Destroyed   bool
+	Fillable    bool
+	revealT     *timing.FrameTimer
+	revealing   bool
+	destroying  bool
+	reload      bool
+	Marked      bool
+	Exit        bool
 
 	NeverChange bool
 	IsChanged   bool
-	DigTrigger  func(*Tile)
+	PartOfPath  bool
+
+	DestroyTrigger func(*Tile)
 }
 
 func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
@@ -96,7 +102,7 @@ func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 		RCoords:   world.Coords{ X: x + ch.X * constants.ChunkSize, Y: y + ch.Y * constants.ChunkSize},
 		BGSprite:  spr,
 		BGSpriteS: startSprite,
-		BGSMatrix: pixel.IM,
+		BGMatrix:  pixel.IM,
 		Bomb:      bomb,
 		Transform: tran,
 		Chunk:     chunk,
@@ -120,9 +126,7 @@ func (tile *Tile) Update() {
 		tile.reload = false
 	}
 	if !tile.Destroyed && tile.destroying && tile.Breakable() {
-		if tile.destroyT.UpdateDone() {
-			tile.Destroy(false)
-		}
+		tile.destroy()
 	}
 	if tile.Solid() && !tile.Destroyed && tile.revealing && tile.Breakable() {
 		if tile.revealT.UpdateDone() {
@@ -135,25 +139,27 @@ func (tile *Tile) Update() {
 func (tile *Tile) Draw(target pixel.Target) {
 	if !tile.Destroyed {
 		if tile.BGSprite != nil {
-			tile.BGSprite.Draw(target, tile.BGSMatrix.ScaledXY(pixel.ZV, pixel.V(1.0001, 1.0001)).Moved(tile.Transform.Pos))
+			tile.BGSprite.Draw(target, tile.BGMatrix.ScaledXY(pixel.ZV, pixel.V(1.0001, 1.0001)).Moved(tile.Transform.Pos))
 		}
 		if tile.FGSprite != nil {
-			tile.FGSprite.Draw(target, tile.Transform.Mat)
+			tile.FGSprite.Draw(target, tile.FGMatrix.ScaledXY(pixel.ZV, pixel.V(1.0001, 1.0001)).Moved(tile.Transform.Pos))
 		}
-	}
-}
-
-func (tile *Tile) ToDestroy() {
-	if tile != nil && !tile.Destroyed && !tile.destroying && tile.Breakable() {
-		tile.destroyT = timing.New(revealTimer)
-		tile.destroying = true
 	}
 }
 
 func (tile *Tile) Destroy(playSound bool) {
+	if tile != nil && !tile.Destroyed && !tile.destroying && tile.Breakable() {
+		tile.destroying = true
+		if playSound {
+			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
+		}
+	}
+}
+
+func (tile *Tile) destroy() {
 	if tile != nil && !tile.Destroyed && tile.Breakable() {
-		if tile.DigTrigger != nil {
-			tile.DigTrigger(tile)
+		if tile.DestroyTrigger != nil {
+			tile.DestroyTrigger(tile)
 		}
 		wasSolid := tile.Solid()
 		tile.Chunk.Cave.UpdateBatch = true
@@ -186,9 +192,6 @@ func (tile *Tile) Destroy(playSound bool) {
 		}
 		if wasSolid {
 			particles.BlockParticles(tile.Transform.Pos, tile.Chunk.Cave.Biome)
-			if playSound {
-				sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
-			}
 			if !util.IsNil(tile.Entity) {
 				tile.Entity.Create(tile.Transform.Pos)
 			}
@@ -243,43 +246,71 @@ func (tile *Tile) UpdateSprites() {
 	if tile.Type != Deco {
 		tile.Chunk.Cave.UpdateBatch = true
 		ns := tile.SubCoords.Neighbors()
-		ss := [8]bool{}
+		tile.Surrounded = true
+		tile.DSurrounded = true
+		ss := [4]bool{}
+		ts := [8]bool{}
 		bs := [4]bool{}
 		c := 0
 		for i, n := range ns {
 			t := tile.Chunk.Get(n)
 			if t != nil {
-				if t.Bomb && t.Breakable() {
-					c++
-				}
 				if t.Solid() {
-					ss[i] = true
-				}
-				if i%2 == 0 && !t.Destroyed {
-					bs[i/2] = true
+					if t.Bomb && t.Breakable() {
+						c++
+					}
+					if t.Type == tile.Type {
+						ts[i] = true
+					}
+					if t.Surrounded && i%2 == 1 {
+						ss[i/2] = true
+					} else if !t.Surrounded {
+						tile.DSurrounded = false
+					}
+				} else {
+					tile.Surrounded = false
+					tile.DSurrounded = false
+					if i%2 == 0 && t.BGSpriteS != "" {
+						bs[i/2] = true
+					}
 				}
 			} else {
-				ss[i] = true
+				ts[i] = true
 				if i%2 == 0 {
 					bs[i/2] = true
 				}
 			}
 		}
-		var s string
-		var m pixel.Matrix
+		var bgs, fgs string
+		var bgm, fgm pixel.Matrix
 		var smartStr string
+		hasSprite := true
 		if tile.Solid() {
+			// background
 			buf := new(bytes.Buffer)
-			for _, b := range ss {
+			for _, b := range ts {
 				if b {
 					buf.Write(one)
 				} else {
 					buf.Write(zero)
 				}
 			}
-			s, m = SmartTileSolid(tile.Type, buf.String())
+			bgs, bgm = SmartTileSolid(tile.Type, buf.String(), tile.DSurrounded && tile.Chunk.Cave.Fog)
 			smartStr = buf.String()
+			// foreground
+			if tile.Surrounded && !tile.DSurrounded {
+				//buf2 := new(bytes.Buffer)
+				//for _, b := range ss {
+				//	if b {
+				//		buf2.Write(one)
+				//	} else {
+				//		buf2.Write(zero)
+				//	}
+				//}
+				//fgs, fgm = SmartTileFade(buf2.String())
+			}
 		} else if c > 0 {
+			// background
 			buf := new(bytes.Buffer)
 			for _, b := range bs {
 				if b {
@@ -288,39 +319,43 @@ func (tile *Tile) UpdateSprites() {
 					buf.Write(zero)
 				}
 			}
-			s, m = SmartTileNum(buf.String())
+			bgs, bgm = SmartTileNum(buf.String())
 			smartStr = buf.String()
+			// foreground
+			switch c {
+			case 1:
+				fgs = "one"
+			case 2:
+				fgs = "two"
+			case 3:
+				fgs = "three"
+			case 4:
+				fgs = "four"
+			case 5:
+				fgs = "five"
+			case 6:
+				fgs = "six"
+			case 7:
+				fgs = "seven"
+			case 8:
+				fgs = "eight"
+			}
+			fgm = pixel.IM
+		} else {
+			tile.FGSprite = nil
+			tile.BGSprite = nil
+			hasSprite = false
 		}
-		if tile.SmartStr != smartStr || tile.BGSpriteS != s {
-			tile.BGSMatrix = m
-			tile.BGSpriteS = s
-			tile.BGSprite = tile.Chunk.Cave.Batcher.Sprites[s]
+		if hasSprite && (tile.SmartStr != smartStr || tile.BGSpriteS != bgs) {
+			tile.BGMatrix = bgm
+			tile.BGSpriteS = bgs
+			tile.BGSprite = tile.Chunk.Cave.Batcher.Sprites[bgs]
 			tile.SmartStr = smartStr
 		}
-		tile.FGSprite = nil
-		if !tile.Solid() {
-			switch c {
-			case 0:
-				tile.BGSprite = nil
-			case 1:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["one"]
-			case 2:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["two"]
-			case 3:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["three"]
-			case 4:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["four"]
-			case 5:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["five"]
-			case 6:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["six"]
-			case 7:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["seven"]
-			case 8:
-				tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["eight"]
-			}
-		} else if tile.Cracked {
-			tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites["crack"]
+		if hasSprite && (tile.FGSpriteS != fgs) {
+			tile.FGMatrix = fgm
+			tile.FGSpriteS = fgs
+			tile.FGSprite = tile.Chunk.Cave.Batcher.Sprites[fgs]
 		}
 	}
 }
@@ -356,9 +391,13 @@ func (tile *Tile) IsExit() bool {
 }
 
 func (tile *Tile) Breakable() bool {
-	return !(tile.Type == Wall || tile.Type == Empty)
+	return !(tile.Type == Wall || tile.Type == Empty || tile.Type == Deco)
 }
 
 func (tile *Tile) Solid() bool {
 	return !(tile.Type == Deco || tile.Type == Empty)
+}
+
+func (tile *Tile) Diggable() bool {
+	return tile.Type == BlockDig || tile.Type == BlockCollapse
 }

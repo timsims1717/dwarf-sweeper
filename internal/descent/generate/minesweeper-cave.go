@@ -71,9 +71,7 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *
 	}
 	batcher := img.NewBatcher(spriteSheet, false)
 	newCave := cave.NewCave(batcher, biome, true)
-	newCave.Left = 0
-	newCave.Right = w
-	newCave.Bottom = h-1
+	newCave.SetSize(0, w, h-1)
 	newCave.StartC = world.Coords{X: 12, Y: h * constants.ChunkSize - 8}
 	exitC := newCave.StartC
 	exitC.X += chal.Width + 13
@@ -88,7 +86,7 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *
 	Entrance(newCave, newCave.StartC, 5, 3, 0, false)
 	Entrance(newCave, exitC, 5, 3, 0, true)
 	for x := newCave.StartC.X+1; x < newCave.ExitC.X; x++ {
-		toBlock(newCave.GetTileInt(x, newCave.StartC.Y), false, false)
+		toBlockCollapse(newCave.GetTileInt(x, newCave.StartC.Y), false, false)
 	}
 	newCave.MarkAsNotChanged()
 	MineBlock(newCave, chal)
@@ -106,9 +104,9 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	for i := 0; i < chal.Height; i++ {
 		for j := 0; j < chal.Width; j++ {
 			tile := c.GetTileInt(curr.X, curr.Y)
-			toBlock(tile, true, list[b])
+			toBlockCollapse(tile, true, list[b])
 			tile.Fillable = true
-			tile.DigTrigger = func(tile *cave.Tile) {
+			tile.DestroyTrigger = func(tile *cave.Tile) {
 				if !begun {
 					StartMinesweeper(c, tile)
 					begun = true

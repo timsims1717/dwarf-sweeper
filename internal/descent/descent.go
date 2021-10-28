@@ -104,8 +104,4 @@ func IncreaseLevelInf() {
 	if Descent.Cave.BombPMax > 0.4 {
 		Descent.Cave.BombPMax = 0.4
 	}
-	Descent.Cave.FuseLen -= 0.1
-	if Descent.Cave.FuseLen < 0.4 {
-		Descent.Cave.FuseLen = 0.4
-	}
 }

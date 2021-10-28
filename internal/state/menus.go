@@ -54,29 +54,32 @@ func UpdateMenus(win *pixelgl.Window) {
 	} else if !win.Focused() && focused {
 		focused = false
 	}
-	if len(menuStack) > 0 {
-		currMenu := menuStack[len(menuStack)-1]
-		if !win.Focused() {
-			currMenu.UnhoverAll()
-		}
-		currMenu.Update(menuInput)
-		if currMenu.Closed {
-			if len(menuStack) > 1 {
-				menuStack = menuStack[:len(menuStack)-1]
-			} else {
-				menuStack = []*menus.DwarfMenu{}
+	for i, me := range menuStack {
+		if i == len(menuStack)-1 {
+			if !win.Focused() {
+				me.UnhoverAll()
 			}
-		} else if currMenu.Key == "keybinding" && currMenu.IsOpen() {
-			if menuInput.Get("inputClear").JustPressed() {
-				input.ClearInput(data.GameInput, KeyString)
-				menuInput.Get("inputClear").Consume()
-				currMenu.Close()
-			} else {
-				if input.CheckAssign(win, data.GameInput, KeyString) {
-					data.GameInput.Buttons[KeyString].Consume()
-					currMenu.Close()
+			me.Update(menuInput)
+			if me.Closed {
+				if len(menuStack) > 1 {
+					menuStack = menuStack[:len(menuStack)-1]
+				} else {
+					menuStack = []*menus.DwarfMenu{}
+				}
+			} else if me.Key == "keybinding" && me.IsOpen() {
+				if menuInput.Get("inputClear").JustPressed() {
+					input.ClearInput(data.GameInput, KeyString)
+					menuInput.Get("inputClear").Consume()
+					me.Close()
+				} else {
+					if input.CheckAssign(win, data.GameInput, KeyString) {
+						data.GameInput.Buttons[KeyString].Consume()
+						me.Close()
+					}
 				}
 			}
+		} else {
+			me.Update(nil)
 		}
 	}
 }

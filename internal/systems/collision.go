@@ -187,7 +187,7 @@ func CollisionSystem() {
 							phys.RagDollX = false
 							if phys.Velocity.Y < 0 {
 								if phys.RagDollY {
-									phys.Velocity.Y = phys.Velocity.Y * -0.6
+									phys.Velocity.Y = phys.Velocity.Y * -phys.Bounciness
 									phys.RagDollY = false
 									phys.Grounded = false
 									phys.RagDollX = wasRDX
@@ -250,7 +250,7 @@ func CollisionSystem() {
 							phys.RightWalled = true
 							if phys.Velocity.X > 0 {
 								if phys.RagDollX {
-									phys.Velocity.X = phys.Velocity.X * -0.6
+									phys.Velocity.X = phys.Velocity.X * -phys.Bounciness
 									phys.RightWalled = false
 								} else {
 									phys.Velocity.X = 0
@@ -267,7 +267,7 @@ func CollisionSystem() {
 							phys.LeftWalled = true
 							if phys.Velocity.X < 0 {
 								if phys.RagDollX {
-									phys.Velocity.X = phys.Velocity.X * -0.6
+									phys.Velocity.X = phys.Velocity.X * -phys.Bounciness
 									phys.LeftWalled = false
 								} else {
 									phys.Velocity.X = 0

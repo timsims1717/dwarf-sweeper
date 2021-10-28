@@ -85,9 +85,7 @@ func (ch *Chunk) Draw(target pixel.Target) {
 	if ch.Display {
 		for _, row := range ch.Rows {
 			for _, tile := range row {
-				if !tile.Destroyed {
-					tile.Draw(target)
-				}
+				tile.Draw(target)
 			}
 		}
 	}

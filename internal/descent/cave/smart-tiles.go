@@ -65,13 +65,55 @@ func SmartTileNum(list string) (string, pixel.Matrix) {
 	}
 }
 
-func SmartTileSolid(t TileType, list string) (string, pixel.Matrix) {
+func SmartTileFade(list string) (string, pixel.Matrix) {
+	switch list {
+	case "1111":
+		return "", pixel.IM
+	case "1101":
+		return "inner_fade", img.IM
+	case "1011":
+		return "inner_fade", img.Flip
+	case "0111":
+		return "inner_fade", img.FlipFlop
+	case "1110":
+		return "inner_fade", img.Flop
+	case "1010":
+		return "cross_fade", img.IM
+	case "0101":
+		return "cross_fade", img.Flop
+	case "0110":
+		return "straight_fade", img.Flop
+	case "1100":
+		return "straight_fade", img.IM.Rotated(pixel.ZV, math.Pi * 0.5)
+	case "1001":
+		return "straight_fade", img.IM
+	case "0011":
+		return "straight_fade", img.IM.Rotated(pixel.ZV, math.Pi * -0.5)
+	case "1000":
+		return "outer_fade", img.Flip
+	case "0100":
+		return "outer_fade", img.FlipFlop
+	case "0010":
+		return "outer_fade", img.Flop
+	case "0001":
+		return "outer_fade", img.IM
+	default:
+		return "", img.IM
+	}
+}
+
+func SmartTileSolid(t TileType, list string, surrounded bool) (string, pixel.Matrix) {
+	if surrounded {
+		return "blank", pixel.IM
+	}
 	s := "blank"
 	switch t {
-	case BlockCollapse, BlockBlast:
+	case BlockCollapse:
 		s = "block"
 	case BlockDig:
 		s = "blockb"
+	case BlockBlast:
+		s = "blockc"
 	case Wall:
 		s = "wall"
 	}

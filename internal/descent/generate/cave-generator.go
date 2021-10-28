@@ -17,7 +17,6 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet, biome string) *cave.Cave {
 	newCave.StartC = world.Coords{X: 16, Y: 9}
 	newCave.GemRate = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
-	newCave.FuseLen = constants.BaseFuse
 	newCave.BombPMin = 0.2
 	newCave.BombPMax = 0.3
 	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, newCave)
@@ -61,17 +60,14 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 	startT := layers[0][start]
 	exitT := layers[2][end]
 	newCave := cave.NewCave(batcher, biome,true)
-	newCave.Left = left
-	newCave.Right = right
-	newCave.Bottom = bottom
+	newCave.SetSize(left, right, bottom)
 	newCave.StartC = startT
 	newCave.ExitC = exitT
 	newCave.GemRate = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
-	newCave.FuseLen = constants.BaseFuse
 	newCave.BombPMin = 0.1
 	newCave.BombPMax = 0.2
-	for i := 1; i < level; i += 2 {
+	for i := 1; i < level; i++ {
 		newCave.BombPMin += 0.02
 		newCave.BombPMax += 0.02
 	}
@@ -80,12 +76,6 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 	}
 	if newCave.BombPMax > 0.4 {
 		newCave.BombPMax = 0.4
-	}
-	for i := 2; i < level; i += 2 {
-		newCave.FuseLen -= 0.1
-	}
-	if newCave.FuseLen < 0.4 {
-		newCave.FuseLen = 0.4
 	}
 	CreateChunks(newCave)
 	// generate entrance (at y level 9, x between l + 10 and r - 10)
@@ -103,6 +93,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 	newCave.MarkAsNotChanged()
 	// generate paths and/or cycles from entrance to exit
 	path, deadends := SemiStraightPath(newCave, startT, exitT, data.Left, false)
+	var room []world.Coords
 	p2, d2 := SemiStraightPath(newCave, startT, exitT, data.Right, false)
 	path = append(path, p2...)
 	deadends = append(deadends, d2...)
@@ -121,7 +112,8 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 	for i := 0; i < count; i++ {
 		include := path[random.CaveGen.Intn(len(path))]
 		//fmt.Printf("rect room includes: (%d,%d)\n", include.X, include.Y)
-		RandRectRoom(newCave, 7, (constants.ChunkSize/ 4) * 3, include)
+		r1 := RandRectRoom(newCave, 7, (constants.ChunkSize/ 4) * 3, include)
+		room = append(room, r1...)
 	}
 	newCave.MarkAsNotChanged()
 	count = random.CaveGen.Intn(4) + 4
@@ -129,6 +121,9 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 		s := path[random.CaveGen.Intn(len(path))]
 		if world.Distance(newCave.StartC, s) > 8 && world.Distance(newCave.ExitC, s) > 8 {
 			dir := RandomDirection()
+			for dir == data.Down {
+				dir = RandomDirection()
+			}
 			NoodleCave(newCave, s, dir)
 		}
 	}
@@ -141,6 +136,16 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 			} else {
 				// small
 				TreasureRoom(newCave, 4, 6, 1, d)
+			}
+		}
+	}
+	newCave.MarkAsNotChanged()
+	if len(room) > 0 {
+		count = random.CaveGen.Intn(10) + 20
+		for i := 0; i < count; i++ {
+			s := room[random.CaveGen.Intn(len(room))]
+			if world.Distance(newCave.StartC, s) > 8 && world.Distance(newCave.ExitC, s) > 8 {
+				BombableNode(newCave, random.CaveGen.Intn(2) + 2, world.TileSize * 2., true, s)
 			}
 		}
 	}

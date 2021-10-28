@@ -20,8 +20,6 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 		currType = cave.Empty
 	case 3:
 		currType = cave.BlockCollapse
-	//case 2:
-	//	currType = cave.Block1
 	}
 	for {
 		tile := c.GetTileInt(t.X, t.Y)
@@ -39,7 +37,11 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 			ns := tile.RCoords.Neighbors()
 			for _, n := range ns {
 				tmp := c.GetTileInt(n.X, n.Y)
-				toBlock(tmp, false, tmp.Bomb)
+				if random.CaveGen.Intn(4) == 0 {
+					toBlockDig(tmp, false, tmp.Bomb)
+				} else {
+					toBlockCollapse(tmp, false, tmp.Bomb)
+				}
 				tmp.Fillable = true
 			}
 			// change to next tile
@@ -124,15 +126,31 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					tile.Type = cave.BlockDig
-					tile.UpdateSprites()
+					toBlockDig(tile, true, tile.Bomb)
 				} else if !tile.NeverChange && !tile.IsChanged {
+					toEmpty(tile, true, false)
 					if y == tlY+h-2 && util.Contains(x, tC) {
 						addChest(tile)
 					}
-					tile.Type = cave.Empty
-					tile.IsChanged = true
-					tile.UpdateSprites()
+				}
+			}
+		}
+	}
+}
+
+func BombableNode(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center world.Coords) {
+	cPos := c.GetTileInt(center.X, center.Y).Transform.Pos
+	fRad := float64(radius) * world.TileSize
+	for y := center.Y - radius; y < center.Y + radius; y++ {
+		for x := center.X - radius; x < center.X + radius; x++ {
+			tile := c.GetTileInt(x, y)
+			if tile != nil {
+				tPos := tile.Transform.Pos
+				dist := util.Magnitude(cPos.Sub(tPos))
+				if dist < fRad+random.CaveGen.Float64()*variance {
+					if !(tile.Type == cave.Wall && ignoreWalls) && !tile.PartOfPath {
+						toBlockBlast(tile, false, tile.Bomb)
+					}
 				}
 			}
 		}

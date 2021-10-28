@@ -21,21 +21,21 @@ func HealthSystem() {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if hp.Dazed {
-					if hp.DazedTimer.UpdateDone() && !hp.DazedO {
+					if hp.DazedTimer.UpdateDone() {
 						hp.Dazed = false
-					}
-					if !hp.Dazed {
-						hp.DazedVFX.Animation.Done = true
-						hp.DazedVFX = nil
-					} else if hp.DazedVFX != nil {
-						hp.DazedVFX.Matrix = pixel.IM.Moved(tran.APos).Moved(pixel.V(0., 9.))
-					} else if hp.DazedVFX == nil {
-						hp.DazedVFX = vfx.CreateDazed(tran.APos.Add(pixel.V(0., 9.)))
+					} else {
+						if hp.DazedVFX != nil {
+							hp.DazedVFX.Matrix = pixel.IM.Moved(tran.APos).Moved(pixel.V(0., 9.))
+						} else if hp.DazedVFX == nil {
+							hp.DazedVFX = vfx.CreateDazed(tran.APos.Add(pixel.V(0., 9.)))
+						}
 					}
 				}
-				if hp.TempInv && (hp.TempInvSec == 0. || hp.TempInvTimer.UpdateDone()) {
-					hp.TempInv = false
+				if !hp.Dazed && hp.DazedVFX != nil {
+					hp.DazedVFX.Animation.Done = true
+					hp.DazedVFX = nil
 				}
+				hp.TempInvTimer.Update()
 				if hp.Curr < 1 {
 					hp.Dead = true
 				}

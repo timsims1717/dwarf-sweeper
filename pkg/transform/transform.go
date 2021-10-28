@@ -4,6 +4,9 @@ import (
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
+	"github.com/google/uuid"
+	"golang.org/x/image/colornames"
+	"image/color"
 	"math"
 )
 
@@ -23,6 +26,8 @@ type Anchor struct {
 }
 
 type Transform struct {
+	ID uuid.UUID
+
 	Anchor  Anchor
 	Rect    pixel.Rect
 	oRect   pixel.Rect
@@ -38,17 +43,22 @@ type Transform struct {
 	Flip    bool
 	Flop    bool
 
+	Hide bool
+	Mask color.RGBA
+
 	UIPos   pixel.Vec
 	UIZoom  float64
 }
 
 func NewTransform() *Transform {
 	return &Transform{
+		ID: uuid.New(),
 		Scalar: pixel.Vec{
 			X: 1.,
 			Y: 1.,
 		},
 		UIZoom: 1.,
+		Mask: colornames.White,
 	}
 }
 

@@ -16,9 +16,6 @@ import (
 )
 
 func addChest(tile *cave.Tile) {
-	tile.Type = cave.Empty
-	tile.IsChanged = true
-	tile.Fillable = false
 	popUp := menus.NewPopUp(fmt.Sprintf("%s to open", typeface.SymbolItem), nil)
 	popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
 	popUp.Dist = world.TileSize

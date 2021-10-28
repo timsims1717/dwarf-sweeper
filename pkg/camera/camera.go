@@ -66,8 +66,8 @@ func New(isWin bool) *Camera {
 	}
 }
 
-func (c *Camera) SetSize(ratio, height float64) {
-	c.Width = height * ratio
+func (c *Camera) SetSize(width, height float64) {
+	c.Width = width
 	c.Height = height
 }
 

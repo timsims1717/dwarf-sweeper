@@ -2,7 +2,9 @@ package cave
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
@@ -19,20 +21,50 @@ type Cave struct {
 	Finite      bool
 	UpdateBatch bool
 	Batcher     *img.Batcher
-	Left     int
-	Right    int
-	Bottom   int
-	StartC   world.Coords
-	ExitC    world.Coords
-	BombPMin float64
-	BombPMax float64
-	FuseLen  float64
-	GemRate  int
-	ItemRate int
-	Biome    string
+
+	Left   int
+	Right  int
+	Bottom int
+	Width  int
+	Height int
+	bl     pixel.Vec
+	tr     pixel.Vec
+
+	StartC world.Coords
+	ExitC  world.Coords
+
+	BombPMin   float64
+	BombPMax   float64
+	GemRate    int
+	ItemRate   int
+
+	Biome      string
+	BGBatch    *pixel.Batch
+	Background *pixel.Sprite
+	BGTC       *transform.Transform
+	BGTUL      *transform.Transform
+	BGTU       *transform.Transform
+	BGTUR      *transform.Transform
+	BGTL       *transform.Transform
+	BGTR       *transform.Transform
+	BGTDL      *transform.Transform
+	BGTD       *transform.Transform
+	BGTDR      *transform.Transform
+
+	Fog bool
 }
 
 func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
+	var bgSpr *pixel.Sprite
+	var bgBatch *pixel.Batch
+	bg, err := img.LoadImage(fmt.Sprintf("assets/img/the-%s-bg.png", biome))
+	if err != nil {
+		fmt.Printf("error loading %s biome background: %s\n", biome, err)
+	} else {
+		bgSpr = pixel.NewSprite(bg, bg.Bounds())
+		bgBatch = pixel.NewBatch(&pixel.TrianglesData{}, bg)
+	}
+
 	return &Cave{
 		RChunks:     make(map[world.Coords]*Chunk),
 		LChunks:     make(map[world.Coords]*Chunk),
@@ -40,7 +72,28 @@ func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
 		Finite:      finite,
 		UpdateBatch: true,
 		Biome:       biome,
+		Background:  bgSpr,
+		BGBatch:     bgBatch,
+		BGTC:        transform.NewTransform(),
+		BGTUL:       transform.NewTransform(),
+		BGTU:        transform.NewTransform(),
+		BGTUR:       transform.NewTransform(),
+		BGTL:        transform.NewTransform(),
+		BGTR:        transform.NewTransform(),
+		BGTDL:       transform.NewTransform(),
+		BGTD:        transform.NewTransform(),
+		BGTDR:       transform.NewTransform(),
 	}
+}
+
+func (c *Cave) SetSize(left, right, bottom int) {
+	c.Left = left
+	c.Right = right
+	c.Bottom = bottom
+	c.Width = (right - left + 1) * constants.ChunkSize
+	c.Height = (bottom + 1) * constants.ChunkSize
+	c.bl = pixel.V(float64(left * constants.ChunkSize) * world.TileSize, -float64((bottom + 1) * constants.ChunkSize - 1) * world.TileSize)
+	c.tr = pixel.V(float64((right+1) * constants.ChunkSize) * world.TileSize, 0.)
 }
 
 func (c *Cave) Update() {
@@ -64,6 +117,22 @@ func (c *Cave) Update() {
 		chunk.Display = dis
 		chunk.Update()
 	}
+	if c.Background != nil {
+		offset := camera.Cam.APos.Scaled(-0.5)
+		offset.X = util.FMod(offset.X, c.Background.Frame().W())
+		offset.Y = util.FMod(offset.Y, c.Background.Frame().H())
+		offset.X = offset.X + c.Background.Frame().W() * 0.5
+		offset.Y = offset.Y - c.Background.Frame().H() * 0.5
+		c.BGTC.Pos = offset
+		c.BGTUL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, c.Background.Frame().H()+offset.Y)
+		c.BGTU.Pos = pixel.V(offset.X, c.Background.Frame().H()+offset.Y)
+		c.BGTUR.Pos = pixel.V(c.Background.Frame().W()+offset.X, c.Background.Frame().H()+offset.Y)
+		c.BGTR.Pos = pixel.V(c.Background.Frame().W()+offset.X, offset.Y)
+		c.BGTL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, offset.Y)
+		c.BGTDL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, -c.Background.Frame().H()+offset.Y)
+		c.BGTD.Pos = pixel.V(offset.X, -c.Background.Frame().H()+offset.Y)
+		c.BGTDR.Pos = pixel.V(c.Background.Frame().W()+offset.X, -c.Background.Frame().H()+offset.Y)
+	}
 	//for _, chunk := range c.RChunks {
 	//	chunk.display = true
 	//	chunk.Update()
@@ -75,7 +144,41 @@ func (c *Cave) Update() {
 }
 
 func (c *Cave) Draw(win *pixelgl.Window) {
+	if c.Background != nil && c.BGBatch != nil {
+		c.BGTC.UIPos = camera.Cam.APos
+		c.BGTC.Update()
+		c.BGTUL.UIPos = camera.Cam.APos
+		c.BGTUL.Update()
+		c.BGTU.UIPos = camera.Cam.APos
+		c.BGTU.Update()
+		c.BGTUR.UIPos = camera.Cam.APos
+		c.BGTUR.Update()
+		c.BGTL.UIPos = camera.Cam.APos
+		c.BGTL.Update()
+		c.BGTR.UIPos = camera.Cam.APos
+		c.BGTR.Update()
+		c.BGTDL.UIPos = camera.Cam.APos
+		c.BGTDL.Update()
+		c.BGTD.UIPos = camera.Cam.APos
+		c.BGTD.Update()
+		c.BGTDR.UIPos = camera.Cam.APos
+		c.BGTDR.Update()
+
+		c.BGBatch.Clear()
+		c.Background.Draw(c.BGBatch, c.BGTC.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTUL.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTU.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTUR.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTL.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTR.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTDL.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTD.Mat)
+		c.Background.Draw(c.BGBatch, c.BGTDR.Mat)
+		c.BGBatch.Draw(win)
+	}
+
 	if c.UpdateBatch {
+		c.UpdateAllTileSprites()
 		c.Batcher.Clear()
 		for _, chunk := range c.RChunks {
 			chunk.Draw(c.Batcher.Batch())
@@ -101,18 +204,11 @@ func (c *Cave) PointLoaded(v pixel.Vec) bool {
 }
 
 func (c *Cave) CurrentBoundaries() (pixel.Vec, pixel.Vec) {
-	p := WorldToChunk(c.Pivot)
-	var all []world.Coords
 	if c.Finite {
-		for _, chunk := range c.RChunks {
-			all = append(all, chunk.Coords)
-		}
-		for _, chunk := range c.LChunks {
-			all = append(all, chunk.Coords)
-		}
-	} else {
-		all = append([]world.Coords{p}, p.Neighbors()...)
+		return c.bl, c.tr
 	}
+	p := WorldToChunk(c.Pivot)
+	all := append([]world.Coords{p}, p.Neighbors()...)
 	x1 := 10000000.
 	y1 := 10000000.
 	x2 := -10000000.

@@ -24,17 +24,12 @@ type BombItem struct {
 	collect   *data.Collectible
 	sprite    *pixel.Sprite
 	entity    *ecs.Entity
-	health    *data.BlastHealth
+	health    *data.SimpleHealth
 }
 
 func (b *BombItem) Update() {
 	if b.health.Dead {
-		tile := Descent.GetCave().GetTile(b.Transform.Pos)
-		bomb := Bomb{
-			Tile:       tile,
-			FuseLength: constants.BaseFuse,
-		}
-		bomb.Create(tile.Transform.Pos)
+		CreateBomb(b.Transform.Pos)
 		b.Delete()
 	}
 }
@@ -50,12 +45,8 @@ func (b *BombItem) Create(pos pixel.Vec) {
 				Name:   "bomb",
 				Sprite: b.sprite,
 				OnUse:  func() {
-					tile := Descent.GetCave().GetTile(Descent.Player.Transform.Pos)
-					bomb := Bomb{
-						Tile:       tile,
-						FuseLength: constants.BaseFuse,
-					}
-					bomb.Create(tile.Transform.Pos)
+					tile := Descent.GetPlayerTile()
+					CreateBomb(tile.Transform.Pos)
 				},
 				Count: 1,
 				Limit: 3,
@@ -63,7 +54,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 		},
 		Sprite: b.sprite,
 	}
-	b.health = &data.BlastHealth{}
+	b.health = &data.SimpleHealth{}
 	popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
 	popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
 	popUp.Dist = (b.collect.Sprite.Frame().W() + world.TileSize) * 0.5

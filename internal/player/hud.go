@@ -132,6 +132,14 @@ func UpdateHUD() {
 }
 
 func DrawHUD(win *pixelgl.Window) {
+	d := descent.Descent.GetPlayer()
+	if d.Hovered != nil && !d.Health.Dazed {
+		if d.Hovered.Solid() && d.SelectLegal {
+			img.Batchers[constants.ParticleKey].GetSprite("target").Draw(win, d.Hovered.Transform.Mat)
+		} else {
+			img.Batchers[constants.ParticleKey].GetSprite("target_blank").Draw(win, d.Hovered.Transform.Mat)
+		}
+	}
 	for _, tran := range heartTransforms {
 		tran.UIPos = camera.Cam.APos
 		tran.UIZoom = camera.Cam.GetZoomScale()

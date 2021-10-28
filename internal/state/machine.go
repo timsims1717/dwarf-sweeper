@@ -1,6 +1,7 @@
 package state
 
 import (
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
@@ -48,14 +49,16 @@ var (
 	timerKeys  map[string]bool
 	debugInput = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
-			"debugTest":   input.NewJoyless(pixelgl.KeyF7),
-			"debugPause":  input.NewJoyless(pixelgl.KeyF9),
-			"debugResume": input.NewJoyless(pixelgl.KeyF10),
-			"debug":       input.NewJoyless(pixelgl.KeyF3),
-			"debugText":   input.NewJoyless(pixelgl.KeyF4),
-			"debugInv":    input.NewJoyless(pixelgl.KeyF11),
-			"debugSP":     input.NewJoyless(pixelgl.KeyKPAdd),
-			"debugSM":     input.NewJoyless(pixelgl.KeyKPSubtract),
+			"debugConsole": input.NewJoyless(pixelgl.KeyGraveAccent),
+			"debug":        input.NewJoyless(pixelgl.KeyF3),
+			"debugText":    input.NewJoyless(pixelgl.KeyF4),
+			"debugMenu":    input.NewJoyless(pixelgl.KeyF7),
+			"debugPause":   input.NewJoyless(pixelgl.KeyF9),
+			"debugResume":  input.NewJoyless(pixelgl.KeyF10),
+			"debugInv":     input.NewJoyless(pixelgl.KeyF11),
+			"debugFog":     input.NewJoyless(pixelgl.KeyF12),
+			"debugSP":      input.NewJoyless(pixelgl.KeyKPAdd),
+			"debugSM":      input.NewJoyless(pixelgl.KeyKPSubtract),
 		},
 		Mode: input.KeyboardMouse,
 	}
@@ -102,35 +105,68 @@ func Update(win *pixelgl.Window) {
 	menuInput.Update(win)
 	data.GameInput.Update(win)
 	if debugInput.Get("debug").JustPressed() {
-		if debug.Debug {
-			fmt.Println("DEBUG OFF")
-		} else {
-			fmt.Println("DEBUG ON")
-		}
 		debug.Debug = !debug.Debug
+		if debug.Debug {
+			fmt.Println("DEBUG ON")
+		} else {
+			fmt.Println("DEBUG OFF")
+		}
 	}
 	if debugInput.Get("debugText").JustPressed() {
-		if debug.Text {
-			fmt.Println("DEBUG TEXT OFF")
-		} else {
-			fmt.Println("DEBUG TEXT ON")
-		}
 		debug.Text = !debug.Text
+		if debug.Text {
+			fmt.Println("DEBUG TEXT ON")
+		} else {
+			fmt.Println("DEBUG TEXT OFF")
+		}
 	}
 	if debugInput.Get("debugInv").JustPressed() && descent.Descent.GetPlayer() != nil {
 		descent.Descent.GetPlayer().Health.Inv = !descent.Descent.GetPlayer().Health.Inv
 	}
-	if debugInput.Get("debugTest").JustPressed() {
-		newState = 0
-		switchState = true
-		descent.Descent.Type = descent.Minesweeper
-		descent.Descent.Level = 1
-		descent.Descent.Start = true
+	if debugInput.Get("debugMenu").JustPressed() {
+		//newState = 0
+		//switchState = true
+		//descent.Descent.Type = descent.Minesweeper
+		//descent.Descent.Level = 1
+		//descent.Descent.Start = true
+
 		//b := minesweeper.CreateBoard(5, 5, 10, random.Effects)
 		//b.PrintToTerminalFull()
 		//b.RevealTilSolvable(random.Effects)
 		//b.PrintToTerminal()
 		//fmt.Printf("Was it solvable: %t", b.Solvable())
+
+		//descent.AddToInventory(&descent.InvItem{
+		//	Name:   "bomb",
+		//	Sprite: img.Batchers[constants.EntityKey].Sprites["bomb_item"],
+		//	OnUse:  func() {
+		//		tile := descent.Descent.GetPlayerTile()
+		//		descent.CreateBomb(tile.Transform.Pos)
+		//	},
+		//	Count: 3,
+		//	Limit: 3,
+		//})
+
+		pt := descent.Descent.GetPlayerTile()
+		pos := pt.Transform.Pos
+		pos.X += world.TileSize
+		descent.CreateBomb(pos)
+		pos.X += world.TileSize * 7
+		mm := descent.MadMonk{}
+		mm.Create(pos)
+		mm.Health.Dazed = false
+	}
+	if debugInput.Get("debugFog").JustPressed() {
+		if descent.Descent.Cave != nil {
+			descent.Descent.Cave.Fog = !descent.Descent.Cave.Fog
+			if descent.Descent.Cave.Fog {
+				fmt.Println("DEBUG FOG ON")
+				descent.Descent.GetCave().UpdateAllTileSprites()
+			} else {
+				fmt.Println("DEBUG FOG OFF")
+				descent.Descent.GetCave().UpdateAllTileSprites()
+			}
+		}
 	}
 	if debugInput.Get("debugSP").JustPressed() {
 		splashScale *= 1.2
@@ -165,9 +201,10 @@ func Update(win *pixelgl.Window) {
 				}
 			}
 			if MenuClosed() {
-				descent.Update()
 				descent.Descent.GetPlayer().Update(data.GameInput)
+				systems.TemporarySystem()
 				systems.EntitySystem()
+				systems.FunctionSystem()
 				systems.PhysicsSystem()
 				systems.CollisionSystem()
 				systems.ParentSystem()
@@ -179,10 +216,12 @@ func Update(win *pixelgl.Window) {
 				systems.DamageSystem()
 				systems.HealthSystem()
 				systems.PopUpSystem()
+				systems.VFXSystem()
 				vfx.Update()
 				descent.Descent.GetPlayer().Update2()
 				descent.UpdateInventory()
 				systems.AnimationSystem()
+				descent.Update()
 				player.UpdateHUD()
 				if data.GameInput.Get("up").JustPressed() &&
 					descent.Descent.GetPlayerTile().IsExit() &&
@@ -202,11 +241,13 @@ func Update(win *pixelgl.Window) {
 				}
 			}
 			bl, tr := descent.Descent.GetCave().CurrentBoundaries()
-			bl.X += (camera.Cam.Width / world.TileSize) + world.TileSize
-			bl.Y += (camera.Cam.Height / world.TileSize) + world.TileSize
-			tr.X -= (camera.Cam.Width / world.TileSize) + world.TileSize
-			tr.Y -= (camera.Cam.Height / world.TileSize) + world.TileSize
+			ratio := camera.Cam.Height / constants.BaseH
+			bl.X += camera.Cam.Width * 0.5 / ratio * camera.Cam.GetZoomScale()
+			bl.Y += constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
+			tr.X -= camera.Cam.Width * 0.5 / ratio * camera.Cam.GetZoomScale() + world.TileSize
+			tr.Y -= constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
 			camera.Cam.Restrict(bl, tr)
+			descent.Debug(data.GameInput)
 		} else if state == 1 {
 			pressAKey.Transform.UIPos = camera.Cam.APos
 			pressAKey.Transform.UIZoom = camera.Cam.GetZoomScale()
@@ -241,14 +282,17 @@ func Update(win *pixelgl.Window) {
 			//debug.AddText(fmt.Sprintf("Input Curr: %d", InputMenu.Items[InputMenu.Hovered].CurrLine))
 		} else if state == 2 {
 			reanimator.Update()
-			descent.Update()
+			systems.TemporarySystem()
 			systems.PhysicsSystem()
 			systems.TransformSystem()
 			systems.CollisionSystem()
 			systems.EntitySystem()
+			systems.FunctionSystem()
+			systems.VFXSystem()
 			vfx.Update()
 			descent.Descent.GetPlayer().Update(data.GameInput)
 			systems.AnimationSystem()
+			descent.Update()
 			player.UpdateHUD()
 			UpdateMenus(win)
 			if MenuClosed() {
@@ -258,8 +302,8 @@ func Update(win *pixelgl.Window) {
 			SwitchState(0)
 		} else if state == 5 {
 			reanimator.Update()
-			descent.Update()
 			vfx.Update()
+			descent.Update()
 			player.UpdateHUD()
 			UpdateMenus(win)
 			if MenuClosed() {
@@ -270,7 +314,6 @@ func Update(win *pixelgl.Window) {
 	}
 	camera.Cam.Update(win)
 	myecs.Update()
-	systems.ManagementSystem()
 }
 
 func Draw(win *pixelgl.Window) {
@@ -279,7 +322,7 @@ func Draw(win *pixelgl.Window) {
 	}
 	if state == 0 {
 		descent.Descent.GetCave().Draw(win)
-		descent.Descent.GetPlayer().Draw(win, data.GameInput)
+		//descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		//dungeon.Entities.Draw(win)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
@@ -306,7 +349,7 @@ func Draw(win *pixelgl.Window) {
 		}
 	} else if state == 2 {
 		descent.Descent.GetCave().Draw(win)
-		descent.Descent.GetPlayer().Draw(win, data.GameInput)
+		//descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		img.DrawBatches(win)
@@ -339,7 +382,7 @@ func Draw(win *pixelgl.Window) {
 		}
 	} else if state == 5 {
 		descent.Descent.GetCave().Draw(win)
-		descent.Descent.GetPlayer().Draw(win, data.GameInput)
+		//descent.Descent.GetPlayer().Draw(win, data.GameInput)
 		systems.AnimationDraw()
 		systems.SpriteDraw()
 		img.DrawBatches(win)
@@ -370,9 +413,7 @@ func updateState() {
 		// initialize
 		switch newState {
 		case 0:
-			myecs.Clear = true
-			systems.ManagementSystem()
-			myecs.Clear = false
+			systems.ClearSystem()
 			systems.DeleteAllEntities()
 			if descent.Descent.Start {
 				if descent.Descent.Player != nil {
@@ -434,7 +475,7 @@ func updateState() {
 		case 1:
 			pressAKey.Transform.Pos = pixel.V(0., -75.)
 			pressAKey.NoShow = true
-			pressAKeyTimer = timing.New(0.5)
+			pressAKeyTimer = timing.New(2.5)
 			titleTran = transform.NewTransform()
 			titleTran.Pos = pixel.V(0., titleY)
 			splashTran = transform.NewTransform()

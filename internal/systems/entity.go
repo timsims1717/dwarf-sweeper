@@ -2,6 +2,7 @@ package systems
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/transform"
@@ -25,6 +26,22 @@ func DeleteAllEntities() {
 	for _, result := range myecs.Manager.Query(myecs.IsEntity) {
 		if e, ok := result.Components[myecs.Entity].(myecs.AnEntity); ok {
 			e.Delete()
+		}
+	}
+}
+
+func FunctionSystem() {
+	for _, result := range myecs.Manager.Query(myecs.HasFunc) {
+		fnA := result.Components[myecs.Func]
+		if fnT, ok := fnA.(*data.TimerFunc); ok {
+			if fnT.Timer.UpdateDone() {
+				fnT.Func()
+				result.Entity.RemoveComponent(myecs.Func)
+			}
+		} else if fnF, ok := fnA.(*data.FrameFunc); ok {
+			if fnF.Func() {
+				result.Entity.RemoveComponent(myecs.Func)
+			}
 		}
 	}
 }

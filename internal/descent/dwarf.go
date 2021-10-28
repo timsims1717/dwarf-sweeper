@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -19,7 +18,6 @@ import (
 	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/pixelgl"
 	"math"
 )
 
@@ -30,7 +28,6 @@ const (
 	AirAcceleration    = 10.
 	JumpVel            = 150.
 	DigRange           = 1.5
-	selectTimerSec     = 2.0
 	AngleSec           = 0.1
 	FacingSec          = 1.0
 	angleDiff          = 0.15
@@ -39,9 +36,8 @@ const (
 var (
 	ClimbSpeed      = 50.
 	Speed           = 80.
-	LedgeClimbSpd   = 100.
 	MaxJump         = 4
-	ShovelKnockback = 6.
+	ShovelKnockback = 6.5
 	ShovelDazed     = 2.
 	ShovelDamage    = 0
 )
@@ -77,13 +73,13 @@ type Dwarf struct {
 	EnchantMax int
 	faceLeft   bool
 
-	selectLegal bool
+	SelectLegal bool
 	selectTimer *timing.FrameTimer
 	angleTimer  *timing.FrameTimer
 	facingTimer *timing.FrameTimer
 
 	facing      pixel.Vec
-	hovered     *cave.Tile
+	Hovered     *cave.Tile
 	relative    pixel.Vec
 	isRelative  bool
 	digTile     *cave.Tile
@@ -127,11 +123,11 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 		Physics:    physics.New(),
 		Transform:  tran,
 		Health: &data.Health{
-			Max:          3,
-			Curr:         3,
-			TempInvSec:   3.,
-			DazeOverride: true,
-			Immune:       []data.DamageType{data.Shovel},
+			Max:        3,
+			Curr:       3,
+			TempInvSec: 3.,
+			DazedTime:  10.,
+			Immune:     data.ShovelImmunity,
 		},
 	}
 	batcher := img.Batchers[constants.DwarfKey]
@@ -221,18 +217,24 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				},
 				1: func() {
 					if d.digTile != nil && d.digTile.Solid() {
-						CaveBlocksDug++
-						d.digTile.Destroy(true)
+						if d.digTile.Diggable() {
+							CaveBlocksDug++
+							d.digTile.Destroy(true)
+						} // todo: add rebound here
 						d.digTile = nil
 					} else {
+						sub := d.attackPoint.Sub(d.Transform.Pos)
+						sub.Y += world.TileSize * 0.5
+						angle := sub.Angle()
 						myecs.Manager.NewEntity().
 							AddComponent(myecs.AreaDmg, &data.AreaDamage{
+								SourceID:  d.Transform.ID,
 								Center:    d.attackPoint,
 								Radius:    world.TileSize * 1.2,
 								Amount:    d.ShovelDamage,
 								Dazed:     d.ShovelDazed,
 								Knockback: d.ShovelKnockback,
-								Source:    d.Transform.Pos,
+								Angle:     &angle,
 								Type:      data.Shovel,
 							})
 					}
@@ -346,6 +348,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 		AddComponent(myecs.Physics, d.Physics).
 		AddComponent(myecs.Collision, d.Collider).
 		AddComponent(myecs.Animation, d.Reanimator).
+		AddComponent(myecs.Batch, constants.DwarfKey).
 		AddComponent(myecs.Health, d.Health)
 	return d
 }
@@ -376,11 +379,12 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.DeadStop = true
 			}
 		} else if d.Physics.Grounded && !d.Physics.IsMovingX() &&
+			d.Health.DazedTimer.Elapsed() > 1. &&
 			(in.Get("left").Pressed() || in.Get("right").Pressed() ||
 				in.Get("up").Pressed() || in.Get("down").Pressed() ||
 				in.Get("jump").JustPressed() || in.Get("dig").JustPressed() ||
 				in.Get("mark").JustPressed()) {
-			d.Health.DazedO = false
+			d.Health.Dazed = false
 		}
 	}
 	if !d.Health.Dazed && !d.Health.Dead {
@@ -412,7 +416,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.relative = pixel.V(x, y)
 				d.isRelative = true
 			} else if in.Mode != input.Gamepad {
-				d.hovered = Descent.GetCave().GetTile(in.World)
+				d.Hovered = Descent.GetCave().GetTile(in.World)
 				d.facingTimer = nil
 				d.isRelative = false
 			}
@@ -443,11 +447,11 @@ func (d *Dwarf) Update(in *input.Input) {
 			p := d.Transform.Pos
 			p.X += d.relative.X
 			p.Y += d.relative.Y
-			d.hovered = Descent.GetCave().GetTile(p)
+			d.Hovered = Descent.GetCave().GetTile(p)
 			d.facingTimer = timing.New(FacingSec)
 		}
-		if d.hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
-			d.selectLegal = math.Abs(d.Transform.Pos.X-d.hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.hovered.Transform.Pos.Y) < world.TileSize*DigRange
+		if d.Hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
+			d.SelectLegal = math.Abs(d.Transform.Pos.X-d.Hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.Hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			facing := pixel.ZV
 			if (in.Get("dig").JustPressed() && !constants.DigOnRelease) || (in.Get("dig").JustReleased() && constants.DigOnRelease) {
 				if in.Mode != input.Gamepad && constants.AimDedicated {
@@ -482,14 +486,14 @@ func (d *Dwarf) Update(in *input.Input) {
 						facing.Y = 0
 					}
 				}
-				if d.hovered.Solid() && d.selectLegal {
+				if d.Hovered.Solid() && d.SelectLegal {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
 						t *cave.Tile
 						f pixel.Vec
 					}{
 						a: 0,
-						t: d.hovered,
+						t: d.Hovered,
 						f: facing,
 					})
 				} else {
@@ -503,14 +507,14 @@ func (d *Dwarf) Update(in *input.Input) {
 						f: facing,
 					})
 				}
-			} else if ((in.Get("mark").JustPressed() && !constants.DigOnRelease) || (in.Get("mark").JustReleased() && constants.DigOnRelease)) && d.hovered.Solid() && d.selectLegal {
+			} else if ((in.Get("mark").JustPressed() && !constants.DigOnRelease) || (in.Get("mark").JustReleased() && constants.DigOnRelease)) && d.Hovered.Solid() && d.SelectLegal {
 				d.tileQueue = append(d.tileQueue, struct {
 					a int
 					t *cave.Tile
 					f pixel.Vec
 				}{
 					a: 1,
-					t: d.hovered,
+					t: d.Hovered,
 					f: facing,
 				})
 			}
@@ -575,7 +579,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.attacking = false
 			d.jumping = false
 			d.walking = false
-			if d.hovered.Transform.Pos.X < d.Transform.Pos.X {
+			if d.Hovered.Transform.Pos.X < d.Transform.Pos.X {
 				d.facing.X = -1
 			} else {
 				d.facing.X = 1
@@ -772,35 +776,6 @@ func (d *Dwarf) Update2() {
 	if d.walking && d.walkTimer.UpdateDone() {
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
 		d.walkTimer = timing.New(stepTime)
-	}
-}
-
-func (d *Dwarf) Draw(win *pixelgl.Window, in *input.Input) {
-	d.Reanimator.CurrentSprite().Draw(win, d.Transform.Mat)
-	if d.hovered != nil && !d.Health.Dazed {
-		if d.hovered.Solid() && d.selectLegal {
-			img.Batchers[constants.ParticleKey].DrawSprite("target", d.hovered.Transform.Mat)
-		} else {
-			img.Batchers[constants.ParticleKey].DrawSprite("target_blank", d.hovered.Transform.Mat)
-		}
-	}
-	if debug.Text {
-		debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(in.World.X), int(in.World.Y)))
-		if d.hovered != nil {
-			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.hovered.RCoords.X, d.hovered.RCoords.Y))
-			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.hovered.Chunk.Coords.X, d.hovered.Chunk.Coords.Y))
-			debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.hovered.SubCoords.X, d.hovered.SubCoords.Y))
-			debug.AddText(fmt.Sprintf("tile type: '%s'", d.hovered.Type))
-			debug.AddText(fmt.Sprintf("tile sprite: '%s'", d.hovered.BGSpriteS))
-			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.hovered.SmartStr))
-		}
-		debug.AddText(fmt.Sprintf("dwarf position: (%d,%d)", int(d.Transform.APos.X), int(d.Transform.APos.Y)))
-		debug.AddText(fmt.Sprintf("dwarf actual position: (%f,%f)", d.Transform.Pos.X, d.Transform.Pos.Y))
-		debug.AddText(fmt.Sprintf("dwarf velocity: (%d,%d)", int(d.Physics.Velocity.X), int(d.Physics.Velocity.Y)))
-		debug.AddText(fmt.Sprintf("dwarf moving?: (%t,%t)", d.Physics.IsMovingX(), d.Physics.IsMovingY()))
-		//debug.AddText(fmt.Sprintf("jump pressed?: %t", input.Input.Jumping.Pressed()))
-		debug.AddText(fmt.Sprintf("dwarf grounded?: %t", d.Physics.Grounded))
-		debug.AddText(fmt.Sprintf("tile queue len: %d", len(d.tileQueue)))
 	}
 }
 

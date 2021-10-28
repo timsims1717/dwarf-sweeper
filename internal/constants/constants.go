@@ -5,9 +5,12 @@ import (
 )
 
 const (
-	Title = "DwarfSweeper"
-	BaseW = 320.
-	BaseH = 240.
+	Title   = "DwarfSweeper"
+	Release = 0
+	Version = 1
+	Build   = 20211027
+	BaseW   = 320.
+	BaseH   = 240.
 
 	// Tile Constants
 	TileSize = 16.0
@@ -19,6 +22,7 @@ const (
 	TileEntityKey = "tile_entities"
 	MenuSprites   = "menu_sprites"
 	ParticleKey   = "particle_sprites"
+	TileLayerKey  = "tile_layer"
 
 	// Config
 	LinuxDir = "/.local/share/DwarfSweeper"
@@ -26,12 +30,9 @@ const (
 	MacDir   = "/Library/Application Support/DwarfSweeper"
 
 	// Descent Constants
-
 	ChunkSize = 32
 	ChunkArea = ChunkSize * ChunkSize
 
-	BaseFuse = 1.5
-	MineFuse = 0.2
 	BaseGem  = 20
 	BaseItem = 50
 )

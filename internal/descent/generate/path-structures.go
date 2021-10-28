@@ -175,6 +175,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 		}
 		// wall up all tiles surrounding the touched tiles
 		tile = c.GetTileInt(curr.X, curr.Y)
+		tile.PartOfPath = true
 		wallUp(tile, pDir.width < 3 && rb)
 		ns := tile.SubCoords.Neighbors()
 		if pDir.width == 3 || (pDir.width == 2 && pDir.wLeft) {

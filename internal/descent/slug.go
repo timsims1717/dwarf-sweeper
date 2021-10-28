@@ -209,12 +209,12 @@ func (s *Slug) Update() {
 			}
 			s.Transform.Flip = s.faceLeft
 			myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+				SourceID:  s.Transform.ID,
 				Center:    s.Transform.Pos,
 				Rect:      s.Collider.Hitbox,
 				Amount:    1,
 				Dazed:     1.,
 				Knockback: 8.,
-				Source:    s.Transform.Pos,
 				Type:      data.Enemy,
 			})
 		}
@@ -240,10 +240,9 @@ func (s *Slug) Create(pos pixel.Vec) {
 		Curr:         2,
 		Dazed:        true,
 		DazedTimer:   timing.New(3.),
-		TempInv:      true,
-		TempInvTimer: timing.New(1.),
-		TempInvSec:   1.,
-		Immune:       []data.DamageType{data.Enemy},
+		TempInvTimer: timing.New(0.5),
+		TempInvSec:   0.5,
+		Immune:       data.EnemyImmunity,
 	}
 	s.created = true
 	s.Reanimator = reanimator.New(&reanimator.Switch{

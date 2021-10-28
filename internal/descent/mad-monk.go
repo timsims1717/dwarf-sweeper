@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	mmAngle    = 45.
+	mmAngle = pixel.V(1., 1.).Angle()
 )
 
 type MadMonk struct {
@@ -75,10 +75,9 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		Curr:         2,
 		Dazed:        true,
 		DazedTimer:   timing.New(3.),
-		TempInv:      true,
-		TempInvSec:   1.,
-		TempInvTimer: timing.New(1.),
-		Immune:       []data.DamageType{data.Enemy},
+		TempInvTimer: timing.New(0.5),
+		TempInvSec:   0.5,
+		Immune:       data.EnemyImmunity,
 	}
 	m.created = true
 	m.Reanimator = reanimator.New(&reanimator.Switch{
@@ -91,11 +90,15 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 					ownPos := m.Transform.Pos
 					playerPos := Descent.GetPlayer().Transform.Pos
 					if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
+						angle := mmAngle
+						if m.faceLeft {
+							angle = pixel.V(-1., 1.).Angle()
+						}
 						Descent.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
 							Amount:    1,
 							Dazed:     1.,
 							Knockback: 8.,
-							Angle:     &mmAngle,
+							Angle:     &angle,
 							Source:    m.Transform.Pos,
 						})
 					}

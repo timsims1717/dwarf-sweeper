@@ -13,9 +13,8 @@ func FillChunk(ch *cave.Chunk) {
 		for _, tile := range row {
 			if tile.Solid() && tile.Breakable() && (tile.Fillable || !ch.Cave.Finite) {
 				if tile.Bomb {
-					tile.Entity = &descent.Bomb{
-						Tile:       tile,
-						FuseLength: tile.Chunk.Cave.FuseLen,
+					tile.DestroyTrigger = func(t *cave.Tile) {
+						descent.CreateBomb(t.Transform.Pos)
 					}
 					descent.CaveTotalBombs++
 					descent.CaveBombsLeft++

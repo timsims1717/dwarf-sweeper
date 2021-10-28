@@ -81,10 +81,9 @@ func (p *Popper) Create(pos pixel.Vec) {
 	p.Health = &data.Health{
 		Max:          2,
 		Curr:         2,
-		TempInv:      true,
-		TempInvTimer: timing.New(1.),
-		TempInvSec:   1.,
-		Immune:       []data.DamageType{data.Enemy},
+		TempInvTimer: timing.New(0.5),
+		TempInvSec:   0.5,
+		Immune:       data.EnemyImmunity,
 	}
 	p.created = true
 	p.Reanimator = reanimator.New(&reanimator.Switch{

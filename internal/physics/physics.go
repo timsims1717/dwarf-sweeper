@@ -25,6 +25,7 @@ type Physics struct {
 	Terminal    float64
 	Friction    float64
 	AirFriction float64
+	Bounciness  float64
 }
 
 func New() *Physics {
@@ -33,6 +34,7 @@ func New() *Physics {
 		Terminal:    500.,
 		Friction:    400.,
 		AirFriction: 25.,
+		Bounciness:  0.6,
 	}
 }
 

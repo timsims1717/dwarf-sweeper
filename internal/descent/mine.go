@@ -16,6 +16,10 @@ import (
 	"github.com/faiface/pixel"
 )
 
+const (
+	MineFuse = 0.4
+)
+
 type Mine struct {
 	Transform  *transform.Transform
 	Timer      *timing.FrameTimer
@@ -39,13 +43,13 @@ func (m *Mine) Update() {
 			}
 			myecs.Manager.NewEntity().
 				AddComponent(myecs.AreaDmg, &data.AreaDamage{
+					SourceID:       m.Transform.ID,
 					Center:         m.Transform.Pos,
 					Radius:         MineBaseRadius * world.TileSize,
 					Amount:         1,
 					Dazed:          3.,
 					Knockback:      MineBaseKnockback,
 					KnockbackDecay: true,
-					Source:         m.Transform.Pos,
 				})
 			vfx.CreateExplosion(m.Tile.Transform.Pos)
 			sfx.SoundPlayer.PlaySound("blast1", -1.0)
@@ -58,7 +62,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 	m.Transform = transform.NewTransform()
 	m.Transform.Pos = pos
 	m.created = true
-	m.Timer = timing.New(constants.MineFuse)
+	m.Timer = timing.New(MineFuse)
 	m.Reanimator = reanimator.New(&reanimator.Switch{
 		Elements: reanimator.NewElements(
 			reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold, nil),
@@ -69,7 +73,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 			}),
 		),
 		Check: func() int {
-			if constants.MineFuse * 0.5 > m.Timer.Elapsed() {
+			if MineFuse * 0.5 > m.Timer.Elapsed() {
 				return 0
 			} else {
 				return 1

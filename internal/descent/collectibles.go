@@ -11,6 +11,7 @@ import (
 	"dwarf-sweeper/internal/util"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
@@ -118,7 +119,7 @@ type CollectibleItem struct {
 	Collect   *data.Collectible
 	sprite    *pixel.Sprite
 	entity    *ecs.Entity
-	health    *data.BlastHealth
+	health    *data.SimpleHealth
 }
 
 func (b *CollectibleItem) Update() {
@@ -132,7 +133,7 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = b.Collect.Sprite
-	b.health = &data.BlastHealth{}
+	b.health = &data.SimpleHealth{}
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
@@ -141,10 +142,17 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 			Hitbox: b.Collect.Sprite.Frame(),
 			GroundOnly: true,
 		}).
+		AddComponent(myecs.Temp, timing.New(10.)).
 		AddComponent(myecs.Collect, b.Collect).
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
 		AddComponent(myecs.Batch, constants.EntityKey)
+	b.entity.AddComponent(myecs.Func, &data.TimerFunc{
+		Timer: timing.New(8.),
+		Func:  func() {
+			myecs.AddEffect(b.entity, data.NewBlink(2.))
+		},
+	})
 	if !b.Collect.AutoCollect {
 		popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
 		popUp.Symbols = []string{data.GameInput.FirstKey("interact")}

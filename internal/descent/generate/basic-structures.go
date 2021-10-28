@@ -172,13 +172,14 @@ func RectRoom(c *cave.Cave, tl world.Coords, width, height int) {
 	}
 }
 
-func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) {
+func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) []world.Coords {
 	s := max - min
 	width, height := c.Dimensions()
 	if max > width * constants.ChunkSize || max > height * constants.ChunkSize {
 		fmt.Printf("WARNING: rect room not generated: max %d is greater than cave width %d or height %d\n", max, width, height)
-		return
+		return nil
 	}
+	var roomTiles []world.Coords
 	w := random.CaveGen.Intn(s) + min
 	h := random.CaveGen.Intn(s) + min
 	sX := include.X - w + 1
@@ -190,15 +191,13 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					tile.Type = cave.Wall
-					tile.UpdateSprites()
+					toWall(tile, false)
 				} else if !tile.NeverChange && !tile.IsChanged {
-					tile.Type = cave.BlockCollapse
-					tile.IsChanged = true
-					tile.Fillable = true
-					tile.UpdateSprites()
+					toBlockCollapse(tile, false, tile.Bomb)
+					roomTiles = append(roomTiles, tile.RCoords)
 				}
 			}
 		}
 	}
+	return roomTiles
 }

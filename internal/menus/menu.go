@@ -230,13 +230,13 @@ func (m *DwarfMenu) CloseInstant() {
 }
 
 func (m *DwarfMenu) Update(in *input.Input) {
-	if m.opened {
+	if m.opened && in != nil {
 		m.UpdateView(in)
 	}
 	m.UpdateSize()
 	m.UpdateBox()
 	m.UpdateTransforms()
-	if m.opened {
+	if m.opened && in != nil {
 		m.UpdateItems(in)
 	}
 }

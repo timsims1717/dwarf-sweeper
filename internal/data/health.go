@@ -4,28 +4,32 @@ import (
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
+	"github.com/google/uuid"
 )
 
-type BlastHealth struct {
-	Dead bool
+type SimpleHealth struct {
+	Dead   bool
+	Immune map[DamageType]Immunity
 }
 
 type Health struct {
-	Max          int
-	Curr         int
-	TempHP       int
-	TempHPTimer  *timing.FrameTimer
-	Dead         bool
-	Dazed        bool
-	DazedO       bool
-	DazeOverride bool
-	DazedTimer   *timing.FrameTimer
-	DazedVFX     *vfx.VFX
-	Inv          bool
-	TempInv      bool
-	TempInvTimer *timing.FrameTimer
-	TempInvSec   float64
-	Immune       []DamageType
+	Max          int // maximum HP
+	Curr         int // current HP
+	Dead         bool // convenience boolean (set if curr == 0)
+	// entity can have temporary hit points
+	TempHP       int // the current amount of temp HP
+	TempHPTimer  *timing.FrameTimer // the timer
+	// entity can be dazed by attacks
+	Dazed      bool // convenience boolean
+	DazedTime  float64 // how long will the entity be dazed? If 0., use the dazed value of the attack
+	DazedTimer *timing.FrameTimer // the timer
+	DazedVFX   *vfx.VFX // todo: refactor as separate entity
+	Inv        bool // invulnerability override (debugging, etc)
+	// entity can be invulnerable after receiving damage
+	TempInvTimer *timing.FrameTimer // the timer
+	TempInvSec   float64 // how long (0. would mean no invulnerable frames)
+	// entity can be immune to different types of damage
+	Immune map[DamageType]Immunity // which damage types is the entity immune to?
 }
 
 func (h *Health) Delete() {
@@ -55,11 +59,12 @@ type Damage struct {
 }
 
 type AreaDamage struct {
+	SourceID       uuid.UUID
 	Amount         int
 	Dazed          float64
 	Knockback      float64
+	Angle          *float64
 	Type           DamageType
-	Source         pixel.Vec
 	Center         pixel.Vec
 	Radius         float64
 	Rect           pixel.Rect
@@ -71,7 +76,82 @@ type Heal struct {
 	TmpAmount int
 }
 
-type TempHP struct {
-	Amount int
-	Timer  *timing.FrameTimer
+type Immunity struct {
+	KB    bool
+	DMG   bool
+	Dazed bool
 }
+
+var (
+	FullImmunity = map[DamageType]Immunity{
+		Blast: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+		Shovel: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+		Enemy: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+	}
+	EnemyImmunity = map[DamageType]Immunity{
+		Enemy: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+	}
+	ShovelImmunity = map[DamageType]Immunity{
+		Shovel: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+	}
+	BlastImmunity = map[DamageType]Immunity{
+		Blast: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+	}
+	KnockbackImmunity = map[DamageType]Immunity{
+		Blast: {
+			KB:  true,
+		},
+		Shovel: {
+			KB:  true,
+		},
+		Enemy: {
+			KB:  true,
+		},
+	}
+	DamageImmunity = map[DamageType]Immunity{
+		Blast: {
+			DMG:  true,
+		},
+		Shovel: {
+			DMG:  true,
+		},
+		Enemy: {
+			DMG:  true,
+		},
+	}
+	DazedImmunity = map[DamageType]Immunity{
+		Blast: {
+			Dazed:  true,
+		},
+		Shovel: {
+			Dazed:  true,
+		},
+		Enemy: {
+			Dazed:  true,
+		},
+	}
+)

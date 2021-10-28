@@ -46,7 +46,7 @@ func run() {
 	camera.Cam.Opt.WindowScale = constants.BaseH
 	camera.Cam.SetZoom(4. / 3.)
 	camera.Cam.SetILock(true)
-	camera.Cam.SetSize(res.X/res.Y, constants.BaseH)
+	camera.Cam.SetSize(res.X, res.Y)
 
 	debug.Initialize()
 	credits.Initialize()
@@ -62,21 +62,21 @@ func run() {
 		panic(err)
 	}
 	state.Title = pixel.NewSprite(title, title.Bounds())
-	sheet0, err := img.LoadSpriteSheet("assets/img/dwarf.json")
+	tileEntitySheet, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.DwarfKey, sheet0, false)
-	sheet, err := img.LoadSpriteSheet("assets/img/entities.json")
+	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true)
+	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.EntityKey, sheet, true)
-	sheet2, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
+	img.AddBatcher(constants.DwarfKey, dwarfSheet, true)
+	entitySheet, err := img.LoadSpriteSheet("assets/img/entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.TileEntityKey, sheet2, true)
+	img.AddBatcher(constants.EntityKey, entitySheet, true)
 	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
 	if err != nil {
 		panic(err)
@@ -179,7 +179,7 @@ func run() {
 			}
 			res := constants.Resolutions[constants.ResIndex]
 			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
-			camera.Cam.SetSize(res.X / res.Y, res.Y)
+			camera.Cam.SetSize(res.X, res.Y)
 		}
 	}
 }

@@ -108,10 +108,9 @@ func (b *Bat) Create(pos pixel.Vec) {
 	b.Health = &data.Health{
 		Max:          2,
 		Curr:         2,
-		TempInv:      true,
-		TempInvTimer: timing.New(1.),
-		TempInvSec:   1.,
-		Immune:       []data.DamageType{data.Enemy},
+		TempInvTimer: timing.New(0.5),
+		TempInvSec:   0.5,
+		Immune:       data.EnemyImmunity,
 	}
 	b.created = true
 	b.Reanimator = reanimator.New(&reanimator.Switch{
@@ -130,10 +129,7 @@ func (b *Bat) Create(pos pixel.Vec) {
 			}
 		},
 	}, "bat_roost")
-	b.Collider = &data.Collider{
-		Hitbox:     pixel.R(0., 0., 16., 16.),
-		GroundOnly: true,
-	}
+	b.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), true, false)
 	b.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).

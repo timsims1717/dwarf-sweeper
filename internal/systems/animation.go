@@ -31,11 +31,11 @@ func AnimationDraw() {
 		anim, okA := result.Components[myecs.Animation].(*reanimator.Tree)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
-		if okA && okT && okB && anim.CurrentSprite() != nil {
+		if okA && okT && okB && anim.CurrentSprite() != nil && !tran.Hide {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if batcher, ok := img.Batchers[bkey]; ok {
-					anim.CurrentSprite().Draw(batcher.Batch(), tran.Mat)
+					anim.CurrentSprite().DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
 				}
 			}
 		}
@@ -47,11 +47,11 @@ func SpriteDraw() {
 		spr, okS := result.Components[myecs.Sprite].(*pixel.Sprite)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
-		if okS && okT && okB {
+		if okS && okT && okB && !tran.Hide {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if batcher, ok := img.Batchers[bkey]; ok {
-					spr.Draw(batcher.Batch(), tran.Mat)
+					spr.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
 				}
 			}
 		}

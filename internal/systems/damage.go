@@ -20,7 +20,7 @@ func AreaDamageSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasAreaDamage) {
 		area, ok := result.Components[myecs.AreaDmg].(*data.AreaDamage)
 		if ok {
-			dist := camera.Cam.Pos.Sub(area.Source)
+			dist := camera.Cam.Pos.Sub(area.Center)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if debug.Debug {
 					if area.Radius > 0. {
@@ -34,13 +34,13 @@ func AreaDamageSystem() {
 				for _, tResult := range myecs.Manager.Query(myecs.HasHealth) {
 					tran, okT := tResult.Components[myecs.Transform].(*transform.Transform)
 					hp, okH1 := tResult.Components[myecs.Health].(*data.Health)
-					_, okH2 := tResult.Components[myecs.Health].(*data.BlastHealth)
-					if okT && (okH1 || okH2) {
+					_, okH2 := tResult.Components[myecs.Health].(*data.SimpleHealth)
+					if okT && (okH1 || okH2) && tran.ID != area.SourceID {
 						immune := false
 						if okH1 {
-							for _, t := range hp.Immune {
+							for t, i := range hp.Immune {
 								if t == area.Type {
-									immune = true
+									immune = i.KB && i.Dazed && i.DMG
 									break
 								}
 							}
@@ -58,7 +58,7 @@ func AreaDamageSystem() {
 							if hit {
 								kb := area.Knockback
 								if area.KnockbackDecay {
-									p := tran.Pos.Sub(area.Source)
+									p := tran.Pos.Sub(area.Center)
 									mag := math.Sqrt(p.X*p.X + p.Y*p.Y)
 									kb = kb - (mag / world.TileSize)
 								}
@@ -66,7 +66,8 @@ func AreaDamageSystem() {
 									Amount:    area.Amount,
 									Dazed:     area.Dazed,
 									Knockback: kb,
-									Source:    area.Source,
+									Angle:     area.Angle,
+									Source:    area.Center,
 									Type:      area.Type,
 								})
 							}
@@ -82,23 +83,23 @@ func AreaDamageSystem() {
 func DamageSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasDamage) {
 		hp, okH := result.Components[myecs.Health].(*data.Health)
-		hpB, okB := result.Components[myecs.Health].(*data.BlastHealth)
+		hpB, okB := result.Components[myecs.Health].(*data.SimpleHealth)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		dmg, okD := result.Components[myecs.Damage].(*data.Damage)
 		if okH && okP && okD && okT {
-			immune := false
-			for _, t := range hp.Immune {
-				if t == dmg.Type {
-					immune = true
-					break
-				}
-			}
-			if !hp.Inv && !hp.TempInv && !immune {
+			if !hp.Inv {
 				dist := camera.Cam.Pos.Sub(tran.Pos)
 				if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
+					immune := data.Immunity{}
+					for t, immunity := range hp.Immune {
+						if t == dmg.Type {
+							immune = immunity
+							break
+						}
+					}
 					dmgAmt := dmg.Amount
-					if dmgAmt > 0 {
+					if dmgAmt > 0 && hp.TempInvTimer.Done() && !immune.DMG {
 						tmp := hp.TempHP
 						hp.TempHP -= dmgAmt
 						if hp.TempHP < 0 {
@@ -112,8 +113,20 @@ func DamageSystem() {
 								hp.Dead = true
 							}
 						}
+						if hp.TempInvSec > 0. {
+							hp.TempInvTimer = timing.New(hp.TempInvSec)
+							if hp.TempInvSec > 1.0 {
+								myecs.AddEffect(result.Entity, data.NewBlink(hp.TempInvSec))
+							}
+						}
 					}
-					if dmg.Knockback > 0.0 {
+					if dmg.Knockback > 0.0 && !immune.KB {
+						if phys.GravityOff {
+							phys.GravityOff = false
+						}
+						if phys.FrictionOff {
+							phys.FrictionOff = false
+						}
 						phys.CancelMovement()
 						var dir pixel.Vec
 						if dmg.Angle == nil {
@@ -122,9 +135,6 @@ func DamageSystem() {
 							dir = util.Normalize(d)
 						} else {
 							dir = pixel.V(1., 0.).Rotated(*dmg.Angle)
-							if tran.Pos.X < dmg.Source.X {
-								dir.X *= -1
-							}
 						}
 						phys.SetVelX(dir.X*dmg.Knockback*world.TileSize, 0.)
 						phys.SetVelY(dir.Y*dmg.Knockback*world.TileSize, 0.)
@@ -133,10 +143,10 @@ func DamageSystem() {
 							phys.RagDollY = true
 						}
 					}
-					if dmg.Dazed > 0.0 && hp.Curr > 0 {
+					if dmg.Dazed > 0.0 && hp.Curr > 0 && !immune.Dazed {
 						hp.Dazed = true
-						if hp.DazeOverride {
-							hp.DazedO = true
+						if hp.DazedTime > 0. {
+							hp.DazedTimer = timing.New(hp.DazedTime)
 						} else {
 							hp.DazedTimer = timing.New(dmg.Dazed)
 						}
@@ -145,20 +155,29 @@ func DamageSystem() {
 							hp.DazedVFX = nil
 						}
 					}
-					if hp.TempInvSec > 0. {
-						hp.TempInv = true
-						hp.TempInvTimer = timing.New(hp.TempInvSec)
-					}
 				}
 			}
 		} else if okB && okD && okP && okT {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
+				immune := data.Immunity{}
+				for t, immunity := range hpB.Immune {
+					if t == dmg.Type {
+						immune = immunity
+						break
+					}
+				}
 				dmgAmt := dmg.Amount
-				if dmgAmt > 0 && dmg.Type == data.Blast {
+				if dmgAmt > 0 && !immune.DMG {
 					hpB.Dead = true
 				}
-				if dmg.Knockback > 0.0 && dmg.Type == data.Shovel {
+				if dmg.Knockback > 0.0 && !immune.KB {
+					if phys.GravityOff {
+						phys.GravityOff = false
+					}
+					if phys.FrictionOff {
+						phys.FrictionOff = false
+					}
 					phys.CancelMovement()
 					var dir pixel.Vec
 					if dmg.Angle == nil {
@@ -167,9 +186,6 @@ func DamageSystem() {
 						dir = util.Normalize(d)
 					} else {
 						dir = pixel.V(1., 0.).Rotated(*dmg.Angle)
-						if tran.Pos.X < dmg.Source.X {
-							dir.X *= -1
-						}
 					}
 					phys.SetVelX(dir.X*dmg.Knockback*world.TileSize, 0.)
 					phys.SetVelY(dir.Y*dmg.Knockback*world.TileSize, 0.)
