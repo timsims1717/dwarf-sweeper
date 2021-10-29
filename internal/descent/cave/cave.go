@@ -123,6 +123,7 @@ func (c *Cave) Update() {
 	if c.UpdateBatch {
 		c.UpdateAllTileSprites()
 		c.hasUpdated = true
+		c.UpdateBatch = false
 	}
 
 	if c.Background != nil {
@@ -184,7 +185,7 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		c.Background.Draw(c.BGBatch, c.BGTDR.Mat)
 		c.BGBatch.Draw(win)
 	}
-	if c.UpdateBatch && c.hasUpdated {
+	if c.hasUpdated {
 		c.Batcher.Clear()
 		for _, chunk := range c.RChunks {
 			chunk.Draw(c.Batcher.Batch())
@@ -192,7 +193,6 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		for _, chunk := range c.LChunks {
 			chunk.Draw(c.Batcher.Batch())
 		}
-		c.UpdateBatch = false
 		c.hasUpdated = false
 	}
 	c.Batcher.Draw(win)

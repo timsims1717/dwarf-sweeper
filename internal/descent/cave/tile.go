@@ -119,7 +119,6 @@ func (tile *Tile) Update() {
 					if t.Destroyed {
 						tile.Reveal(true)
 					}
-					tile.Chunk.Cave.UpdateBatch = true
 				}
 			}
 		}
@@ -174,7 +173,6 @@ func (tile *Tile) destroy() {
 				if t.Bomb && t.Breakable() {
 					c++
 				}
-				tile.Chunk.Cave.UpdateBatch = true
 			}
 		}
 		if tile.Bomb {
@@ -189,7 +187,6 @@ func (tile *Tile) destroy() {
 					tile.Chunk.Get(n).ToReveal()
 				}
 			}
-			tile.Chunk.Cave.UpdateBatch = true
 		}
 		if wasSolid {
 			particles.BlockParticles(tile.Transform.Pos, tile.Chunk.Cave.Biome)
@@ -220,7 +217,6 @@ func (tile *Tile) Reveal(instant bool) {
 				if t.Bomb && t.Breakable() {
 					c++
 				}
-				tile.Chunk.Cave.UpdateBatch = true
 			}
 		}
 		if !util.IsNil(tile.Entity) {
@@ -236,7 +232,6 @@ func (tile *Tile) Reveal(instant bool) {
 				}
 			}
 		}
-		tile.Chunk.Cave.UpdateBatch = true
 		if !instant {
 			particles.BlockParticles(tile.Transform.Pos, tile.Chunk.Cave.Biome)
 		}
@@ -379,7 +374,7 @@ func (tile *Tile) UpdateSprites() {
 				tile.BGSprite = nil
 			}
 		}
-		if tile.FGSpriteS != fgs {
+		if tile.FGSpriteS != fgs || tile.FGMatrix != fgm {
 			tile.FGMatrix = fgm
 			tile.FGSpriteS = fgs
 			if fgs != "" {

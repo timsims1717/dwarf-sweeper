@@ -21,18 +21,18 @@ func NewInfiniteCave(spriteSheet *img.SpriteSheet, biome string) *cave.Cave {
 	newCave.ItemRate = constants.BaseItem
 	newCave.BombPMin = 0.2
 	newCave.BombPMax = 0.3
-	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, newCave)
+	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, newCave, cave.BlockCollapse)
 	FillChunk(chunk0)
 
-	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, newCave)
-	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, newCave)
-	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, newCave)
+	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, newCave, cave.BlockCollapse)
+	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, newCave, cave.BlockCollapse)
+	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, newCave, cave.BlockCollapse)
 	FillChunk(chunkr1)
 	FillChunk(chunkr2)
 	FillChunk(chunkr3)
 
-	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, newCave)
-	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, newCave)
+	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, newCave, cave.BlockCollapse)
+	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, newCave, cave.BlockCollapse)
 	FillChunk(chunkl1)
 	FillChunk(chunkl2)
 

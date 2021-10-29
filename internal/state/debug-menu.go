@@ -16,13 +16,18 @@ func InitDebugMenu() {
 	DebugMenu = menus.New("debug", camera.Cam)
 	DebugMenu.Title = true
 	debugTitle := DebugMenu.AddItem("title", "Debug Menu")
-	freeCam := DebugMenu.AddItem("free-cam", "Free Camera On")
+	back := DebugMenu.AddItem("back", "Back")
+	freeCam := DebugMenu.AddItem("free-cam", "Free Camera")
 	mineLevel := DebugMenu.AddItem("mine-level", "Start Mine Level")
 	testMineSolver := DebugMenu.AddItem("test-solver", "Test Mine Solver")
 	giveBombs := DebugMenu.AddItem("give-bombs", "Give Bombs")
 	fogToggle := DebugMenu.AddItem("fog-toggle", "Toggle Fog")
 
 	debugTitle.NoHover = true
+	back.SetClickFn(func() {
+		DebugMenu.Close()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
 	freeCam.SetClickFn(func() {
 		descent.Descent.FreeCam = !descent.Descent.FreeCam
 		if descent.Descent.FreeCam {

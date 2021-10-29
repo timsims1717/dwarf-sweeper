@@ -43,14 +43,14 @@ func Update() {
 			for _, i := range all {
 				if i.X >= 0 && i.Y >= 0 {
 					if _, ok := Descent.Cave.RChunks[i]; !ok {
-						Descent.Cave.RChunks[i] = cave.NewChunk(i, Descent.Cave)
+						Descent.Cave.RChunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
 						Descent.Cave.FillChunk(Descent.Cave.RChunks[i])
 						Descent.Cave.UpdateBatch = true
 						IncreaseLevelInf()
 					}
 				} else if i.X < 0 && i.Y >= 0 {
 					if _, ok := Descent.Cave.LChunks[i]; !ok {
-						Descent.Cave.LChunks[i] = cave.NewChunk(i, Descent.Cave)
+						Descent.Cave.LChunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
 						Descent.Cave.FillChunk(Descent.Cave.RChunks[i])
 						Descent.Cave.UpdateBatch = true
 						IncreaseLevelInf()

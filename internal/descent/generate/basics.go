@@ -10,7 +10,7 @@ import (
 func CreateChunks(newCave *cave.Cave) {
 	for y := 0; y <= newCave.Bottom; y++ {
 		for x := newCave.Left; x <= newCave.Right; x++ {
-			chunk := cave.NewChunk(world.Coords{X: x, Y: y}, newCave)
+			chunk := cave.NewChunk(world.Coords{X: x, Y: y}, newCave, cave.Wall)
 			if x >= 0 {
 				newCave.RChunks[chunk.Coords] = chunk
 			} else {
