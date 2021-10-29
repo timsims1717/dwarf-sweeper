@@ -17,8 +17,9 @@ func Debug(in *input.Input) {
 			debug.AddText(fmt.Sprintf("tile type: '%s'", d.Hovered.Type))
 			debug.AddText(fmt.Sprintf("tile bg sprite: '%s'", d.Hovered.BGSpriteS))
 			debug.AddText(fmt.Sprintf("tile fg sprite: '%s'", d.Hovered.FGSpriteS))
-			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.SmartStr))
-			debug.AddText(fmt.Sprintf("tile s, d: %t, %t", d.Hovered.Surrounded, d.Hovered.DSurrounded))
+			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.BGSmartStr))
+			debug.AddText(fmt.Sprintf("tile fg smart str: '%s'", d.Hovered.FGSmartStr))
+			//debug.AddText(fmt.Sprintf("tile s, d: %t, %t", d.Hovered.Surrounded, d.Hovered.DSurrounded))
 		}
 		debug.AddText(fmt.Sprintf("dwarf position: (%d,%d)", int(d.Transform.APos.X), int(d.Transform.APos.Y)))
 		//debug.AddText(fmt.Sprintf("dwarf actual position: (%f,%f)", d.Transform.Pos.X, d.Transform.Pos.Y))

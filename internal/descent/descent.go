@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
@@ -20,18 +21,22 @@ const (
 var Descent = &descent{}
 
 type descent struct {
-	Cave      *cave.Cave
-	Level     int
-	Player    *Dwarf
-	Start     bool
-	Type      CaveType
-	ExitPop   *menus.PopUp
-	canExit   bool
+	Cave    *cave.Cave
+	Level   int
+	Player  *Dwarf
+	Start   bool
+	Type    CaveType
+	ExitPop *menus.PopUp
+	canExit bool
+	FreeCam bool
 }
 
 func Update() {
 	if Descent != nil && Descent.Cave != nil {
 		Descent.Cave.Pivot = Descent.GetPlayer().Transform.Pos
+		if !Descent.FreeCam {
+			camera.Cam.StayWithin(Descent.Cave.Pivot, world.TileSize*1.5)
+		}
 		if !Descent.Cave.Finite {
 			p := cave.WorldToChunk(Descent.Cave.Pivot)
 			all := append([]world.Coords{p}, p.Neighbors()...)
@@ -80,6 +85,8 @@ func (d *descent) GetCave() *cave.Cave {
 
 func (d *descent) SetCave(cave *cave.Cave) {
 	d.Cave = cave
+	d.Cave.UpdateAllTileSprites()
+	d.Cave.UpdateBatch = true
 }
 
 func (d *descent) GetPlayer() *Dwarf {

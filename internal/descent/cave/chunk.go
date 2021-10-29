@@ -20,8 +20,8 @@ func NewChunk(coords world.Coords, c *Cave) *Chunk {
 	// Array of 1024 bools
 	var list []bool
 	// fill first BombPMin-BombPMax% with true
-	if c.BombPMax > 0. && c.BombPMin > 0. && c.BombPMax - c.BombPMin > 0. {
-		bCount := random.CaveGen.Intn(constants.ChunkArea/int(100*(c.BombPMax-c.BombPMin))) + constants.ChunkArea/int(100*c.BombPMin)
+	if c.BombPMax > 0. && c.BombPMax > c.BombPMin {
+		bCount := int(constants.ChunkArea * (random.CaveGen.Float64()*(c.BombPMax-c.BombPMin) + c.BombPMin))
 		list = minesweeper.CreateBoard(constants.ChunkSize, constants.ChunkSize, bCount, random.CaveGen).AsArray()
 	} else {
 		list = make([]bool, constants.ChunkArea)

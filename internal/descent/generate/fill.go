@@ -9,9 +9,10 @@ import (
 )
 
 func FillChunk(ch *cave.Chunk) {
+	count := 0
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid() && tile.Breakable() && (tile.Fillable || !ch.Cave.Finite) {
+			if tile.Solid() && tile.Breakable() {
 				if tile.Bomb {
 					tile.DestroyTrigger = func(t *cave.Tile) {
 						descent.CreateBomb(t.Transform.Pos)
@@ -42,6 +43,7 @@ func FillChunk(ch *cave.Chunk) {
 				}
 			} else if tile.Bomb {
 				tile.Bomb = false
+				count++
 			}
 		}
 	}
@@ -71,7 +73,7 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 	needBomb := nb
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid() && tile.Breakable() && tile.Fillable && t.RCoords != tile.RCoords {
+			if tile.Solid() && tile.Breakable() && t.RCoords != tile.RCoords {
 				if tile.Bomb {
 					tile.Entity = &descent.Mine{
 						Tile:       tile,

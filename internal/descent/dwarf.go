@@ -767,12 +767,7 @@ func (d *Dwarf) Update(in *input.Input) {
 	} else if d.facing.X > 0 && (d.digHold || d.markHold || d.digging || d.marking || d.attacking) {
 		d.faceLeft = false
 	}
-
-}
-
-func (d *Dwarf) Update2() {
 	d.Transform.Flip = d.faceLeft
-	camera.Cam.StayWithin(d.Transform.Pos, world.TileSize * 1.5)
 	if d.walking && d.walkTimer.UpdateDone() {
 		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
 		d.walkTimer = timing.New(stepTime)

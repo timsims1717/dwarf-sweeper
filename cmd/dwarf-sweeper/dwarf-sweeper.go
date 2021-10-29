@@ -111,17 +111,19 @@ func run() {
 	sfx.SoundPlayer.RegisterSound("assets/sound/clink.wav", "clink")
 
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Crab Nebula.wav", "crab")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Frozen In Time.mp3", "frozen")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/No Light.mp3", "no_light")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Honeybee.wav", "honey")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Prairie Oyster.wav", "oyster")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Sable.wav", "sable")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Space Cruise.mp3", "cruise")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Strawberry Jam.wav", "strawberry")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/The Dawn Approaches.wav", "dawn")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/The Hero Approaches.wav", "hero")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Twin Turbo.wav", "turbo")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Voyage.wav", "voyage")
 
 	sfx.MusicPlayer.SetTracks("menu", []string{"crab"})
 	sfx.MusicPlayer.SetTracks("pause", []string{"sable"})
-	sfx.MusicPlayer.NewSet("game", []string{"frozen", "no_light", "oyster", "cruise", "turbo", "voyage"}, true, 0., 2.)
+	sfx.MusicPlayer.NewSet("game", []string{"honey", "oyster", "strawberry", "dawn", "hero", "turbo", "voyage"}, true, 0., 2.)
+	// dawn and hero will be "boss" tracks
 
 	timing.Reset()
 	win.Show()

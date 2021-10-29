@@ -20,6 +20,7 @@ type Cave struct {
 	Pivot       pixel.Vec
 	Finite      bool
 	UpdateBatch bool
+	hasUpdated  bool
 	Batcher     *img.Batcher
 
 	Left   int
@@ -83,6 +84,7 @@ func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
 		BGTDL:       transform.NewTransform(),
 		BGTD:        transform.NewTransform(),
 		BGTDR:       transform.NewTransform(),
+		Fog:         true,
 	}
 }
 
@@ -117,6 +119,12 @@ func (c *Cave) Update() {
 		chunk.Display = dis
 		chunk.Update()
 	}
+
+	if c.UpdateBatch {
+		c.UpdateAllTileSprites()
+		c.hasUpdated = true
+	}
+
 	if c.Background != nil {
 		offset := camera.Cam.APos.Scaled(-0.5)
 		offset.X = util.FMod(offset.X, c.Background.Frame().W())
@@ -176,9 +184,7 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		c.Background.Draw(c.BGBatch, c.BGTDR.Mat)
 		c.BGBatch.Draw(win)
 	}
-
-	if c.UpdateBatch {
-		c.UpdateAllTileSprites()
+	if c.UpdateBatch && c.hasUpdated {
 		c.Batcher.Clear()
 		for _, chunk := range c.RChunks {
 			chunk.Draw(c.Batcher.Batch())
@@ -186,9 +192,10 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		for _, chunk := range c.LChunks {
 			chunk.Draw(c.Batcher.Batch())
 		}
+		c.UpdateBatch = false
+		c.hasUpdated = false
 	}
 	c.Batcher.Draw(win)
-	c.UpdateBatch = false
 }
 
 func (c *Cave) Dimensions() (int, int) {
@@ -295,16 +302,38 @@ func (c *Cave) GetExit() *Tile {
 
 func (c *Cave) UpdateAllTileSprites() {
 	for _, chunk := range c.RChunks {
-		for _, row := range chunk.Rows {
-			for _, tile := range row {
-				tile.UpdateSprites()
+		if chunk.Display {
+			for _, row := range chunk.Rows {
+				for _, tile := range row {
+					tile.UpdateDetails()
+				}
 			}
 		}
 	}
 	for _, chunk := range c.LChunks {
-		for _, row := range chunk.Rows {
-			for _, tile := range row {
-				tile.UpdateSprites()
+		if chunk.Display {
+			for _, row := range chunk.Rows {
+				for _, tile := range row {
+					tile.UpdateDetails()
+				}
+			}
+		}
+	}
+	for _, chunk := range c.RChunks {
+		if chunk.Display {
+			for _, row := range chunk.Rows {
+				for _, tile := range row {
+					tile.UpdateSprites()
+				}
+			}
+		}
+	}
+	for _, chunk := range c.LChunks {
+		if chunk.Display {
+			for _, row := range chunk.Rows {
+				for _, tile := range row {
+					tile.UpdateSprites()
+				}
 			}
 		}
 	}

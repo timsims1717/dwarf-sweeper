@@ -14,18 +14,20 @@ type Path struct {
 	Count int
 }
 
-func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction, rb bool) ([]world.Coords, []world.Coords) {
-	var path []world.Coords
-	var deadends []world.Coords
-	type pathDir struct {
-		l     bool
-		r     bool
-		u     bool
-		d     bool
-		last  data.Direction
-		width int
-		wLeft bool
-	}
+type pathDir struct {
+	l     bool
+	r     bool
+	u     bool
+	d     bool
+	last  data.Direction
+	width int
+	wLeft bool
+}
+
+func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction, rb bool) ([]world.Coords, []world.Coords, []world.Coords) {
+	var path, deadends, marked []world.Coords
+	toMark := 0
+	mark := false
 	// initialize a starting width
 	pDir := pathDir{
 		last:  dir,
@@ -35,7 +37,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 	curr := start
 	tile := c.GetTileInt(curr.X, curr.Y)
 	// after finding each path tile, we will wall up all the un-pathed tiles around it
-	wallUp(tile, pDir.width < 3 && rb)
+	wallUp(tile)
 	done := false
 	for !done {
 		// check each direction, see if we can go there
@@ -57,6 +59,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 		}
 		n := pDir.last
 
+		mark = world.DistanceOrthogonal(start, curr) > 16 && world.DistanceOrthogonal(end, curr) > 16
 		// if we are within 8 of the end in both directions, head straight there
 		if util.Abs(curr.X - end.X) < 8 && util.Abs(curr.Y - end.Y) < 8 {
 			if curr.Y > end.Y {
@@ -144,69 +147,142 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 				}
 			}
 		}
-		// if the new direction is the opposite of the last direction, it's a deadend
+		// if the new direction is the opposite of the last direction, it's a dead end
 		if util.Abs(int(pDir.last - n)) == 2 {
 			deadends = append(deadends, curr)
-		}
-		// move to the next tile
-		if n == data.Left {
-			curr.X -= 1
-		} else if n == data.Right {
-			curr.X += 1
-		} else if n == data.Up {
-			curr.Y -= 1
-		} else {
-			curr.Y += 1
-		}
-		pDir.last = n
-		// maybe change width
-		if random.CaveGen.Intn(20) == 0 {
-			two := random.CaveGen.Intn(3)
-			if pDir.width == 3 || pDir.width == 1 {
-				pDir.width = 2
-				pDir.wLeft = random.CaveGen.Intn(2) == 0
-			} else if two == 0 {
-				pDir.wLeft = !pDir.wLeft
-			} else if two == 1 {
-				pDir.width = 1
-			} else {
-				pDir.width = 3
+		} else if mark {
+			// if it's not a dead end, see if we should mark it
+			var ok bool
+			if ok, toMark = addToMarked(toMark); ok {
+				marked = append(marked, curr)
 			}
 		}
+		// move to the next tile
+		curr = moveToNextTile(curr, n)
+		pDir.last = n
+		// maybe change width
+		pDir.width, pDir.wLeft = changeWidth(pDir.width, pDir.wLeft)
 		// wall up all tiles surrounding the touched tiles
 		tile = c.GetTileInt(curr.X, curr.Y)
-		tile.PartOfPath = true
-		wallUp(tile, pDir.width < 3 && rb)
-		ns := tile.SubCoords.Neighbors()
-		if pDir.width == 3 || (pDir.width == 2 && pDir.wLeft) {
-			z := tile.Chunk.Get(ns[4])
-			wallUp(z, pDir.width < 3 && rb)
-			y := tile.Chunk.Get(ns[5])
-			wallUp(y, pDir.width < 3 && rb)
-			x := tile.Chunk.Get(ns[6])
-			wallUp(x, pDir.width < 3 && rb)
-			w := tile.Chunk.Get(ns[7])
-			wallUp(w, pDir.width < 3 && rb)
-		}
-		if pDir.width == 3 || (pDir.width == 2 && !pDir.wLeft) {
-			v := tile.Chunk.Get(ns[0])
-			wallUp(v, pDir.width < 3 && rb)
-			u := tile.Chunk.Get(ns[1])
-			wallUp(u, pDir.width < 3 && rb)
-			t := tile.Chunk.Get(ns[2])
-			wallUp(t, pDir.width < 3 && rb)
-			s := tile.Chunk.Get(ns[3])
-			wallUp(s, pDir.width < 3 && rb)
-		}
-		path = append(path, curr)
-		if curr == end {
-			done = true
+		if tile != nil {
+			tile.PartOfPath = true
+			wallUpWidth(tile, pDir.width, pDir.wLeft)
+			path = append(path, curr)
+			if curr == end {
+				done = true
+			}
 		}
 	}
-	return path, deadends
+	return path, deadends, marked
 }
 
-func BranchOff(start world.Coords, dir data.Direction) {
+func BranchOff(c *cave.Cave, start world.Coords, min, max int) ([]world.Coords, []world.Coords, []world.Coords) {
+	var path, deadends, marked []world.Coords
+	toMark := 0
 	// take off in that direction a random amount or until stopped by the edge
-	// return path
+	dir := RandomDirection()
+	for dir == data.Down {
+		dir = RandomDirection()
+	}
+	pDir := pathDir{
+		last:  dir,
+		width: random.CaveGen.Intn(3) + 1,
+		wLeft: random.CaveGen.Intn(2) == 0,
+	}
+	curr := start
+	tile := c.GetTileInt(curr.X, curr.Y)
+	// after finding each path tile, we will wall up all the un-pathed tiles around it
+	wallUp(tile)
+	done := false
+	for !done {
+		// check the direction we are going, or the length of path so far
+		// if close to the edge, we're done. If the length is at the max, we're done.
+		// if the length is greater than min, 1/20 chance it ends each step
+		if dir == data.Left && curr.X < c.Left*constants.ChunkSize+6 {
+			done = true
+		}
+		if dir == data.Right && curr.X > (c.Right+1)*constants.ChunkSize-6 {
+			done = true
+		}
+		if dir == data.Up && curr.Y < 6 {
+			done = true
+		}
+		if len(path) + 1 >= max {
+			done = true
+		}
+		if len(path) + 1 >= min && random.CaveGen.Intn(20) == 0 {
+			done = true
+		}
+		// once we're done, it's a dead end
+		if done {
+			deadends = append(deadends, curr)
+		}
+		// toMark
+		var ok bool
+		if ok, toMark = addToMarked(toMark); ok && !done {
+			marked = append(marked, curr)
+		}
+		// move to the next tile
+		curr = moveToNextTile(curr, dir)
+		// maybe change width
+		pDir.width, pDir.wLeft = changeWidth(pDir.width, pDir.wLeft)
+		// wall up all tiles surrounding the touched tiles
+		tile = c.GetTileInt(curr.X, curr.Y)
+		if tile != nil {
+			tile.PartOfPath = true
+			wallUpWidth(tile, pDir.width, pDir.wLeft)
+			path = append(path, curr)
+		}
+	}
+	return path, deadends, marked
+}
+
+func moveToNextTile(curr world.Coords, n data.Direction) world.Coords {
+	if n == data.Left {
+		curr.X -= 1
+	} else if n == data.Right {
+		curr.X += 1
+	} else if n == data.Up {
+		curr.Y -= 1
+	} else {
+		curr.Y += 1
+	}
+	return curr
+}
+
+// 5% chance to changeWidth
+func changeWidth(w int, l bool) (int, bool) {
+	if random.CaveGen.Intn(20) == 0 {
+		two := random.CaveGen.Intn(3) // the choice when the path is 2 wide
+		if w == 3 || w == 1 {
+			w = 2
+			l = random.CaveGen.Intn(2) == 0
+		} else if two == 0 { // switch to the "other" two wide
+			l = !l
+		} else if two == 1 { // switch to one wide
+			w = 1
+		} else { // switch to three wide
+			w = 3
+		}
+	}
+	return w, l
+}
+
+// randomly see if we should add this tile to "marked"
+// if yes: decrease toMark by 25
+// if no: increase toMark by 2
+func addToMarked(toMark int) (bool, int) {
+	if random.CaveGen.Intn(100) <= toMark {
+		toMark -= 25
+		if toMark < 0 {
+			toMark = 0
+		}
+		return true, toMark
+	} else {
+		toMark += 2
+		if toMark > 100 {
+			toMark = 100
+		}
+		return false, toMark
+	}
 }

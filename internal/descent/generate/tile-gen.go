@@ -11,57 +11,44 @@ func toEmpty(tile *cave.Tile, perm, asDeco bool) {
 		}
 		tile.IsChanged = true
 		tile.NeverChange = perm
-		tile.Fillable = false
 	}
 }
 
-func toBlockCollapse(tile *cave.Tile, perm, bomb bool) {
+func toBlockCollapse(tile *cave.Tile, perm bool) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
 		tile.Type = cave.BlockCollapse
-		tile.Bomb = bomb
 		tile.IsChanged = true
 		tile.NeverChange = perm
-		tile.Fillable = true
 	}
 }
 
-func toBlockDig(tile *cave.Tile, perm, bomb bool) {
+func toBlockDig(tile *cave.Tile, perm bool) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
 		tile.Type = cave.BlockDig
-		tile.Bomb = bomb
 		tile.IsChanged = true
 		tile.NeverChange = perm
-		tile.Fillable = true
 	}
 }
 
-func toBlockBlast(tile *cave.Tile, perm, bomb bool) {
+func toBlockBlast(tile *cave.Tile, perm bool) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
 		tile.Type = cave.BlockBlast
-		tile.Bomb = bomb
 		tile.IsChanged = true
 		tile.NeverChange = perm
-		tile.Fillable = true
 	}
 }
 
 func toWall(tile *cave.Tile, perm bool) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
 		tile.Type = cave.Wall
-		tile.Bomb = false
 		tile.IsChanged = true
 		tile.NeverChange = perm
-		tile.Fillable = false
 	}
 }
 
-func wallUp(tile *cave.Tile, noBomb bool) {
+func wallUp(tile *cave.Tile) {
 	if tile != nil && !tile.NeverChange && !tile.IsChanged {
 		tile.Type = cave.BlockCollapse
-		tile.Fillable = true
-		if noBomb {
-			tile.Bomb = false
-		}
 		tile.IsChanged = true
 		for _, n := range tile.SubCoords.Neighbors() {
 			t := tile.Chunk.Get(n)
@@ -69,5 +56,30 @@ func wallUp(tile *cave.Tile, noBomb bool) {
 				t.Type = cave.Wall
 			}
 		}
+	}
+}
+
+func wallUpWidth(tile *cave.Tile, width int, left bool) {
+	wallUp(tile)
+	ns := tile.SubCoords.Neighbors()
+	if width == 3 || (width == 2 && left) {
+		z := tile.Chunk.Get(ns[4])
+		wallUp(z)
+		y := tile.Chunk.Get(ns[5])
+		wallUp(y)
+		x := tile.Chunk.Get(ns[6])
+		wallUp(x)
+		w := tile.Chunk.Get(ns[7])
+		wallUp(w)
+	}
+	if width == 3 || (width == 2 && !left) {
+		v := tile.Chunk.Get(ns[0])
+		wallUp(v)
+		u := tile.Chunk.Get(ns[1])
+		wallUp(u)
+		t := tile.Chunk.Get(ns[2])
+		wallUp(t)
+		s := tile.Chunk.Get(ns[3])
+		wallUp(s)
 	}
 }

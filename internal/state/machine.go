@@ -56,9 +56,12 @@ var (
 			"debugPause":   input.NewJoyless(pixelgl.KeyF9),
 			"debugResume":  input.NewJoyless(pixelgl.KeyF10),
 			"debugInv":     input.NewJoyless(pixelgl.KeyF11),
-			"debugFog":     input.NewJoyless(pixelgl.KeyF12),
 			"debugSP":      input.NewJoyless(pixelgl.KeyKPAdd),
 			"debugSM":      input.NewJoyless(pixelgl.KeyKPSubtract),
+			"freeCamUp":    input.NewJoyless(pixelgl.KeyP),
+			"freeCamRight": input.NewJoyless(pixelgl.KeyApostrophe),
+			"freeCamDown":  input.NewJoyless(pixelgl.KeySemicolon),
+			"freeCamLeft":  input.NewJoyless(pixelgl.KeyL),
 		},
 		Mode: input.KeyboardMouse,
 	}
@@ -123,58 +126,35 @@ func Update(win *pixelgl.Window) {
 	if debugInput.Get("debugInv").JustPressed() && descent.Descent.GetPlayer() != nil {
 		descent.Descent.GetPlayer().Health.Inv = !descent.Descent.GetPlayer().Health.Inv
 	}
-	if debugInput.Get("debugMenu").JustPressed() {
-		//newState = 0
-		//switchState = true
-		//descent.Descent.Type = descent.Minesweeper
-		//descent.Descent.Level = 1
-		//descent.Descent.Start = true
-
-		//b := minesweeper.CreateBoard(5, 5, 10, random.Effects)
-		//b.PrintToTerminalFull()
-		//b.RevealTilSolvable(random.Effects)
-		//b.PrintToTerminal()
-		//fmt.Printf("Was it solvable: %t", b.Solvable())
-
-		//descent.AddToInventory(&descent.InvItem{
-		//	Name:   "bomb",
-		//	Sprite: img.Batchers[constants.EntityKey].Sprites["bomb_item"],
-		//	OnUse:  func() {
-		//		tile := descent.Descent.GetPlayerTile()
-		//		descent.CreateBomb(tile.Transform.Pos)
-		//	},
-		//	Count: 3,
-		//	Limit: 3,
-		//})
-
-		pt := descent.Descent.GetPlayerTile()
-		pos := pt.Transform.Pos
-		pos.X += world.TileSize
-		descent.CreateBomb(pos)
-		pos.X += world.TileSize * 7
-		mm := descent.MadMonk{}
-		mm.Create(pos)
-		mm.Health.Dazed = false
-	}
-	if debugInput.Get("debugFog").JustPressed() {
-		if descent.Descent.Cave != nil {
-			descent.Descent.Cave.Fog = !descent.Descent.Cave.Fog
-			if descent.Descent.Cave.Fog {
-				fmt.Println("DEBUG FOG ON")
-				descent.Descent.GetCave().UpdateAllTileSprites()
-			} else {
-				fmt.Println("DEBUG FOG OFF")
-				descent.Descent.GetCave().UpdateAllTileSprites()
-			}
-		}
+	if debugInput.Get("debugMenu").JustPressed() && MenuClosed() {
+		debugInput.Get("debugMenu").Consume()
+		OpenMenu(DebugMenu)
 	}
 	if debugInput.Get("debugSP").JustPressed() {
-		splashScale *= 1.2
-		fmt.Printf("Splash Scale: %f\n", splashScale)
+		if state == 1 {
+			splashScale *= 1.2
+			fmt.Printf("Splash Scale: %f\n", splashScale)
+		} else if descent.Descent.FreeCam {
+			camera.Cam.ZoomIn(1.)
+		}
 	}
 	if debugInput.Get("debugSM").JustPressed() {
-		splashScale /= 1.2
-		fmt.Printf("Splash Scale: %f\n", splashScale)
+		if state == 1 {
+			splashScale /= 1.2
+			fmt.Printf("Splash Scale: %f\n", splashScale)
+		} else if descent.Descent.FreeCam {
+			camera.Cam.ZoomIn(-1.)
+		}
+	}
+	if debugInput.Get("freeCamUp").Pressed() && descent.Descent.FreeCam {
+		camera.Cam.Up()
+	} else if debugInput.Get("freeCamDown").Pressed() && descent.Descent.FreeCam {
+		camera.Cam.Down()
+	}
+	if debugInput.Get("freeCamRight").Pressed() && descent.Descent.FreeCam {
+		camera.Cam.Right()
+	} else if debugInput.Get("freeCamLeft").Pressed() && descent.Descent.FreeCam {
+		camera.Cam.Left()
 	}
 	frame := false
 	if debugInput.Get("debugPause").JustPressed() {
@@ -218,7 +198,6 @@ func Update(win *pixelgl.Window) {
 				systems.PopUpSystem()
 				systems.VFXSystem()
 				vfx.Update()
-				descent.Descent.GetPlayer().Update2()
 				descent.UpdateInventory()
 				systems.AnimationSystem()
 				descent.Update()
