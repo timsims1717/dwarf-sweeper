@@ -63,23 +63,20 @@ func (m *Mine) Create(pos pixel.Vec) {
 	m.Transform.Pos = pos
 	m.created = true
 	m.Timer = timing.New(MineFuse)
-	m.Reanimator = reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran, map[int]func() {
-				2: func() {
-					m.explode = true
-				},
+	m.Reanimator = reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran).
+			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+				m.explode = true
 			}),
-		),
-		Check: func() int {
+		).
+		SetChooseFn(func() int {
 			if MineFuse * 0.5 > m.Timer.Elapsed() {
 				return 0
 			} else {
 				return 1
 			}
-		},
-	}, "mine_1")
+		}), "mine_1")
 	m.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).

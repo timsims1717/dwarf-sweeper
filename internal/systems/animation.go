@@ -31,11 +31,11 @@ func AnimationDraw() {
 		anim, okA := result.Components[myecs.Animation].(*reanimator.Tree)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
-		if okA && okT && okB && anim.CurrentSprite() != nil && !tran.Hide {
+		if okA && okT && okB && !tran.Hide {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if batcher, ok := img.Batchers[bkey]; ok {
-					anim.CurrentSprite().DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
+					anim.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
 				}
 			}
 		}

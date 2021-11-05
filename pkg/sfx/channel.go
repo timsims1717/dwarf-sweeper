@@ -10,6 +10,14 @@ import (
 	"math"
 )
 
+type Mode int
+
+const (
+	Sequential = iota
+	Random
+	Repeat
+)
+
 type musicSet struct {
 	key  string
 	set  []string
@@ -17,7 +25,7 @@ type musicSet struct {
 	cId  int
 	next string
 
-	isRandom bool
+	mode     Mode
 	playNext bool
 	fade     float64
 	vol      float64
@@ -81,17 +89,18 @@ func (s *musicSet) setFade(fade float64) {
 
 func (s *musicSet) update() {
 	if s.playNext && len(s.set) > 0 {
-		if !MusicPlayer.loading && (s.ctrl == nil || s.volume == nil || s.ctrl.Paused || s.volume.Silent) {
+		if !MusicPlayer.loading && (s.ctrl == nil || s.volume == nil || s.ctrl.Paused || s.volume.Silent || s.mode == Repeat) {
 			if s.next == "" {
 				if len(s.set) > 1 {
-					if s.isRandom {
+					switch s.mode {
+					case Random:
 						t := -1
 						for s.next == "" || s.next == s.curr {
 							t = random.Intn(len(s.set))
 							s.next = s.set[t]
 						}
 						s.cId = t
-					} else {
+					case Sequential:
 						s.cId++
 						s.cId %= len(s.set)
 						s.next = s.set[s.cId]

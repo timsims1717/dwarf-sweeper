@@ -13,7 +13,7 @@ func InitPauseMenu(win *pixelgl.Window) {
 	PauseMenu.Title = true
 	PauseMenu.SetCloseFn(func() {
 		sfx.MusicPlayer.PauseMusic("pause", true)
-		sfx.MusicPlayer.UnpauseOrNext("game")
+		sfx.MusicPlayer.UnpauseOrNext(gameMusic)
 	})
 	pauseTitle := PauseMenu.AddItem("title", "Paused")
 	resume := PauseMenu.AddItem("resume", "Resume")
@@ -113,10 +113,10 @@ func InitPostGameMenu() {
 	blocksDugS := PostMenu.AddItem("blocks_s", "")
 	gems := PostMenu.AddItem("gem_count", "Gems Found")
 	gemsS := PostMenu.AddItem("gem_count_s", "")
-	bombs := PostMenu.AddItem("bombs_marked", "Bombs Marked")
-	bombsS := PostMenu.AddItem("bombs_marked_s", "")
-	wrongMarks := PostMenu.AddItem("wrong_marks", "Incorrect Marks")
-	wrongMarksS := PostMenu.AddItem("wrong_marks_s", "")
+	bombs := PostMenu.AddItem("bombs_flagged", "Bombs Flagged")
+	bombsS := PostMenu.AddItem("bombs_flagged_s", "")
+	wrongFlags := PostMenu.AddItem("wrong_flags", "Incorrect Flags")
+	wrongFlagsS := PostMenu.AddItem("wrong_flags_s", "")
 	totalScore := PostMenu.AddItem("total_score", "Total Score")
 	totalScoreS := PostMenu.AddItem("total_score_s", "")
 	retry := PostMenu.AddItem("retry", "Retry")
@@ -137,11 +137,11 @@ func InitPostGameMenu() {
 	bombsS.Right = true
 	bombsS.NoHover = true
 	bombsS.NoDraw = true
-	wrongMarks.NoHover = true
-	wrongMarks.NoDraw = true
-	wrongMarksS.Right = true
-	wrongMarksS.NoHover = true
-	wrongMarksS.NoDraw = true
+	wrongFlags.NoHover = true
+	wrongFlags.NoDraw = true
+	wrongFlagsS.Right = true
+	wrongFlagsS.NoHover = true
+	wrongFlagsS.NoDraw = true
 	totalScore.NoHover = true
 	totalScore.NoDraw = true
 	totalScoreS.Right = true

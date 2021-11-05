@@ -16,9 +16,11 @@ type Physics struct {
 	RagDollY    bool
 	NearGround  bool
 	Grounded    bool
-	Ceilinged   bool
-	RightWalled bool
-	LeftWalled  bool
+	CanClimb    bool
+	TopBound    bool
+	BottomBound bool
+	RightBound  bool
+	LeftBound   bool
 
 	// the "Constants"
 	Gravity     float64
@@ -26,6 +28,7 @@ type Physics struct {
 	Friction    float64
 	AirFriction float64
 	Bounciness  float64
+	Mass        float64
 }
 
 func New() *Physics {
@@ -35,6 +38,7 @@ func New() *Physics {
 		Friction:    400.,
 		AirFriction: 25.,
 		Bounciness:  0.6,
+		Mass:        1.0,
 	}
 }
 

@@ -54,7 +54,7 @@ var (
 
 	HasAreaDamage = ecs.BuildTag(AreaDmg)
 	HasHealing    = ecs.BuildTag(Health, Healing)
-	HasHealth     = ecs.BuildTag(Health, Transform)
+	HasHealth     = ecs.BuildTag(Health, Collision, Transform)
 	HasDamage     = ecs.BuildTag(Health, Physics, Transform, Damage)
 )
 

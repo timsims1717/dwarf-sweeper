@@ -33,6 +33,8 @@ var (
 	state       = -1
 	newState    = 1
 
+	gameMusic = "game"
+
 	pressAKey      = menu.NewItemText("press any key", colornames.Aliceblue, pixel.V(1.4, 1.4), menu.Center, menu.Center)
 	pressAKeyTimer *timing.FrameTimer
 	pressAKeySec   = 1.0
@@ -53,6 +55,7 @@ var (
 			"debug":        input.NewJoyless(pixelgl.KeyF3),
 			"debugText":    input.NewJoyless(pixelgl.KeyF4),
 			"debugMenu":    input.NewJoyless(pixelgl.KeyF7),
+			"debugTest":    input.NewJoyless(pixelgl.KeyF8),
 			"debugPause":   input.NewJoyless(pixelgl.KeyF9),
 			"debugResume":  input.NewJoyless(pixelgl.KeyF10),
 			"debugInv":     input.NewJoyless(pixelgl.KeyF11),
@@ -130,6 +133,11 @@ func Update(win *pixelgl.Window) {
 		debugInput.Get("debugMenu").Consume()
 		OpenMenu(DebugMenu)
 	}
+	if debugInput.Get("debugTest").JustPressed() {
+		in := debugInput.World
+		p := descent.Popper{}
+		p.Create(in)
+	}
 	if debugInput.Get("debugSP").JustPressed() {
 		if state == 1 {
 			splashScale *= 1.2
@@ -176,7 +184,7 @@ func Update(win *pixelgl.Window) {
 				menuInput.Get("pause").Consume()
 				if MenuClosed() && !descent.Descent.GetPlayer().Health.Dead {
 					OpenMenu(PauseMenu)
-					sfx.MusicPlayer.PauseMusic("game", true)
+					sfx.MusicPlayer.PauseMusic(gameMusic, true)
 					sfx.MusicPlayer.UnpauseOrNext("pause")
 				}
 			}
@@ -186,7 +194,9 @@ func Update(win *pixelgl.Window) {
 				systems.EntitySystem()
 				systems.FunctionSystem()
 				systems.PhysicsSystem()
+				systems.TileCollisionSystem()
 				systems.CollisionSystem()
+				systems.CollisionBoundSystem()
 				systems.ParentSystem()
 				systems.TransformSystem()
 				systems.CollectSystem()
@@ -264,7 +274,9 @@ func Update(win *pixelgl.Window) {
 			systems.TemporarySystem()
 			systems.PhysicsSystem()
 			systems.TransformSystem()
+			systems.TileCollisionSystem()
 			systems.CollisionSystem()
+			systems.CollisionBoundSystem()
 			systems.EntitySystem()
 			systems.FunctionSystem()
 			systems.VFXSystem()
@@ -344,13 +356,13 @@ func Draw(win *pixelgl.Window) {
 			PostMenu.ItemMap["gem_count"].NoDraw = false
 			PostMenu.ItemMap["gem_count_s"].NoDraw = false
 		}
-		if since > descent.BombsMarkedTimer {
-			PostMenu.ItemMap["bombs_marked"].NoDraw = false
-			PostMenu.ItemMap["bombs_marked_s"].NoDraw = false
+		if since > descent.BombsFlaggedTimer {
+			PostMenu.ItemMap["bombs_flagged"].NoDraw = false
+			PostMenu.ItemMap["bombs_flagged_s"].NoDraw = false
 		}
-		if since > descent.WrongMarksTimer {
-			PostMenu.ItemMap["wrong_marks"].NoDraw = false
-			PostMenu.ItemMap["wrong_marks_s"].NoDraw = false
+		if since > descent.WrongFlagsTimer {
+			PostMenu.ItemMap["wrong_flags"].NoDraw = false
+			PostMenu.ItemMap["wrong_flags_s"].NoDraw = false
 		}
 		if since > descent.TotalScoreTimer {
 			PostMenu.ItemMap["total_score"].NoDraw = false
@@ -380,7 +392,7 @@ func updateState() {
 		clearMenus()
 		switch state {
 		case 0:
-			sfx.MusicPlayer.PauseMusic("game", true)
+			sfx.MusicPlayer.PauseMusic(gameMusic, true)
 		case 1:
 			sfx.MusicPlayer.PauseMusic("menu", true)
 		case 2:
@@ -392,6 +404,15 @@ func updateState() {
 		// initialize
 		switch newState {
 		case 0:
+			biome := "mine"
+			if random.Effects.Intn(2) == 0 {
+				biome = "dark"
+			}
+			if sfx.MusicPlayer.HasSet(biome) {
+				gameMusic = biome
+			} else {
+				gameMusic = "game"
+			}
 			systems.ClearSystem()
 			systems.DeleteAllEntities()
 			if descent.Descent.Start {
@@ -400,7 +421,7 @@ func updateState() {
 					descent.Descent.Player = nil
 				}
 				descent.ResetStats()
-				sfx.MusicPlayer.PlayNext("game")
+				sfx.MusicPlayer.PlayNext(gameMusic)
 			} else {
 				if descent.Descent.Type == descent.Normal {
 					descent.Descent.Type = descent.Minesweeper
@@ -408,14 +429,10 @@ func updateState() {
 					descent.Descent.Type = descent.Normal
 				}
 				descent.ResetCaveStats()
-				sfx.MusicPlayer.PauseMusic("game", false)
+				sfx.MusicPlayer.PauseMusic(gameMusic, false)
 			}
 			descent.Descent.Level++
 
-			biome := "mine"
-			if random.Effects.Intn(2) == 0 {
-				biome = "dark"
-			}
 			sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
 			if err != nil {
 				panic(err)
@@ -468,12 +485,12 @@ func updateState() {
 			score := 0
 			score += descent.BlocksDug * 2
 			score += descent.GemsFound
-			score += descent.BombsMarked * 10
-			score -= descent.WrongMarks * 5
+			score += descent.BombsFlagged * 10
+			score -= descent.WrongFlags * 5
 			PostMenu.ItemMap["blocks_s"].Raw = fmt.Sprintf("%d x  2", descent.BlocksDug)
 			PostMenu.ItemMap["gem_count_s"].Raw = fmt.Sprintf("%d x  1", descent.GemsFound)
-			PostMenu.ItemMap["bombs_marked_s"].Raw = fmt.Sprintf("%d x 10", descent.BombsMarked)
-			PostMenu.ItemMap["wrong_marks_s"].Raw = fmt.Sprintf("%d x -5", descent.WrongMarks)
+			PostMenu.ItemMap["bombs_flagged_s"].Raw = fmt.Sprintf("%d x 10", descent.BombsFlagged)
+			PostMenu.ItemMap["wrong_flags_s"].Raw = fmt.Sprintf("%d x -5", descent.WrongFlags)
 			PostMenu.ItemMap["total_score_s"].Raw = fmt.Sprintf("%d", score)
 			descent.ScoreTimer = timing.New(5.)
 			OpenMenu(PostMenu)

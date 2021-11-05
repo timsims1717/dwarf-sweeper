@@ -143,7 +143,7 @@ func BombableNode(c *cave.Cave, radius int, variance float64, ignoreWalls bool, 
 				tPos := tile.Transform.Pos
 				dist := util.Magnitude(cPos.Sub(tPos))
 				if dist < fRad+random.CaveGen.Float64()*variance {
-					if !(tile.Type == cave.Wall && ignoreWalls) && !tile.PartOfPath {
+					if !(tile.Type == cave.Wall && ignoreWalls) && !tile.Path {
 						toBlockBlast(tile, false)
 					}
 				}
@@ -188,7 +188,7 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 				dist := util.Magnitude(cPos.Sub(tPos))
 				if tile.RCoords == center || (y == center.Y && dist < world.TileSize * 0.5 + random.CaveGen.Float64()*variance && !tile.Bomb) {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						if tile.PartOfPath {
+						if tile.Path {
 							toBlockDig(tile, false)
 						} else {
 							toWall(tile, false)

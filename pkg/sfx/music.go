@@ -33,14 +33,19 @@ func (p *musicPlayer) RegisterMusicTrack(path, key string) {
 	p.tracks[key] = path
 }
 
-func (p *musicPlayer) NewSet(key string, set []string, isRandom bool, vol, fade float64) {
+func (p *musicPlayer) NewSet(key string, set []string, mode Mode, vol, fade float64) {
 	p.sets[key] = &musicSet{
-		key:      key,
-		isRandom: isRandom,
-		fade:     fade,
-		vol:      vol,
+		key:  key,
+		mode: mode,
+		fade: fade,
+		vol:  vol,
 	}
 	p.sets[key].setTracks(set)
+}
+
+func (p *musicPlayer) HasSet(key string) bool {
+	_, ok := p.sets[key]
+	return ok
 }
 
 func (p *musicPlayer) SetTracks(key string, set []string) {

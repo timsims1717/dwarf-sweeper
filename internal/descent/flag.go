@@ -22,7 +22,7 @@ type Flag struct {
 
 func (f *Flag) Update() {
 	if f.created {
-		if !f.Tile.Solid() || f.Tile.Destroyed || !f.Tile.Marked {
+		if !f.Tile.Solid() || f.Tile.Destroyed || !f.Tile.Flagged {
 			f.Delete()
 			// todo: particles?
 		}
@@ -40,14 +40,7 @@ func (f *Flag) Create(_ pixel.Vec) {
 	} else {
 		CaveWrongMarks++
 	}
-	f.Reanimator = reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.EntityKey].Animations["flag_hang"].S, reanimator.Loop, nil),
-		),
-		Check: func() int {
-			return 0
-		},
-	}, "flag_hang")
+	f.Reanimator = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.EntityKey].Animations["flag_hang"].S, reanimator.Loop))
 	f.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, f).
 		AddComponent(myecs.Transform, f.Transform).
@@ -56,7 +49,7 @@ func (f *Flag) Create(_ pixel.Vec) {
 }
 
 func (f *Flag) Delete() {
-	f.Tile.Marked = false
+	f.Tile.Flagged = false
 	if f.Tile.Solid() {
 		if f.correct {
 			CaveBombsMarked--

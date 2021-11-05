@@ -8,6 +8,7 @@ import (
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
+	"github.com/faiface/pixel"
 )
 
 type CaveType int
@@ -62,7 +63,7 @@ func Update() {
 		switch Descent.Type {
 		case Minesweeper:
 			Descent.canExit = CaveBombsMarked == CaveBombsLeft && CaveWrongMarks < 1
-			Descent.ExitPop.Raw = "Mark all the remaining bombs to exit."
+			Descent.ExitPop.Raw = "Flag all the remaining bombs to exit."
 		case Infinite:
 			Descent.canExit = false
 		default:
@@ -99,6 +100,10 @@ func (d *descent) SetPlayer(dwarf *Dwarf) {
 
 func (d *descent) GetPlayerTile() *cave.Tile {
 	return d.Cave.GetTile(d.Player.Transform.Pos)
+}
+
+func (d *descent) GetTile(pos pixel.Vec) *cave.Tile {
+	return d.Cave.GetTile(pos)
 }
 
 func IncreaseLevelInf() {

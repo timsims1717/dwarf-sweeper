@@ -35,7 +35,7 @@ func (b *BombItem) Update() {
 }
 
 func (b *BombItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomVelocity(pos, 1.0, random.Effects)
+	b.Physics, b.Transform = util.RandomVelocity(pos, 8.0, random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = img.Batchers[constants.EntityKey].Sprites["bomb_item"]

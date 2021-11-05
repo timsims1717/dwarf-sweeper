@@ -92,8 +92,8 @@ func (t *Transform) Update() {
 	}
 	t.APos.X += t.Offset.X
 	t.APos.Y += t.Offset.Y
-	t.APos.X = math.Floor(t.APos.X)
-	t.APos.Y = math.Floor(t.APos.Y)
+	t.APos.X = math.Round(t.APos.X)
+	t.APos.Y = math.Round(t.APos.Y)
 	t.Mat = pixel.IM
 	if t.Flip && t.Flop {
 		t.Mat = t.Mat.Scaled(pixel.ZV, -1.)

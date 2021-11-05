@@ -33,7 +33,7 @@ type inputs struct {
 	Down         *input.ButtonSet `toml:"down"`
 	Jump         *input.ButtonSet `toml:"jump"`
 	Dig          *input.ButtonSet `toml:"dig"`
-	Mark         *input.ButtonSet `toml:"mark"`
+	Flag         *input.ButtonSet `toml:"flag"`
 	Use          *input.ButtonSet `toml:"use"`
 	Interact     *input.ButtonSet `toml:"interact"`
 	Prev         *input.ButtonSet `toml:"prev"`

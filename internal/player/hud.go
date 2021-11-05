@@ -63,14 +63,12 @@ func InitHUD() {
 	bombCountTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
 	bombCountItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Right, menu.Center)
 	bombCountItem.Transform.Pos = pixel.V(constants.BaseW * 0.5 + 5., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
-	tmpAnimation = reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers[constants.MenuSprites].Animations["heart_temp_1"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers[constants.MenuSprites].Animations["heart_temp_2"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers[constants.MenuSprites].Animations["heart_temp_3"].S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers[constants.MenuSprites].Animations["heart_temp_4"].S, reanimator.Hold, nil),
-		),
-		Check: func() int {
+	tmpAnimation = reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers[constants.MenuSprites].Animations["heart_temp_1"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers[constants.MenuSprites].Animations["heart_temp_2"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers[constants.MenuSprites].Animations["heart_temp_3"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers[constants.MenuSprites].Animations["heart_temp_4"].S, reanimator.Hold)).
+		SetChooseFn(func() int {
 			if descent.Descent.Player.Health.TempHPTimer == nil {
 				return 0
 			}
@@ -84,8 +82,7 @@ func InitHUD() {
 			} else {
 				return 3
 			}
-		},
-	}, "heart_temp_1")
+		}), "heart_temp_1")
 	myecs.Manager.NewEntity().AddComponent(myecs.Animation, tmpAnimation)
 }
 
@@ -152,7 +149,7 @@ func DrawHUD(win *pixelgl.Window) {
 		i++
 	}
 	for i < hp.TempHP + hp.Curr && i < len(heartTransforms) {
-		tmpAnimation.CurrentSprite().Draw(win, heartTransforms[i].Mat)
+		tmpAnimation.Draw(win, heartTransforms[i].Mat)
 		i++
 	}
 	for i < util.Min(hp.Max + hp.TempHP, hp.Max) && i < len(heartTransforms) {

@@ -88,7 +88,7 @@ func CreateConfig() {
 				Axis:    pixelgl.AxisRightTrigger,
 				AxisV:   1,
 			},
-			Mark: &input.ButtonSet{
+			Flag: &input.ButtonSet{
 				Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
 				Axis:    pixelgl.AxisLeftTrigger,
 				AxisV:   1,
@@ -145,7 +145,7 @@ func LoadConfig() {
 	data.GameInput.Buttons["down"] = conf.Inputs.Down
 	data.GameInput.Buttons["jump"] = conf.Inputs.Jump
 	data.GameInput.Buttons["dig"] = conf.Inputs.Dig
-	data.GameInput.Buttons["mark"] = conf.Inputs.Mark
+	data.GameInput.Buttons["flag"] = conf.Inputs.Flag
 	data.GameInput.Buttons["use"] = conf.Inputs.Use
 	data.GameInput.Buttons["interact"] = conf.Inputs.Interact
 	data.GameInput.Buttons["prev"] = conf.Inputs.Prev
@@ -186,7 +186,7 @@ func SaveConfig() {
 	conf.Inputs.Down = data.GameInput.Buttons["down"]
 	conf.Inputs.Jump = data.GameInput.Buttons["jump"]
 	conf.Inputs.Dig = data.GameInput.Buttons["dig"]
-	conf.Inputs.Mark = data.GameInput.Buttons["mark"]
+	conf.Inputs.Flag = data.GameInput.Buttons["flag"]
 	conf.Inputs.Use = data.GameInput.Buttons["use"]
 	conf.Inputs.Interact = data.GameInput.Buttons["interact"]
 	conf.Inputs.Prev = data.GameInput.Buttons["prev"]

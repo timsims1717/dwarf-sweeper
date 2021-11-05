@@ -41,7 +41,7 @@ func SetGlobalSeed(seed int64) {
 
 func RandCaveSeed() {
 	seed := Global.Int63()
-	//seed := int64(8647619749087958453)
+	//seed := int64(3661646423843183551)
 	CaveGen.Seed(seed)
 	PrintSeed(seed, "CaveGen")
 }

@@ -9,6 +9,14 @@ type Collider struct{
 	Hitbox     pixel.Rect
 	GroundOnly bool
 	CanPass    bool
+	Collided   bool
+	Damage     *Damage
+
+	BottomBound bool
+	TopBound    bool
+	RightBound  bool
+	LeftBound   bool
+
 	UL bool
 	UR bool
 	RU bool
@@ -21,6 +29,7 @@ type Collider struct{
 	CUR bool
 	CDL bool
 	CDR bool
+	Debug bool
 }
 
 func NewCollider(hitbox pixel.Rect, groundOnly, canPass bool) *Collider {
@@ -52,6 +61,17 @@ type TimerFunc struct {
 	Func  func()
 }
 
+func NewTimerFunc(fn func(), dur float64) *TimerFunc {
+	return &TimerFunc{
+		Timer: timing.New(dur),
+		Func:  fn,
+	}
+}
+
 type FrameFunc struct {
 	Func func() bool
+}
+
+func NewFrameFunc(fn func() bool) *FrameFunc {
+	return &FrameFunc{Func: fn}
 }

@@ -2,6 +2,7 @@ package generate
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
@@ -115,6 +116,7 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 		fmt.Printf("WARNING: rect room not generated: max %d is greater than cave width %d or height %d\n", max, width, height)
 		return nil, nil
 	}
+	popperMade := false
 	toMark := 20
 	var roomTiles, marked []world.Coords
 	w := random.CaveGen.Intn(s) + min
@@ -136,11 +138,18 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 						toBlockDig(tile, false)
 					}
 					roomTiles = append(roomTiles, tile.RCoords)
+					tile.Room = true
 					if random.CaveGen.Intn(toMark) == 0 {
 						toMark += 12
 						marked = append(marked, tile.RCoords)
 					} else {
 						toMark--
+						if !tile.Bomb && !popperMade && random.CaveGen.Intn(20) == 0 {
+							p := descent.Popper{}
+							p.Create(tile.Transform.Pos)
+							popperMade = true
+							tile.Special = true
+						}
 					}
 				}
 			}

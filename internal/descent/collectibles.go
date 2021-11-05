@@ -39,7 +39,7 @@ func InitCollectibles() {
 	Collectibles[GemDiamond] = &data.Collectible{
 		OnCollect: func(pos pixel.Vec) bool {
 			CaveGemsFound++
-			particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_1","sparkle_2","sparkle_3","sparkle_4","sparkle_5"}, pos, 1.0, 1.0, 0.5)
+			particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_1","sparkle_2","sparkle_3","sparkle_4","sparkle_5"}, pos, 10.0, 1.0, 0.5)
 			sfx.SoundPlayer.PlaySound("clink", 1.0)
 			return true
 		},
@@ -129,7 +129,7 @@ func (b *CollectibleItem) Update() {
 }
 
 func (b *CollectibleItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomVelocity(pos, 2.0, random.Effects)
+	b.Physics, b.Transform = util.RandomVelocity(pos, 8., random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = b.Collect.Sprite
@@ -147,12 +147,9 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
 		AddComponent(myecs.Batch, constants.EntityKey)
-	b.entity.AddComponent(myecs.Func, &data.TimerFunc{
-		Timer: timing.New(8.),
-		Func:  func() {
-			myecs.AddEffect(b.entity, data.NewBlink(2.))
-		},
-	})
+	b.entity.AddComponent(myecs.Func, data.NewTimerFunc(func() {
+		myecs.AddEffect(b.entity, data.NewBlink(2.))
+	}, 8.))
 	if !b.Collect.AutoCollect {
 		popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
 		popUp.Symbols = []string{data.GameInput.FirstKey("interact")}

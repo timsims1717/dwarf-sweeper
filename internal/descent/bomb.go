@@ -121,54 +121,51 @@ func CreateBomb(pos pixel.Vec) {
 	phys.Bounciness = 0.4
 	phys.Friction = 300.
 	fuse := timing.New(BombFuse)
-	anim := reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[constants.EntityKey].Animations["bomb_fuse"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran, map[int]func() {
-				2: func() {
-					e.AddComponent(myecs.Func, &data.FrameFunc{
-						Func: func() bool {
-							CaveBombsLeft--
-							CaveBlownUpBombs++
-							tile := Descent.GetCave().GetTile(trans.Pos)
-							for _, n := range tile.SubCoords.Neighbors() {
-								t := tile.Chunk.Get(n)
-								t.Destroy(false)
-							}
-							myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
-								SourceID:       trans.ID,
-								Center:         trans.Pos,
-								Radius:         MineBaseRadius * world.TileSize,
-								Amount:         1,
-								Dazed:          3.,
-								Knockback:      MineBaseKnockback,
-								KnockbackDecay: true,
-							})
-							vfx.CreateExplosion(trans.Pos)
-							sfx.SoundPlayer.PlaySound("blast1", 0.0)
-							camera.Cam.Shake()
-							myecs.Manager.DisposeEntity(e)
-							return false
-						},
-					})
-				},
-			}),
-		),
-		Check: func() int {
-			fuse.Update()
+	anim := reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[constants.EntityKey].Animations["bomb_fuse"].S, reanimator.Loop)).
+		AddAnimation(reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran).
+			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
+						CaveBombsLeft--
+						CaveBlownUpBombs++
+						tile := Descent.GetCave().GetTile(trans.Pos)
+						for _, n := range tile.SubCoords.Neighbors() {
+							t := tile.Chunk.Get(n)
+							t.Destroy(false)
+						}
+						myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+							SourceID:       trans.ID,
+							Center:         trans.Pos,
+							Radius:         MineBaseRadius * world.TileSize,
+							Amount:         1,
+							Dazed:          3.,
+							Knockback:      MineBaseKnockback,
+							KnockbackDecay: true,
+						})
+						vfx.CreateExplosion(trans.Pos)
+						sfx.SoundPlayer.PlaySound("blast1", 0.0)
+						camera.Cam.Shake()
+						myecs.Manager.DisposeEntity(e)
+						return false
+					}))
+			})).
+		SetChooseFn(func() int {
 			if BombFuse - fuse.Elapsed() > 0.3 {
 				return 0
 			} else {
 				return 1
 			}
-		},
-	}, "bomb_fuse")
+		}), "bomb_fuse")
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Physics, phys).
 		AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), true, false)).
 		AddComponent(myecs.Health, &data.SimpleHealth{
 			Immune: BombImmunity,
 		}).
+		AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
+			fuse.Update()
+			return false
+		})).
 		AddComponent(myecs.Animation, anim).
 		AddComponent(myecs.Batch, constants.EntityKey)
 }

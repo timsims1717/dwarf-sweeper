@@ -22,13 +22,13 @@ func Initialize() {
 	if err != nil {
 		panic(err)
 	}
-	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done, nil).Anim
+	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done,)
 	particleSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
 	if err != nil {
 		panic(err)
 	}
 	partBatcher = img.NewBatcher(particleSheet, false)
-	dazed = reanimator.NewAnimFromSprites("dazed", partBatcher.Animations["dazed"].S, reanimator.Loop, nil).Anim
+	dazed = reanimator.NewAnimFromSprites("dazed", partBatcher.Animations["dazed"].S, reanimator.Loop)
 }
 
 func Update() {
@@ -46,9 +46,7 @@ func Update() {
 
 func Draw(win *pixelgl.Window) {
 	for _, effect := range effects {
-		if effect.Animation.CurrentSprite() != nil {
-			effect.Animation.CurrentSprite().Draw(win, effect.Matrix)
-		}
+		effect.Animation.Draw(win, effect.Matrix)
 	}
 }
 

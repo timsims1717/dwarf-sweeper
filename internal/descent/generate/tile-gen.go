@@ -31,7 +31,7 @@ func toBlockDig(tile *cave.Tile, perm bool) {
 }
 
 func toBlockBlast(tile *cave.Tile, perm bool) {
-	if tile != nil && !tile.NeverChange && !tile.IsChanged {
+	if tile != nil && !tile.NeverChange && !tile.IsChanged && !tile.Path {
 		tile.Type = cave.BlockBlast
 		tile.IsChanged = true
 		tile.NeverChange = perm
@@ -39,7 +39,7 @@ func toBlockBlast(tile *cave.Tile, perm bool) {
 }
 
 func toWall(tile *cave.Tile, perm bool) {
-	if tile != nil && !tile.NeverChange && !tile.IsChanged {
+	if tile != nil && !tile.NeverChange && !tile.IsChanged && !tile.Path {
 		tile.Type = cave.Wall
 		tile.IsChanged = true
 		tile.NeverChange = perm
@@ -52,7 +52,7 @@ func wallUp(tile *cave.Tile) {
 		tile.IsChanged = true
 		for _, n := range tile.SubCoords.Neighbors() {
 			t := tile.Chunk.Get(n)
-			if t != nil && !t.NeverChange && !t.IsChanged {
+			if t != nil && !t.NeverChange && !t.IsChanged && !t.Path {
 				t.Type = cave.Wall
 			}
 		}

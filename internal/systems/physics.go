@@ -18,9 +18,15 @@ func PhysicsSystem() {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				tran.LastPos = tran.Pos
+				if (phys.RightBound && phys.Velocity.X > 0.) || (phys.LeftBound && phys.Velocity.X < 0.) {
+					phys.Velocity.X = 0.
+				}
+				if (phys.BottomBound && phys.Velocity.Y < 0.) || (phys.TopBound && phys.Velocity.Y > 0.) {
+					phys.Velocity.Y = 0.
+				}
 				tran.Pos.X += timing.DT * phys.Velocity.X
 				tran.Pos.Y += timing.DT * phys.Velocity.Y
-				if !phys.GravityOff && !phys.YJustSet {
+				if !phys.GravityOff && !phys.YJustSet && !phys.BottomBound {
 					if phys.Velocity.Y > -phys.Terminal {
 						phys.Velocity.Y -= phys.Gravity * timing.DT
 					}

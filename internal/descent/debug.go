@@ -1,8 +1,12 @@
 package descent
 
 import (
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
+	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/input"
+	"dwarf-sweeper/pkg/transform"
 	"fmt"
 )
 
@@ -20,6 +24,19 @@ func Debug(in *input.Input) {
 			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.BGSmartStr))
 			debug.AddText(fmt.Sprintf("tile fg smart str: '%s'", d.Hovered.FGSmartStr))
 			//debug.AddText(fmt.Sprintf("tile s, d: %t, %t", d.Hovered.Surrounded, d.Hovered.DSurrounded))
+			for _, result := range myecs.Manager.Query(myecs.HasCollision) {
+				tran, okT := result.Components[myecs.Transform].(*transform.Transform)
+				_, okC := result.Components[myecs.Collision].(*data.Collider)
+				phys, okP := result.Components[myecs.Physics].(*physics.Physics)
+				if okT && okC && okP {
+					t := Descent.GetCave().GetTile(tran.Pos)
+					if t.RCoords.X == d.Hovered.RCoords.X && t.RCoords.Y == d.Hovered.RCoords.Y {
+						debug.AddText(fmt.Sprintf("el position: (%d,%d)", int(tran.APos.X), int(tran.APos.Y)))
+						debug.AddText(fmt.Sprintf("el velocity: (%d,%d)", int(phys.Velocity.X), int(phys.Velocity.Y)))
+						debug.AddText(fmt.Sprintf("el bounded: (l:%t,r:%t,u:%t,d:%t)", phys.LeftBound, phys.RightBound, phys.TopBound, phys.BottomBound))
+					}
+				}
+			}
 		}
 		debug.AddText(fmt.Sprintf("dwarf position: (%d,%d)", int(d.Transform.APos.X), int(d.Transform.APos.Y)))
 		//debug.AddText(fmt.Sprintf("dwarf actual position: (%f,%f)", d.Transform.Pos.X, d.Transform.Pos.Y))

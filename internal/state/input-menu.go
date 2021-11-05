@@ -42,8 +42,8 @@ func InitInputMenu(win *pixelgl.Window) {
 	jumpR := InputMenu.AddItem("jump_r", "")
 	dig := InputMenu.AddItem("dig", "Dig")
 	digR := InputMenu.AddItem("dig_r", "")
-	mark := InputMenu.AddItem("mark", "Mark")
-	markR := InputMenu.AddItem("mark_r", "")
+	flag := InputMenu.AddItem("flag", "Flag")
+	flagR := InputMenu.AddItem("flag_r", "")
 	interact := InputMenu.AddItem("interact", "Interact")
 	interactR := InputMenu.AddItem("interact_r", "")
 	use := InputMenu.AddItem("use", "Use Item")
@@ -58,13 +58,13 @@ func InitInputMenu(win *pixelgl.Window) {
 		if constants.AimDedicated {
 			aimModeR.Raw = "Dedicated"
 			if data.GameInput.Mode == input.KeyboardMouse {
-				aimMode.Hint = "Use the mouse to aim for digging, marking, and attacking."
+				aimMode.Hint = "Use the mouse to aim for digging, flagging, and attacking."
 			} else {
-				aimMode.Hint = "Use the right stick to aim for digging, marking, and attacking."
+				aimMode.Hint = "Use the right stick to aim for digging, flagging, and attacking."
 			}
 		} else {
 			aimModeR.Raw = "Movement"
-			aimMode.Hint = "Use the movement keys to aim for digging, marking, and attacking."
+			aimMode.Hint = "Use the movement keys to aim for digging, flagging, and attacking."
 		}
 	}
 	aimModeUpdate()
@@ -87,10 +87,10 @@ func InitInputMenu(win *pixelgl.Window) {
 	digOnUpdate := func() {
 		if constants.DigOnRelease {
 			digOnR.Raw = "On Release"
-			digOn.Hint = "Digging, Marking, and Attacking happen when you release the button."
+			digOn.Hint = "Digging, Flagging, and Attacking happen when you release the button."
 		} else {
 			digOnR.Raw = "On Press"
-			digOn.Hint = "Digging, Marking, and Attacking happen when you press the button."
+			digOn.Hint = "Digging, Flagging, and Attacking happen when you press the button."
 		}
 	}
 	digOnUpdate()
@@ -224,9 +224,9 @@ func InitInputMenu(win *pixelgl.Window) {
 	dig.SetClickFn(keyFn(dig))
 	digR.Right = true
 	digR.NoHover = true
-	mark.SetClickFn(keyFn(mark))
-	markR.Right = true
-	markR.NoHover = true
+	flag.SetClickFn(keyFn(flag))
+	flagR.Right = true
+	flagR.NoHover = true
 	interact.SetClickFn(keyFn(interact))
 	interactR.Right = true
 	interactR.NoHover = true
@@ -275,7 +275,7 @@ func UpdateKeybindings() {
 	UpdateKeybinding("down")
 	UpdateKeybinding("jump")
 	UpdateKeybinding("dig")
-	UpdateKeybinding("mark")
+	UpdateKeybinding("flag")
 	UpdateKeybinding("interact")
 	UpdateKeybinding("use")
 	UpdateKeybinding("prev")

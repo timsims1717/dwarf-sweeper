@@ -34,6 +34,8 @@ func InitDebugMenu() {
 			fmt.Println("DEBUG FREE CAM ON")
 		} else {
 			fmt.Println("DEBUG FREE CAM OFF")
+			camera.Cam.SetZoom(4. / 3.)
+
 		}
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)

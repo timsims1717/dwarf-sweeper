@@ -14,6 +14,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
+	github.com/beefsack/go-astar v0.0.0-20200827232313-4ecf9e304482 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/faiface/glhf v0.0.0-20181018222622-82a6317ac380 // indirect
 	github.com/faiface/mainthread v0.0.0-20171120011319-8b78f0a41ae3 // indirect

@@ -52,18 +52,18 @@ func (b *Bat) Update() {
 				b.flight.Y = (random.Effects.Float64()-0.5) * 2.
 				b.flight = util.Normalize(b.flight)
 			}
-			if b.Physics.RightWalled && b.Physics.LeftWalled {
+			if b.Physics.RightBound && b.Physics.LeftBound {
 				b.flight.X = 0.
-			} else if b.Physics.RightWalled && b.flight.X > 0. {
+			} else if b.Physics.RightBound && b.flight.X > 0. {
 				b.flight.X -= batAcc * timing.DT
-			} else if b.Physics.LeftWalled && b.flight.X < 0. {
+			} else if b.Physics.LeftBound && b.flight.X < 0. {
 				b.flight.X += batAcc * timing.DT
 			}
-			if b.Physics.Grounded && b.Physics.Ceilinged {
+			if b.Physics.BottomBound && b.Physics.TopBound {
 				b.flight.Y = 0.
-			} else if b.Physics.Grounded && b.flight.Y < 0. {
+			} else if b.Physics.BottomBound && b.flight.Y < 0. {
 				b.flight.Y += batAcc * timing.DT
-			} else if b.Physics.Ceilinged && b.flight.Y > 0. {
+			} else if b.Physics.TopBound && b.flight.Y > 0. {
 				b.flight.Y -= batAcc * timing.DT
 			}
 			b.flight = util.Normalize(b.flight)
@@ -113,13 +113,11 @@ func (b *Bat) Create(pos pixel.Vec) {
 		Immune:       data.EnemyImmunity,
 	}
 	b.created = true
-	b.Reanimator = reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("bat_fly", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetFrame("bat_fly", 0)}, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("bat_roost", img.Batchers[constants.EntityKey].GetAnimation("bat_roost").S, reanimator.Hold, nil),
-			reanimator.NewAnimFromSprites("bat_fly", img.Batchers[constants.EntityKey].GetAnimation("bat_fly").S, reanimator.Loop, nil),
-		),
-		Check: func() int {
+	b.Reanimator = reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("bat_fly", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetFrame("bat_fly", 0)}, reanimator.Loop)).
+		AddAnimation(reanimator.NewAnimFromSprites("bat_roost", img.Batchers[constants.EntityKey].GetAnimation("bat_roost").S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("bat_fly", img.Batchers[constants.EntityKey].GetAnimation("bat_fly").S, reanimator.Loop)).
+		SetChooseFn(func() int {
 			if b.Health.Dazed {
 				return 0
 			} else if b.roosting {
@@ -127,8 +125,7 @@ func (b *Bat) Create(pos pixel.Vec) {
 			} else {
 				return 2
 			}
-		},
-	}, "bat_roost")
+		}), "bat_roost")
 	b.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), true, false)
 	b.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).

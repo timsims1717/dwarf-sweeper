@@ -155,8 +155,8 @@ func (c *Camera) Update(win *pixelgl.Window) {
 		}
 	}
 	if c.iLock {
-		c.APos.X = math.Floor(c.APos.X)
-		c.APos.Y = math.Floor(c.APos.Y)
+		c.APos.X = math.Round(c.APos.X)
+		c.APos.Y = math.Round(c.APos.Y)
 	}
 	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.Zoom).Moved(win.Bounds().Center().Sub(c.APos))
 	win.SetMatrix(c.Mat)

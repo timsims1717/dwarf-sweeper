@@ -35,11 +35,17 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 		wLeft: random.CaveGen.Intn(2) == 0,
 	}
 	curr := start
-	tile := c.GetTileInt(curr.X, curr.Y)
-	// after finding each path tile, we will wall up all the un-pathed tiles around it
-	wallUp(tile)
 	done := false
 	for !done {
+		tile := c.GetTileInt(curr.X, curr.Y)
+		if tile != nil {
+			tile.Path = true
+			wallUpWidth(tile, pDir.width, pDir.wLeft)
+			path = append(path, curr)
+			if curr == end {
+				done = true
+			}
+		}
 		// check each direction, see if we can go there
 		pDir.l = true
 		pDir.r = true
@@ -147,14 +153,18 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 				}
 			}
 		}
-		// if the new direction is the opposite of the last direction, it's a dead end
-		if util.Abs(int(pDir.last - n)) == 2 {
-			deadends = append(deadends, curr)
-		} else if mark {
-			// if it's not a dead end, see if we should mark it
-			var ok bool
-			if ok, toMark = addToMarked(toMark); ok {
-				marked = append(marked, curr)
+		if tile != nil {
+			// if the new direction is the opposite of the last direction, it's a dead end
+			if util.Abs(int(pDir.last-n)) == 2 {
+				deadends = append(deadends, curr)
+				tile.DeadEnd = true
+			} else if mark {
+				// if it's not a dead end, see if we should mark it
+				var ok bool
+				if ok, toMark = addToMarked(toMark); ok {
+					marked = append(marked, curr)
+					tile.Marked = true
+				}
 			}
 		}
 		// move to the next tile
@@ -163,15 +173,6 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 		// maybe change width
 		pDir.width, pDir.wLeft = changeWidth(pDir.width, pDir.wLeft)
 		// wall up all tiles surrounding the touched tiles
-		tile = c.GetTileInt(curr.X, curr.Y)
-		if tile != nil {
-			tile.PartOfPath = true
-			wallUpWidth(tile, pDir.width, pDir.wLeft)
-			path = append(path, curr)
-			if curr == end {
-				done = true
-			}
-		}
 	}
 	return path, deadends, marked
 }
@@ -190,11 +191,14 @@ func BranchOff(c *cave.Cave, start world.Coords, min, max int) ([]world.Coords, 
 		wLeft: random.CaveGen.Intn(2) == 0,
 	}
 	curr := start
-	tile := c.GetTileInt(curr.X, curr.Y)
-	// after finding each path tile, we will wall up all the un-pathed tiles around it
-	wallUp(tile)
 	done := false
 	for !done {
+		tile := c.GetTileInt(curr.X, curr.Y)
+		if tile != nil {
+			tile.Path = true
+			wallUpWidth(tile, pDir.width, pDir.wLeft)
+			path = append(path, curr)
+		}
 		// check the direction we are going, or the length of path so far
 		// if close to the edge, we're done. If the length is at the max, we're done.
 		// if the length is greater than min, 1/20 chance it ends each step
@@ -213,26 +217,23 @@ func BranchOff(c *cave.Cave, start world.Coords, min, max int) ([]world.Coords, 
 		if len(path) + 1 >= min && random.CaveGen.Intn(20) == 0 {
 			done = true
 		}
-		// once we're done, it's a dead end
-		if done {
-			deadends = append(deadends, curr)
-		}
-		// toMark
-		var ok bool
-		if ok, toMark = addToMarked(toMark); ok && !done {
-			marked = append(marked, curr)
+		if tile != nil {
+			// once we're done, it's a dead end
+			if done {
+				deadends = append(deadends, curr)
+				tile.DeadEnd = true
+			}
+			// toMark
+			var ok bool
+			if ok, toMark = addToMarked(toMark); ok && !done {
+				marked = append(marked, curr)
+				tile.Marked = true
+			}
 		}
 		// move to the next tile
 		curr = moveToNextTile(curr, dir)
 		// maybe change width
 		pDir.width, pDir.wLeft = changeWidth(pDir.width, pDir.wLeft)
-		// wall up all tiles surrounding the touched tiles
-		tile = c.GetTileInt(curr.X, curr.Y)
-		if tile != nil {
-			tile.PartOfPath = true
-			wallUpWidth(tile, pDir.width, pDir.wLeft)
-			path = append(path, curr)
-		}
 	}
 	return path, deadends, marked
 }

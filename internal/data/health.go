@@ -47,9 +47,11 @@ const (
 	Blast = iota
 	Shovel
 	Enemy
+	Projectile
 )
 
 type Damage struct {
+	SourceID  uuid.UUID
 	Amount    int
 	Dazed     float64
 	Knockback float64
@@ -83,6 +85,11 @@ type Immunity struct {
 }
 
 var (
+	NoImmunity = map[DamageType]Immunity{
+		Blast: {},
+		Shovel: {},
+		Enemy: {},
+	}
 	FullImmunity = map[DamageType]Immunity{
 		Blast: {
 			KB:    true,
@@ -95,6 +102,11 @@ var (
 			Dazed: true,
 		},
 		Enemy: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+		Projectile: {
 			KB:    true,
 			DMG:   true,
 			Dazed: true,

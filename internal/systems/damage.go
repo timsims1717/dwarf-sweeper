@@ -87,7 +87,7 @@ func DamageSystem() {
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		dmg, okD := result.Components[myecs.Damage].(*data.Damage)
-		if okH && okP && okD && okT {
+		if okH && okP && okD && okT && tran.ID != dmg.SourceID {
 			if !hp.Inv {
 				dist := camera.Cam.Pos.Sub(tran.Pos)
 				if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {

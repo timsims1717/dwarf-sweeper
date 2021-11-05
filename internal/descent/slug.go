@@ -61,12 +61,12 @@ func (s *Slug) Update() {
 					} else {
 						fall = true
 					}
-				} else if s.Physics.LeftWalled && !s.iCorner {
+				} else if s.Physics.LeftBound && !s.iCorner {
 					corner = true
 					s.floor = data.Left
 				}
 			case data.Up:
-				if !s.Physics.Ceilinged {
+				if !s.Physics.TopBound {
 					if s.Collider.CUL {
 						s.floor = data.Left
 						s.Transform.Pos.Y += 3.0
@@ -74,12 +74,12 @@ func (s *Slug) Update() {
 					} else {
 						fall = true
 					}
-				} else if s.Physics.RightWalled && !s.iCorner {
+				} else if s.Physics.RightBound && !s.iCorner {
 					corner = true
 					s.floor = data.Right
 				}
 			case data.Left:
-				if !s.Physics.LeftWalled {
+				if !s.Physics.LeftBound {
 					if s.Collider.CDL {
 						s.floor = data.Down
 						s.Transform.Pos.X -= 3.0
@@ -87,12 +87,12 @@ func (s *Slug) Update() {
 					} else {
 						fall = true
 					}
-				} else if s.Physics.Ceilinged && !s.iCorner {
+				} else if s.Physics.TopBound && !s.iCorner {
 					corner = true
 					s.floor = data.Up
 				}
 			case data.Right:
-				if !s.Physics.RightWalled {
+				if !s.Physics.RightBound {
 					if s.Collider.CUR {
 						s.floor = data.Up
 						s.Transform.Pos.X += 3.0
@@ -116,12 +116,12 @@ func (s *Slug) Update() {
 					} else {
 						fall = true
 					}
-				} else if s.Physics.RightWalled && !s.iCorner {
+				} else if s.Physics.RightBound && !s.iCorner {
 					corner = true
 					s.floor = data.Right
 				}
 			case data.Up:
-				if !s.Physics.Ceilinged {
+				if !s.Physics.TopBound {
 					if s.Collider.CUR {
 						s.floor = data.Right
 						s.Transform.Pos.Y += 3.0
@@ -129,12 +129,12 @@ func (s *Slug) Update() {
 					} else {
 						fall = true
 					}
-				} else if s.Physics.LeftWalled && !s.iCorner {
+				} else if s.Physics.LeftBound && !s.iCorner {
 					corner = true
 					s.floor = data.Left
 				}
 			case data.Left:
-				if !s.Physics.LeftWalled {
+				if !s.Physics.LeftBound {
 					if s.Collider.CUL {
 						s.floor = data.Up
 						s.Transform.Pos.X -= 3.0
@@ -147,7 +147,7 @@ func (s *Slug) Update() {
 					s.floor = data.Down
 				}
 			case data.Right:
-				if !s.Physics.RightWalled {
+				if !s.Physics.RightBound {
 					if s.Collider.CDR {
 						s.floor = data.Down
 						s.Transform.Pos.X += 3.0
@@ -155,7 +155,7 @@ func (s *Slug) Update() {
 					} else {
 						fall = true
 					}
-				} else if s.Physics.Ceilinged && !s.iCorner {
+				} else if s.Physics.TopBound && !s.iCorner {
 					corner = true
 					s.floor = data.Up
 				}
@@ -245,34 +245,30 @@ func (s *Slug) Create(pos pixel.Vec) {
 		Immune:       data.EnemyImmunity,
 	}
 	s.created = true
-	s.Reanimator = reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("slug_corner", img.Batchers[constants.EntityKey].Animations["slug_corner"].S, reanimator.Tran, map[int]func(){
-				8: func() {
-					s.iCorner = false
-					switch s.floor {
-					case data.Up:
-						s.Transform.Pos.Y += 2.1
-					case data.Down:
-						s.Transform.Pos.Y -= 2.1
-					case data.Right:
-						s.Transform.Pos.X += 2.1
-					case data.Left:
-						s.Transform.Pos.X -= 2.1
-					}
-					s.Collider.Hitbox = pixel.R(0., 0., 16., 12.)
-				},
-			}),
-			reanimator.NewAnimFromSprites("slug_move", img.Batchers[constants.EntityKey].Animations["slug_move"].S, reanimator.Loop, nil),
-		),
-		Check: func() int {
+	s.Reanimator = reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("slug_corner", img.Batchers[constants.EntityKey].Animations["slug_corner"].S, reanimator.Tran).
+			SetTrigger(8, func(_ *reanimator.Anim, _ string, _ int) {
+				s.iCorner = false
+				switch s.floor {
+				case data.Up:
+					s.Transform.Pos.Y += 2.1
+				case data.Down:
+					s.Transform.Pos.Y -= 2.1
+				case data.Right:
+					s.Transform.Pos.X += 2.1
+				case data.Left:
+					s.Transform.Pos.X -= 2.1
+				}
+				s.Collider.Hitbox = pixel.R(0., 0., 16., 12.)
+			})).
+		AddAnimation(reanimator.NewAnimFromSprites("slug_move", img.Batchers[constants.EntityKey].Animations["slug_move"].S, reanimator.Loop)).
+		SetChooseFn(func() int {
 			if s.iCorner {
 				return 0
 			} else {
 				return 1
 			}
-		},
-	}, "slug_move")
+		}), "slug_move")
 	s.Collider = &data.Collider{
 		Hitbox:     pixel.R(0., 0., 16., 12.),
 		GroundOnly: true,

@@ -21,7 +21,7 @@ var GameInput = &input.Input{
 			Axis:    pixelgl.AxisRightTrigger,
 			AxisV:   1,
 		},
-		"mark": {
+		"flag": {
 			Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
 			Axis:    pixelgl.AxisLeftTrigger,
 			AxisV:   1,

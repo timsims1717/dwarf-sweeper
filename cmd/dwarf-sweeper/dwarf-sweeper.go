@@ -112,7 +112,7 @@ func run() {
 
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Crab Nebula.wav", "crab")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Honeybee.wav", "honey")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Prairie Oyster.wav", "oyster")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Prairie Oyster.wav", "prairie")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Sable.wav", "sable")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Strawberry Jam.wav", "strawberry")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/The Dawn Approaches.wav", "dawn")
@@ -122,7 +122,9 @@ func run() {
 
 	sfx.MusicPlayer.SetTracks("menu", []string{"crab"})
 	sfx.MusicPlayer.SetTracks("pause", []string{"sable"})
-	sfx.MusicPlayer.NewSet("game", []string{"honey", "oyster", "strawberry", "dawn", "hero", "turbo", "voyage"}, true, 0., 2.)
+	sfx.MusicPlayer.NewSet("game", []string{"honey", "strawberry", "dawn", "hero", "voyage"}, sfx.Random, 0., 2.)
+	sfx.MusicPlayer.NewSet("mine", []string{"prairie"}, sfx.Repeat, 0., 2.)
+	//sfx.MusicPlayer.NewSet("dark", []string{"turbo"}, sfx.Repeat, 0., 2.)
 	// dawn and hero will be "boss" tracks
 
 	timing.Reset()

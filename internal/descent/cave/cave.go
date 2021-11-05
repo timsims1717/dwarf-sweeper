@@ -34,10 +34,10 @@ type Cave struct {
 	StartC world.Coords
 	ExitC  world.Coords
 
-	BombPMin   float64
-	BombPMax   float64
-	GemRate    int
-	ItemRate   int
+	BombPMin float64
+	BombPMax float64
+	GemRate  int
+	ItemRate int
 
 	Biome      string
 	BGBatch    *pixel.Batch
@@ -53,6 +53,8 @@ type Cave struct {
 	BGTDR      *transform.Transform
 
 	Fog bool
+
+	PathRule PathRule
 }
 
 func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
@@ -323,6 +325,24 @@ func (c *Cave) UpdateAllTileSprites() {
 		if chunk.Display {
 			for _, row := range chunk.Rows {
 				for _, tile := range row {
+					tile.UpdateDetails()
+				}
+			}
+		}
+	}
+	for _, chunk := range c.LChunks {
+		if chunk.Display {
+			for _, row := range chunk.Rows {
+				for _, tile := range row {
+					tile.UpdateDetails()
+				}
+			}
+		}
+	}
+	for _, chunk := range c.RChunks {
+		if chunk.Display {
+			for _, row := range chunk.Rows {
+				for _, tile := range row {
 					tile.UpdateSprites()
 				}
 			}
@@ -391,6 +411,8 @@ func (c *Cave) PrintCaveToTerminal() {
 				if tile != nil {
 					if tile.Special {
 						fmt.Print("s")
+					//} else if tile.Path {
+					//	fmt.Print("p")
 					} else {
 						switch tile.Type {
 						case BlockCollapse, BlockDig, BlockBlast:

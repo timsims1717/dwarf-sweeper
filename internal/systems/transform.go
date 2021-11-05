@@ -11,8 +11,8 @@ func TransformSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasTransform) {
 		if tran, ok := result.Components[myecs.Transform].(*transform.Transform); ok {
 			tran.APos = tran.Pos.Add(tran.Offset)
-			tran.APos.X = math.Floor(tran.APos.X)
-			tran.APos.Y = math.Floor(tran.APos.Y)
+			tran.APos.X = math.Round(tran.APos.X)
+			tran.APos.Y = math.Round(tran.APos.Y)
 			tran.Mat = pixel.IM
 			if tran.Flip && tran.Flop {
 				tran.Mat = tran.Mat.Scaled(pixel.ZV, -1.)

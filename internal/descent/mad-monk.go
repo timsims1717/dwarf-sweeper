@@ -80,38 +80,35 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		Immune:       data.EnemyImmunity,
 	}
 	m.created = true
-	m.Reanimator = reanimator.New(&reanimator.Switch{
-		Elements: reanimator.NewElements(
-			reanimator.NewAnimFromSprites("mm_attack", img.Batchers[constants.EntityKey].Animations["mm_attack"].S, reanimator.Tran, map[int]func(){
-				3: func() {
-					m.AtkTimer = timing.New(mmAtkWait)
-					ownCoords := Descent.GetCave().GetTile(m.Transform.Pos).RCoords
-					playerCoords := Descent.GetPlayerTile().RCoords
-					ownPos := m.Transform.Pos
-					playerPos := Descent.GetPlayer().Transform.Pos
-					if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
-						angle := mmAngle
-						if m.faceLeft {
-							angle = pixel.V(-1., 1.).Angle()
-						}
-						Descent.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
-							Amount:    1,
-							Dazed:     1.,
-							Knockback: 8.,
-							Angle:     &angle,
-							Source:    m.Transform.Pos,
-						})
+	m.Reanimator = reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("mm_attack", img.Batchers[constants.EntityKey].Animations["mm_attack"].S, reanimator.Tran).
+			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+				m.AtkTimer = timing.New(mmAtkWait)
+				ownCoords := Descent.GetCave().GetTile(m.Transform.Pos).RCoords
+				playerCoords := Descent.GetPlayerTile().RCoords
+				ownPos := m.Transform.Pos
+				playerPos := Descent.GetPlayer().Transform.Pos
+				if math.Abs(ownPos.X-playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
+					angle := mmAngle
+					if m.faceLeft {
+						angle = pixel.V(-1., 1.).Angle()
 					}
-				},
-				5: func() {
-					m.Attack = false
-				},
-			}),
-			reanimator.NewAnimFromSprites("mm_fall", img.Batchers[constants.EntityKey].Animations["mm_fall"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("mm_walk", img.Batchers[constants.EntityKey].Animations["mm_walk"].S, reanimator.Loop, nil),
-			reanimator.NewAnimFromSprites("mm_idle", img.Batchers[constants.EntityKey].Animations["mm_idle"].S, reanimator.Hold, nil),
-		),
-		Check: func() int {
+					Descent.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
+						Amount:    1,
+						Dazed:     1.,
+						Knockback: 8.,
+						Angle:     &angle,
+						Source:    m.Transform.Pos,
+					})
+				}
+			}).
+			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
+				m.Attack = false
+			})).
+		AddAnimation(reanimator.NewAnimFromSprites("mm_fall", img.Batchers[constants.EntityKey].Animations["mm_fall"].S, reanimator.Loop)).
+		AddAnimation(reanimator.NewAnimFromSprites("mm_walk", img.Batchers[constants.EntityKey].Animations["mm_walk"].S, reanimator.Loop)).
+		AddAnimation(reanimator.NewAnimFromSprites("mm_idle", img.Batchers[constants.EntityKey].Animations["mm_idle"].S, reanimator.Hold)).
+		SetChooseFn(func() int {
 			if m.Attack {
 				return 0
 			} else if !m.Physics.Grounded {
@@ -121,8 +118,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 			} else {
 				return 3
 			}
-		},
-	}, "mm_idle")
+		}), "mm_idle")
 	m.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).

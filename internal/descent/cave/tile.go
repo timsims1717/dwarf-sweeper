@@ -75,20 +75,23 @@ type Tile struct {
 	DSurrounded bool
 	BombCount   int
 
-	Entity      myecs.AnEntity
-	XRay        *pixel.Sprite
-	Bomb        bool
-	Destroyed   bool
-	revealT     *timing.FrameTimer
-	revealing   bool
-	destroying  bool
-	reload      bool
-	Marked      bool
-	Exit        bool
+	Entity     myecs.AnEntity
+	XRay       *pixel.Sprite
+	Bomb       bool
+	Destroyed  bool
+	revealT    *timing.FrameTimer
+	revealing  bool
+	destroying bool
+	reload     bool
+	Flagged    bool
+	Exit       bool
 
 	NeverChange bool
 	IsChanged   bool
-	PartOfPath  bool
+	Path        bool
+	Marked      bool
+	DeadEnd     bool
+	Room        bool
 
 	DestroyTrigger func(*Tile)
 }

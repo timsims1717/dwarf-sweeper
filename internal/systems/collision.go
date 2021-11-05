@@ -9,7 +9,6 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
@@ -20,67 +19,35 @@ import (
 )
 
 const (
-	collisionDistance = 0.8
+	collisionDistance = 0.85
 	collisionPush     = 10.
-	CollisionThresh   = 3.
+	CollisionStep     = 3.
 	NearGroundThresh  = 4.
+	BounceThreshold   = 100.
 )
 
-func CollisionSystem() {
+func TileCollisionSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasCollision) {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		coll, okC := result.Components[myecs.Collision].(*data.Collider)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
 		if okT && okC && okP {
+			coll.Collided = false
+			stopped := false
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
-				w := coll.Hitbox.W()
-				h := coll.Hitbox.H()
+				var hb pixel.Rect
 				if math.Abs(tran.Rot) == 0.5 {
-					w = coll.Hitbox.H()
-					h = coll.Hitbox.W()
+					hb = pixel.R(0.,0., coll.Hitbox.H(), coll.Hitbox.W())
+				} else {
+					hb = pixel.R(0.,0., coll.Hitbox.W(), coll.Hitbox.H())
 				}
-				if !coll.GroundOnly {
-					for _, result1 := range myecs.Manager.Query(myecs.HasCollision) {
-						tran1, okT1 := result1.Components[myecs.Transform].(*transform.Transform)
-						coll1, okC1 := result1.Components[myecs.Collision].(*data.Collider)
-						phys1, okP1 := result1.Components[myecs.Physics].(*physics.Physics)
-						distX := math.Abs(tran.Pos.X - tran1.Pos.X)
-						collDist := (w + coll1.Hitbox.W()) * 0.5 * collisionDistance
-						if okT1 && okC1 && okP1 {
-							h1 := coll1.Hitbox.H()
-							if math.Abs(tran1.Rot) == 0.5 {
-								h1 = coll1.Hitbox.W()
-							}
-							if !coll1.GroundOnly && distX < collDist && math.Abs(tran1.Pos.Y-tran.Pos.Y) < (h + h1) * 0.5 {
-								if tran.Pos.X < tran1.Pos.X {
-									tran.Pos.X -= math.Min(collisionPush*timing.DT, math.Abs(distX-collDist)*0.5)
-									tran1.Pos.X += math.Min(collisionPush*timing.DT, math.Abs(distX-collDist)*0.5)
-									if phys.Velocity.X > 0. && !coll.CanPass {
-										phys.Velocity.X = 0.
-									}
-									if phys1.Velocity.X < 0. && !coll1.CanPass {
-										phys1.Velocity.X = 0.
-									}
-								} else if tran.Pos.X > tran1.Pos.X {
-									tran.Pos.X += math.Min(collisionPush*timing.DT, math.Abs(distX-collDist)*0.5)
-									tran1.Pos.X -= math.Min(collisionPush*timing.DT, math.Abs(distX-collDist)*0.5)
-									if phys.Velocity.X < 0. && !coll.CanPass {
-										phys.Velocity.X = 0.
-									}
-									if phys1.Velocity.X > 0. && !coll1.CanPass {
-										phys1.Velocity.X = 0.
-									}
-								}
-							}
-						}
-					}
-				}
+				hb = hb.Moved(tran.Pos).Moved(pixel.V(hb.W()*-0.5, hb.H()*-0.5))
 				lastPos := tran.LastPos
 				done := false
 				var next pixel.Vec
 				count := 0
-				stepSize := CollisionThresh
+				stepSize := CollisionStep
 				for !done {
 					posChange := tran.Pos.Sub(lastPos)
 					mag := util.Magnitude(posChange)
@@ -91,7 +58,7 @@ func CollisionSystem() {
 						next = tran.Pos
 						done = true
 					}
-					if debug.Debug {
+					if debug.Debug && coll.Debug {
 						col := colornames.Red
 						if count == 1 {
 							col = colornames.Blue
@@ -103,9 +70,9 @@ func CollisionSystem() {
 					}
 					loc := descent.Descent.GetCave().GetTile(next)
 					if loc != nil {
-						stopped := false
-
 						// collision rays init
+						w := hb.W()
+						h := hb.H()
 						wcr := int(w) / int(world.TileSize * 0.5)
 						hcr := int(h) / int(world.TileSize * 0.5)
 						if wcr < 2 {
@@ -114,8 +81,8 @@ func CollisionSystem() {
 						if hcr < 2 {
 							hcr = 2
 						}
-						iw := w - CollisionThresh * 2.
-						ih := h - CollisionThresh * 2.
+						iw := w - CollisionStep* 2.
+						ih := h - CollisionStep* 2.
 
 						// collision rays up and down
 						var dwn, up, gr *cave.Tile
@@ -141,8 +108,10 @@ func CollisionSystem() {
 									coll.DR = true
 								}
 								dwn = d
-								debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
-							} else {
+								if debug.Debug && coll.Debug {
+									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
+								}
+							} else if debug.Debug && coll.Debug {
 								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
 							}
 							if u != nil && u.Solid() {
@@ -152,8 +121,11 @@ func CollisionSystem() {
 									coll.UR = true
 								}
 								up = u
-								debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(x, next.Y+ih*0.5), pixel.V(x, uy), 1.0)
-							} else {
+
+								if debug.Debug && coll.Debug {
+									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(x, next.Y+ih*0.5), pixel.V(x, uy), 1.0)
+								}
+							} else if debug.Debug && coll.Debug {
 								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(x, next.Y+ih*0.5), pixel.V(x, uy), 1.0)
 							}
 							if g != nil && g.Solid() {
@@ -169,27 +141,32 @@ func CollisionSystem() {
 								next.Y = uY
 							}
 							next.Y = uY
-							phys.Ceilinged = true
+							coll.TopBound = true
 							if phys.Velocity.Y > 0 {
-								phys.Velocity.Y = 0
+								if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThreshold {
+									phys.Velocity.Y *= -phys.Bounciness
+									coll.TopBound = false
+								} else {
+									phys.Velocity.Y = 0
+								}
 								stopped = true
 							}
 						} else {
-							phys.Ceilinged = false
+							coll.TopBound = false
 						}
-						phys.Grounded = false
 						if dwn != nil && dwn.Solid() {
 							if next.Y < dY {
 								next.Y = dY
 							}
 							phys.Grounded = true
+							coll.BottomBound = true
 							wasRDX := phys.RagDollX
 							phys.RagDollX = false
 							if phys.Velocity.Y < 0 {
-								if phys.RagDollY {
-									phys.Velocity.Y = phys.Velocity.Y * -phys.Bounciness
-									phys.RagDollY = false
+								if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThreshold {
+									phys.Velocity.Y *= -phys.Bounciness
 									phys.Grounded = false
+									coll.BottomBound = false
 									phys.RagDollX = wasRDX
 								} else {
 									phys.Velocity.Y = 0
@@ -198,6 +175,7 @@ func CollisionSystem() {
 							}
 						} else {
 							phys.Grounded = false
+							coll.BottomBound = false
 						}
 						phys.NearGround = gr != nil && gr.Solid()
 
@@ -223,8 +201,11 @@ func CollisionSystem() {
 									coll.LD = true
 								}
 								left = l
-								debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
-							} else {
+
+								if debug.Debug && coll.Debug {
+									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
+								}
+							} else if debug.Debug && coll.Debug {
 								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
 							}
 							if r != nil && r.Solid() {
@@ -234,8 +215,10 @@ func CollisionSystem() {
 									coll.RD = true
 								}
 								right = r
-								debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
-							} else {
+								if debug.Debug && coll.Debug {
+									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
+								}
+							} else if debug.Debug && coll.Debug {
 								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
 							}
 						}
@@ -247,36 +230,37 @@ func CollisionSystem() {
 							if next.X > rX {
 								next.X = rX
 							}
-							phys.RightWalled = true
+							coll.RightBound = true
 							if phys.Velocity.X > 0 {
-								if phys.RagDollX {
-									phys.Velocity.X = phys.Velocity.X * -phys.Bounciness
-									phys.RightWalled = false
+								if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+									phys.Velocity.X *= -phys.Bounciness
+									coll.RightBound = false
 								} else {
 									phys.Velocity.X = 0
 								}
 								stopped = true
 							}
 						} else {
-							phys.RightWalled = false
+							coll.RightBound = false
 						}
 						if left != nil && left.Solid() {
 							if next.X < lX {
 								next.X = lX
 							}
-							phys.LeftWalled = true
+							coll.LeftBound = true
 							if phys.Velocity.X < 0 {
-								if phys.RagDollX {
-									phys.Velocity.X = phys.Velocity.X * -phys.Bounciness
-									phys.LeftWalled = false
+								if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+									phys.Velocity.X *= -phys.Bounciness
+									coll.LeftBound = false
 								} else {
 									phys.Velocity.X = 0
 								}
 								stopped = true
 							}
 						} else {
-							phys.LeftWalled = false
+							coll.LeftBound = false
 						}
+						phys.CanClimb = coll.LeftBound || coll.RightBound
 
 						// corner collision check
 						vul := pixel.V(next.X-w*0.51, next.Y+h*0.51)
@@ -291,29 +275,32 @@ func CollisionSystem() {
 						coll.CUR = ur != nil && ur.Solid()
 						coll.CDL = dl != nil && dl.Solid()
 						coll.CDR = dr != nil && dr.Solid()
-						if coll.CUL {
-							debug.AddLine(colornames.Green, imdraw.RoundEndShape, vul, vul, 1.0)
-						} else {
-							debug.AddLine(colornames.Red, imdraw.RoundEndShape, vul, vul, 1.0)
-						}
-						if coll.CUR {
-							debug.AddLine(colornames.Green, imdraw.RoundEndShape, vur, vur, 1.0)
-						} else {
-							debug.AddLine(colornames.Red, imdraw.RoundEndShape, vur, vur, 1.0)
-						}
-						if coll.CDL {
-							debug.AddLine(colornames.Green, imdraw.RoundEndShape, vdl, vdl, 1.0)
-						} else {
-							debug.AddLine(colornames.Red, imdraw.RoundEndShape, vdl, vdl, 1.0)
-						}
-						if coll.CDR {
-							debug.AddLine(colornames.Green, imdraw.RoundEndShape, vdr, vdr, 1.0)
-						} else {
-							debug.AddLine(colornames.Red, imdraw.RoundEndShape, vdr, vdr, 1.0)
+						if debug.Debug && coll.Debug {
+							if coll.CUL {
+								debug.AddLine(colornames.Green, imdraw.RoundEndShape, vul, vul, 1.0)
+							} else {
+								debug.AddLine(colornames.Red, imdraw.RoundEndShape, vul, vul, 1.0)
+							}
+							if coll.CUR {
+								debug.AddLine(colornames.Green, imdraw.RoundEndShape, vur, vur, 1.0)
+							} else {
+								debug.AddLine(colornames.Red, imdraw.RoundEndShape, vur, vur, 1.0)
+							}
+							if coll.CDL {
+								debug.AddLine(colornames.Green, imdraw.RoundEndShape, vdl, vdl, 1.0)
+							} else {
+								debug.AddLine(colornames.Red, imdraw.RoundEndShape, vdl, vdl, 1.0)
+							}
+							if coll.CDR {
+								debug.AddLine(colornames.Green, imdraw.RoundEndShape, vdr, vdr, 1.0)
+							} else {
+								debug.AddLine(colornames.Red, imdraw.RoundEndShape, vdr, vdr, 1.0)
+							}
 						}
 
 						if stopped {
 							done = true
+							coll.Collided = true
 						}
 						lastPos = next
 					} else {
