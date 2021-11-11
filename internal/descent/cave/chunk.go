@@ -38,7 +38,7 @@ func NewChunk(coords world.Coords, c *Cave, tt TileType) *Chunk {
 	x := 0
 	for _, b := range list {
 		var tile *Tile
-		if c.Finite &&
+		if c.Type != Infinite &&
 			((coords.Y == c.Bottom && y == constants.ChunkSize- 1) ||
 				(coords.X == c.Left && x == 0) ||
 				(coords.X == c.Right && x == constants.ChunkSize- 1)) {

@@ -1,4 +1,4 @@
-package generate
+package structures
 
 import (
 	"dwarf-sweeper/internal/constants"

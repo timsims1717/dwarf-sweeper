@@ -18,10 +18,10 @@ type Cave struct {
 	LChunks     map[world.Coords]*Chunk
 	FillChunk   func(chunk *Chunk)
 	Pivot       pixel.Vec
-	Finite      bool
 	UpdateBatch bool
 	hasUpdated  bool
 	Batcher     *img.Batcher
+	Type        CaveType
 
 	Left   int
 	Right  int
@@ -30,9 +30,14 @@ type Cave struct {
 	Height int
 	bl     pixel.Vec
 	tr     pixel.Vec
-
 	StartC world.Coords
 	ExitC  world.Coords
+
+	Paths    []world.Coords
+	DeadEnds []world.Coords
+	Marked   []world.Coords
+	Rooms    []world.Coords
+	FillVar  float64
 
 	BombPMin float64
 	BombPMax float64
@@ -57,7 +62,7 @@ type Cave struct {
 	PathRule PathRule
 }
 
-func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
+func NewCave(batcher *img.Batcher, biome string, caveType CaveType) *Cave {
 	var bgSpr *pixel.Sprite
 	var bgBatch *pixel.Batch
 	bg, err := img.LoadImage(fmt.Sprintf("assets/img/the-%s-bg.png", biome))
@@ -72,7 +77,7 @@ func NewCave(batcher *img.Batcher, biome string, finite bool) *Cave {
 		RChunks:     make(map[world.Coords]*Chunk),
 		LChunks:     make(map[world.Coords]*Chunk),
 		Batcher:     batcher,
-		Finite:      finite,
+		Type:        caveType,
 		UpdateBatch: true,
 		Biome:       biome,
 		Background:  bgSpr,
@@ -98,6 +103,10 @@ func (c *Cave) SetSize(left, right, bottom int) {
 	c.Height = (bottom + 1) * constants.ChunkSize
 	c.bl = pixel.V(float64(left * constants.ChunkSize) * world.TileSize, -float64((bottom + 1) * constants.ChunkSize - 1) * world.TileSize)
 	c.tr = pixel.V(float64((right+1) * constants.ChunkSize) * world.TileSize, 0.)
+	// how much we should fill is based on the size of the cave
+	// a 32 chunk size at 3x3 gives a value of 72 for fillVar
+	// a 16 chunk size at 3x3 gives a value of 18 for fillVar
+	c.FillVar = float64(c.Width * c.Height / 128.)
 }
 
 func (c *Cave) Update() {
@@ -201,10 +210,10 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 }
 
 func (c *Cave) Dimensions() (int, int) {
-	if c.Finite {
-		return (c.Right - c.Left + 1) * constants.ChunkSize, (c.Bottom + 1) * constants.ChunkSize
-	} else {
+	if c.Type == Infinite {
 		return -1, -1
+	} else {
+		return (c.Right - c.Left + 1) * constants.ChunkSize, (c.Bottom + 1) * constants.ChunkSize
 	}
 }
 
@@ -213,7 +222,7 @@ func (c *Cave) PointLoaded(v pixel.Vec) bool {
 }
 
 func (c *Cave) CurrentBoundaries() (pixel.Vec, pixel.Vec) {
-	if c.Finite {
+	if c.Type != Infinite {
 		return c.bl, c.tr
 	}
 	p := WorldToChunk(c.Pivot)
@@ -402,7 +411,7 @@ func TileInTile(a, b pixel.Vec) bool {
 }
 
 func (c *Cave) PrintCaveToTerminal() {
-	if c.Finite {
+	if c.Type != Infinite {
 		fmt.Println("Printing cave ... ")
 		fmt.Println()
 		for y := 0; y < (c.Bottom+ 1) *constants.ChunkSize; y++ {

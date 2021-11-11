@@ -1,6 +1,7 @@
 package state
 
 import (
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/enchants"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
@@ -12,8 +13,8 @@ func InitPauseMenu(win *pixelgl.Window) {
 	PauseMenu = menus.New("pause", camera.Cam)
 	PauseMenu.Title = true
 	PauseMenu.SetCloseFn(func() {
-		sfx.MusicPlayer.PauseMusic("pause", true)
-		sfx.MusicPlayer.UnpauseOrNext(gameMusic)
+		sfx.MusicPlayer.Pause("pause", true)
+		sfx.MusicPlayer.Resume(constants.GameMusic)
 	})
 	pauseTitle := PauseMenu.AddItem("title", "Paused")
 	resume := PauseMenu.AddItem("resume", "Resume")

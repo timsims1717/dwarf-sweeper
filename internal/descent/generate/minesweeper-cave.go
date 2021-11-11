@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
@@ -40,8 +41,8 @@ var (
 	}
 )
 
-func outline(chal Challenge) []Path {
-	return []Path{
+func outline(chal Challenge) []structures.Path {
+	return []structures.Path{
 		{data.Up, 3},
 		{data.Right, 4},
 		{data.Down, 1},
@@ -70,7 +71,7 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *
 		h++
 	}
 	batcher := img.NewBatcher(spriteSheet, false)
-	newCave := cave.NewCave(batcher, biome, true)
+	newCave := cave.NewCave(batcher, biome, cave.Minesweeper)
 	newCave.SetSize(0, w, h-1)
 	newCave.StartC = world.Coords{X: 12, Y: h * constants.ChunkSize - 8}
 	exitC := newCave.StartC
@@ -81,13 +82,13 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *
 	pathS.Y += 1
 	descent.CaveTotalBombs = chal.Mines
 	descent.CaveBombsLeft = chal.Mines
-	CreateChunks(newCave)
-	Outline(newCave, pathS, outline(chal))
-	Entrance(newCave, newCave.StartC, 5, 3, 0, false)
-	Entrance(newCave, exitC, 5, 3, 0, true)
+	structures.CreateChunks(newCave)
+	structures.Outline(newCave, pathS, outline(chal))
+	structures.Entrance(newCave, newCave.StartC, 5, 3, 0, false)
+	structures.Entrance(newCave, exitC, 5, 3, 0, true)
 	for x := newCave.StartC.X+1; x < newCave.ExitC.X; x++ {
 		tile := newCave.GetTileInt(x, newCave.StartC.Y)
-		toBlockCollapse(tile, false)
+		structures.ToBlock(tile, cave.BlockCollapse, false, true)
 		tile.Bomb = false
 	}
 	newCave.MarkAsNotChanged()
@@ -106,11 +107,11 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	for i := 0; i < chal.Height; i++ {
 		for j := 0; j < chal.Width; j++ {
 			tile := c.GetTileInt(curr.X, curr.Y)
-			toBlockCollapse(tile, true)
+			structures.ToBlock(tile, cave.BlockCollapse, true, true)
 			tile.Bomb = list[b]
 			tile.DestroyTrigger = func(tile *cave.Tile) {
 				if !begun {
-					StartMinesweeper(c, tile)
+					structures.StartMinesweeper(c, tile)
 					begun = true
 				}
 			}
@@ -125,7 +126,7 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	x = curr.X
 	for i := 0; i < chal.Height + 1; i++ {
 		for j := 0; j < chal.Width + 2; j++ {
-			toEmpty(c.GetTileInt(curr.X, curr.Y), true, true)
+			structures.ToEmpty(c.GetTileInt(curr.X, curr.Y), true, true, true)
 			curr.X++
 		}
 		curr.Y--

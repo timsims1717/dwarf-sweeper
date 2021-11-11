@@ -6,11 +6,13 @@
  "sprites": [
   {
    "key": "idle",
-   "anim": true
+   "anim": true,
+   "frames": 2
   },
   {
    "key": "idle",
-   "anim": true
+   "anim": true,
+   "frames": 2
   },
   {
    "key": "run",

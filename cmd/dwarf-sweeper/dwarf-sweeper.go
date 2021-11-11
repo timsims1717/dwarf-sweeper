@@ -67,16 +67,21 @@ func run() {
 		panic(err)
 	}
 	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true)
-	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
+	bigEntitySheet, err := img.LoadSpriteSheet("assets/img/big-entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.DwarfKey, dwarfSheet, true)
+	img.AddBatcher(constants.BigEntityKey, bigEntitySheet, true)
 	entitySheet, err := img.LoadSpriteSheet("assets/img/entities.json")
 	if err != nil {
 		panic(err)
 	}
 	img.AddBatcher(constants.EntityKey, entitySheet, true)
+	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.DwarfKey, dwarfSheet, true)
 	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
 	if err != nil {
 		panic(err)
@@ -122,10 +127,7 @@ func run() {
 
 	sfx.MusicPlayer.SetTracks("menu", []string{"crab"})
 	sfx.MusicPlayer.SetTracks("pause", []string{"sable"})
-	sfx.MusicPlayer.NewSet("game", []string{"honey", "strawberry", "dawn", "hero", "voyage"}, sfx.Random, 0., 2.)
-	sfx.MusicPlayer.NewSet("mine", []string{"prairie"}, sfx.Repeat, 0., 2.)
-	//sfx.MusicPlayer.NewSet("dark", []string{"turbo"}, sfx.Repeat, 0., 2.)
-	// dawn and hero will be "boss" tracks
+	sfx.MusicPlayer.NewSet(constants.GameMusic, []string{"honey", "strawberry", "dawn", "hero", "voyage", "prairie"}, sfx.Repeat, 0., 2.)
 
 	timing.Reset()
 	win.Show()

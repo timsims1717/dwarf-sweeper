@@ -30,7 +30,8 @@ type musicSet struct {
 	fade     float64
 	vol      float64
 
-	paused bool
+	paused  bool
+	stopped bool
 
 	stream beep.StreamSeekCloser
 	ctrl   *beep.Ctrl
@@ -46,23 +47,48 @@ func (s *musicSet) setTracks(keys []string) {
 }
 
 func (s *musicSet) play() {
-	if s.paused {
+	if s.stopped {
+		s.stopped = false
+		s.playNext = true
+	} else if s.paused {
 		s.pause(false)
 	} else {
-		s.playNextTrack()
+		s.playNext = true
 	}
+}
+
+func (s *musicSet) resume() {
+	if !s.stopped {
+		if s.paused {
+			s.pause(false)
+		} else {
+			s.playNext = true
+		}
+	}
+}
+
+func (s *musicSet) chooseTrack(keys []string) {
+	for _, k := range keys {
+		if k == s.curr {
+			return
+		}
+	}
+	s.next = keys[random.Intn(len(keys))]
+	s.playNext = true
+	s.stopped = false
+}
+
+func (s *musicSet) setTrack(key string) {
+	s.next = key
+	s.playNext = s.next != s.curr
+	s.stopped = false
 }
 
 func (s *musicSet) playTrack(key string) {
 	s.pause(true)
 	s.next = key
 	s.playNext = true
-}
-
-func (s *musicSet) playNextTrack() {
-	s.pause(true)
-	s.next = ""
-	s.playNext = true
+	s.stopped = false
 }
 
 func (s *musicSet) pause(pause bool) {
@@ -74,6 +100,11 @@ func (s *musicSet) pause(pause bool) {
 		s.interV = nil
 	}
 	s.paused = pause
+}
+
+func (s *musicSet) stop() {
+	s.pause(true)
+	s.stopped = true
 }
 
 func (s *musicSet) setVolume(vol float64) {

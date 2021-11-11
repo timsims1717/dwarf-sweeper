@@ -1,4 +1,4 @@
-package generate
+package structures
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -130,12 +130,12 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					toWall(tile, false)
-				} else if !tile.NeverChange && !tile.IsChanged {
+					ToBlock(tile, cave.Wall,false, true)
+				} else if !tile.NeverChange {
 					if random.CaveGen.Intn(10) == 0 {
-						toBlockCollapse(tile, false)
+						ToBlock(tile, cave.BlockCollapse, false, true)
 					} else {
-						toBlockDig(tile, false)
+						ToBlock(tile, cave.BlockDig,false, true)
 					}
 					roomTiles = append(roomTiles, tile.RCoords)
 					tile.Room = true

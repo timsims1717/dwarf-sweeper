@@ -3,6 +3,8 @@ package state
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
@@ -19,6 +21,7 @@ func InitDebugMenu() {
 	back := DebugMenu.AddItem("back", "Back")
 	freeCam := DebugMenu.AddItem("free-cam", "Free Camera")
 	mineLevel := DebugMenu.AddItem("mine-level", "Start Mine Level")
+	bossLevel := DebugMenu.AddItem("boss-level", "Start Boss Level")
 	testMineSolver := DebugMenu.AddItem("test-solver", "Test Mine Solver")
 	giveBombs := DebugMenu.AddItem("give-bombs", "Give Bombs")
 	fogToggle := DebugMenu.AddItem("fog-toggle", "Toggle Fog")
@@ -40,10 +43,23 @@ func InitDebugMenu() {
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
+	bossLevel.SetClickFn(func() {
+		caveBuilder, err := builder.LoadBuilder(fmt.Sprint("assets/caves.json"))
+		if err != nil {
+			panic(err)
+		}
+		newState = 0
+		switchState = true
+		descent.Descent.Builder = caveBuilder[2]
+		descent.Descent.Level = 1
+		descent.Descent.Start = true
+		DebugMenu.Close()
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
 	mineLevel.SetClickFn(func() {
 		newState = 0
 		switchState = true
-		descent.Descent.Type = descent.Minesweeper
+		descent.Descent.Type = cave.Minesweeper
 		descent.Descent.Level = 1
 		descent.Descent.Start = true
 		DebugMenu.Close()

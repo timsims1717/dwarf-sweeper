@@ -1,0 +1,37 @@
+{
+ "img": "big-entities.png",
+ "height": 32,
+ "width": 32,
+ "sprites": [
+  {
+   "key": "gnome_idle",
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "gnome_idle",
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "gnome_idle",
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "gnome_roar",
+   "x": 96,
+   "y": 0
+  },
+  {
+   "key": "gnome_roar",
+   "x": 128,
+   "y": 0
+  },
+  {
+   "key": "gnome_roar",
+   "x": 160,
+   "y": 0
+  }
+ ]
+}

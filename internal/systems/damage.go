@@ -25,10 +25,10 @@ func AreaDamageSystem() {
 				if debug.Debug {
 					if area.Radius > 0. {
 						col := colornames.White
-						debug.AddCircle(col, area.Center, area.Radius)
+						debug.AddCircle(col, area.Center, area.Radius, 0.5)
 					} else if area.Rect.W() > 0. && area.Rect.H() > 0. {
 						col := colornames.White
-						debug.AddRect(col, area.Center, area.Rect)
+						debug.AddRect(col, area.Center, area.Rect, 0.5)
 					}
 				}
 				for _, tResult := range myecs.Manager.Query(myecs.HasHealth) {

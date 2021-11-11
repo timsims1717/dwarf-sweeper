@@ -1,4 +1,4 @@
-package generate
+package structures
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -27,16 +27,19 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 			break
 		} else {
 			chance--
-			tile.Type = cave.TileType(currType)
-			tile.IsChanged = true
+			if currType == cave.Empty {
+				ToEmpty(tile, false, false, false)
+			} else {
+				ToBlock(tile, cave.TileType(currType), false, true)
+			}
 			// carve out a bit
 			ns := tile.RCoords.Neighbors()
 			for _, n := range ns {
 				tmp := c.GetTileInt(n.X, n.Y)
 				if random.CaveGen.Intn(4) == 0 {
-					toBlockDig(tmp, false)
+					ToBlock(tmp, cave.BlockDig, false, true)
 				} else {
-					toBlockCollapse(tmp, false)
+					ToBlock(tmp, cave.BlockCollapse, false, true)
 				}
 			}
 			// change to next tile
@@ -121,9 +124,9 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					toBlockDig(tile, true)
+					ToBlock(tile, cave.BlockDig, true, true)
 				} else if !tile.NeverChange && !tile.IsChanged {
-					toEmpty(tile, true, false)
+					ToEmpty(tile, true, false, true)
 					if y == tlY+h-2 && util.Contains(x, tC) {
 						addChest(tile)
 					}
@@ -144,7 +147,7 @@ func BombableNode(c *cave.Cave, radius int, variance float64, ignoreWalls bool, 
 				dist := util.Magnitude(cPos.Sub(tPos))
 				if dist < fRad+random.CaveGen.Float64()*variance {
 					if !(tile.Type == cave.Wall && ignoreWalls) && !tile.Path {
-						toBlockBlast(tile, false)
+						ToBlock(tile, cave.BlockBlast, false, false)
 					}
 				}
 			}
@@ -164,11 +167,11 @@ func Pocket(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center
 				dist := util.Magnitude(cPos.Sub(tPos))
 				if dist < inRad + random.CaveGen.Float64()*variance && !tile.Bomb {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						toEmpty(tile, false, false)
+						ToEmpty(tile, false, false, false)
 					}
 				} else if dist < fRad + random.CaveGen.Float64()*variance {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						toBlockCollapse(tile, false)
+						ToBlock(tile, cave.BlockCollapse, false, true)
 					}
 				}
 			}
@@ -189,18 +192,18 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 				if tile.RCoords == center || (y == center.Y && dist < world.TileSize * 0.5 + random.CaveGen.Float64()*variance && !tile.Bomb) {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						if tile.Path {
-							toBlockDig(tile, false)
+							ToBlock(tile, cave.BlockDig, true, true)
 						} else {
-							toWall(tile, false)
+							ToBlock(tile, cave.Wall, true, true)
 						}
 					}
 				} else if dist < inRad + random.CaveGen.Float64()*variance && !tile.Bomb {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						toEmpty(tile, false, false)
+						ToEmpty(tile, false, false, false)
 					}
 				} else if dist < fRad + random.CaveGen.Float64()*variance {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						toBlockCollapse(tile, false)
+						ToBlock(tile, cave.BlockCollapse, false, false)
 					}
 				}
 			}

@@ -1,4 +1,4 @@
-package generate
+package structures
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -8,7 +8,7 @@ import (
 	"dwarf-sweeper/pkg/img"
 )
 
-func FillChunk(ch *cave.Chunk) {
+func FillBasic(ch *cave.Chunk) {
 	count := 0
 	for _, row := range ch.Rows {
 		for _, tile := range row {
@@ -76,13 +76,13 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 			if tile.Solid() && tile.Breakable() && t.RCoords != tile.RCoords {
 				if tile.Bomb {
 					tile.Entity = &descent.Mine{
-						Tile:       tile,
+						Tile: tile,
 					}
 					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
 				} else if needBomb {
 					tile.Bomb = true
 					tile.Entity = &descent.Mine{
-						Tile:       tile,
+						Tile: tile,
 					}
 					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
 					needBomb = false
@@ -94,4 +94,12 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 		}
 	}
 	return needBomb
+}
+
+func FillChunkWall(ch *cave.Chunk) {
+	for _, row := range ch.Rows {
+		for _, tile := range row {
+			ToBlock(tile, cave.Wall, false, false)
+		}
+	}
 }

@@ -1,4 +1,4 @@
-package generate
+package structures
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -40,7 +40,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 		tile := c.GetTileInt(curr.X, curr.Y)
 		if tile != nil {
 			tile.Path = true
-			wallUpWidth(tile, pDir.width, pDir.wLeft)
+			WallUpWidth(tile, pDir.width, pDir.wLeft)
 			path = append(path, curr)
 			if curr == end {
 				done = true
@@ -196,7 +196,7 @@ func BranchOff(c *cave.Cave, start world.Coords, min, max int) ([]world.Coords, 
 		tile := c.GetTileInt(curr.X, curr.Y)
 		if tile != nil {
 			tile.Path = true
-			wallUpWidth(tile, pDir.width, pDir.wLeft)
+			WallUpWidth(tile, pDir.width, pDir.wLeft)
 			path = append(path, curr)
 		}
 		// check the direction we are going, or the length of path so far

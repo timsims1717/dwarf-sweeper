@@ -401,12 +401,12 @@ func (p *Popper) Update() {
 		p.Transform.Rot = 0.
 	}
 	if p.action == Wait {
-		debug.AddCircle(colornames.Gray, p.Transform.Pos, 4.)
+		debug.AddCircle(colornames.Gray, p.Transform.Pos, 4., 0.)
 	} else if p.action == Seek {
-		debug.AddCircle(colornames.Orange, p.Transform.Pos, 4.)
+		debug.AddCircle(colornames.Orange, p.Transform.Pos, 4., 0.)
 	}
 	if p.target != nil {
-		debug.AddCircle(colornames.Yellow, p.target.Transform.Pos, 4.)
+		debug.AddCircle(colornames.Yellow, p.target.Transform.Pos, 4., 0.)
 	}
 }
 

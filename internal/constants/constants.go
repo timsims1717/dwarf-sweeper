@@ -8,7 +8,7 @@ const (
 	Title   = "DwarfSweeper"
 	Release = 0
 	Version = 1
-	Build   = 20211027
+	Build   = 20211111
 	BaseW   = 320.
 	BaseH   = 240.
 
@@ -19,10 +19,16 @@ const (
 	// Batcher Keys
 	DwarfKey      = "dwarf"
 	EntityKey     = "entities"
+	BigEntityKey  = "big_entities"
 	TileEntityKey = "tile_entities"
 	MenuSprites   = "menu_sprites"
 	ParticleKey   = "particle_sprites"
 	TileLayerKey  = "tile_layer"
+
+	// Music Keys
+	GameMusic  = "gameMusic"
+	PauseMusic = "pauseMusic"
+	MenuMusic  = "menuMusic"
 
 	// Config
 	LinuxDir = "/.local/share/DwarfSweeper"

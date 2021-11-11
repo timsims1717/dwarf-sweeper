@@ -13,8 +13,9 @@ var (
 var (
 	Manager  = ecs.NewManager()
 
-	Temp = Manager.NewComponent()
-	Func = Manager.NewComponent()
+	Temp    = Manager.NewComponent()
+	Func    = Manager.NewComponent()
+	Trigger = Manager.NewComponent()
 
 	Animation = Manager.NewComponent()
 	Batch     = Manager.NewComponent()
@@ -44,6 +45,7 @@ var (
 	IsEntity       = ecs.BuildTag(Entity, Transform)
 	HasPopUp       = ecs.BuildTag(PopUp, Transform)
 	HasVFX         = ecs.BuildTag(VFX, Transform)
+	HasTrigger     = ecs.BuildTag(Transform, Collision, Trigger)
 
 	HasTransform  = ecs.BuildTag(Transform)
 	HasParent     = ecs.BuildTag(Transform, Parent)

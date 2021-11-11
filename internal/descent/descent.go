@@ -3,20 +3,13 @@ package descent
 import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-)
-
-type CaveType int
-
-const (
-	Normal = iota
-	Infinite
-	Minesweeper
 )
 
 var Descent = &descent{}
@@ -26,10 +19,11 @@ type descent struct {
 	Level   int
 	Player  *Dwarf
 	Start   bool
-	Type    CaveType
+	Type    cave.CaveType
 	ExitPop *menus.PopUp
 	canExit bool
 	FreeCam bool
+	Builder *builder.CaveBuilder
 }
 
 func Update() {
@@ -38,7 +32,7 @@ func Update() {
 		if !Descent.FreeCam {
 			camera.Cam.StayWithin(Descent.Cave.Pivot, world.TileSize*1.5)
 		}
-		if !Descent.Cave.Finite {
+		if Descent.Cave.Type == cave.Infinite {
 			p := cave.WorldToChunk(Descent.Cave.Pivot)
 			all := append([]world.Coords{p}, p.Neighbors()...)
 			for _, i := range all {
@@ -52,7 +46,7 @@ func Update() {
 				} else if i.X < 0 && i.Y >= 0 {
 					if _, ok := Descent.Cave.LChunks[i]; !ok {
 						Descent.Cave.LChunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
-						Descent.Cave.FillChunk(Descent.Cave.RChunks[i])
+						Descent.Cave.FillChunk(Descent.Cave.LChunks[i])
 						Descent.Cave.UpdateBatch = true
 						IncreaseLevelInf()
 					}
@@ -61,10 +55,10 @@ func Update() {
 		}
 		Descent.Cave.Update()
 		switch Descent.Type {
-		case Minesweeper:
+		case cave.Minesweeper:
 			Descent.canExit = CaveBombsMarked == CaveBombsLeft && CaveWrongMarks < 1
 			Descent.ExitPop.Raw = "Flag all the remaining bombs to exit."
-		case Infinite:
+		case cave.Infinite:
 			Descent.canExit = false
 		default:
 			Descent.canExit = true

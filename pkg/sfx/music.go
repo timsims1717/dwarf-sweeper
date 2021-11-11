@@ -59,9 +59,17 @@ func (p *musicPlayer) SetTracks(key string, set []string) {
 	}
 }
 
-func (p *musicPlayer) UnpauseOrNext(set string) {
+func (p *musicPlayer) PlayMusic(set string) {
 	if s, ok := p.sets[set]; ok {
 		s.play()
+	} else {
+		fmt.Printf("music player error: no set '%s'\n", set)
+	}
+}
+
+func (p *musicPlayer) Resume(set string) {
+	if s, ok := p.sets[set]; ok {
+		s.resume()
 	} else {
 		fmt.Printf("music player error: no set '%s'\n", set)
 	}
@@ -75,17 +83,35 @@ func (p *musicPlayer) PlayTrack(set, key string) {
 	}
 }
 
-func (p *musicPlayer) PlayNext(set string) {
+func (p *musicPlayer) SetNextTrack(set, key string) {
 	if s, ok := p.sets[set]; ok {
-		s.playNextTrack()
+		s.setTrack(key)
 	} else {
 		fmt.Printf("music player error: no set '%s'\n", set)
 	}
 }
 
-func (p *musicPlayer) PauseMusic(set string, pause bool) {
+func (p *musicPlayer) ChooseNextTrack(set string, keys []string) {
+	if s, ok := p.sets[set]; ok {
+		s.chooseTrack(keys)
+	} else {
+		fmt.Printf("music player error: no set '%s'\n", set)
+	}
+}
+
+func (p *musicPlayer) Pause(set string, pause bool) {
 	if s, ok := p.sets[set]; ok {
 		s.pause(pause)
+	} else {
+		fmt.Printf("music player error: no set '%s'\n", set)
+	}
+}
+
+// Stop pauses the channel, and it cannot be started again unless
+// PlayTrack is called.
+func (p *musicPlayer) Stop(set string) {
+	if s, ok := p.sets[set]; ok {
+		s.stop()
 	} else {
 		fmt.Printf("music player error: no set '%s'\n", set)
 	}
@@ -152,11 +178,14 @@ func (p *musicPlayer) loadTrackInner(set *musicSet) error {
 		set.interV = nil
 		fmt.Printf("playing track %s\n", set.next)
 		set.curr = set.next
+		if set.mode != Repeat {
+			set.next = ""
+		}
 		speaker.Unlock()
 		speaker.Play(beep.Seq(
 			beep.Resample(4, format.SampleRate, sampleRate, set.volume),
 			beep.Callback(func() {
-				set.playNextTrack()
+				set.playTrack(set.next)
 			}),
 		))
 		return nil

@@ -6,7 +6,9 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate"
+	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/player"
@@ -32,8 +34,6 @@ var (
 	switchState = true
 	state       = -1
 	newState    = 1
-
-	gameMusic = "game"
 
 	pressAKey      = menu.NewItemText("press any key", colornames.Aliceblue, pixel.V(1.4, 1.4), menu.Center, menu.Center)
 	pressAKeyTimer *timing.FrameTimer
@@ -184,8 +184,8 @@ func Update(win *pixelgl.Window) {
 				menuInput.Get("pause").Consume()
 				if MenuClosed() && !descent.Descent.GetPlayer().Health.Dead {
 					OpenMenu(PauseMenu)
-					sfx.MusicPlayer.PauseMusic(gameMusic, true)
-					sfx.MusicPlayer.UnpauseOrNext("pause")
+					sfx.MusicPlayer.Pause(constants.GameMusic, true)
+					sfx.MusicPlayer.PlayMusic("pause")
 				}
 			}
 			if MenuClosed() {
@@ -207,6 +207,7 @@ func Update(win *pixelgl.Window) {
 				systems.HealthSystem()
 				systems.PopUpSystem()
 				systems.VFXSystem()
+				systems.TriggerSystem()
 				vfx.Update()
 				descent.UpdateInventory()
 				systems.AnimationSystem()
@@ -392,27 +393,19 @@ func updateState() {
 		clearMenus()
 		switch state {
 		case 0:
-			sfx.MusicPlayer.PauseMusic(gameMusic, true)
+			sfx.MusicPlayer.Pause(constants.GameMusic, true)
+			sfx.MusicPlayer.Stop("pause")
 		case 1:
-			sfx.MusicPlayer.PauseMusic("menu", true)
+			sfx.MusicPlayer.Stop("menu")
 		case 2:
-			sfx.MusicPlayer.PauseMusic("pause", true)
+			sfx.MusicPlayer.Stop("pause")
 		case 4:
 		case 5:
-			sfx.MusicPlayer.PauseMusic("pause", true)
+			sfx.MusicPlayer.Stop("pause")
 		}
 		// initialize
 		switch newState {
 		case 0:
-			biome := "mine"
-			if random.Effects.Intn(2) == 0 {
-				biome = "dark"
-			}
-			if sfx.MusicPlayer.HasSet(biome) {
-				gameMusic = biome
-			} else {
-				gameMusic = "game"
-			}
 			systems.ClearSystem()
 			systems.DeleteAllEntities()
 			if descent.Descent.Start {
@@ -421,30 +414,60 @@ func updateState() {
 					descent.Descent.Player = nil
 				}
 				descent.ResetStats()
-				sfx.MusicPlayer.PlayNext(gameMusic)
 			} else {
-				if descent.Descent.Type == descent.Normal {
-					descent.Descent.Type = descent.Minesweeper
+				if descent.Descent.Type == cave.Normal {
+					descent.Descent.Type = cave.Minesweeper
 				} else {
-					descent.Descent.Type = descent.Normal
+					descent.Descent.Type = cave.Normal
 				}
 				descent.ResetCaveStats()
-				sfx.MusicPlayer.PauseMusic(gameMusic, false)
 			}
 			descent.Descent.Level++
 
-			sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
-			if err != nil {
-				panic(err)
+			if descent.Descent.Builder == nil {
+				switch descent.Descent.Type {
+				case cave.Normal:
+					caveBuilder, err := builder.LoadBuilder(fmt.Sprint("assets/caves.json"))
+					if err != nil {
+						panic(err)
+					}
+					descent.Descent.Builder = caveBuilder[random.Effects.Intn(2)]
+					descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.Level))
+				case cave.Infinite:
+					biome := "mine"
+					if random.Effects.Intn(2) == 0 {
+						biome = "dark"
+					}
+					sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
+					if err != nil {
+						panic(err)
+					}
+					descent.Descent.SetCave(generate.NewInfiniteCave(sheet, biome))
+				case cave.Minesweeper:
+					biome := "mine"
+					if random.Effects.Intn(2) == 0 {
+						biome = "dark"
+					}
+					sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
+					if err != nil {
+						panic(err)
+					}
+					descent.Descent.SetCave(generate.NewMinesweeperCave(sheet, biome, descent.Descent.Level))
+				}
+			} else {
+				descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.Level))
 			}
-			switch descent.Descent.Type {
-			case descent.Normal:
-				descent.Descent.SetCave(generate.NewRoomyCave(sheet, biome, descent.Descent.Level, -1, 1, 2))
-			case descent.Infinite:
-				descent.Descent.SetCave(generate.NewInfiniteCave(sheet, biome))
-			case descent.Minesweeper:
-				descent.Descent.SetCave(generate.NewMinesweeperCave(sheet, biome, descent.Descent.Level))
+
+			if descent.Descent.Builder != nil {
+				if len(descent.Descent.Builder.Tracks) > 0 {
+					sfx.MusicPlayer.ChooseNextTrack(constants.GameMusic, descent.Descent.Builder.Tracks)
+				} else {
+					sfx.MusicPlayer.Stop(constants.GameMusic)
+				}
+			} else {
+				sfx.MusicPlayer.SetNextTrack(constants.GameMusic, "")
 			}
+			sfx.MusicPlayer.Resume(constants.GameMusic)
 
 			if descent.Descent.Player != nil {
 				descent.Descent.Player.Transform.Pos = descent.Descent.GetCave().GetStart().Transform.Pos
@@ -479,7 +502,7 @@ func updateState() {
 			if state != -1 {
 				OpenMenu(MainMenu)
 			}
-			sfx.MusicPlayer.PlayNext("menu")
+			sfx.MusicPlayer.PlayMusic("menu")
 		case 2:
 			descent.AddStats()
 			score := 0
@@ -494,7 +517,7 @@ func updateState() {
 			PostMenu.ItemMap["total_score_s"].Raw = fmt.Sprintf("%d", score)
 			descent.ScoreTimer = timing.New(5.)
 			OpenMenu(PostMenu)
-			sfx.MusicPlayer.UnpauseOrNext("pause")
+			sfx.MusicPlayer.PlayMusic("pause")
 		case 4:
 			descent.Descent.Level = 0
 			descent.Descent.Start = true
@@ -504,7 +527,7 @@ func updateState() {
 				ClearEnchantMenu()
 			} else {
 				OpenMenu(EnchantMenu)
-				sfx.MusicPlayer.UnpauseOrNext("pause")
+				sfx.MusicPlayer.PlayMusic("pause")
 			}
 			descent.AddStats()
 		}

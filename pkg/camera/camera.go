@@ -25,6 +25,7 @@ type Camera struct {
 	Pos    pixel.Vec
 	APos   pixel.Vec
 	Zoom   float64
+	AZoom  float64
 	zStep  float64
 	Opt    Options
 	Mask   color.RGBA
@@ -37,6 +38,7 @@ type Camera struct {
 	interZ *gween.Tween
 	shakeX *gween.Tween
 	shakeY *gween.Tween
+	shakeZ *gween.Tween
 	lock   bool
 	random *rand.Rand
 }
@@ -154,11 +156,19 @@ func (c *Camera) Update(win *pixelgl.Window) {
 			c.shakeY = nil
 		}
 	}
+	c.AZoom = c.Zoom
+	if c.shakeZ != nil {
+		z, finSZ := c.shakeZ.Update(timing.DT)
+		c.AZoom += z
+		if finSZ {
+			c.shakeZ = nil
+		}
+	}
 	if c.iLock {
 		c.APos.X = math.Round(c.APos.X)
 		c.APos.Y = math.Round(c.APos.Y)
 	}
-	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.Zoom).Moved(win.Bounds().Center().Sub(c.APos))
+	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.AZoom).Moved(win.Bounds().Center().Sub(c.APos))
 	win.SetMatrix(c.Mat)
 	win.SetColorMask(c.Mask)
 }
@@ -279,8 +289,18 @@ func (c *Camera) SetColor(col color.RGBA) {
 }
 
 func (c *Camera) Shake() {
-	c.shakeX = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, Sine)
-	c.shakeY = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, Sine)
+	c.shakeX = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, SetSine(10.))
+	c.shakeY = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, SetSine(10.))
+}
+
+func (c *Camera) ZoomShake(dur, freq float64) {
+	c.shakeZ = gween.New(0.02, 0., dur, SetSine(freq))
+}
+
+func SetSine(freq float64) func(float64, float64, float64, float64) float64 {
+	return func(t, b, c, d float64) float64 {
+		return b * math.Pow(math.E, -math.Abs(c) * t) * math.Sin(freq * math.Pi * t)
+	}
 }
 
 func Sine(t, b, c, d float64) float64 {

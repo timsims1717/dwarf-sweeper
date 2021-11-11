@@ -131,7 +131,6 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 		},
 	}
 	batcher := img.Batchers[constants.DwarfKey]
-	idleAnim := batcher.GetAnimation("idle")
 	climbAnim := batcher.GetAnimation("climb")
 	d.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddSubSwitch(reanimator.NewSwitch().
@@ -245,10 +244,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				AddAnimation(reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop)). // run
 				AddSubSwitch(reanimator.NewSwitch().
 					AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)). // flat
-					AddAnimation(reanimator.NewAnimFromSprites("idle", []*pixel.Sprite{
-						idleAnim.S[0], idleAnim.S[0],
-						idleAnim.S[1], idleAnim.S[1],
-					}, reanimator.Loop)). // idle
+					AddAnimation(reanimator.NewAnimFromSprites("idle", batcher.GetAnimation("idle").S, reanimator.Loop)). // idle
 					SetChooseFn(func() int {
 						if d.distFell > 100. {
 							return 0

@@ -3,6 +3,7 @@ package player
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -112,7 +113,7 @@ func UpdateHUD() {
 	} else {
 		itemCountItem.SetText("")
 	}
-	if descent.Descent.Type == descent.Minesweeper {
+	if descent.Descent.Type == cave.Minesweeper {
 		num := descent.CaveBombsLeft - (descent.CaveWrongMarks + descent.CaveBombsMarked)
 		if num == 0 {
 			if descent.CaveWrongMarks > 0 {
@@ -185,7 +186,7 @@ func DrawHUD(win *pixelgl.Window) {
 	itemCountItem.Transform.UIZoom = camera.Cam.GetZoomScale()
 	itemCountItem.Update(pixel.Rect{})
 	itemCountItem.Draw(win)
-	if descent.Descent.Type == descent.Minesweeper {
+	if descent.Descent.Type == cave.Minesweeper {
 		bombCountTransform.UIPos = camera.Cam.APos
 		bombCountTransform.UIZoom = camera.Cam.GetZoomScale()
 		bombCountTransform.Update()
