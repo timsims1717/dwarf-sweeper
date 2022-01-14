@@ -7,15 +7,13 @@ import (
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 )
 
 // requires at least 3 chunks wide
-func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right, bottom int) *cave.Cave {
+func NewRoomyCave(biome string, level, left, right, bottom int) *cave.Cave {
 	random.RandCaveSeed()
-	batcher := img.NewBatcher(spriteSheet, false)
 	layers := makeLayers(left, right, bottom, 5, 7, 3)
 	start := random.CaveGen.Intn(3) // 0 = left, 1 = mid, 2 = right
 	end := random.CaveGen.Intn(2)
@@ -26,7 +24,7 @@ func NewRoomyCave(spriteSheet *img.SpriteSheet, biome string, level, left, right
 	}
 	startT := layers[0][start]
 	exitT := layers[2][end]
-	newCave := cave.NewCave(batcher, biome, cave.Normal)
+	newCave := cave.NewCave(biome, cave.Normal)
 	newCave.SetSize(left, right, bottom)
 	newCave.StartC = startT
 	newCave.ExitC = exitT

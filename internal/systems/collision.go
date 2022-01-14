@@ -81,8 +81,8 @@ func TileCollisionSystem() {
 						if hcr < 2 {
 							hcr = 2
 						}
-						iw := w - CollisionStep* 2.
-						ih := h - CollisionStep* 2.
+						iw := w - CollisionStep * 2.
+						ih := h - CollisionStep * 2.
 
 						// collision rays up and down
 						var dwn, up, gr *cave.Tile
@@ -96,7 +96,7 @@ func TileCollisionSystem() {
 							} else if i == wcr - 1 {
 								x = next.X + iw * 0.5
 							} else {
-								x = next.X + iw / float64(wcr) * float64(i) - iw * 0.5
+								x = next.X - w * 0.5 + stepSize + float64(i) * iw / float64(wcr - 1)
 							}
 							d := descent.Descent.GetCave().GetTile(pixel.V(x, dy))
 							u := descent.Descent.GetCave().GetTile(pixel.V(x, uy))
@@ -179,88 +179,90 @@ func TileCollisionSystem() {
 						}
 						phys.NearGround = gr != nil && gr.Solid()
 
-						// collision rays left and right
-						var left, right *cave.Tile
-						for i := 0; i < hcr; i++ {
-							lx := next.X-w*0.51
-							rx := next.X+w*0.51
-							var y float64
-							if i == 0 {
-								y = next.Y + ih * 0.5
-							} else if i == hcr - 1 {
-								y = next.Y - ih * 0.5
+						if !coll.ThroughWalls {
+							// collision rays left and right
+							var left, right *cave.Tile
+							for i := 0; i < hcr; i++ {
+								lx := next.X - w*0.51
+								rx := next.X + w*0.51
+								var y float64
+								if i == 0 {
+									y = next.Y + ih*0.5
+								} else if i == hcr-1 {
+									y = next.Y - ih*0.5
+								} else {
+									y = next.Y - h*0.5 + stepSize + float64(i)*ih/float64(hcr-1)
+								}
+								l := descent.Descent.GetCave().GetTile(pixel.V(lx, y))
+								r := descent.Descent.GetCave().GetTile(pixel.V(rx, y))
+								if l != nil && l.Solid() {
+									if i == 0 {
+										coll.LU = true
+									} else if i == hcr-1 {
+										coll.LD = true
+									}
+									left = l
+
+									if debug.Debug && coll.Debug {
+										debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
+									}
+								} else if debug.Debug && coll.Debug {
+									debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
+								}
+								if r != nil && r.Solid() {
+									if i == 0 {
+										coll.RU = true
+									} else if i == hcr-1 {
+										coll.RD = true
+									}
+									right = r
+									if debug.Debug && coll.Debug {
+										debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
+									}
+								} else if debug.Debug && coll.Debug {
+									debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
+								}
+							}
+
+							// collision checks left and right
+							rX := loc.Transform.Pos.X + (world.TileSize-w)*0.5
+							lX := loc.Transform.Pos.X - (world.TileSize-w)*0.5
+							if right != nil && right.Solid() {
+								if next.X > rX {
+									next.X = rX
+								}
+								coll.RightBound = true
+								if phys.Velocity.X > 0 {
+									if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+										phys.Velocity.X *= -phys.Bounciness
+										coll.RightBound = false
+									} else {
+										phys.Velocity.X = 0
+									}
+									stopped = true
+								}
 							} else {
-								y = next.Y - ih / float64(hcr) * float64(i) - ih * 0.5
+								coll.RightBound = false
 							}
-							l := descent.Descent.GetCave().GetTile(pixel.V(lx, y))
-							r := descent.Descent.GetCave().GetTile(pixel.V(rx, y))
-							if l != nil && l.Solid() {
-								if i == 0 {
-									coll.LU = true
-								} else if i == hcr - 1 {
-									coll.LD = true
+							if left != nil && left.Solid() {
+								if next.X < lX {
+									next.X = lX
 								}
-								left = l
-
-								if debug.Debug && coll.Debug {
-									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
+								coll.LeftBound = true
+								if phys.Velocity.X < 0 {
+									if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+										phys.Velocity.X *= -phys.Bounciness
+										coll.LeftBound = false
+									} else {
+										phys.Velocity.X = 0
+									}
+									stopped = true
 								}
-							} else if debug.Debug && coll.Debug {
-								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
+							} else {
+								coll.LeftBound = false
 							}
-							if r != nil && r.Solid() {
-								if i == 0 {
-									coll.RU = true
-								} else if i == hcr - 1 {
-									coll.RD = true
-								}
-								right = r
-								if debug.Debug && coll.Debug {
-									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
-								}
-							} else if debug.Debug && coll.Debug {
-								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X+iw*0.5, y), pixel.V(rx, y), 1.0)
-							}
+							phys.CanClimb = coll.LeftBound || coll.RightBound
 						}
-
-						// collision checks left and right
-						rX := loc.Transform.Pos.X + (world.TileSize - w) * 0.5
-						lX := loc.Transform.Pos.X - (world.TileSize - w) * 0.5
-						if right != nil && right.Solid() {
-							if next.X > rX {
-								next.X = rX
-							}
-							coll.RightBound = true
-							if phys.Velocity.X > 0 {
-								if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
-									phys.Velocity.X *= -phys.Bounciness
-									coll.RightBound = false
-								} else {
-									phys.Velocity.X = 0
-								}
-								stopped = true
-							}
-						} else {
-							coll.RightBound = false
-						}
-						if left != nil && left.Solid() {
-							if next.X < lX {
-								next.X = lX
-							}
-							coll.LeftBound = true
-							if phys.Velocity.X < 0 {
-								if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
-									phys.Velocity.X *= -phys.Bounciness
-									coll.LeftBound = false
-								} else {
-									phys.Velocity.X = 0
-								}
-								stopped = true
-							}
-						} else {
-							coll.LeftBound = false
-						}
-						phys.CanClimb = coll.LeftBound || coll.RightBound
 
 						// corner collision check
 						vul := pixel.V(next.X-w*0.51, next.Y+h*0.51)

@@ -8,7 +8,6 @@ import (
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/descent/generate/structures/boss"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
@@ -23,12 +22,7 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 		}
 		build.Biome = biome
 	}
-	sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", build.Biome))
-	if err != nil {
-		panic(err)
-	}
-	batcher := img.NewBatcher(sheet, false)
-	newCave := cave.NewCave(batcher, build.Biome, build.Type)
+	newCave := cave.NewCave(build.Biome, build.Type)
 	switch build.Base {
 	case builder.Roomy:
 		RoomyCave(newCave, level)
@@ -38,6 +32,8 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 		switch build.Key {
 		case "gnomeBoss":
 			boss.GnomeBoss(newCave, level)
+		case "minesweeper":
+			MinesweeperCave(newCave, level)
 		}
 	}
 	for _, s := range build.Structures {
@@ -117,11 +113,13 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 			}
 		}
 	}
-	for _, ch := range newCave.LChunks {
-		structures.FillBasic(ch)
-	}
-	for _, ch := range newCave.RChunks {
-		structures.FillBasic(ch)
+	if newCave.Type != cave.Minesweeper {
+		for _, ch := range newCave.LChunks {
+			structures.FillBasic(ch)
+		}
+		for _, ch := range newCave.RChunks {
+			structures.FillBasic(ch)
+		}
 	}
 	fmt.Println("Total bombs:", descent.CaveTotalBombs)
 	newCave.PrintCaveToTerminal()

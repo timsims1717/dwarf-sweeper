@@ -8,8 +8,37 @@ import (
 	"dwarf-sweeper/pkg/img"
 )
 
+func UpdateTiles(tiles []*cave.Tile) {
+	for _, tile := range tiles {
+		if tile.Solid() && tile.Breakable() {
+			if tile.Bomb {
+				tile.DestroyTrigger = func(t *cave.Tile) {
+					descent.CreateBomb(t.Transform.Pos)
+				}
+				descent.CaveTotalBombs++
+				descent.CaveBombsLeft++
+				tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
+			} else if random.CaveGen.Intn(tile.Chunk.Cave.GemRate) == 0 {
+				collect := descent.Collectibles[descent.GemDiamond]
+				tile.Entity = &descent.CollectibleItem{
+					Collect: collect,
+				}
+				tile.XRay = collect.Sprite
+			}
+		}
+	}
+}
+
+func FillCave(c *cave.Cave) {
+	for _, ch := range c.LChunks {
+		FillBasic(ch)
+	}
+	for _, ch := range c.RChunks {
+		FillBasic(ch)
+	}
+}
+
 func FillBasic(ch *cave.Chunk) {
-	count := 0
 	for _, row := range ch.Rows {
 		for _, tile := range row {
 			if tile.Solid() && tile.Breakable() {
@@ -20,13 +49,13 @@ func FillBasic(ch *cave.Chunk) {
 					descent.CaveTotalBombs++
 					descent.CaveBombsLeft++
 					tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
-				} else if random.CaveGen.Intn(ch.Cave.GemRate) == 0 && tile.Solid() && tile.Breakable() {
+				} else if random.CaveGen.Intn(ch.Cave.GemRate) == 0 {
 					collect := descent.Collectibles[descent.GemDiamond]
 					tile.Entity = &descent.CollectibleItem{
 						Collect: collect,
 					}
 					tile.XRay = collect.Sprite
-				} else if random.CaveGen.Intn(75) == 0 && tile.Solid() && tile.Breakable() {
+				} else if random.CaveGen.Intn(80) == 0 {
 					switch random.CaveGen.Intn(2) {
 					case 0:
 						tile.Entity = &descent.Slug{}
@@ -41,9 +70,6 @@ func FillBasic(ch *cave.Chunk) {
 				} else if random.CaveGen.Intn(50) == 0 && tile.Solid() && tile.Breakable() {
 					tile.Entity = &descent.Bat{}
 				}
-			} else if tile.Bomb {
-				tile.Bomb = false
-				count++
 			}
 		}
 	}

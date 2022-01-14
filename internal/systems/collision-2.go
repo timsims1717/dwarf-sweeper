@@ -6,7 +6,6 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
 	"math"
@@ -66,15 +65,7 @@ func CollisionSystem() {
 										overlapX := -(math.Abs(pX) - (hb.W()+hb1.W())*0.5)
 										overlapY := -(math.Abs(pY) - (hb.H()+hb1.H())*0.5)
 										if (overlapX >= 0. && overlapX < overlapY) || (coll.CanPass || coll1.CanPass) {
-											if coll.CanPass || coll1.CanPass {
-												if pX < 0. {
-													phys.Velocity.X -= collisionPush * timing.DT
-													phys1.Velocity.X += collisionPush * timing.DT
-												} else {
-													phys.Velocity.X += collisionPush * timing.DT
-													phys1.Velocity.X -= collisionPush * timing.DT
-												}
-											} else {
+											if !coll.CanPass && !coll1.CanPass {
 												if pX < 0. {
 													// if tran is left of tran1
 													if phys.LeftBound && !phys1.RightBound {

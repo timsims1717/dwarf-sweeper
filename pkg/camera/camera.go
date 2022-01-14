@@ -288,9 +288,9 @@ func (c *Camera) SetColor(col color.RGBA) {
 	c.Mask = col
 }
 
-func (c *Camera) Shake() {
-	c.shakeX = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, SetSine(10.))
-	c.shakeY = gween.New((rand.Float64() - 0.5) * 8., 0., 0.5, SetSine(10.))
+func (c *Camera) Shake(dur, freq float64) {
+	c.shakeX = gween.New((rand.Float64() - 0.5) * 8., 0., dur, SetSine(freq))
+	c.shakeY = gween.New((rand.Float64() - 0.5) * 8., 0., dur, SetSine(freq))
 }
 
 func (c *Camera) ZoomShake(dur, freq float64) {

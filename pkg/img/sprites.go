@@ -18,6 +18,14 @@ var (
 	batchers []*Batcher
 )
 
+func ClearBatches() {
+	for _, batcher := range batchers {
+		if batcher.AutoClear {
+			batcher.Clear()
+		}
+	}
+}
+
 func DrawBatches(target pixel.Target) {
 	for _, batcher := range batchers {
 		if batcher.AutoDraw {
@@ -27,20 +35,30 @@ func DrawBatches(target pixel.Target) {
 }
 
 type Batcher struct {
+	Index      int
 	Sprites    map[string]*pixel.Sprite
 	Animations map[string]*Animation
 	batch      *pixel.Batch
 	AutoDraw   bool
+	AutoClear  bool
 }
 
-func AddBatcher(key string, sheet *SpriteSheet, auto bool) {
-	Batchers[key] = NewBatcher(sheet, auto)
-	batchers = append(batchers, Batchers[key])
+func AddBatcher(key string, sheet *SpriteSheet, autoDraw, autoClear bool) {
+	if _, ok := Batchers[key]; ok {
+		Batchers[key].SetSpriteSheet(sheet)
+		Batchers[key].AutoDraw = autoDraw
+		Batchers[key].AutoClear = autoClear
+	} else {
+		Batchers[key] = NewBatcher(sheet, autoDraw, autoClear)
+		batchers = append(batchers, Batchers[key])
+	}
 }
 
-func NewBatcher(sheet *SpriteSheet, auto bool) *Batcher {
+func NewBatcher(sheet *SpriteSheet, autoDraw, autoClear bool) *Batcher {
 	b := &Batcher{
-		AutoDraw: auto,
+		Index:     len(batchers),
+		AutoDraw:  autoDraw,
+		AutoClear: autoClear,
 	}
 	b.SetSpriteSheet(sheet)
 	return b

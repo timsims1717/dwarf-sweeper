@@ -19,10 +19,12 @@ func Debug(in *input.Input) {
 			//debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.hovered.Chunk.Coords.X, d.hovered.Chunk.Coords.Y))
 			//debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.hovered.SubCoords.X, d.hovered.SubCoords.Y))
 			debug.AddText(fmt.Sprintf("tile type: '%s'", d.Hovered.Type))
-			debug.AddText(fmt.Sprintf("tile bg sprite: '%s'", d.Hovered.BGSpriteS))
-			debug.AddText(fmt.Sprintf("tile fg sprite: '%s'", d.Hovered.FGSpriteS))
-			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.BGSmartStr))
-			debug.AddText(fmt.Sprintf("tile fg smart str: '%s'", d.Hovered.FGSmartStr))
+			for i, spr := range d.Hovered.Sprites {
+				debug.AddText(fmt.Sprintf("tile sprite %d: '%s'", i, spr.SprKey))
+			}
+			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.SmartStr))
+			debug.AddText(fmt.Sprintf("tile fg smart str: '%s'", d.Hovered.FogSmartStr))
+			debug.AddText(fmt.Sprintf("tile fg sprite: '%s'", d.Hovered.FogSpriteS))
 			//debug.AddText(fmt.Sprintf("tile s, d: %t, %t", d.Hovered.Surrounded, d.Hovered.DSurrounded))
 			for _, result := range myecs.Manager.Query(myecs.HasCollision) {
 				tran, okT := result.Components[myecs.Transform].(*transform.Transform)

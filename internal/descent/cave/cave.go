@@ -20,7 +20,6 @@ type Cave struct {
 	Pivot       pixel.Vec
 	UpdateBatch bool
 	hasUpdated  bool
-	Batcher     *img.Batcher
 	Type        CaveType
 
 	Left   int
@@ -62,7 +61,7 @@ type Cave struct {
 	PathRule PathRule
 }
 
-func NewCave(batcher *img.Batcher, biome string, caveType CaveType) *Cave {
+func NewCave(biome string, caveType CaveType) *Cave {
 	var bgSpr *pixel.Sprite
 	var bgBatch *pixel.Batch
 	bg, err := img.LoadImage(fmt.Sprintf("assets/img/the-%s-bg.png", biome))
@@ -72,11 +71,20 @@ func NewCave(batcher *img.Batcher, biome string, caveType CaveType) *Cave {
 		bgSpr = pixel.NewSprite(bg, bg.Bounds())
 		bgBatch = pixel.NewBatch(&pixel.TrianglesData{}, bg)
 	}
+	bgSheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s-bg.json", biome))
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.CaveBGKey, bgSheet, true, false)
+	sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.CaveKey, sheet, true, false)
 
 	return &Cave{
 		RChunks:     make(map[world.Coords]*Chunk),
 		LChunks:     make(map[world.Coords]*Chunk),
-		Batcher:     batcher,
 		Type:        caveType,
 		UpdateBatch: true,
 		Biome:       biome,
@@ -197,16 +205,17 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		c.BGBatch.Draw(win)
 	}
 	if c.hasUpdated {
-		c.Batcher.Clear()
+		img.Batchers[constants.CaveBGKey].Clear()
+		img.Batchers[constants.CaveKey].Clear()
+		img.Batchers[constants.FogKey].Clear()
 		for _, chunk := range c.RChunks {
-			chunk.Draw(c.Batcher.Batch())
+			chunk.Draw()
 		}
 		for _, chunk := range c.LChunks {
-			chunk.Draw(c.Batcher.Batch())
+			chunk.Draw()
 		}
 		c.hasUpdated = false
 	}
-	c.Batcher.Draw(win)
 }
 
 func (c *Cave) Dimensions() (int, int) {

@@ -32,13 +32,9 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 			} else {
 				if pillarX % 6 == currX % 6 {
 					ToEmpty(mainTile, false, true, false)
-					mainTile.BGSpriteS = "pillar"
-					mainTile.BGSprite = c.Batcher.Sprites["pillar"]
-					mainTile.BGMatrix = pixel.IM
+					mainTile.AddSprite("pillar", pixel.IM, true)
 					ToEmpty(above1, false, true, false)
-					above1.BGSpriteS = "pillar_top"
-					above1.BGSprite = c.Batcher.Sprites["pillar_top"]
-					above1.BGMatrix = pixel.IM
+					above1.AddSprite("pillar_top", pixel.IM, true)
 				} else {
 					ToEmpty(mainTile, false, false, false)
 					ToEmpty(above1, false, false, false)

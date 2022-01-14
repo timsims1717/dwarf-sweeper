@@ -40,12 +40,12 @@ func (f *Flag) Create(_ pixel.Vec) {
 	} else {
 		CaveWrongMarks++
 	}
-	f.Reanimator = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.EntityKey].Animations["flag_hang"].S, reanimator.Loop))
+	f.Reanimator = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.ParticleKey].Animations["flag_hang"].S, reanimator.Loop))
 	f.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, f).
 		AddComponent(myecs.Transform, f.Transform).
 		AddComponent(myecs.Animation, f.Reanimator).
-		AddComponent(myecs.Batch, constants.EntityKey)
+		AddComponent(myecs.Batch, constants.ParticleKey)
 }
 
 func (f *Flag) Delete() {

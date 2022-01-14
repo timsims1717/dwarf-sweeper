@@ -8,7 +8,7 @@ const (
 	Title   = "DwarfSweeper"
 	Release = 0
 	Version = 1
-	Build   = 20211111
+	Build   = 20220114
 	BaseW   = 320.
 	BaseH   = 240.
 
@@ -17,12 +17,15 @@ const (
 	DrawDistance = 24.0 * TileSize
 
 	// Batcher Keys
+	FogKey        = "fog"
 	DwarfKey      = "dwarf"
 	EntityKey     = "entities"
 	BigEntityKey  = "big_entities"
 	TileEntityKey = "tile_entities"
 	MenuSprites   = "menu_sprites"
 	ParticleKey   = "particle_sprites"
+	CaveBGKey     = "cave_bg"
+	CaveKey       = "cave"
 	TileLayerKey  = "tile_layer"
 
 	// Music Keys

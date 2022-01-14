@@ -1,0 +1,23 @@
+{
+ "img": "fog.png",
+ "height": 16,
+ "width": 16,
+ "singleRow": true,
+ "sprites": [
+  {
+   "key": "straight_fade"
+  },
+  {
+   "key": "outer_fade"
+  },
+  {
+   "key": "inner_fade"
+  },
+  {
+   "key": "cross_fade"
+  },
+  {
+   "key": "empty"
+  }
+ ]
+}

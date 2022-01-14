@@ -328,6 +328,70 @@
    "y": 0,
    "h": 32,
    "w": 32
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 0,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 16,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 32,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 48,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 64,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 80,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 96,
+   "y": 70,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "flag_hang",
+   "anim": true,
+   "x": 112,
+   "y": 70,
+   "h": 16,
+   "w": 16
   }
  ]
 }

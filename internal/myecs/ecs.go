@@ -15,6 +15,7 @@ var (
 
 	Temp    = Manager.NewComponent()
 	Func    = Manager.NewComponent()
+	Update  = Manager.NewComponent()
 	Trigger = Manager.NewComponent()
 
 	Animation = Manager.NewComponent()
@@ -36,8 +37,9 @@ var (
 	Damage  = Manager.NewComponent()
 	AreaDmg = Manager.NewComponent()
 
-	IsTemp  = ecs.BuildTag(Temp, Transform)
-	HasFunc = ecs.BuildTag(Func)
+	IsTemp    = ecs.BuildTag(Temp, Transform)
+	HasFunc   = ecs.BuildTag(Func)
+	HasUpdate = ecs.BuildTag(Update)
 
 	HasAnimation   = ecs.BuildTag(Animation, Transform)
 	HasAnimDrawing = ecs.BuildTag(Animation, Transform, Batch)
@@ -60,7 +62,7 @@ var (
 	HasDamage     = ecs.BuildTag(Health, Physics, Transform, Damage)
 )
 
-func Update() {
+func UpdateManager() {
 	Count = 0
 	for _, result := range Manager.Query(IsEntity) {
 		if _, ok := result.Components[Entity].(AnEntity); ok {

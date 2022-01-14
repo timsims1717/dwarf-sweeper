@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 type BombItem struct {
@@ -35,7 +36,7 @@ func (b *BombItem) Update() {
 }
 
 func (b *BombItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomVelocity(pos, 8.0, random.Effects)
+	b.Physics, b.Transform = util.RandomPosAndVel(pos, 0., 0., math.Pi * 0.5, math.Pi * 0.25, 5., 2., random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = img.Batchers[constants.EntityKey].Sprites["bomb_item"]

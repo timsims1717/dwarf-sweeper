@@ -393,8 +393,9 @@ func (p *Popper) Update() {
 		if p.action != Dead {
 			p.action = Dead
 			p.Entity.AddComponent(myecs.Temp, timing.New(4.))
-			p.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() {
+			p.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 				myecs.AddEffect(p.Entity, data.NewBlink(2.))
+				return true
 			}, 2.))
 		}
 		p.Physics.GravityOff = false
@@ -445,16 +446,25 @@ func (p *Popper) Create(pos pixel.Vec) {
 					a.Step = 4-pFrame
 				} else {
 					exit := p.poppedPos
+					var varX, varY, angle float64
 					if p.poppedPos.X > p.rootPos.X {
 						exit.X -= world.TileSize * 0.4
+						varY = 2.
+						angle = 0.
 					} else if p.poppedPos.X < p.rootPos.X {
 						exit.X += world.TileSize * 0.4
+						varY = 2.
+						angle = math.Pi
 					} else if p.poppedPos.Y > p.rootPos.Y {
 						exit.Y -= world.TileSize * 0.4
+						varX = 2.
+						angle = math.Pi * 0.5
 					} else {
 						exit.Y += world.TileSize * 0.4
+						varX = 2.
+						angle = math.Pi * -0.5
 					}
-					particles.BiomeParticles(exit, Descent.Cave.Biome, 4, 6, 2., 0.75, 0.1, true)
+					particles.BiomeParticles(exit, Descent.Cave.Biome, 4, 6, varX, varY, angle, 0.5, 100., 15.,  0.75, 0.1, true)
 				}
 			}).
 			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
@@ -598,7 +608,7 @@ func (p *Popper) CreateProjectile(norm pixel.Vec) {
 			coll.Damage.Source = trans.Pos
 			if coll.Collided {
 				myecs.Manager.DisposeEntity(e)
-				particles.CreateRandomParticles(4, 6, []string{"dirt_shot_0", "dirt_shot_1", "dirt_shot_2", "dirt_shot_3", "dirt_shot_4"}, trans.Pos, 5., 1., 0.1, true)
+				particles.CreateRandomParticles(4, 6, []string{"dirt_shot_0", "dirt_shot_1", "dirt_shot_2", "dirt_shot_3", "dirt_shot_4"}, trans.Pos, 0., 0., phys.Velocity.Rotated(math.Pi).Angle(), math.Pi * 0.25, math.Min(util.Magnitude(phys.Velocity), 120.), 10.0, 2., 0.5, true)
 			}
 			return false
 		})).

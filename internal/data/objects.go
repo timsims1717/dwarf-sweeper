@@ -6,11 +6,12 @@ import (
 )
 
 type Collider struct{
-	Hitbox     pixel.Rect
-	GroundOnly bool
-	CanPass    bool
-	Collided   bool
-	Damage     *Damage
+	Hitbox       pixel.Rect
+	GroundOnly   bool
+	ThroughWalls bool
+	CanPass      bool
+	Collided     bool
+	Damage       *Damage
 
 	BottomBound bool
 	TopBound    bool
@@ -58,10 +59,10 @@ type Interact struct {
 
 type TimerFunc struct {
 	Timer *timing.FrameTimer
-	Func  func()
+	Func  func() bool
 }
 
-func NewTimerFunc(fn func(), dur float64) *TimerFunc {
+func NewTimerFunc(fn func() bool, dur float64) *TimerFunc {
 	return &TimerFunc{
 		Timer: timing.New(dur),
 		Func:  fn,

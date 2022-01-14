@@ -20,11 +20,11 @@ Gameplay and Graphics
 Tim Sims
 
 Sound
+Alexander Kopeikin
 PMSFX
 
 Music
 Ben Reber
-Blu Boa
 
 Pixel Art
 Kenney

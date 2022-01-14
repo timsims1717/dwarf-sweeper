@@ -11,19 +11,20 @@ import (
 	"dwarf-sweeper/pkg/transform"
 	"fmt"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 func BlockParticles(pos pixel.Vec, biome string) {
 	c := random.Effects.Intn(3) + 3
 	for i := 0; i < c; i++ {
-		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), pos, 5., 0.75, 0.1, true)
+		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), pos, 5., 5., math.Pi * 0.5, 1.5, 120., 5.0, 0.75, 0.2, true)
 	}
 }
 
-func BiomeParticles(pos pixel.Vec, biome string, min, max int, variance, dur, durVar float64, collide bool) {
+func BiomeParticles(orig pixel.Vec, biome string, min, max int, varX, varY, angle, angleVar, force, forceVar, dur, durVar float64, collide bool) {
 	c := random.Effects.Intn(max - min + 1) + min
 	for i := 0; i < c; i++ {
-		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), pos, variance, dur, durVar, collide)
+		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), orig, varX, varY, angle, angleVar, force, forceVar, dur, durVar, collide)
 	}
 }
 
@@ -31,7 +32,7 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 	c := random.Effects.Intn(max - min + 1) + min
 	for i := 0; i < c; i++ {
 		tran := transform.NewTransform()
-		tran.Pos = util.RandomPosition(orig, variance, random.Effects)
+		tran.Pos = util.RandomPosition(orig, variance, variance, random.Effects)
 		if random.Effects.Intn(2) == 0 {
 			tran.Flip = true
 		}
@@ -48,16 +49,16 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 	}
 }
 
-func CreateRandomParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64, collide bool) {
+func CreateRandomParticles(min, max int, keys []string, orig pixel.Vec, varX, varY, angle, angleVar, force, forceVar, dur, durVar float64, collide bool) {
 	c := random.Effects.Intn(max - min + 1) + min
 	for i := 0; i < c; i++ {
 		key := keys[random.Effects.Intn(len(keys))]
-		CreateParticle(key, orig, variance, dur, durVar, collide)
+		CreateParticle(key, orig, varX, varY, angle, angleVar, force, forceVar, dur, durVar, collide)
 	}
 }
 
-func CreateParticle(key string, orig pixel.Vec, variance, dur, durVar float64, collide bool) {
-	phys, tran := util.RandomVelocity(orig, variance, random.Effects)
+func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, force, forceVar, dur, durVar float64, collide bool) {
+	phys, tran := util.RandomPosAndVel(orig, varX, varY, angle, angleVar, force, forceVar, random.Effects)
 	if random.Effects.Intn(2) == 0 {
 		tran.Flip = true
 	}

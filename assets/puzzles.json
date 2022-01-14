@@ -1,0 +1,24 @@
+[
+  {
+    "key": "minesweeper",
+    "title": "Mine Minesweeper",
+    "biome": "mine",
+    "desc": "",
+    "tracks": [
+      "prairie"
+    ],
+    "type": "Minesweeper",
+    "base": "Custom"
+  },
+  {
+    "key": "minesweeper",
+    "title": "Dark Minesweeper",
+    "biome": "dark",
+    "desc": "",
+    "tracks": [
+      "turbo"
+    ],
+    "type": "Minesweeper",
+    "base": "Custom"
+  }
+]

@@ -11,6 +11,7 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/world"
 	"fmt"
 )
 
@@ -25,6 +26,7 @@ func InitDebugMenu() {
 	testMineSolver := DebugMenu.AddItem("test-solver", "Test Mine Solver")
 	giveBombs := DebugMenu.AddItem("give-bombs", "Give Bombs")
 	fogToggle := DebugMenu.AddItem("fog-toggle", "Toggle Fog")
+	tpExit := DebugMenu.AddItem("tp-exit", "Teleport to Exit")
 
 	debugTitle.NoHover = true
 	back.SetClickFn(func() {
@@ -38,7 +40,6 @@ func InitDebugMenu() {
 		} else {
 			fmt.Println("DEBUG FREE CAM OFF")
 			camera.Cam.SetZoom(4. / 3.)
-
 		}
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -103,5 +104,15 @@ func InitDebugMenu() {
 		}
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	tpExit.SetClickFn(func() {
+		if descent.Descent.Cave != nil && descent.Descent.Cave.ExitC != world.Origin {
+			exitT := descent.Descent.Cave.GetTileInt(descent.Descent.Cave.ExitC.X, descent.Descent.Cave.ExitC.Y)
+			if exitT != nil && exitT.Exit {
+				descent.Descent.Player.Transform.Pos = exitT.Transform.Pos
+				DebugMenu.Close()
+				sfx.SoundPlayer.PlaySound("click", 2.0)
+			}
+		}
 	})
 }

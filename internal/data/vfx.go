@@ -45,3 +45,11 @@ func NewFadeOut(col color.RGBA, dur float64) *FadeOut {
 		InterA: gween.New(float64(col.A), 0, dur, ease.Linear),
 	}
 }
+
+func NewFadeBlack(col color.RGBA, dur float64) *FadeOut {
+	return &FadeOut{
+		InterR: gween.New(float64(col.R), 0, dur, ease.Linear),
+		InterG: gween.New(float64(col.G), 0, dur, ease.Linear),
+		InterB: gween.New(float64(col.B), 0, dur, ease.Linear),
+	}
+}

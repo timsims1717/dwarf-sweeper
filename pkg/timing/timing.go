@@ -80,6 +80,10 @@ func (f *FrameTimer) Elapsed() float64 {
 	return f.elapsed
 }
 
+func (f *FrameTimer) Sec() float64 {
+	return f.sec
+}
+
 func (f *FrameTimer) Perc() float64 {
 	if f == nil {
 		return 1.
@@ -88,4 +92,9 @@ func (f *FrameTimer) Perc() float64 {
 		return 1.
 	}
 	return math.Min(f.elapsed / f.sec, 1.)
+}
+
+func (f *FrameTimer) Reset() {
+	f.start = time.Now()
+	f.elapsed = 0.
 }

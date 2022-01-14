@@ -8,7 +8,6 @@ import (
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
 )
 
@@ -58,7 +57,7 @@ func outline(chal Challenge) []structures.Path {
 	}
 }
 
-func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *cave.Cave {
+func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	random.RandCaveSeed()
 	begun = false
 	chal := challenge(level)
@@ -70,32 +69,30 @@ func NewMinesweeperCave(spriteSheet *img.SpriteSheet, biome string, level int) *
 	for h <= (chal.Height + 12) / constants.ChunkSize {
 		h++
 	}
-	batcher := img.NewBatcher(spriteSheet, false)
-	newCave := cave.NewCave(batcher, biome, cave.Minesweeper)
-	newCave.SetSize(0, w, h-1)
-	newCave.StartC = world.Coords{X: 12, Y: h * constants.ChunkSize - 8}
-	exitC := newCave.StartC
+	c.SetSize(0, w, h-1)
+	c.StartC = world.Coords{X: 12, Y: h * constants.ChunkSize - 8}
+	exitC := c.StartC
 	exitC.X += chal.Width + 13
-	newCave.ExitC = exitC
-	pathS := newCave.StartC
+	c.ExitC = exitC
+	pathS := c.StartC
 	pathS.X -= 2
 	pathS.Y += 1
 	descent.CaveTotalBombs = chal.Mines
 	descent.CaveBombsLeft = chal.Mines
-	structures.CreateChunks(newCave)
-	structures.Outline(newCave, pathS, outline(chal))
-	structures.Entrance(newCave, newCave.StartC, 5, 3, 0, false)
-	structures.Entrance(newCave, exitC, 5, 3, 0, true)
-	for x := newCave.StartC.X+1; x < newCave.ExitC.X; x++ {
-		tile := newCave.GetTileInt(x, newCave.StartC.Y)
+	structures.CreateChunks(c)
+	structures.Outline(c, pathS, outline(chal))
+	structures.Entrance(c, c.StartC, 5, 3, 0, false)
+	structures.Entrance(c, exitC, 5, 3, 0, true)
+	for x := c.StartC.X+1; x < c.ExitC.X; x++ {
+		tile := c.GetTileInt(x, c.StartC.Y)
 		structures.ToBlock(tile, cave.BlockCollapse, false, true)
 		tile.Bomb = false
 	}
-	newCave.MarkAsNotChanged()
-	MineBlock(newCave, chal)
-	newCave.PrintCaveToTerminal()
-	newCave.UpdateAllTileSprites()
-	return newCave
+	c.MarkAsNotChanged()
+	MineBlock(c, chal)
+	c.PrintCaveToTerminal()
+	c.UpdateAllTileSprites()
+	return c
 }
 
 func MineBlock(c *cave.Cave, chal Challenge) {

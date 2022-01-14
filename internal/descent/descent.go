@@ -5,25 +5,53 @@ import (
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
 )
 
-var Descent = &descent{}
+var (
+	Difficulty = 1
+	Depth = 6
+)
+
+var Descent = &descent{
+	Difficulty: 1,
+	CoordsMap:  make(map[string]world.Coords),
+	ExitPop:    menus.NewPopUp("", nil),
+}
 
 type descent struct {
-	Cave    *cave.Cave
-	Level   int
-	Player  *Dwarf
-	Start   bool
-	Type    cave.CaveType
-	ExitPop *menus.PopUp
-	canExit bool
-	FreeCam bool
-	Builder *builder.CaveBuilder
+	Cave       *cave.Cave
+	Level      int
+	Depth      int
+	Difficulty int
+	Player     *Dwarf
+	Start      bool
+	Type       cave.CaveType
+	ExitPop    *menus.PopUp
+	canExit    bool
+	Builder    *builder.CaveBuilder
+
+	FreeCam      bool
+	DisableInput bool
+	CoordsMap    map[string]world.Coords
+
+	Builders [][]*builder.CaveBuilder
+}
+
+func New() {
+	Descent = &descent{
+		Difficulty: Difficulty,
+		Depth:      Depth,
+		Start:      true,
+		CoordsMap:  make(map[string]world.Coords),
+		ExitPop:    menus.NewPopUp("", nil),
+	}
 }
 
 func Update() {
@@ -58,14 +86,22 @@ func Update() {
 		case cave.Minesweeper:
 			Descent.canExit = CaveBombsMarked == CaveBombsLeft && CaveWrongMarks < 1
 			Descent.ExitPop.Raw = "Flag all the remaining bombs to exit."
-		case cave.Infinite:
-			Descent.canExit = false
 		default:
 			Descent.canExit = true
 		}
 		if Descent.canExit {
 			Descent.ExitPop.Raw = fmt.Sprintf("%s to Exit", typeface.SymbolItem)
 			Descent.ExitPop.Symbols = []string{data.GameInput.FirstKey("up")}
+		}
+	}
+}
+
+func UpdatePlayer(in *input.Input) {
+	if Descent.Player != nil {
+		if Descent.DisableInput {
+			Descent.Player.Update(nil)
+		} else {
+			Descent.Player.Update(in)
 		}
 	}
 }
@@ -80,8 +116,18 @@ func (d *descent) GetCave() *cave.Cave {
 
 func (d *descent) SetCave(cave *cave.Cave) {
 	d.Cave = cave
+	d.Type = cave.Type
 	d.Cave.UpdateAllTileSprites()
 	d.Cave.UpdateBatch = true
+	d.SetExitPopup()
+}
+
+func (d *descent) SetExitPopup() {
+	d.ExitPop = menus.NewPopUp("", nil)
+	myecs.Manager.NewEntity().
+		AddComponent(myecs.PopUp, d.ExitPop).
+		AddComponent(myecs.Transform, d.GetCave().GetExit().Transform).
+		AddComponent(myecs.Temp, myecs.ClearFlag(false))
 }
 
 func (d *descent) GetPlayer() *Dwarf {

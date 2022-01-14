@@ -1,36 +1,138 @@
 {
  "img": "big-entities.png",
  "height": 32,
- "width": 32,
+ "width": 64,
  "sprites": [
   {
    "key": "gnome_idle",
+   "anim": true,
    "x": 0,
    "y": 0
   },
   {
    "key": "gnome_idle",
-   "x": 32,
-   "y": 0
-  },
-  {
-   "key": "gnome_idle",
+   "anim": true,
    "x": 64,
    "y": 0
   },
   {
-   "key": "gnome_roar",
-   "x": 96,
-   "y": 0
-  },
-  {
-   "key": "gnome_roar",
+   "key": "gnome_idle",
+   "anim": true,
    "x": 128,
    "y": 0
   },
   {
+   "key": "gnome_idle",
+   "anim": true,
+   "x": 192,
+   "y": 0
+  },
+  {
    "key": "gnome_roar",
-   "x": 160,
+   "anim": true,
+   "x": 256,
+   "y": 0
+  },
+  {
+   "key": "gnome_roar",
+   "anim": true,
+   "x": 320,
+   "y": 0
+  },
+  {
+   "key": "gnome_roar",
+   "anim": true,
+   "x": 384,
+   "y": 0
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 448,
+   "y": 0
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 512,
+   "y": 0
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 576,
+   "y": 0
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 640,
+   "y": 0
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 704,
+   "y": 0
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 768,
+   "y": 0
+  },
+  {
+   "key": "gnome_run",
+   "anim": true,
+   "x": 832,
+   "y": 0
+  },
+  {
+   "key": "gnome_run",
+   "anim": true,
+   "x": 896,
+   "y": 0
+  },
+  {
+   "key": "gnome_run",
+   "anim": true,
+   "x": 960,
+   "y": 0
+  },
+  {
+   "key": "gnome_run",
+   "anim": true,
+   "x": 1024,
+   "y": 0
+  },
+  {
+   "key": "gnome_hurt",
+   "anim": true,
+   "x": 1088,
+   "y": 0
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 1152,
+   "y": 0
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 1216,
+   "y": 0
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 1280,
+   "y": 0
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 1344,
    "y": 0
   }
  ]

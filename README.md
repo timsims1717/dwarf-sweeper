@@ -1,20 +1,54 @@
 # DwarfSweeper
 
-Descend as deep as you can in the bomb-filled depths of the mountain!
+Descend as deep as you can in the bomb-filled depths of the mountain! DwarfSweeper was created initially for the Ludum Dare 48 game jam with the theme **Deeper and Deeper**. I plan on continuing development for now.
 
-![DwarfSweeper](screen2.png)
+![Mainmenu](splash%20screen.png)
+![Gameplay](screen1.png)
 
-A/D to move left and right, W/S to climb, Space to Jump, Left Shift to use equipped item. Use the mouse to select blocks to dig (left click) or mark (right click). Use the mouse wheel to select between items. Controllers are supported.
+### Controls
 
-Made by Tim Sims for Ludum Dare 48
-(DEEPER AND DEEPER)
-using Pixel, a 2d Engine written in Go.
+A/D to move left and right
 
-Sound from the PMSFX Sampler March 2021
+W/S to climb
 
-Thanks for playing!
+Space to Jump
 
-#### DwarfSweeper Links:
+Use the mouse to select blocks to dig (left click) or mark (right click)
+
+Q to pick up items and interact
+
+E to use equipped item
+
+Use the mouse wheel to select between items
+
+Controllers are supported
+
+Controls can be remapped!
+
+### Credits
+
+Gameplay and Graphics
+Tim Sims
+
+Sound
+Alexander Kopeikin
+PMSFX
+
+Music
+Ben Reber
+
+Pixel Art
+Kenney
+
+Special Thanks:
+My wife Kaylan,
+Marshall and Clark,
+faiface and the Pixel team,
+the Ludum Dare LD48 team.
+
+Thank you for playing!
+
+### DwarfSweeper Links
 
 ![DwarfSweeper on Github](https://github.com/timsims1717/dwarf-sweeper)
 
@@ -22,6 +56,12 @@ Thanks for playing!
 
 ![DwarfSweeper Ludum Dare Entry](https://ldjam.com/events/ludum-dare/48/dwarfsweeper)
 
-#### Resources/Credits
+### Resources/Credits
 
-![Pixel on Github](https://github.com/faiface/pixel)
+![Pixel by Faiface](https://github.com/faiface/pixel) (Graphics Library)
+
+![Beep by Faiface](https://github.com/faiface/beep) (Audio Library)
+
+![Music by Ben Reber](https://soundcloud.com/user-411047148)
+
+![Input Prompts by Kenney](https://kenney-assets.itch.io/input-prompts-pixel-16)

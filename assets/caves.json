@@ -120,13 +120,5 @@
         "minMult": 0.05
       }
     ]
-  },
-  {
-    "key": "gnomeBoss",
-    "biome": "mine",
-    "title": "Gnome Boss",
-    "desc": "",
-    "type": "Infinite",
-    "base": "Custom"
   }
 ]

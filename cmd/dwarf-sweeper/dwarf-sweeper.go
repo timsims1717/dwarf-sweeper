@@ -62,36 +62,51 @@ func run() {
 		panic(err)
 	}
 	state.Title = pixel.NewSprite(title, title.Bounds())
+	bgSheet, err := img.LoadSpriteSheet("assets/img/the-dark-bg.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.CaveBGKey, bgSheet, true, false)
 	tileEntitySheet, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true)
+	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true, true)
 	bigEntitySheet, err := img.LoadSpriteSheet("assets/img/big-entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.BigEntityKey, bigEntitySheet, true)
+	img.AddBatcher(constants.BigEntityKey, bigEntitySheet, true, true)
 	entitySheet, err := img.LoadSpriteSheet("assets/img/entities.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.EntityKey, entitySheet, true)
+	img.AddBatcher(constants.EntityKey, entitySheet, true, true)
 	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.DwarfKey, dwarfSheet, true)
+	img.AddBatcher(constants.DwarfKey, dwarfSheet, true, true)
+	caveSheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.CaveKey, caveSheet, true, false)
 	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.ParticleKey, partSheet, true)
+	img.AddBatcher(constants.ParticleKey, partSheet, true, true)
+	fogSheet, err := img.LoadSpriteSheet("assets/img/fog.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.FogKey, fogSheet, true, false)
 	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
 	if err != nil {
 		panic(err)
 	}
-	img.AddBatcher(constants.MenuSprites, menuSheet, false)
+	img.AddBatcher(constants.MenuSprites, menuSheet, false, true)
 
 	menus.Initialize()
 	state.InitializeMenus(win)
@@ -99,15 +114,19 @@ func run() {
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/blast1.wav", "blast1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
+	sfx.SoundPlayer.RegisterSound("assets/sound/emerge.wav", "emerge")
+	sfx.SoundPlayer.RegisterSound("assets/sound/gnomestep.wav", "gnomestep")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact1.wav", "impact1")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact2.wav", "impact2")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact3.wav", "impact3")
 	//sfx.SoundPlayer.RegisterSound("assets/sound/impact4.wav", "impact4")
+	sfx.SoundPlayer.RegisterSound("assets/sound/roar.wav", "roar")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks1.wav", "rocks1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks2.wav", "rocks2")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks3.wav", "rocks3")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks4.wav", "rocks4")
 	sfx.SoundPlayer.RegisterSound("assets/sound/rocks5.wav", "rocks5")
+	sfx.SoundPlayer.RegisterSound("assets/sound/rockslide.wav", "rockslide")
 	sfx.SoundPlayer.RegisterSound("assets/sound/shovel.wav", "shovel")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step1.wav", "step1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/step2.wav", "step2")

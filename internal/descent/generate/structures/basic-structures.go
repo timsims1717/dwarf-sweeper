@@ -58,14 +58,7 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 						}
 						tile.Type = cave.TileType(ty)
 						tile.NeverChange = true
-						tile.BGSpriteS = s
-						if s != "" {
-							tile.BGSpriteS = s
-							tile.BGSprite = c.Batcher.Sprites[s]
-							tile.BGMatrix = pixel.IM
-						} else {
-							tile.BGSprite = nil
-						}
+						tile.AddSprite(s, pixel.IM, true)
 					}
 					tile.Bomb = false
 					tile.IsChanged = true
@@ -88,6 +81,47 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 						tile.Entity = nil
 					}
 				}
+			}
+		}
+	}
+}
+
+func Door(c *cave.Cave, door world.Coords, exit bool) {
+	for y := door.Y-1; y <= door.Y+1; y++ {
+		for x := door.X-1; x <= door.X+1; x++ {
+			tile := c.GetTileInt(x, y)
+			if tile != nil {
+				ty := cave.Wall
+				s := ""
+				if x == door.X && y == door.Y {
+					ty = cave.Deco
+					s = "door"
+					if exit {
+						tile.Exit = true
+					}
+				} else if x == door.X - 1 && y == door.Y {
+					ty = cave.Deco
+					s = "door_l"
+				} else if x == door.X + 1 && y == door.Y {
+					ty = cave.Deco
+					s = "door_r"
+				} else if x == door.X && y == door.Y - 1 {
+					ty = cave.Deco
+					s = "door_t"
+				} else if x == door.X - 1 && y == door.Y - 1 {
+					ty = cave.Deco
+					s = "door_tl"
+				} else if x == door.X + 1 && y == door.Y - 1 {
+					ty = cave.Deco
+					s = "door_tr"
+				}
+				tile.Type = cave.TileType(ty)
+				tile.NeverChange = true
+				tile.ClearSprites()
+				tile.AddSprite(s, pixel.IM, true)
+				tile.Bomb = false
+				tile.IsChanged = true
+				tile.Entity = nil
 			}
 		}
 	}
@@ -144,7 +178,7 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 						marked = append(marked, tile.RCoords)
 					} else {
 						toMark--
-						if !tile.Bomb && !popperMade && random.CaveGen.Intn(20) == 0 {
+						if !tile.Bomb && !popperMade && random.CaveGen.Intn(125) == 0 {
 							p := descent.Popper{}
 							p.Create(tile.Transform.Pos)
 							popperMade = true

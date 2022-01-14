@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 const (
@@ -129,7 +130,7 @@ func (b *CollectibleItem) Update() {
 }
 
 func (b *CollectibleItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomVelocity(pos, 8., random.Effects)
+	b.Physics, b.Transform = util.RandomPosAndVel(pos, 0., 0., math.Pi * 0.5, math.Pi * 0.25, 5., 2., random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = b.Collect.Sprite
@@ -147,8 +148,9 @@ func (b *CollectibleItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Health, b.health).
 		AddComponent(myecs.Sprite, b.sprite).
 		AddComponent(myecs.Batch, constants.EntityKey)
-	b.entity.AddComponent(myecs.Func, data.NewTimerFunc(func() {
+	b.entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 		myecs.AddEffect(b.entity, data.NewBlink(2.))
+		return true
 	}, 8.))
 	if !b.Collect.AutoCollect {
 		popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)

@@ -5,7 +5,6 @@ import (
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
-	"github.com/faiface/pixel"
 )
 
 type Chunk struct {
@@ -81,11 +80,11 @@ func (ch *Chunk) Update() {
 	}
 }
 
-func (ch *Chunk) Draw(target pixel.Target) {
+func (ch *Chunk) Draw() {
 	if ch.Display {
 		for _, row := range ch.Rows {
 			for _, tile := range row {
-				tile.Draw(target)
+				tile.Draw()
 			}
 		}
 	}

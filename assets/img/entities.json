@@ -342,54 +342,6 @@
    "w": 12
   },
   {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 0,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 16,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 32,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 48,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 64,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 80,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 96,
-   "y": 32
-  },
-  {
-   "key": "flag_hang",
-   "anim": true,
-   "x": 112,
-   "y": 32
-  },
-  {
    "key": "mm_idle",
    "anim": true,
    "x": 0,

@@ -35,13 +35,30 @@ func FunctionSystem() {
 		fnA := result.Components[myecs.Func]
 		if fnT, ok := fnA.(*data.TimerFunc); ok {
 			if fnT.Timer.UpdateDone() {
-				fnT.Func()
-				result.Entity.RemoveComponent(myecs.Func)
+				if fnT.Func() {
+					result.Entity.RemoveComponent(myecs.Func)
+				} else {
+					fnT.Timer.Reset()
+				}
 			}
 		} else if fnF, ok := fnA.(*data.FrameFunc); ok {
 			if fnF.Func() {
 				result.Entity.RemoveComponent(myecs.Func)
 			}
+		}
+	}
+}
+
+func UpdateSystem() {
+	for _, result := range myecs.Manager.Query(myecs.HasUpdate) {
+		fnA := result.Components[myecs.Update]
+		if fnT, ok := fnA.(*data.TimerFunc); ok {
+			if fnT.Timer.UpdateDone() {
+				fnT.Func()
+				fnT.Timer.Reset()
+			}
+		} else if fnF, ok := fnA.(*data.FrameFunc); ok {
+			fnF.Func()
 		}
 	}
 }

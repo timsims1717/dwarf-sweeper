@@ -90,9 +90,7 @@ type Dwarf struct {
 		f pixel.Vec
 	}
 
-	walkTimer *timing.FrameTimer
-	walking   bool
-
+	walking    bool
 	jumping    bool
 	jumpOrigY  float64
 	jumpTarget float64
@@ -241,7 +239,10 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			})). // flagging
 		AddSubSwitch(reanimator.NewSwitch().
 			AddSubSwitch(reanimator.NewSwitch().
-				AddAnimation(reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop)). // run
+				AddAnimation(reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop).
+					SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
+					})). // run
 				AddSubSwitch(reanimator.NewSwitch().
 					AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)). // flat
 					AddAnimation(reanimator.NewAnimFromSprites("idle", batcher.GetAnimation("idle").S, reanimator.Loop)). // idle
@@ -356,7 +357,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.Health.Dazed = false
 		}
 	}
-	if !d.Health.Dazed && !d.Health.Dead {
+	if !d.Health.Dazed && !d.Health.Dead && in != nil {
 		if constants.AimDedicated {
 			if in.Mode != input.KeyboardMouse &&
 				(in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. ||
@@ -660,7 +661,6 @@ func (d *Dwarf) Update(in *input.Input) {
 						d.faceLeft = true
 					}
 				} else if !d.jumping && !d.toJump && d.Physics.Grounded {
-					wasWalking := d.walking
 					if math.Abs(d.Physics.Velocity.X) < 20.0 {
 						if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 							d.distFell = 0.
@@ -680,9 +680,6 @@ func (d *Dwarf) Update(in *input.Input) {
 					}
 					if d.walking {
 						d.distFell = 0.
-						if !wasWalking {
-							d.walkTimer = timing.New(stepTime)
-						}
 					}
 				} else {
 					d.walking = false
@@ -736,10 +733,6 @@ func (d *Dwarf) Update(in *input.Input) {
 		d.faceLeft = false
 	}
 	d.Transform.Flip = d.faceLeft
-	if d.walking && d.walkTimer.UpdateDone() {
-		sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
-		d.walkTimer = timing.New(stepTime)
-	}
 }
 
 func (d *Dwarf) Delete() {

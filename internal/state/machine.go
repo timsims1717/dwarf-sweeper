@@ -6,13 +6,10 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
-	"dwarf-sweeper/internal/descent/cave"
-	"dwarf-sweeper/internal/descent/generate"
-	"dwarf-sweeper/internal/descent/generate/builder"
+	"dwarf-sweeper/internal/descent/descend"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/player"
-	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -189,9 +186,10 @@ func Update(win *pixelgl.Window) {
 				}
 			}
 			if MenuClosed() {
-				descent.Descent.GetPlayer().Update(data.GameInput)
+				descent.UpdatePlayer(data.GameInput)
 				systems.TemporarySystem()
 				systems.EntitySystem()
+				systems.UpdateSystem()
 				systems.FunctionSystem()
 				systems.PhysicsSystem()
 				systems.TileCollisionSystem()
@@ -216,7 +214,11 @@ func Update(win *pixelgl.Window) {
 				if data.GameInput.Get("up").JustPressed() &&
 					descent.Descent.GetPlayerTile().IsExit() &&
 					descent.Descent.CanExit() {
-					SwitchState(5)
+					if descent.Descent.Level >= descent.Descent.Depth - 1 {
+						SwitchState(2)
+					} else {
+						SwitchState(5)
+					}
 				}
 			}
 			if dead, ok := timerKeys["death"]; (!ok || !dead) && descent.Descent.GetPlayer().Health.Dead {
@@ -279,6 +281,7 @@ func Update(win *pixelgl.Window) {
 			systems.CollisionSystem()
 			systems.CollisionBoundSystem()
 			systems.EntitySystem()
+			systems.UpdateSystem()
 			systems.FunctionSystem()
 			systems.VFXSystem()
 			vfx.Update()
@@ -305,13 +308,11 @@ func Update(win *pixelgl.Window) {
 		}
 	}
 	camera.Cam.Update(win)
-	myecs.Update()
+	myecs.UpdateManager()
 }
 
 func Draw(win *pixelgl.Window) {
-	for _, batcher := range img.Batchers {
-		batcher.Clear()
-	}
+	img.ClearBatches()
 	if state == 0 {
 		descent.Descent.GetCave().Draw(win)
 		//descent.Descent.GetPlayer().Draw(win, data.GameInput)
@@ -408,90 +409,14 @@ func updateState() {
 		case 0:
 			systems.ClearSystem()
 			systems.DeleteAllEntities()
-			if descent.Descent.Start {
-				if descent.Descent.Player != nil {
-					descent.Descent.Player.Delete()
-					descent.Descent.Player = nil
-				}
-				descent.ResetStats()
-			} else {
-				if descent.Descent.Type == cave.Normal {
-					descent.Descent.Type = cave.Minesweeper
-				} else {
-					descent.Descent.Type = cave.Normal
-				}
-				descent.ResetCaveStats()
-			}
-			descent.Descent.Level++
 
-			if descent.Descent.Builder == nil {
-				switch descent.Descent.Type {
-				case cave.Normal:
-					caveBuilder, err := builder.LoadBuilder(fmt.Sprint("assets/caves.json"))
-					if err != nil {
-						panic(err)
-					}
-					descent.Descent.Builder = caveBuilder[random.Effects.Intn(2)]
-					descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.Level))
-				case cave.Infinite:
-					biome := "mine"
-					if random.Effects.Intn(2) == 0 {
-						biome = "dark"
-					}
-					sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
-					if err != nil {
-						panic(err)
-					}
-					descent.Descent.SetCave(generate.NewInfiniteCave(sheet, biome))
-				case cave.Minesweeper:
-					biome := "mine"
-					if random.Effects.Intn(2) == 0 {
-						biome = "dark"
-					}
-					sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
-					if err != nil {
-						panic(err)
-					}
-					descent.Descent.SetCave(generate.NewMinesweeperCave(sheet, biome, descent.Descent.Level))
-				}
-			} else {
-				descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.Level))
-			}
-
-			if descent.Descent.Builder != nil {
-				if len(descent.Descent.Builder.Tracks) > 0 {
-					sfx.MusicPlayer.ChooseNextTrack(constants.GameMusic, descent.Descent.Builder.Tracks)
-				} else {
-					sfx.MusicPlayer.Stop(constants.GameMusic)
-				}
-			} else {
-				sfx.MusicPlayer.SetNextTrack(constants.GameMusic, "")
-			}
-			sfx.MusicPlayer.Resume(constants.GameMusic)
-
-			if descent.Descent.Player != nil {
-				descent.Descent.Player.Transform.Pos = descent.Descent.GetCave().GetStart().Transform.Pos
-			} else {
-				descent.Descent.SetPlayer(descent.NewDwarf(descent.Descent.GetCave().GetStart().Transform.Pos))
-			}
-			if descent.Descent.Start {
-				player.InitHUD()
-				descent.Inventory = []*descent.InvItem{}
-			}
-			camera.Cam.SnapTo(descent.Descent.GetPlayer().Transform.Pos)
-			descent.Descent.ExitPop = menus.NewPopUp("", nil)
-			myecs.Manager.NewEntity().
-				AddComponent(myecs.PopUp, descent.Descent.ExitPop).
-				AddComponent(myecs.Transform, descent.Descent.GetCave().GetExit().Transform).
-				AddComponent(myecs.Temp, myecs.ClearFlag(false))
-
-			vfx.Clear()
-			//dungeon.Entities.Clear()
+			descend.Descend()
 
 			reanimator.SetFrameRate(10)
 			reanimator.Reset()
-			descent.Descent.Start = false
 		case 1:
+			descent.Descent.FreeCam = false
+			camera.Cam.SetZoom(4. / 3.)
 			pressAKey.Transform.Pos = pixel.V(0., -75.)
 			pressAKey.NoShow = true
 			pressAKeyTimer = timing.New(2.5)
@@ -519,8 +444,7 @@ func updateState() {
 			OpenMenu(PostMenu)
 			sfx.MusicPlayer.PlayMusic("pause")
 		case 4:
-			descent.Descent.Level = 0
-			descent.Descent.Start = true
+			descend.Generate()
 		case 5:
 			success := FillEnchantMenu()
 			if !success {

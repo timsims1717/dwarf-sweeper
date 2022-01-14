@@ -5,14 +5,12 @@ import (
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/world"
 )
 
-func NewInfiniteCave(spriteSheet *img.SpriteSheet, biome string) *cave.Cave {
+func NewInfiniteCave(biome string) *cave.Cave {
 	random.RandCaveSeed()
-	batcher := img.NewBatcher(spriteSheet, false)
-	newCave := cave.NewCave(batcher, biome, cave.Infinite)
+	newCave := cave.NewCave(biome, cave.Infinite)
 	newCave.FillChunk = structures.FillBasic
 	newCave.StartC = world.Coords{X: 16, Y: 9}
 	newCave.GemRate = constants.BaseGem

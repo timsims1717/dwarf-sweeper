@@ -33,9 +33,10 @@ func AreaDamageSystem() {
 				}
 				for _, tResult := range myecs.Manager.Query(myecs.HasHealth) {
 					tran, okT := tResult.Components[myecs.Transform].(*transform.Transform)
+					coll, okC := tResult.Components[myecs.Collision].(*data.Collider)
 					hp, okH1 := tResult.Components[myecs.Health].(*data.Health)
 					_, okH2 := tResult.Components[myecs.Health].(*data.SimpleHealth)
-					if okT && (okH1 || okH2) && tran.ID != area.SourceID {
+					if okT && okC && (okH1 || okH2) && tran.ID != area.SourceID {
 						immune := false
 						if okH1 {
 							for t, i := range hp.Immune {
@@ -47,13 +48,13 @@ func AreaDamageSystem() {
 						}
 						if !immune {
 							hit := false
+							tarHB := coll.Hitbox.Moved(tran.Pos).Moved(pixel.V(coll.Hitbox.W()*-0.5, coll.Hitbox.H()*-0.5))
 							if area.Radius > 0. {
-								xt := area.Center.X - tran.Pos.X
-								yt := area.Center.Y - tran.Pos.Y
-								d2 := xt*xt + yt*yt
-								hit = d2 < area.Radius*area.Radius
+								v := pixel.C(area.Center, area.Radius).IntersectRect(tarHB)
+								hit = v.X != 0 || v.Y != 0
 							} else if area.Rect.W() > 0. && area.Rect.H() > 0. {
-								hit = area.Rect.Moved(area.Center).Moved(pixel.V(area.Rect.W()*-0.5, area.Rect.H()*-0.5)).Contains(tran.Pos)
+								dmgHB := area.Rect.Moved(area.Center).Moved(pixel.V(area.Rect.W()*-0.5, area.Rect.H()*-0.5))
+								hit = dmgHB.Intersects(tarHB)
 							}
 							if hit {
 								kb := area.Knockback
@@ -99,60 +100,62 @@ func DamageSystem() {
 						}
 					}
 					dmgAmt := dmg.Amount
-					if dmgAmt > 0 && hp.TempInvTimer.Done() && !immune.DMG {
-						tmp := hp.TempHP
-						hp.TempHP -= dmgAmt
-						if hp.TempHP < 0 {
-							hp.TempHP = 0
-						}
-						dmgAmt -= tmp
-						if dmgAmt > 0 {
-							hp.Curr -= dmgAmt
-							if hp.Curr <= 0 {
-								hp.Curr = 0
-								hp.Dead = true
+					if hp.TempInvTimer.Done() {
+						if dmgAmt > 0 && !immune.DMG {
+							tmp := hp.TempHP
+							hp.TempHP -= dmgAmt
+							if hp.TempHP < 0 {
+								hp.TempHP = 0
+							}
+							dmgAmt -= tmp
+							if dmgAmt > 0 {
+								hp.Curr -= dmgAmt
+								if hp.Curr <= 0 {
+									hp.Curr = 0
+									hp.Dead = true
+								}
+							}
+							if hp.TempInvSec > 0. {
+								hp.TempInvTimer = timing.New(hp.TempInvSec)
+								if hp.TempInvSec > 1.0 {
+									myecs.AddEffect(result.Entity, data.NewBlink(hp.TempInvSec))
+								}
 							}
 						}
-						if hp.TempInvSec > 0. {
-							hp.TempInvTimer = timing.New(hp.TempInvSec)
-							if hp.TempInvSec > 1.0 {
-								myecs.AddEffect(result.Entity, data.NewBlink(hp.TempInvSec))
+						if dmg.Knockback > 0.0 && !immune.KB {
+							if phys.GravityOff {
+								phys.GravityOff = false
+							}
+							if phys.FrictionOff {
+								phys.FrictionOff = false
+							}
+							phys.CancelMovement()
+							var dir pixel.Vec
+							if dmg.Angle == nil {
+								d := tran.Pos.Sub(dmg.Source)
+								d.Y += 1.
+								dir = util.Normalize(d)
+							} else {
+								dir = pixel.V(1., 0.).Rotated(*dmg.Angle)
+							}
+							phys.SetVelX(dir.X*dmg.Knockback*world.TileSize, 0.)
+							phys.SetVelY(dir.Y*dmg.Knockback*world.TileSize, 0.)
+							phys.RagDollX = true
+							if dir.Y < 0 && math.Abs(dir.X) < 4. && dmg.Knockback > 20. {
+								phys.RagDollY = true
 							}
 						}
-					}
-					if dmg.Knockback > 0.0 && !immune.KB {
-						if phys.GravityOff {
-							phys.GravityOff = false
-						}
-						if phys.FrictionOff {
-							phys.FrictionOff = false
-						}
-						phys.CancelMovement()
-						var dir pixel.Vec
-						if dmg.Angle == nil {
-							d := tran.Pos.Sub(dmg.Source)
-							d.Y += 1.
-							dir = util.Normalize(d)
-						} else {
-							dir = pixel.V(1., 0.).Rotated(*dmg.Angle)
-						}
-						phys.SetVelX(dir.X*dmg.Knockback*world.TileSize, 0.)
-						phys.SetVelY(dir.Y*dmg.Knockback*world.TileSize, 0.)
-						phys.RagDollX = true
-						if dir.Y < 0 && math.Abs(dir.X) < 4. && dmg.Knockback > 20. {
-							phys.RagDollY = true
-						}
-					}
-					if dmg.Dazed > 0.0 && hp.Curr > 0 && !immune.Dazed {
-						hp.Dazed = true
-						if hp.DazedTime > 0. {
-							hp.DazedTimer = timing.New(hp.DazedTime)
-						} else {
-							hp.DazedTimer = timing.New(dmg.Dazed)
-						}
-						if hp.DazedVFX != nil {
-							hp.DazedVFX.Animation.Done = true
-							hp.DazedVFX = nil
+						if dmg.Dazed > 0.0 && hp.Curr > 0 && !immune.Dazed {
+							hp.Dazed = true
+							if hp.DazedTime > 0. {
+								hp.DazedTimer = timing.New(hp.DazedTime)
+							} else {
+								hp.DazedTimer = timing.New(dmg.Dazed)
+							}
+							if hp.DazedVFX != nil {
+								hp.DazedVFX.Animation.Done = true
+								hp.DazedVFX = nil
+							}
 						}
 					}
 				}
