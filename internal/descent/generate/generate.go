@@ -73,9 +73,9 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 			}
 			switch s.Key {
 			case "pocket":
-				structures.Pocket(newCave, random.CaveGen.Intn(3) + 2, world.TileSize * 2., false, include)
+				structures.Pocket(newCave, random.CaveGen.Intn(3)+2, world.TileSize*2., false, include)
 			case "ring":
-				structures.Ring(newCave, random.CaveGen.Intn(5) + 3, world.TileSize * 3., false, include)
+				structures.Ring(newCave, random.CaveGen.Intn(5)+3, world.TileSize*3., false, include)
 			case "noodleCave":
 				dir := structures.RandomDirection()
 				for dir == data.Down {
@@ -91,7 +91,7 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 					structures.TreasureRoom(newCave, 4, 6, 1, include)
 				}
 			case "bombable":
-				structures.BombableNode(newCave, random.CaveGen.Intn(2) + 1, world.TileSize * 2., true, include)
+				structures.BombableNode(newCave, random.CaveGen.Intn(2)+1, world.TileSize*2., true, include)
 			case "mineLayer":
 				structures.MineLayer(newCave, include)
 			case "stairs":
@@ -114,12 +114,7 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 		}
 	}
 	if newCave.Type != cave.Minesweeper {
-		for _, ch := range newCave.LChunks {
-			structures.FillBasic(ch)
-		}
-		for _, ch := range newCave.RChunks {
-			structures.FillBasic(ch)
-		}
+		structures.FillCave(newCave)
 	}
 	fmt.Println("Total bombs:", descent.CaveTotalBombs)
 	newCave.PrintCaveToTerminal()

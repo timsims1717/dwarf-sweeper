@@ -13,7 +13,7 @@ func NewInfiniteCave(biome string) *cave.Cave {
 	newCave := cave.NewCave(biome, cave.Infinite)
 	newCave.FillChunk = structures.FillBasic
 	newCave.StartC = world.Coords{X: 16, Y: 9}
-	newCave.GemRate = constants.BaseGem
+	newCave.GemRate2 = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
 	newCave.BombPMin = 0.2
 	newCave.BombPMax = 0.3

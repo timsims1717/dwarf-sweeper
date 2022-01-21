@@ -7,49 +7,49 @@ import (
 )
 
 func makeLayers(left, right, bottom, marginH, marginT, marginB int) [3][3]world.Coords {
-	if marginH >= constants.ChunkSize/ 2 {
-		marginH = constants.ChunkSize/ 2 - 1
+	if marginH >= constants.ChunkSize/2 {
+		marginH = constants.ChunkSize/2 - 1
 	}
 	layer1 := [3]world.Coords{
 		{
-			X: left *constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize- marginH),
+			X: left*constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize-marginH),
 			Y: marginT + random.CaveGen.Intn(3),
 		},
 		{
-			X: (left + 1) *constants.ChunkSize + random.CaveGen.Intn((right - left - 1) *constants.ChunkSize),
+			X: (left+1)*constants.ChunkSize + random.CaveGen.Intn((right-left-1)*constants.ChunkSize),
 			Y: marginT + random.CaveGen.Intn(3),
 		},
 		{
-			X: (right + 1) *constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize- marginH),
+			X: (right+1)*constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize-marginH),
 			Y: marginT + random.CaveGen.Intn(3),
 		},
 	}
 	layer2 := [3]world.Coords{
 		{
-			X: left *constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize- marginH),
-			Y: constants.ChunkSize + random.CaveGen.Intn((bottom - 1) *constants.ChunkSize),
+			X: left*constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize-marginH),
+			Y: constants.ChunkSize + random.CaveGen.Intn((bottom-1)*constants.ChunkSize),
 		},
 		{
-			X: (left + 1) *constants.ChunkSize + random.CaveGen.Intn((right - left - 1) *constants.ChunkSize),
-			Y: constants.ChunkSize + random.CaveGen.Intn((bottom - 1) *constants.ChunkSize),
+			X: (left+1)*constants.ChunkSize + random.CaveGen.Intn((right-left-1)*constants.ChunkSize),
+			Y: constants.ChunkSize + random.CaveGen.Intn((bottom-1)*constants.ChunkSize),
 		},
 		{
-			X: (right + 1) *constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize- marginH),
-			Y: constants.ChunkSize + random.CaveGen.Intn((bottom - 1) *constants.ChunkSize),
+			X: (right+1)*constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize-marginH),
+			Y: constants.ChunkSize + random.CaveGen.Intn((bottom-1)*constants.ChunkSize),
 		},
 	}
 	layer3 := [3]world.Coords{
 		{
-			X: left *constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize- marginH),
-			Y: (bottom + 1) *constants.ChunkSize - marginB - random.CaveGen.Intn(6),
+			X: left*constants.ChunkSize + marginH + random.CaveGen.Intn(constants.ChunkSize-marginH),
+			Y: (bottom+1)*constants.ChunkSize - marginB - random.CaveGen.Intn(6),
 		},
 		{
-			X: (left + 1) *constants.ChunkSize + random.CaveGen.Intn((right - left - 1) *constants.ChunkSize),
-			Y: (bottom + 1) *constants.ChunkSize - marginB - random.CaveGen.Intn(6),
+			X: (left+1)*constants.ChunkSize + random.CaveGen.Intn((right-left-1)*constants.ChunkSize),
+			Y: (bottom+1)*constants.ChunkSize - marginB - random.CaveGen.Intn(6),
 		},
 		{
-			X: (right + 1) *constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize- marginH),
-			Y: (bottom + 1) *constants.ChunkSize - marginB - random.CaveGen.Intn(6),
+			X: (right+1)*constants.ChunkSize - marginH - random.CaveGen.Intn(constants.ChunkSize-marginH),
+			Y: (bottom+1)*constants.ChunkSize - marginB - random.CaveGen.Intn(6),
 		},
 	}
 	//fmt.Println("Layers:")

@@ -37,7 +37,7 @@ const (
 
 const (
 	GBSpeed = 115.
-	GBAcc = 10.
+	GBAcc   = 10.
 )
 
 var gbImmunity = map[data.DamageType]data.Immunity{
@@ -47,18 +47,18 @@ var gbImmunity = map[data.DamageType]data.Immunity{
 		Dazed: true,
 	},
 	data.Shovel: {
-		KB:    true,
-		DMG:   true,
+		KB:  true,
+		DMG: true,
 	},
 }
 
 type GnomeBoss struct {
-	Transform   *transform.Transform
-	Physics     *physics.Physics
-	Reanimator  *reanimator.Tree
-	Entity      *ecs.Entity
-	Health      *data.Health
-	Collider    *data.Collider
+	Transform  *transform.Transform
+	Physics    *physics.Physics
+	Reanimator *reanimator.Tree
+	Entity     *ecs.Entity
+	Health     *data.Health
+	Collider   *data.Collider
 
 	State    GnomeState
 	Charge   bool
@@ -138,7 +138,7 @@ func (gnome *GnomeBoss) Update() bool {
 			}
 		case GBDig:
 			currT := Descent.Cave.GetTile(gnome.Transform.Pos)
-			if math.Abs(currT.Transform.Pos.X - gnome.Transform.Pos.X) < 0.01 {
+			if math.Abs(currT.Transform.Pos.X-gnome.Transform.Pos.X) < 0.01 {
 				gnome.Transform.Pos.X -= 0.5
 			}
 			edge := world.TileSize
@@ -196,7 +196,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	emergePartFn := func() {
 		exit := gb.Transform.Pos
 		exit.Y -= 16.
-		particles.BiomeParticles(exit, Descent.Cave.Biome, 10, 16, 12., 0., math.Pi * 0.5, 0.5, 130., 15.,  0.75, 0.1, true)
+		particles.BiomeParticles(exit, Descent.Cave.Biome, 10, 16, 12., 0., math.Pi*0.5, 0.5, 130., 15., 0.75, 0.1, true)
 	}
 	runFXFn := func() {
 		gb.sfxTimer.Update()
@@ -215,48 +215,48 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				if !tdl.Solid() {
 					orig := tul.Transform.Pos
 					orig.Y -= half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi * -0.5, 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi*-0.5, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 				if gb.faceLeft && !tur.Solid() {
 					orig := tul.Transform.Pos
 					orig.X += half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, 0., 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, 0., 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 			if tur.Solid() {
 				if !tdr.Solid() {
 					orig := tur.Transform.Pos
 					orig.Y -= half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi * -0.5, 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi*-0.5, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 				if !gb.faceLeft && !tul.Solid() {
 					orig := tur.Transform.Pos
 					orig.X -= half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, math.Pi, 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, math.Pi, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 			if tdl.Solid() {
 				if !tul.Solid() {
 					orig := tdl.Transform.Pos
 					orig.Y += half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi * 0.5, 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi*0.5, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 				if gb.faceLeft && !tdr.Solid() {
 					orig := tdl.Transform.Pos
 					orig.X += half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, 0., 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, 0., 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 			if tdr.Solid() {
 				if !tur.Solid() {
 					orig := tdr.Transform.Pos
 					orig.Y += half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi * 0.5, 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, half, 0., math.Pi*0.5, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 				if !gb.faceLeft && !tdl.Solid() {
 					orig := tdr.Transform.Pos
 					orig.X -= half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, math.Pi, 0.5, 80., 10.,  0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, math.Pi, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 		}
@@ -269,7 +269,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
 			gb.sfxTimer = timing.New(0.25)
 		}
-		particles.BiomeParticles(gb.Transform.Pos, Descent.Cave.Biome, 3, 5, 8., 8., math.Pi * 0.5, 0.5, 80., 10.,  0.75, 0.1, true)
+		particles.BiomeParticles(gb.Transform.Pos, Descent.Cave.Biome, 3, 5, 8., 8., math.Pi*0.5, 0.5, 80., 10., 0.75, 0.1, true)
 	}
 	gb.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddNull().

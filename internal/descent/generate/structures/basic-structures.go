@@ -14,18 +14,18 @@ import (
 func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exit bool) {
 	t := door.Y - height
 	b := door.Y + 1
-	l := door.X - width / 2
-	r := door.X + width / 2
+	l := door.X - width/2
+	r := door.X + width/2
 	for y := t; y <= b; y++ {
 		for x := l; x <= r; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged {
-					dx := util.Min(util.Abs(x - l), util.Abs(x - r))
+					dx := util.Min(util.Abs(x-l), util.Abs(x-r))
 					dy := util.Abs(y - t)
 					curve := roofCurve
-					if (x == l || x == r || y == t || y == b) || dx + dy + random.CaveGen.Intn(2) < curve + width / 8 {
-						if y == b && util.Abs(x - door.X) < 2 {
+					if (x == l || x == r || y == t || y == b) || dx+dy+random.CaveGen.Intn(2) < curve+width/8 {
+						if y == b && util.Abs(x-door.X) < 2 {
 							tile.Type = cave.Wall
 							tile.NeverChange = true
 						} else {
@@ -40,19 +40,19 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 							if exit {
 								tile.Exit = true
 							}
-						} else if x == door.X - 1 && y == door.Y {
+						} else if x == door.X-1 && y == door.Y {
 							ty = cave.Deco
 							s = "door_l"
-						} else if x == door.X + 1 && y == door.Y {
+						} else if x == door.X+1 && y == door.Y {
 							ty = cave.Deco
 							s = "door_r"
-						} else if x == door.X && y == door.Y - 1 {
+						} else if x == door.X && y == door.Y-1 {
 							ty = cave.Deco
 							s = "door_t"
-						} else if x == door.X - 1 && y == door.Y - 1 {
+						} else if x == door.X-1 && y == door.Y-1 {
 							ty = cave.Deco
 							s = "door_tl"
-						} else if x == door.X + 1 && y == door.Y - 1 {
+						} else if x == door.X+1 && y == door.Y-1 {
 							ty = cave.Deco
 							s = "door_tr"
 						}
@@ -87,8 +87,8 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 }
 
 func Door(c *cave.Cave, door world.Coords, exit bool) {
-	for y := door.Y-1; y <= door.Y+1; y++ {
-		for x := door.X-1; x <= door.X+1; x++ {
+	for y := door.Y - 1; y <= door.Y+1; y++ {
+		for x := door.X - 1; x <= door.X+1; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				ty := cave.Wall
@@ -99,19 +99,19 @@ func Door(c *cave.Cave, door world.Coords, exit bool) {
 					if exit {
 						tile.Exit = true
 					}
-				} else if x == door.X - 1 && y == door.Y {
+				} else if x == door.X-1 && y == door.Y {
 					ty = cave.Deco
 					s = "door_l"
-				} else if x == door.X + 1 && y == door.Y {
+				} else if x == door.X+1 && y == door.Y {
 					ty = cave.Deco
 					s = "door_r"
-				} else if x == door.X && y == door.Y - 1 {
+				} else if x == door.X && y == door.Y-1 {
 					ty = cave.Deco
 					s = "door_t"
-				} else if x == door.X - 1 && y == door.Y - 1 {
+				} else if x == door.X-1 && y == door.Y-1 {
 					ty = cave.Deco
 					s = "door_tl"
-				} else if x == door.X + 1 && y == door.Y - 1 {
+				} else if x == door.X+1 && y == door.Y-1 {
 					ty = cave.Deco
 					s = "door_tr"
 				}
@@ -128,8 +128,8 @@ func Door(c *cave.Cave, door world.Coords, exit bool) {
 }
 
 func RectRoom(c *cave.Cave, tl world.Coords, width, height int) {
-	for y := tl.Y; y < tl.Y + height; y++ {
-		for x := tl.X; x < tl.X + width; x++ {
+	for y := tl.Y; y < tl.Y+height; y++ {
+		for x := tl.X; x < tl.X+width; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tl.X || x == tl.X+width-1 || y == tl.Y || y == tl.Y+height-1) {
@@ -146,7 +146,7 @@ func RectRoom(c *cave.Cave, tl world.Coords, width, height int) {
 func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coords, []world.Coords) {
 	s := max - min
 	width, height := c.Dimensions()
-	if max > width * constants.ChunkSize || max > height * constants.ChunkSize {
+	if max > width*constants.ChunkSize || max > height*constants.ChunkSize {
 		fmt.Printf("WARNING: rect room not generated: max %d is greater than cave width %d or height %d\n", max, width, height)
 		return nil, nil
 	}
@@ -157,19 +157,19 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 	h := random.CaveGen.Intn(s) + min
 	sX := include.X - w + 1
 	sY := include.Y - h + 1
-	tlX := random.CaveGen.Intn(w - 2) + sX
-	tlY := random.CaveGen.Intn(h - 2) + sY
-	for y := tlY; y < tlY + h; y++ {
+	tlX := random.CaveGen.Intn(w-2) + sX
+	tlY := random.CaveGen.Intn(h-2) + sY
+	for y := tlY; y < tlY+h; y++ {
 		for x := tlX; x < tlX+w; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					ToBlock(tile, cave.Wall,false, true)
+					ToBlock(tile, cave.Wall, false, true)
 				} else if !tile.NeverChange {
 					if random.CaveGen.Intn(10) == 0 {
 						ToBlock(tile, cave.BlockCollapse, false, true)
 					} else {
-						ToBlock(tile, cave.BlockDig,false, true)
+						ToBlock(tile, cave.BlockDig, false, true)
 					}
 					roomTiles = append(roomTiles, tile.RCoords)
 					tile.Room = true

@@ -17,19 +17,19 @@ import (
 func BlockParticles(pos pixel.Vec, biome string) {
 	c := random.Effects.Intn(3) + 3
 	for i := 0; i < c; i++ {
-		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), pos, 5., 5., math.Pi * 0.5, 1.5, 120., 5.0, 0.75, 0.2, true)
+		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), pos, 5., 5., math.Pi*0.5, 1.5, 120., 5.0, 0.75, 0.2, true)
 	}
 }
 
 func BiomeParticles(orig pixel.Vec, biome string, min, max int, varX, varY, angle, angleVar, force, forceVar, dur, durVar float64, collide bool) {
-	c := random.Effects.Intn(max - min + 1) + min
+	c := random.Effects.Intn(max-min+1) + min
 	for i := 0; i < c; i++ {
 		CreateParticle(fmt.Sprintf("%s_%d", biome, random.Effects.Intn(8)), orig, varX, varY, angle, angleVar, force, forceVar, dur, durVar, collide)
 	}
 }
 
 func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64) {
-	c := random.Effects.Intn(max - min + 1) + min
+	c := random.Effects.Intn(max-min+1) + min
 	for i := 0; i < c; i++ {
 		tran := transform.NewTransform()
 		tran.Pos = util.RandomPosition(orig, variance, variance, random.Effects)
@@ -39,7 +39,7 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 		if random.Effects.Intn(2) == 0 {
 			tran.Flop = true
 		}
-		nDur := dur + (random.Effects.Float64() - 0.5) * durVar
+		nDur := dur + (random.Effects.Float64()-0.5)*durVar
 		key := keys[random.Effects.Intn(len(keys))]
 		myecs.Manager.NewEntity().
 			AddComponent(myecs.Transform, tran).
@@ -50,7 +50,7 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 }
 
 func CreateRandomParticles(min, max int, keys []string, orig pixel.Vec, varX, varY, angle, angleVar, force, forceVar, dur, durVar float64, collide bool) {
-	c := random.Effects.Intn(max - min + 1) + min
+	c := random.Effects.Intn(max-min+1) + min
 	for i := 0; i < c; i++ {
 		key := keys[random.Effects.Intn(len(keys))]
 		CreateParticle(key, orig, varX, varY, angle, angleVar, force, forceVar, dur, durVar, collide)
@@ -65,7 +65,7 @@ func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, for
 	if random.Effects.Intn(2) == 0 {
 		tran.Flop = true
 	}
-	nDur := dur + (random.Effects.Float64() - 0.5) * durVar
+	nDur := dur + (random.Effects.Float64()-0.5)*durVar
 	spr := img.Batchers[constants.ParticleKey].GetSprite(key)
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, tran).

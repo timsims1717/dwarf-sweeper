@@ -20,9 +20,9 @@ func InitializeFPS() {
 	col := colornames.Aliceblue
 	col.A = 90
 	fpsText = menu.NewItemText("", col, pixel.V(0.8, 0.8), menu.Left, menu.Bottom)
-	fpsText.Transform.Pos = pixel.V(constants.BaseW * -0.5, constants.BaseH * -0.5 + 2)
+	fpsText.Transform.Pos = pixel.V(constants.BaseW*-0.5, constants.BaseH*-0.5+2)
 	versionText = menu.NewItemText("", col, pixel.V(0.8, 0.8), menu.Right, menu.Bottom)
-	versionText.Transform.Pos = pixel.V(constants.BaseW * 0.5, constants.BaseH * -0.5 + 2)
+	versionText.Transform.Pos = pixel.V(constants.BaseW*0.5, constants.BaseH*-0.5+2)
 }
 
 func DrawFPS(win *pixelgl.Window) {

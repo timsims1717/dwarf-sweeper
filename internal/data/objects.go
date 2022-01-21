@@ -5,7 +5,7 @@ import (
 	"github.com/faiface/pixel"
 )
 
-type Collider struct{
+type Collider struct {
 	Hitbox       pixel.Rect
 	GroundOnly   bool
 	ThroughWalls bool
@@ -18,18 +18,18 @@ type Collider struct{
 	RightBound  bool
 	LeftBound   bool
 
-	UL bool
-	UR bool
-	RU bool
-	RD bool
-	DL bool
-	DR bool
-	LU bool
-	LD bool
-	CUL bool
-	CUR bool
-	CDL bool
-	CDR bool
+	UL    bool
+	UR    bool
+	RU    bool
+	RD    bool
+	DL    bool
+	DR    bool
+	LU    bool
+	LD    bool
+	CUL   bool
+	CUR   bool
+	CDL   bool
+	CDR   bool
 	Debug bool
 }
 
@@ -41,7 +41,7 @@ func NewCollider(hitbox pixel.Rect, groundOnly, canPass bool) *Collider {
 	}
 }
 
-type Collectible struct{
+type Collectible struct {
 	OnCollect   func(pos pixel.Vec) bool
 	Sprite      *pixel.Sprite
 	Collected   bool

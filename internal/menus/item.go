@@ -25,7 +25,7 @@ type Item struct {
 	hoverFn   func()
 	unHoverFn func()
 
-	Transform  *transform.Transform
+	Transform *transform.Transform
 
 	TextColor color.RGBA
 
@@ -51,11 +51,11 @@ func NewItem(key, raw string) *Item {
 	tex := text.New(pixel.ZV, typeface.BasicAtlas)
 	tex.LineHeight *= 1.5
 	return &Item{
-		Key:        key,
-		Raw:        raw,
-		Text:       tex,
-		Transform:  tran,
-		TextColor:  DefaultColor,
+		Key:       key,
+		Raw:       raw,
+		Text:      tex,
+		Transform: tran,
+		TextColor: DefaultColor,
 	}
 }
 
@@ -97,7 +97,7 @@ func (i *Item) Update() {
 		for _, pos := range symPos {
 			t.Pos = i.Transform.APos
 			t.Pos.X += pos.X
-			t.Pos.Y += pos.Y + i.Text.LineHeight * 0.5
+			t.Pos.Y += pos.Y + i.Text.LineHeight*0.5
 			t.Update()
 			i.SymMats = append(i.SymMats, t.Mat)
 		}

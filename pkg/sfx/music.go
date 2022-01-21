@@ -11,9 +11,9 @@ import (
 var MusicPlayer *musicPlayer
 
 type musicPlayer struct {
-	tracks   map[string]string
-	sets     map[string]*musicSet
-	loading  bool
+	tracks  map[string]string
+	sets    map[string]*musicSet
+	loading bool
 }
 
 func init() {

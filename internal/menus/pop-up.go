@@ -86,7 +86,7 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 		Closed:   true,
 		StepV:    8.,
 		StepH:    8.,
-		MaxWidth: DefaultMax*2.,
+		MaxWidth: DefaultMax * 2.,
 		TTran:    tTran,
 		Center:   Center,
 		CTUL:     CTUL,
@@ -130,26 +130,26 @@ func (p *PopUp) UpdateSize() {
 		var width, height float64
 		fullW := p.Text.BoundsOf(p.Raw).W()
 		if fullW < p.MaxWidth {
-			width = fullW*0.8
-			height = p.Text.LineHeight*0.8
+			width = fullW * 0.8
+			height = p.Text.LineHeight * 0.8
 		} else {
-			width = p.MaxWidth*0.8
-			height = math.Ceil(fullW/p.MaxWidth)* p.Text.LineHeight*0.8
+			width = p.MaxWidth * 0.8
+			height = math.Ceil(fullW/p.MaxWidth) * p.Text.LineHeight * 0.8
 		}
-		p.Rect = pixel.R(0.,0., width, height)
-		if p.StepV < p.Rect.H() * 0.5 {
+		p.Rect = pixel.R(0., 0., width, height)
+		if p.StepV < p.Rect.H()*0.5 {
 			p.StepV += timing.DT * VStep
 		}
-		if p.StepV > p.Rect.H() * 0.5 {
+		if p.StepV > p.Rect.H()*0.5 {
 			p.StepV = p.Rect.H() * 0.5
 		}
-		if p.StepH < p.Rect.W() * 0.5 {
+		if p.StepH < p.Rect.W()*0.5 {
 			p.StepH += timing.DT * HStep
 		}
-		if p.StepH > p.Rect.W() * 0.5 {
+		if p.StepH > p.Rect.W()*0.5 {
 			p.StepH = p.Rect.W() * 0.5
 		}
-		if p.StepH >= p.Rect.W() * 0.5 && p.StepV >= p.Rect.H() * 0.5 {
+		if p.StepH >= p.Rect.W()*0.5 && p.StepV >= p.Rect.H()*0.5 {
 			p.opened = true
 		} else {
 			p.opened = false
@@ -178,7 +178,7 @@ func (p *PopUp) UpdateTransforms() {
 	if p.Parent != nil {
 		p.Tran.Pos = p.Parent.Pos
 	}
-	p.Tran.Pos.Y += Offset + p.Rect.H() * 0.5
+	p.Tran.Pos.Y += Offset + p.Rect.H()*0.5
 	p.Tran.Update()
 	p.CTUL.Pos = pixel.V(p.Tran.Pos.X-p.StepH, p.Tran.Pos.Y+p.StepV)
 	p.CTUL.Scalar = pixel.V(1.4, 1.4)
@@ -193,24 +193,24 @@ func (p *PopUp) UpdateTransforms() {
 	p.CTDL.Scalar = pixel.V(1.4, 1.4)
 	p.CTDL.Update()
 	p.STU.Pos = pixel.V(p.Tran.Pos.X, p.Tran.Pos.Y+p.StepV)
-	p.STU.Scalar = pixel.V(1.4 * p.StepH * 0.1735, 1.4)
+	p.STU.Scalar = pixel.V(1.4*p.StepH*0.1735, 1.4)
 	p.STU.Update()
 	p.STR.Pos = pixel.V(p.Tran.Pos.X+p.StepH, p.Tran.Pos.Y)
-	p.STR.Scalar = pixel.V(1.4, 1.4 * p.StepV * 0.1735)
+	p.STR.Scalar = pixel.V(1.4, 1.4*p.StepV*0.1735)
 	p.STR.Update()
 	p.STD.Pos = pixel.V(p.Tran.Pos.X, p.Tran.Pos.Y-p.StepV)
-	p.STD.Scalar = pixel.V(1.4 * p.StepH * 0.1735, 1.4)
+	p.STD.Scalar = pixel.V(1.4*p.StepH*0.1735, 1.4)
 	p.STD.Update()
 	p.STL.Pos = pixel.V(p.Tran.Pos.X-p.StepH, p.Tran.Pos.Y)
-	p.STL.Scalar = pixel.V(1.4, 1.4 * p.StepV * 0.1735)
+	p.STL.Scalar = pixel.V(1.4, 1.4*p.StepV*0.1735)
 	p.STL.Update()
 	p.Center.Pos = p.Tran.Pos
-	p.Center.Scalar = pixel.V(1.4 * p.StepH * 0.1735, 1.4 * p.StepV * 0.1735)
+	p.Center.Scalar = pixel.V(1.4*p.StepH*0.1735, 1.4*p.StepV*0.1735)
 	p.Center.Update()
 	p.EntryT.Pos = pixel.V(p.Tran.Pos.X, p.Tran.Pos.Y-p.StepV-hintA.Frame().W()*7/6)
 	p.EntryT.Scalar = pixel.V(1.4, 1.4)
 	p.EntryT.Update()
-	p.TTran.Pos = pixel.V(p.Tran.Pos.X-p.Rect.W() * 0.5, p.Tran.Pos.Y+(p.Rect.H()-p.Text.BoundsOf(p.Raw).H()) * 0.5)
+	p.TTran.Pos = pixel.V(p.Tran.Pos.X-p.Rect.W()*0.5, p.Tran.Pos.Y+(p.Rect.H()-p.Text.BoundsOf(p.Raw).H())*0.5)
 	p.TTran.Update()
 }
 

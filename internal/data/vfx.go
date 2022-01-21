@@ -11,7 +11,7 @@ type VFX struct {
 	Effects []interface{}
 }
 
-type Blink struct{
+type Blink struct {
 	Timer      *timing.FrameTimer
 	BlinkTimer *timing.FrameTimer
 	Blink      bool
@@ -30,7 +30,7 @@ func NewBlink(blinkSec float64) *Blink {
 	}
 }
 
-type FadeOut struct{
+type FadeOut struct {
 	InterR *gween.Tween
 	InterG *gween.Tween
 	InterB *gween.Tween

@@ -19,7 +19,7 @@ func AnimationSystem() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		if ok && okT {
 			dist := descent.Descent.GetPlayer().Transform.Pos.Sub(tran.Pos)
-			if math.Abs(dist.X) < 24. * world.TileSize && math.Abs(dist.Y) < 24. * world.TileSize {
+			if math.Abs(dist.X) < 24.*world.TileSize && math.Abs(dist.Y) < 24.*world.TileSize {
 				anim.Update()
 			}
 		}

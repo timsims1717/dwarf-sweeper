@@ -67,7 +67,7 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 
 		mark = world.DistanceOrthogonal(start, curr) > 16 && world.DistanceOrthogonal(end, curr) > 16
 		// if we are within 8 of the end in both directions, head straight there
-		if util.Abs(curr.X - end.X) < 8 && util.Abs(curr.Y - end.Y) < 8 {
+		if util.Abs(curr.X-end.X) < 8 && util.Abs(curr.Y-end.Y) < 8 {
 			if curr.Y > end.Y {
 				n = data.Up
 			} else if curr.Y < end.Y {
@@ -92,8 +92,8 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 				dC := 0
 				var t int
 				if pDir.l {
-					if curr.X - end.X > 0 {
-						t = 25 + (curr.X - end.X) / 5
+					if curr.X-end.X > 0 {
+						t = 25 + (curr.X-end.X)/5
 					} else {
 						t = 5 + curr.X - end.X
 					}
@@ -106,8 +106,8 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 					}
 				}
 				if pDir.r {
-					if curr.X - end.X < 0 {
-						t = 25 + (end.X - curr.X) / 5
+					if curr.X-end.X < 0 {
+						t = 25 + (end.X-curr.X)/5
 					} else {
 						t = 5 + end.X - curr.X
 					}
@@ -119,8 +119,8 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 					}
 				}
 				if pDir.u {
-					if curr.Y - end.Y > 0 {
-						t = 25 + (curr.Y - end.Y) / 5
+					if curr.Y-end.Y > 0 {
+						t = 25 + (curr.Y-end.Y)/5
 					} else {
 						t = 5 + curr.Y - end.Y
 					}
@@ -131,8 +131,8 @@ func SemiStraightPath(c *cave.Cave, start, end world.Coords, dir data.Direction,
 					}
 				}
 				if pDir.d {
-					if curr.Y - end.Y < 0 {
-						t = 25 + (end.Y - curr.Y) / 5
+					if curr.Y-end.Y < 0 {
+						t = 25 + (end.Y-curr.Y)/5
 					} else {
 						t = 5 + end.Y - curr.Y
 					}
@@ -211,10 +211,10 @@ func BranchOff(c *cave.Cave, start world.Coords, min, max int) ([]world.Coords, 
 		if dir == data.Up && curr.Y < 6 {
 			done = true
 		}
-		if len(path) + 1 >= max {
+		if len(path)+1 >= max {
 			done = true
 		}
-		if len(path) + 1 >= min && random.CaveGen.Intn(20) == 0 {
+		if len(path)+1 >= min && random.CaveGen.Intn(20) == 0 {
 			done = true
 		}
 		if tile != nil {

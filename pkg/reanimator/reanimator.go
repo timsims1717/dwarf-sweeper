@@ -202,19 +202,19 @@ const (
 
 func NewAnimFromSprite(key string, spr *pixel.Sprite, f Finish) *Anim {
 	return &Anim{
-		Key:      key,
-		S:        []*pixel.Sprite{spr},
-		Step:     0,
-		Finish:   f,
+		Key:    key,
+		S:      []*pixel.Sprite{spr},
+		Step:   0,
+		Finish: f,
 	}
 }
 
 func NewAnimFromSprites(key string, spr []*pixel.Sprite, f Finish) *Anim {
 	return &Anim{
-		Key:      key,
-		S:        spr,
-		Step:     0,
-		Finish:   f,
+		Key:    key,
+		S:      spr,
+		Step:   0,
+		Finish: f,
 	}
 }
 
@@ -230,10 +230,10 @@ func NewAnimFromSheet(key string, spriteSheet *img.SpriteSheet, rs []int, f Fini
 		}
 	}
 	return &Anim{
-		Key:      key,
-		S:        spr,
-		Step:     0,
-		Finish:   f,
+		Key:    key,
+		S:      spr,
+		Step:   0,
+		Finish: f,
 	}
 }
 

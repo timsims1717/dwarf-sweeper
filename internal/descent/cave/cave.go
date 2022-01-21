@@ -40,7 +40,8 @@ type Cave struct {
 
 	BombPMin float64
 	BombPMax float64
-	GemRate  int
+	GemRate  float64
+	GemRate2 int
 	ItemRate int
 
 	Biome      string
@@ -100,6 +101,7 @@ func NewCave(biome string, caveType CaveType) *Cave {
 		BGTD:        transform.NewTransform(),
 		BGTDR:       transform.NewTransform(),
 		Fog:         true,
+		GemRate:     0.05,
 	}
 }
 
@@ -109,8 +111,8 @@ func (c *Cave) SetSize(left, right, bottom int) {
 	c.Bottom = bottom
 	c.Width = (right - left + 1) * constants.ChunkSize
 	c.Height = (bottom + 1) * constants.ChunkSize
-	c.bl = pixel.V(float64(left * constants.ChunkSize) * world.TileSize, -float64((bottom + 1) * constants.ChunkSize - 1) * world.TileSize)
-	c.tr = pixel.V(float64((right+1) * constants.ChunkSize) * world.TileSize, 0.)
+	c.bl = pixel.V(float64(left*constants.ChunkSize)*world.TileSize, -float64((bottom+1)*constants.ChunkSize-1)*world.TileSize)
+	c.tr = pixel.V(float64((right+1)*constants.ChunkSize)*world.TileSize, 0.)
 	// how much we should fill is based on the size of the cave
 	// a 32 chunk size at 3x3 gives a value of 72 for fillVar
 	// a 16 chunk size at 3x3 gives a value of 18 for fillVar
@@ -149,8 +151,8 @@ func (c *Cave) Update() {
 		offset := camera.Cam.APos.Scaled(-0.5)
 		offset.X = util.FMod(offset.X, c.Background.Frame().W())
 		offset.Y = util.FMod(offset.Y, c.Background.Frame().H())
-		offset.X = offset.X + c.Background.Frame().W() * 0.5
-		offset.Y = offset.Y - c.Background.Frame().H() * 0.5
+		offset.X = offset.X + c.Background.Frame().W()*0.5
+		offset.Y = offset.Y - c.Background.Frame().H()*0.5
 		c.BGTC.Pos = offset
 		c.BGTUL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, c.Background.Frame().H()+offset.Y)
 		c.BGTU.Pos = pixel.V(offset.X, c.Background.Frame().H()+offset.Y)
@@ -395,15 +397,15 @@ func (c *Cave) MarkAsNotChanged() {
 }
 
 func WorldToChunk(v pixel.Vec) world.Coords {
-	if v.X >= 0 - world.TileSize * 0.5 {
-		return world.Coords{X: int((v.X+world.TileSize*0.5) / constants.ChunkSize / world.TileSize), Y: int(-(v.Y-world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
+	if v.X >= 0-world.TileSize*0.5 {
+		return world.Coords{X: int((v.X + world.TileSize*0.5) / constants.ChunkSize / world.TileSize), Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
 	} else {
-		return world.Coords{X: int((v.X+world.TileSize*0.5) /constants.ChunkSize/ world.TileSize)-1, Y: int(-(v.Y-world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
+		return world.Coords{X: int((v.X+world.TileSize*0.5)/constants.ChunkSize/world.TileSize) - 1, Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
 	}
 }
 
 func WorldToTile(v pixel.Vec, left bool) world.Coords {
-	x, y := world.WorldToMap(v.X+world.TileSize*0.5, -(v.Y-world.TileSize*0.5))
+	x, y := world.WorldToMap(v.X+world.TileSize*0.5, -(v.Y - world.TileSize*0.5))
 	x = x % constants.ChunkSize
 	y = y % constants.ChunkSize
 	if left {
@@ -416,21 +418,21 @@ func WorldToTile(v pixel.Vec, left bool) world.Coords {
 }
 
 func TileInTile(a, b pixel.Vec) bool {
-	return math.Abs(a.X - b.X) <= world.TileSize * 0.5 && math.Abs(a.Y - b.Y) <= world.TileSize * 0.5
+	return math.Abs(a.X-b.X) <= world.TileSize*0.5 && math.Abs(a.Y-b.Y) <= world.TileSize*0.5
 }
 
 func (c *Cave) PrintCaveToTerminal() {
 	if c.Type != Infinite {
 		fmt.Println("Printing cave ... ")
 		fmt.Println()
-		for y := 0; y < (c.Bottom+ 1) *constants.ChunkSize; y++ {
+		for y := 0; y < (c.Bottom+1)*constants.ChunkSize; y++ {
 			for x := c.Left * constants.ChunkSize; x < (c.Right+1)*constants.ChunkSize; x++ {
 				tile := c.GetTileInt(x, y)
 				if tile != nil {
 					if tile.Special {
 						fmt.Print("s")
-					//} else if tile.Path {
-					//	fmt.Print("p")
+						//} else if tile.Path {
+						//	fmt.Print("p")
 					} else {
 						switch tile.Type {
 						case BlockCollapse, BlockDig, BlockBlast:

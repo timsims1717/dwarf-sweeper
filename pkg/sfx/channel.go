@@ -95,7 +95,7 @@ func (s *musicSet) pause(pause bool) {
 	if pause && s.fade > 0. && s.volume != nil {
 		s.interV = gween.New(s.volume.Volume, -8., s.fade, ease.Linear)
 	} else if !pause && s.fade > 0. && s.volume != nil {
-		s.interV = gween.New(s.volume.Volume, getMusicVolume() + s.vol, s.fade, ease.Linear)
+		s.interV = gween.New(s.volume.Volume, getMusicVolume()+s.vol, s.fade, ease.Linear)
 	} else {
 		s.interV = nil
 	}
@@ -110,7 +110,7 @@ func (s *musicSet) stop() {
 func (s *musicSet) setVolume(vol float64) {
 	s.vol = vol
 	if s.interV != nil && s.fade > 0. && s.volume != nil {
-		s.interV = gween.New(s.volume.Volume, getMusicVolume() + s.vol, s.fade, ease.Linear)
+		s.interV = gween.New(s.volume.Volume, getMusicVolume()+s.vol, s.fade, ease.Linear)
 	}
 }
 
@@ -155,7 +155,7 @@ func (s *musicSet) update() {
 				s.ctrl.Paused = s.paused
 				s.interV = nil
 			} else {
-				s.volume.Volume = math.Min(v, getMusicVolume() + s.vol)
+				s.volume.Volume = math.Min(v, getMusicVolume()+s.vol)
 				s.volume.Silent = getMusicMuted()
 				s.ctrl.Paused = false
 			}

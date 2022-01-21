@@ -32,7 +32,7 @@ type Slug struct {
 	floor      data.Direction
 	iCorner    bool
 	//oCorner    bool
-	fell       bool
+	fell bool
 }
 
 func (s *Slug) Update() {
@@ -57,7 +57,7 @@ func (s *Slug) Update() {
 					if s.Collider.CDR {
 						s.floor = data.Right
 						s.Transform.Pos.Y -= 3.0
-						s.Physics.SetVelX(0.,0.)
+						s.Physics.SetVelX(0., 0.)
 					} else {
 						fall = true
 					}
@@ -70,7 +70,7 @@ func (s *Slug) Update() {
 					if s.Collider.CUL {
 						s.floor = data.Left
 						s.Transform.Pos.Y += 3.0
-						s.Physics.SetVelX(0.,0.)
+						s.Physics.SetVelX(0., 0.)
 					} else {
 						fall = true
 					}
@@ -83,7 +83,7 @@ func (s *Slug) Update() {
 					if s.Collider.CDL {
 						s.floor = data.Down
 						s.Transform.Pos.X -= 3.0
-						s.Physics.SetVelY(0.,0.)
+						s.Physics.SetVelY(0., 0.)
 					} else {
 						fall = true
 					}
@@ -96,7 +96,7 @@ func (s *Slug) Update() {
 					if s.Collider.CUR {
 						s.floor = data.Up
 						s.Transform.Pos.X += 3.0
-						s.Physics.SetVelY(0.,0.)
+						s.Physics.SetVelY(0., 0.)
 					} else {
 						fall = true
 					}
@@ -112,7 +112,7 @@ func (s *Slug) Update() {
 					if s.Collider.CDL {
 						s.floor = data.Left
 						s.Transform.Pos.Y -= 3.0
-						s.Physics.SetVelX(0.,0.)
+						s.Physics.SetVelX(0., 0.)
 					} else {
 						fall = true
 					}
@@ -125,7 +125,7 @@ func (s *Slug) Update() {
 					if s.Collider.CUR {
 						s.floor = data.Right
 						s.Transform.Pos.Y += 3.0
-						s.Physics.SetVelX(0.,0.)
+						s.Physics.SetVelX(0., 0.)
 					} else {
 						fall = true
 					}
@@ -138,7 +138,7 @@ func (s *Slug) Update() {
 					if s.Collider.CUL {
 						s.floor = data.Up
 						s.Transform.Pos.X -= 3.0
-						s.Physics.SetVelY(0.,0.)
+						s.Physics.SetVelY(0., 0.)
 					} else {
 						fall = true
 					}
@@ -151,7 +151,7 @@ func (s *Slug) Update() {
 					if s.Collider.CDR {
 						s.floor = data.Down
 						s.Transform.Pos.X += 3.0
-						s.Physics.SetVelY(0.,0.)
+						s.Physics.SetVelY(0., 0.)
 					} else {
 						fall = true
 					}

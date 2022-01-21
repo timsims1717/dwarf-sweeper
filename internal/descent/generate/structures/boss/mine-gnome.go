@@ -17,7 +17,7 @@ import (
 func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	c.FillChunk = structures.FillChunkWall
 	c.StartC = world.Coords{X: 16, Y: 9}
-	c.GemRate = constants.BaseGem
+	c.GemRate2 = constants.BaseGem
 	c.ItemRate = constants.BaseItem
 	c.BombPMin = 0.2
 	c.BombPMax = 0.3
@@ -49,10 +49,10 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	tt.Y = 22
 	trans := transform.NewTransform()
 	trans.Pos = c.GetTileInt(tt.X, tt.Y).Transform.Pos
-	coll := data.NewCollider(pixel.R(0., 0., world.TileSize * 70., world.TileSize * 3.), true, true)
+	coll := data.NewCollider(pixel.R(0., 0., world.TileSize*70., world.TileSize*3.), true, true)
 	coll.Debug = true
 
-	gnome := descent.CreateGnomeBoss(5 + level / 4)
+	gnome := descent.CreateGnomeBoss(5 + level/4)
 	gnome.Charge = false
 	gnome.SetOnDamageFn(func() {
 		nextLayer(gnome)
@@ -101,7 +101,7 @@ func revealExit(gnome *descent.GnomeBoss) {
 
 func TriggerGnome(gnome *descent.GnomeBoss) {
 	gnome.Transform.Pos, _ = descent.EmergeCoords()
-	x := gnome.Transform.Pos.X + (descent.Descent.Player.Transform.Pos.X - gnome.Transform.Pos.X) * 0.5
+	x := gnome.Transform.Pos.X + (descent.Descent.Player.Transform.Pos.X-gnome.Transform.Pos.X)*0.5
 	camera.Cam.MoveTo(pixel.V(x, camera.Cam.Pos.Y), 0.4, false)
 	descent.Descent.DisableInput = true
 	e := myecs.Manager.NewEntity()

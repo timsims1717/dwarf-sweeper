@@ -24,7 +24,7 @@ func LoadImage(path string) (pixel.Picture, error) {
 
 func Reverse(o []*pixel.Sprite) []*pixel.Sprite {
 	var s []*pixel.Sprite
-	for i := len(o)-1; i >= 0; i-- {
+	for i := len(o) - 1; i >= 0; i-- {
 		s = append(s, o[i])
 	}
 	return s

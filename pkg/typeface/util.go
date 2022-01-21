@@ -8,7 +8,7 @@ import (
 
 var (
 	SymbolMarker = '^'
-	SymbolItem = "^^"
+	SymbolItem   = "^^"
 )
 
 func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pixel.Vec {
@@ -56,7 +56,7 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 					nb := b
 					for j := 0; j < len(syms); j++ {
 						if syms[j] >= nb {
-							symbols = append(symbols, pixel.V(txt.Dot.X + txt.BoundsOf(raw[nb:syms[j]]).W() + txt.BoundsOf(SymbolItem).W() * 0.5, txt.Dot.Y))
+							symbols = append(symbols, pixel.V(txt.Dot.X+txt.BoundsOf(raw[nb:syms[j]]).W()+txt.BoundsOf(SymbolItem).W()*0.5, txt.Dot.Y))
 							fmt.Fprint(txt, raw[nb:syms[j]])
 							for range SymbolItem {
 								fmt.Fprint(txt, " ")
@@ -84,7 +84,7 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 		nb := b
 		for j := 0; j < len(syms); j++ {
 			if syms[j] >= nb {
-				symbols = append(symbols, pixel.V(txt.Dot.X + txt.BoundsOf(raw[nb:syms[j]]).W() + txt.BoundsOf(SymbolItem).W() * 0.5, txt.Dot.Y))
+				symbols = append(symbols, pixel.V(txt.Dot.X+txt.BoundsOf(raw[nb:syms[j]]).W()+txt.BoundsOf(SymbolItem).W()*0.5, txt.Dot.Y))
 				fmt.Fprint(txt, raw[nb:syms[j]])
 				for range SymbolItem {
 					fmt.Fprint(txt, " ")
@@ -125,7 +125,7 @@ func RawLines(txt *text.Text, raw string, maxWidth float64) []string {
 			}
 			cut = false
 			space = false
-			b = e+1
+			b = e + 1
 		}
 	}
 	lines = append(lines, raw[b:])

@@ -17,10 +17,10 @@ type Instance struct {
 }
 
 type Animation struct {
-	Loop  bool
-	Hold  bool
-	S     []*pixel.Sprite
-	dur   float64
+	Loop bool
+	Hold bool
+	S    []*pixel.Sprite
+	dur  float64
 }
 
 func NewAnimation(spriteSheet *SpriteSheet, a []pixel.Rect, loop, hold bool, dur float64) *Animation {
@@ -29,10 +29,10 @@ func NewAnimation(spriteSheet *SpriteSheet, a []pixel.Rect, loop, hold bool, dur
 		spr = append(spr, pixel.NewSprite(spriteSheet.Img, r))
 	}
 	return &Animation{
-		Loop:  loop,
-		Hold:  hold,
-		S:     spr,
-		dur:   dur,
+		Loop: loop,
+		Hold: hold,
+		S:    spr,
+		dur:  dur,
 	}
 }
 

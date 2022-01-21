@@ -19,6 +19,9 @@ func Debug(in *input.Input) {
 			//debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.hovered.Chunk.Coords.X, d.hovered.Chunk.Coords.Y))
 			//debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.hovered.SubCoords.X, d.hovered.SubCoords.Y))
 			debug.AddText(fmt.Sprintf("tile type: '%s'", d.Hovered.Type))
+			if d.Hovered.Bomb {
+				debug.AddText(fmt.Sprintf("tile has a bomb"))
+			}
 			for i, spr := range d.Hovered.Sprites {
 				debug.AddText(fmt.Sprintf("tile sprite %d: '%s'", i, spr.SprKey))
 			}

@@ -12,11 +12,11 @@ import (
 
 type Menu struct {
 	Items map[string]*Item
-	
+
 	Transform       *transform.Transform
 	Canvas          *pixelgl.Canvas
 	TransformEffect *transform.Effect
-	
+
 	Show bool
 	Cam  *camera.Camera
 

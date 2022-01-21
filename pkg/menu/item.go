@@ -47,11 +47,11 @@ func NewItem(t *ItemText, rect, parent pixel.Rect) *Item {
 	tran.SetRect(rect)
 	tran.SetParent(parent)
 	item := &Item{
-		Text:       t,
-		Transform:  tran,
-		Canvas:     pixelgl.NewCanvas(rect),
-		Mask:       colornames.White,
-		Show:       true,
+		Text:      t,
+		Transform: tran,
+		Canvas:    pixelgl.NewCanvas(rect),
+		Mask:      colornames.White,
+		Show:      true,
 
 		HoverDefault:   true,
 		UnHoverDefault: true,

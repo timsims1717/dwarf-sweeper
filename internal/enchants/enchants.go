@@ -7,16 +7,15 @@ import (
 	"dwarf-sweeper/pkg/util"
 )
 
-func PickEnchantments() []*data.Enchantment {
+func PickEnchantments(enchants []string) []*data.Enchantment {
 	var result []*data.Enchantment
 	var have []string
-	pe := descent.Descent.GetPlayer().Enchants
 	list := Enchantments
-	for _, i := range pe {
+	for _, i := range enchants {
 		have = append(have, i)
 	}
 outer:
-	for i := len(list)-1; i >= 0; i-- {
+	for i := len(list) - 1; i >= 0; i-- {
 		e := list[i]
 		req := e.Require != ""
 		for _, h := range have {

@@ -71,7 +71,7 @@ func VFXSystem() {
 					}
 				}
 			}
-			for i := len(remove)-1; i >= 0; i-- {
+			for i := len(remove) - 1; i >= 0; i-- {
 				if len(vfx.Effects) > 1 {
 					vfx.Effects = append(vfx.Effects[:remove[i]], vfx.Effects[remove[i]+1:]...)
 				} else {

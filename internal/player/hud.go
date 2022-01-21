@@ -40,30 +40,30 @@ func InitHUD() {
 		tran.Anchor.H = transform.Left
 		tran.Anchor.V = transform.Center
 		tran.Scalar = pixel.V(1.6, 1.6)
-		tran.Pos = pixel.V(constants.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, constants.BaseH * 0.5 - world.TileSize)
+		tran.Pos = pixel.V(constants.BaseW*-0.5+8.+float64(i)*1.2*world.TileSize, constants.BaseH*0.5-world.TileSize)
 		heartTransforms = append(heartTransforms, tran)
 	}
 	gemTransform = transform.NewTransform()
 	gemTransform.Anchor.H = transform.Left
 	gemTransform.Anchor.V = transform.Center
 	gemTransform.Scalar = pixel.V(1.6, 1.6)
-	gemTransform.Pos = pixel.V(constants.BaseW * -0.5 + 8., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	gemTransform.Pos = pixel.V(constants.BaseW*-0.5+8., constants.BaseH*0.5-(4.+2.0*world.TileSize))
 	gemNumberItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Center)
-	gemNumberItem.Transform.Pos = pixel.V(constants.BaseW * -0.5 + 24., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	gemNumberItem.Transform.Pos = pixel.V(constants.BaseW*-0.5+24., constants.BaseH*0.5-(4.+2.0*world.TileSize))
 	itemTransform = transform.NewTransform()
 	itemTransform.Anchor.H = transform.Right
 	itemTransform.Anchor.V = transform.Center
 	itemTransform.Scalar = pixel.V(1.6, 1.6)
-	itemTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - world.TileSize)
+	itemTransform.Pos = pixel.V(constants.BaseW*0.5-8., constants.BaseH*0.5-world.TileSize)
 	itemCountItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(0.8, 0.8), menu.Right, menu.Bottom)
-	itemCountItem.Transform.Pos = pixel.V(constants.BaseW * 0.5, constants.BaseH * 0.5 - world.TileSize * 1.5)
+	itemCountItem.Transform.Pos = pixel.V(constants.BaseW*0.5, constants.BaseH*0.5-world.TileSize*1.5)
 	bombCountTransform = transform.NewTransform()
 	bombCountTransform.Anchor.H = transform.Right
 	bombCountTransform.Anchor.V = transform.Center
 	bombCountTransform.Scalar = pixel.V(1.6, 1.6)
-	bombCountTransform.Pos = pixel.V(constants.BaseW * 0.5 - 8., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	bombCountTransform.Pos = pixel.V(constants.BaseW*0.5-8., constants.BaseH*0.5-(4.+2.0*world.TileSize))
 	bombCountItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Right, menu.Center)
-	bombCountItem.Transform.Pos = pixel.V(constants.BaseW * 0.5 + 5., constants.BaseH * 0.5 - (4. + 2.0 * world.TileSize))
+	bombCountItem.Transform.Pos = pixel.V(constants.BaseW*0.5+5., constants.BaseH*0.5-(4.+2.0*world.TileSize))
 	tmpAnimation = reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers[constants.MenuSprites].Animations["heart_temp_1"].S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers[constants.MenuSprites].Animations["heart_temp_2"].S, reanimator.Hold)).
@@ -96,12 +96,13 @@ func UpdateHUD() {
 			tran.Anchor.H = transform.Left
 			tran.Anchor.V = transform.Center
 			tran.Scalar = pixel.V(1.6, 1.6)
-			tran.Pos = pixel.V(constants.BaseW * -0.5 + 8. + float64(i) * 1.2 * world.TileSize, constants.BaseH * 0.5 - world.TileSize)
+			tran.Pos = pixel.V(constants.BaseW*-0.5+8.+float64(i)*1.2*world.TileSize, constants.BaseH*0.5-world.TileSize)
 			heartTransforms = append(heartTransforms, tran)
 		}
 	}
-	if descent.GemsFound != lastGem {
-		lastGem = descent.GemsFound
+	if descent.CaveGemsFound != lastGem {
+		fmt.Println("gem collected")
+		lastGem = descent.CaveGemsFound
 		gemNumberItem.SetText(fmt.Sprintf("x%d", lastGem))
 		gemTimer = timing.New(3.0)
 	} else if lastGem == 0 || gemTimer == nil {
@@ -125,7 +126,7 @@ func UpdateHUD() {
 			bombCountItem.TextColor = colornames.Aliceblue
 		}
 		bombCountItem.SetText(fmt.Sprintf("x%d", num))
-		bombCountTransform.Pos.X = bombCountItem.Transform.Pos.X - (bombCountItem.Text.Bounds().W() + 6.) * 1.6
+		bombCountTransform.Pos.X = bombCountItem.Transform.Pos.X - (bombCountItem.Text.Bounds().W()+6.)*1.6
 	}
 }
 
@@ -149,11 +150,11 @@ func DrawHUD(win *pixelgl.Window) {
 		img.Batchers[constants.MenuSprites].Sprites["heart_full"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}
-	for i < hp.TempHP + hp.Curr && i < len(heartTransforms) {
+	for i < hp.TempHP+hp.Curr && i < len(heartTransforms) {
 		tmpAnimation.Draw(win, heartTransforms[i].Mat)
 		i++
 	}
-	for i < util.Min(hp.Max + hp.TempHP, hp.Max) && i < len(heartTransforms) {
+	for i < util.Min(hp.Max+hp.TempHP, hp.Max) && i < len(heartTransforms) {
 		img.Batchers[constants.MenuSprites].Sprites["heart_empty"].Draw(win, heartTransforms[i].Mat)
 		i++
 	}
@@ -176,7 +177,7 @@ func DrawHUD(win *pixelgl.Window) {
 		item.Sprite.Draw(win, itemTransform.Mat)
 		if item.Timer != nil {
 			i := 1
-			for float64(i) / 16. < item.Timer.Perc() {
+			for float64(i)/16. < item.Timer.Perc() {
 				i++
 			}
 			img.Batchers[constants.MenuSprites].Sprites[fmt.Sprintf("item_timer_%d", i)].Draw(win, itemTransform.Mat)

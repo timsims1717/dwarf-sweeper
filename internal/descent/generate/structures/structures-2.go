@@ -16,7 +16,7 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 	currType := cave.BlockCollapse
 	chance := random.CaveGen.Intn(40) + 40
 	switch random.CaveGen.Intn(4) {
-	case 0,1,2:
+	case 0, 1, 2:
 		currType = cave.Empty
 	case 3:
 		currType = cave.BlockCollapse
@@ -107,7 +107,7 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 	s := max - min
 	width, height := c.Dimensions()
-	if max > width * constants.ChunkSize || max > height * constants.ChunkSize {
+	if max > width*constants.ChunkSize || max > height*constants.ChunkSize {
 		fmt.Printf("WARNING: rect room not generated: max %d is greater than cave width %d or height %d\n", max, width, height)
 		return
 	}
@@ -115,11 +115,11 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 	h := random.CaveGen.Intn(s) + min
 	sX := include.X - w + 1
 	sY := include.Y - h + 1
-	tlX := random.CaveGen.Intn(w - 2) + sX
-	tlY := random.CaveGen.Intn(h - 2) + sY
-	tW := w-2
+	tlX := random.CaveGen.Intn(w-2) + sX
+	tlY := random.CaveGen.Intn(h-2) + sY
+	tW := w - 2
 	tC := util.RandomSampleRange(tTotal, tlX+1, tlX+tW, random.CaveGen)
-	for y := tlY; y < tlY + h; y++ {
+	for y := tlY; y < tlY+h; y++ {
 		for x := tlX; x < tlX+w; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
@@ -139,8 +139,8 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 func BombableNode(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center world.Coords) {
 	cPos := c.GetTileInt(center.X, center.Y).Transform.Pos
 	fRad := float64(radius) * world.TileSize
-	for y := center.Y - radius; y < center.Y + radius; y++ {
-		for x := center.X - radius; x < center.X + radius; x++ {
+	for y := center.Y - radius; y < center.Y+radius; y++ {
+		for x := center.X - radius; x < center.X+radius; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				tPos := tile.Transform.Pos
@@ -159,17 +159,17 @@ func Pocket(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center
 	cPos := c.GetTileInt(center.X, center.Y).Transform.Pos
 	fRad := float64(radius) * world.TileSize
 	inRad := fRad * 0.35
-	for y := center.Y - radius; y < center.Y + radius; y++ {
-		for x := center.X - radius; x < center.X + radius; x++ {
+	for y := center.Y - radius; y < center.Y+radius; y++ {
+		for x := center.X - radius; x < center.X+radius; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				tPos := tile.Transform.Pos
 				dist := util.Magnitude(cPos.Sub(tPos))
-				if dist < inRad + random.CaveGen.Float64()*variance && !tile.Bomb {
+				if dist < inRad+random.CaveGen.Float64()*variance && !tile.Bomb {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						ToEmpty(tile, false, false, false)
 					}
-				} else if dist < fRad + random.CaveGen.Float64()*variance {
+				} else if dist < fRad+random.CaveGen.Float64()*variance {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						ToBlock(tile, cave.BlockCollapse, false, true)
 					}
@@ -183,13 +183,13 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 	cPos := c.GetTileInt(center.X, center.Y).Transform.Pos
 	fRad := float64(radius) * world.TileSize
 	inRad := fRad * 0.5
-	for y := center.Y - radius; y < center.Y + radius; y++ {
-		for x := center.X - radius; x < center.X + radius; x++ {
+	for y := center.Y - radius; y < center.Y+radius; y++ {
+		for x := center.X - radius; x < center.X+radius; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				tPos := tile.Transform.Pos
 				dist := util.Magnitude(cPos.Sub(tPos))
-				if tile.RCoords == center || (y == center.Y && dist < world.TileSize * 0.5 + random.CaveGen.Float64()*variance && !tile.Bomb) {
+				if tile.RCoords == center || (y == center.Y && dist < world.TileSize*0.5+random.CaveGen.Float64()*variance && !tile.Bomb) {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						if tile.Path {
 							ToBlock(tile, cave.BlockDig, true, true)
@@ -197,11 +197,11 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 							ToBlock(tile, cave.Wall, true, true)
 						}
 					}
-				} else if dist < inRad + random.CaveGen.Float64()*variance && !tile.Bomb {
+				} else if dist < inRad+random.CaveGen.Float64()*variance && !tile.Bomb {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						ToEmpty(tile, false, false, false)
 					}
-				} else if dist < fRad + random.CaveGen.Float64()*variance {
+				} else if dist < fRad+random.CaveGen.Float64()*variance {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						ToBlock(tile, cave.BlockCollapse, false, false)
 					}

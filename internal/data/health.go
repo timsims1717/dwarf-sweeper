@@ -13,21 +13,21 @@ type SimpleHealth struct {
 }
 
 type Health struct {
-	Max          int // maximum HP
-	Curr         int // current HP
-	Dead         bool // convenience boolean (set if curr == 0)
+	Max  int  // maximum HP
+	Curr int  // current HP
+	Dead bool // convenience boolean (set if curr == 0)
 	// entity can have temporary hit points
-	TempHP       int // the current amount of temp HP
-	TempHPTimer  *timing.FrameTimer // the timer
+	TempHP      int                // the current amount of temp HP
+	TempHPTimer *timing.FrameTimer // the timer
 	// entity can be dazed by attacks
-	Dazed      bool // convenience boolean
-	DazedTime  float64 // how long will the entity be dazed? If 0., use the dazed value of the attack
+	Dazed      bool               // convenience boolean
+	DazedTime  float64            // how long will the entity be dazed? If 0., use the dazed value of the attack
 	DazedTimer *timing.FrameTimer // the timer
-	DazedVFX   *vfx.VFX // todo: refactor as separate entity
-	Inv        bool // invulnerability override (debugging, etc)
+	DazedVFX   *vfx.VFX           // todo: refactor as separate entity
+	Inv        bool               // invulnerability override (debugging, etc)
 	// entity can be invulnerable after receiving damage
 	TempInvTimer *timing.FrameTimer // the timer
-	TempInvSec   float64 // how long (0. would mean no invulnerable frames)
+	TempInvSec   float64            // how long (0. would mean no invulnerable frames)
 	// entity can be immune to different types of damage
 	Immune map[DamageType]Immunity // which damage types is the entity immune to?
 }
@@ -41,6 +41,7 @@ func (h *Health) Delete() {
 		h.DazedVFX = nil
 	}
 }
+
 type DamageType int
 
 const (
@@ -86,9 +87,9 @@ type Immunity struct {
 
 var (
 	NoImmunity = map[DamageType]Immunity{
-		Blast: {},
+		Blast:  {},
 		Shovel: {},
-		Enemy: {},
+		Enemy:  {},
 	}
 	FullImmunity = map[DamageType]Immunity{
 		Blast: {
@@ -108,6 +109,17 @@ var (
 		},
 		Projectile: {
 			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+	}
+	ItemImmunity = map[DamageType]Immunity{
+		Enemy: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+		Shovel: {
 			DMG:   true,
 			Dazed: true,
 		},
@@ -135,35 +147,35 @@ var (
 	}
 	KnockbackImmunity = map[DamageType]Immunity{
 		Blast: {
-			KB:  true,
+			KB: true,
 		},
 		Shovel: {
-			KB:  true,
+			KB: true,
 		},
 		Enemy: {
-			KB:  true,
+			KB: true,
 		},
 	}
 	DamageImmunity = map[DamageType]Immunity{
 		Blast: {
-			DMG:  true,
+			DMG: true,
 		},
 		Shovel: {
-			DMG:  true,
+			DMG: true,
 		},
 		Enemy: {
-			DMG:  true,
+			DMG: true,
 		},
 	}
 	DazedImmunity = map[DamageType]Immunity{
 		Blast: {
-			Dazed:  true,
+			Dazed: true,
 		},
 		Shovel: {
-			Dazed:  true,
+			Dazed: true,
 		},
 		Enemy: {
-			Dazed:  true,
+			Dazed: true,
 		},
 	}
 )

@@ -28,7 +28,7 @@ func GnomeMineLayer(c *cave.Cave, includeL, includeR world.Coords) []*cave.Tile 
 			below2 := c.GetTileInt(curr.X, curr.Y+2)
 			below3 := c.GetTileInt(curr.X, curr.Y+3)
 			below4 := c.GetTileInt(curr.X, curr.Y+4)
-			if count < 2 || count > totalWidth - 3 {
+			if count < 2 || count > totalWidth-3 {
 				ToBlock(main1, cave.BlockDig, true, true)
 				ToBlock(main2, cave.BlockDig, true, true)
 			} else if pillarX%6 == curr.X%6 {

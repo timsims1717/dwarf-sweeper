@@ -45,8 +45,8 @@ var (
 	debugPause     = false
 	menuStack      []*menus.DwarfMenu
 	timer          *timing.FrameTimer
-	timerKeys  map[string]bool
-	debugInput = &input.Input{
+	timerKeys      map[string]bool
+	debugInput     = &input.Input{
 		Buttons: map[string]*input.ButtonSet{
 			"debugConsole": input.NewJoyless(pixelgl.KeyGraveAccent),
 			"debug":        input.NewJoyless(pixelgl.KeyF3),
@@ -87,13 +87,13 @@ var (
 				Keys:    []pixelgl.Button{pixelgl.KeySpace, pixelgl.KeyEnter, pixelgl.KeyKPEnter},
 				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonA},
 			},
-			"menuBack": input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
+			"menuBack":   input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
 			"inputClear": input.New(pixelgl.KeyF1, pixelgl.ButtonBack),
-			"click": input.NewJoyless(pixelgl.MouseButtonLeft),
-			"scrollUp":  {
+			"click":      input.NewJoyless(pixelgl.MouseButtonLeft),
+			"scrollUp": {
 				Scroll: 1,
 			},
-			"scrollDown":  {
+			"scrollDown": {
 				Scroll: -1,
 			},
 			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
@@ -214,7 +214,7 @@ func Update(win *pixelgl.Window) {
 				if data.GameInput.Get("up").JustPressed() &&
 					descent.Descent.GetPlayerTile().IsExit() &&
 					descent.Descent.CanExit() {
-					if descent.Descent.Level >= descent.Descent.Depth - 1 {
+					if descent.Descent.Level >= descent.Descent.Depth-1 {
 						SwitchState(2)
 					} else {
 						SwitchState(5)
@@ -236,7 +236,7 @@ func Update(win *pixelgl.Window) {
 			ratio := camera.Cam.Height / constants.BaseH
 			bl.X += camera.Cam.Width * 0.5 / ratio * camera.Cam.GetZoomScale()
 			bl.Y += constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
-			tr.X -= camera.Cam.Width * 0.5 / ratio * camera.Cam.GetZoomScale() + world.TileSize
+			tr.X -= camera.Cam.Width*0.5/ratio*camera.Cam.GetZoomScale() + world.TileSize
 			tr.Y -= constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
 			camera.Cam.Restrict(bl, tr)
 			descent.Debug(data.GameInput)

@@ -35,7 +35,7 @@ func (m *Mine) Update() {
 		if m.Timer.UpdateDone() || m.explode {
 			CaveBombsLeft--
 			CaveBlownUpBombs++
-			area := []pixel.Vec{ m.Transform.Pos }
+			area := []pixel.Vec{m.Transform.Pos}
 			for _, n := range m.Tile.SubCoords.Neighbors() {
 				t := m.Tile.Chunk.Get(n)
 				t.Destroy(false)
@@ -71,7 +71,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 			}),
 		).
 		SetChooseFn(func() int {
-			if MineFuse * 0.5 > m.Timer.Elapsed() {
+			if MineFuse*0.5 > m.Timer.Elapsed() {
 				return 0
 			} else {
 				return 1

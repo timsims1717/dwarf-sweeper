@@ -16,12 +16,10 @@ func RandomPosition(orig pixel.Vec, varX, varY float64, rando *rand.Rand) pixel.
 	return pos
 }
 
-
 func RandomVelocity(angle, angleVar, force, forceVar float64, rando *rand.Rand) pixel.Vec {
-	v := pixel.V(1, 0).Rotated(angle + (rando.Float64() - 0.5) * angleVar)
-	return v.Scaled(force + (rando.Float64() - 0.5) * forceVar)
+	v := pixel.V(1, 0).Rotated(angle + (rando.Float64()-0.5)*angleVar)
+	return v.Scaled(force + (rando.Float64()-0.5)*forceVar)
 }
-
 
 func RandomPosAndVel(orig pixel.Vec, varX, varY, angle, angleVar, force, forceVar float64, rando *rand.Rand) (*physics.Physics, *transform.Transform) {
 	tran := transform.NewTransform()

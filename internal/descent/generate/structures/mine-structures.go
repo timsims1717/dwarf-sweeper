@@ -9,7 +9,7 @@ import (
 )
 
 func MineLayer(c *cave.Cave, include world.Coords) {
-	totalWidth := 16 + random.CaveGen.Intn(int(c.FillVar * 0.25))
+	totalWidth := 16 + random.CaveGen.Intn(int(c.FillVar*0.25))
 	offset := random.CaveGen.Intn(totalWidth)
 	currX := include.X
 	currX -= offset
@@ -24,13 +24,13 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 			above3 := c.GetTileInt(currX, include.Y-3)
 			below1 := c.GetTileInt(currX, include.Y+1)
 			below2 := c.GetTileInt(currX, include.Y+2)
-			if count < 2 || count > totalWidth - 3 {
+			if count < 2 || count > totalWidth-3 {
 				ToBlock(mainTile, cave.BlockDig, false, false)
 				ToBlock(above1, cave.BlockDig, false, false)
 				ToBlock(above2, cave.BlockDig, false, false)
 				ToBlock(below1, cave.BlockDig, false, false)
 			} else {
-				if pillarX % 6 == currX % 6 {
+				if pillarX%6 == currX%6 {
 					ToEmpty(mainTile, false, true, false)
 					mainTile.AddSprite("pillar", pixel.IM, true)
 					ToEmpty(above1, false, true, false)
@@ -53,18 +53,18 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 func Stairs(c *cave.Cave, include world.Coords, left, down bool, height, width int) {
 	h := height
 	if h < 1 {
-		h = random.CaveGen.Intn(int(c.FillVar * 0.25)) + int(c.FillVar * 0.12)
+		h = random.CaveGen.Intn(int(c.FillVar*0.25)) + int(c.FillVar*0.12)
 	}
 	w := width
 	if w < 1 || w > h {
-		w = random.CaveGen.Intn(int(c.FillVar * 0.1)) + 5
+		w = random.CaveGen.Intn(int(c.FillVar*0.1)) + 5
 	}
 	curr := include
 	count := 0
 	turnC := 0
 	done := false
 	for count < h && !done {
-		if (turnC != w - 1 && down) || (turnC == 1 && !down) {
+		if (turnC != w-1 && down) || (turnC == 1 && !down) {
 			stair := c.GetTileInt(curr.X, curr.Y+1)
 			below1 := c.GetTileInt(curr.X, curr.Y+2)
 			ToBlock(stair, cave.Wall, false, down)

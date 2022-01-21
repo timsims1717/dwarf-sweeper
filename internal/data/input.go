@@ -22,9 +22,9 @@ var GameInput = &input.Input{
 			AxisV:   1,
 		},
 		"flag": {
-			Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
-			Axis:    pixelgl.AxisLeftTrigger,
-			AxisV:   1,
+			Keys:  []pixelgl.Button{pixelgl.MouseButtonRight},
+			Axis:  pixelgl.AxisLeftTrigger,
+			AxisV: 1,
 		},
 		"left":   input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
 		"right":  input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
@@ -43,5 +43,5 @@ var GameInput = &input.Input{
 		},
 	},
 	StickD: true,
-	Mode: input.KeyboardMouse,
+	Mode:   input.KeyboardMouse,
 }

@@ -19,8 +19,8 @@ import (
 
 const (
 	MaxLines = 10
-	VStep = 300.
-	HStep = 400.
+	VStep    = 300.
+	HStep    = 400.
 )
 
 var (
@@ -349,19 +349,19 @@ func (m *DwarfMenu) UpdateSize() {
 
 func (m *DwarfMenu) UpdateBox() {
 	if !m.closing {
-		if m.StepV < m.Rect.H() * 0.5 {
+		if m.StepV < m.Rect.H()*0.5 {
 			m.StepV += timing.DT * VStep
 		}
-		if m.StepV > m.Rect.H() * 0.5 {
+		if m.StepV > m.Rect.H()*0.5 {
 			m.StepV = m.Rect.H() * 0.5
 		}
-		if m.StepH < m.Rect.W() * 0.5 {
+		if m.StepH < m.Rect.W()*0.5 {
 			m.StepH += timing.DT * HStep
 		}
-		if m.StepH > m.Rect.W() * 0.5 {
+		if m.StepH > m.Rect.W()*0.5 {
 			m.StepH = m.Rect.W() * 0.5
 		}
-		if m.StepH >= m.Rect.W() * 0.5 && m.StepV >= m.Rect.H() * 0.5 {
+		if m.StepH >= m.Rect.W()*0.5 && m.StepV >= m.Rect.H()*0.5 {
 			m.opened = true
 		}
 	} else {
@@ -422,18 +422,18 @@ func (m *DwarfMenu) UpdateTransforms() {
 	m.CTDL.Scalar = pixel.V(1.4, 1.4)
 	m.CTDL.Update()
 	m.STU.Pos = pixel.V(0., m.StepV)
-	m.STU.Scalar = pixel.V(1.4 * m.StepH * 0.1735, 1.4)
+	m.STU.Scalar = pixel.V(1.4*m.StepH*0.1735, 1.4)
 	m.STU.Update()
 	m.STR.Pos = pixel.V(m.StepH, 0.)
-	m.STR.Scalar = pixel.V(1.4, 1.4 * m.StepV * 0.1735)
+	m.STR.Scalar = pixel.V(1.4, 1.4*m.StepV*0.1735)
 	m.STR.Update()
 	m.STD.Pos = pixel.V(0., -m.StepV)
-	m.STD.Scalar = pixel.V(1.4 * m.StepH * 0.1735, 1.4)
+	m.STD.Scalar = pixel.V(1.4*m.StepH*0.1735, 1.4)
 	m.STD.Update()
 	m.STL.Pos = pixel.V(-m.StepH, 0.)
-	m.STL.Scalar = pixel.V(1.4, 1.4 * m.StepV * 0.1735)
+	m.STL.Scalar = pixel.V(1.4, 1.4*m.StepV*0.1735)
 	m.STL.Update()
-	m.Center.Scalar = pixel.V(1.4 * m.StepH * 0.1735, 1.4 * m.StepV * 0.1735)
+	m.Center.Scalar = pixel.V(1.4*m.StepH*0.1735, 1.4*m.StepV*0.1735)
 	m.Center.Update()
 	if m.Hovered != -1 {
 		hovered := m.Items[m.Hovered]
@@ -529,9 +529,9 @@ func (m *DwarfMenu) setHover(nextI int) {
 func (m *DwarfMenu) setTop(line int) {
 	if line < m.Top {
 		m.Top = line
-	} else if m.Title && line >= m.Top + MaxLines - 1 {
+	} else if m.Title && line >= m.Top+MaxLines-1 {
 		m.Top = line - MaxLines + 2
-	} else if line >= m.Top + MaxLines {
+	} else if line >= m.Top+MaxLines {
 		m.Top = line - MaxLines + 1
 	}
 }
@@ -545,7 +545,7 @@ func (m *DwarfMenu) menuUp() {
 
 func (m *DwarfMenu) menuDown() {
 	m.Top++
-	if m.Top > m.TLines - MaxLines + 1 {
+	if m.Top > m.TLines-MaxLines+1 {
 		m.Top = m.TLines - MaxLines + 1
 	}
 }
@@ -575,9 +575,9 @@ func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *input.Input) {
 	this := m.Items[curr]
 	nextI := -1
 	if dir == 2 && !this.Right && curr < len(m.Items)-1 {
-		nextI = curr+1
+		nextI = curr + 1
 	} else if dir == 3 && this.Right && curr > 0 {
-		nextI = curr-1
+		nextI = curr - 1
 	}
 	if nextI != -1 {
 		next := m.Items[nextI]

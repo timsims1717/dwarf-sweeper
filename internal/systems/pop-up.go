@@ -20,7 +20,7 @@ func PopUpSystem() {
 		if okT && okP {
 			pop.Tran.Pos = tran.Pos
 			pop.Display = false
-			disp := math.Abs(pivot.X - tran.Pos.X) < pop.Dist && math.Abs(pivot.Y - tran.Pos.Y) < pop.Dist
+			disp := math.Abs(pivot.X-tran.Pos.X) < pop.Dist && math.Abs(pivot.Y-tran.Pos.Y) < pop.Dist
 			tDist := util.Magnitude(pivot.Sub(tran.Pos))
 			if disp && dist == -1. || dist > tDist {
 				dist = tDist

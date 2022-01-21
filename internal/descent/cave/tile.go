@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	one = []byte("1")
+	one  = []byte("1")
 	zero = []byte("0")
 )
 
@@ -70,16 +70,16 @@ type Tile struct {
 	Transform *transform.Transform
 	Chunk     *Chunk
 
-	Sprites      []TileSpr
-	SmartStr     string
-	SmartChange  bool
-	FogSmartStr  string
-	FogSprite    string
-	FogSpriteS   string
-	FogMatrix    pixel.Matrix
-	Surrounded   bool
-	DSurrounded  bool
-	BombCount    int
+	Sprites     []TileSpr
+	SmartStr    string
+	SmartChange bool
+	FogSmartStr string
+	FogSprite   string
+	FogSpriteS  string
+	FogMatrix   pixel.Matrix
+	Surrounded  bool
+	DSurrounded bool
+	BombCount   int
 
 	Entity     myecs.AnEntity
 	XRay       *pixel.Sprite
@@ -100,29 +100,31 @@ type Tile struct {
 	Room        bool
 
 	DestroyTrigger func(*Tile)
+	GemRate        float64
 }
 
 func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 	tran := transform.NewTransform()
-	tran.Pos = pixel.V(float64(x + ch.X * constants.ChunkSize) * world.TileSize, -(float64(y + ch.Y * constants.ChunkSize) * world.TileSize))
+	tran.Pos = pixel.V(float64(x+ch.X*constants.ChunkSize)*world.TileSize, -(float64(y+ch.Y*constants.ChunkSize) * world.TileSize))
 	return &Tile{
-		Type:        BlockCollapse,
-		SubCoords:   world.Coords{ X: x, Y: y },
-		RCoords:     world.Coords{ X: x + ch.X * constants.ChunkSize, Y: y + ch.Y * constants.ChunkSize},
-		Sprites:     []TileSpr{
+		Type:      BlockCollapse,
+		SubCoords: world.Coords{X: x, Y: y},
+		RCoords:   world.Coords{X: x + ch.X*constants.ChunkSize, Y: y + ch.Y*constants.ChunkSize},
+		Sprites: []TileSpr{
 			{
 				SprKey: startSprite,
 			},
 		},
-		Bomb:        bomb,
-		Transform:   tran,
-		Chunk:       chunk,
+		Bomb:      bomb,
+		Transform: tran,
+		Chunk:     chunk,
+		GemRate:   1.,
 	}
 }
 
 func (tile *Tile) Update() {
 	if tile.reload {
-		if tile.SubCoords.X == 0 || tile.SubCoords.X == constants.ChunkSize- 1 || tile.SubCoords.Y == 0 || tile.SubCoords.Y == constants.ChunkSize- 1 {
+		if tile.SubCoords.X == 0 || tile.SubCoords.X == constants.ChunkSize-1 || tile.SubCoords.Y == 0 || tile.SubCoords.Y == constants.ChunkSize-1 {
 			for _, n := range tile.SubCoords.Neighbors() {
 				t := tile.Chunk.Get(n)
 				if t != nil {
@@ -207,12 +209,10 @@ func (tile *Tile) destroy() {
 		if tile.Bomb {
 			tile.Bomb = false
 			tile.Destroyed = true
-		} else {
-			if c == 0 {
-				tile.Destroyed = true
-				for _, n := range ns {
-					tile.Chunk.Get(n).ToReveal()
-				}
+		} else if c == 0 {
+			tile.Destroyed = true
+			for _, n := range ns {
+				tile.Chunk.Get(n).ToReveal()
 			}
 		}
 		if wasSolid {

@@ -38,9 +38,9 @@ func NewChunk(coords world.Coords, c *Cave, tt TileType) *Chunk {
 	for _, b := range list {
 		var tile *Tile
 		if c.Type != Infinite &&
-			((coords.Y == c.Bottom && y == constants.ChunkSize- 1) ||
+			((coords.Y == c.Bottom && y == constants.ChunkSize-1) ||
 				(coords.X == c.Left && x == 0) ||
-				(coords.X == c.Right && x == constants.ChunkSize- 1)) {
+				(coords.X == c.Right && x == constants.ChunkSize-1)) {
 			tile = NewTile(x, y, coords, false, chunk)
 			tile.Type = Wall
 			tile.NeverChange = true
@@ -54,7 +54,7 @@ func NewChunk(coords world.Coords, c *Cave, tt TileType) *Chunk {
 		}
 		chunk.Rows[y][x] = tile
 		x++
-		if x %constants.ChunkSize == 0 {
+		if x%constants.ChunkSize == 0 {
 			x = 0
 			y++
 		}

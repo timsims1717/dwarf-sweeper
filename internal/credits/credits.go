@@ -53,7 +53,7 @@ func Initialize() {
 		B: 234,
 		A: 0,
 	}, pixel.V(1., 1.), menu.Center, menu.Center)
-	Credits.Transform.Pos.Y = (Credits.Text.Bounds().H() + constants.BaseH) * -0.5 - 20.
+	Credits.Transform.Pos.Y = (Credits.Text.Bounds().H()+constants.BaseH)*-0.5 - 20.
 }
 
 func Update() {
@@ -95,10 +95,10 @@ func Update() {
 		overlay.EndShape = imdraw.SharpEndShape
 		w := camera.Cam.Width
 		h := camera.Cam.Height
-		overlay.Push(pixel.V(w * -0.5, h * -0.5))
-		overlay.Push(pixel.V(w * 0.5, h * -0.5))
-		overlay.Push(pixel.V(w * 0.5, h * 0.5))
-		overlay.Push(pixel.V(w * -0.5, h * 0.5))
+		overlay.Push(pixel.V(w*-0.5, h*-0.5))
+		overlay.Push(pixel.V(w*0.5, h*-0.5))
+		overlay.Push(pixel.V(w*0.5, h*0.5))
+		overlay.Push(pixel.V(w*-0.5, h*0.5))
 		overlay.Polygon(0.)
 		Credits.Transform.UIPos = camera.Cam.APos
 		Credits.Transform.UIZoom = camera.Cam.GetZoomScale()

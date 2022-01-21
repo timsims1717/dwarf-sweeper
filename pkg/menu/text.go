@@ -28,7 +28,7 @@ type ItemText struct {
 	HoverColor   color.RGBA
 	ColorEffect  *transform.ColorEffect
 
-	NoShow       bool
+	NoShow bool
 }
 
 type TextAlign int
@@ -93,10 +93,10 @@ func (t *ItemText) Update(r pixel.Rect) {
 		if t.VAlign == Top {
 			t.Text.Dot.Y = t.Text.Orig.Y - t.Text.LineHeight*float64(i+1)
 		} else if t.VAlign == Center {
-			if len(t.lines) % 2 == 0 {
-				t.Text.Dot.Y = t.Text.Orig.Y + t.Text.LineHeight*(float64(len(t.lines) / 2-i)-1.)
+			if len(t.lines)%2 == 0 {
+				t.Text.Dot.Y = t.Text.Orig.Y + t.Text.LineHeight*(float64(len(t.lines)/2-i)-1.)
 			} else {
-				t.Text.Dot.Y = t.Text.Orig.Y + t.Text.LineHeight*(float64(len(t.lines) / 2-i)-0.5)
+				t.Text.Dot.Y = t.Text.Orig.Y + t.Text.LineHeight*(float64(len(t.lines)/2-i)-0.5)
 			}
 		} else {
 			t.Text.Dot.Y = t.Text.Orig.Y + t.Text.LineHeight*float64(len(t.lines)-i-1)
@@ -155,7 +155,7 @@ func (t *ItemText) SetText(raw string) {
 			}
 			cut = false
 			space = false
-			b = e+1
+			b = e + 1
 		}
 	}
 	t.lines = append(t.lines, raw[b:])
@@ -186,7 +186,7 @@ func (t *ItemText) AddText(s string) {
 			}
 			cut = false
 			space = false
-			b = e+1
+			b = e + 1
 		}
 	}
 	t.lines = append(t.lines, s[b:])

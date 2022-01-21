@@ -8,22 +8,23 @@ import (
 	"dwarf-sweeper/pkg/img"
 )
 
+func BasicDestroy(t *cave.Tile) {
+	gemRate := t.Chunk.Cave.GemRate*t.GemRate*descent.Descent.Player.GemRate
+	if t.Bomb {
+		descent.CreateBomb(t.Transform.Pos)
+	} else if random.CaveGen.Float64() < gemRate {
+		descent.CreateCollectible(t.Transform.Pos, descent.GemDiamond)
+	}
+}
+
 func UpdateTiles(tiles []*cave.Tile) {
 	for _, tile := range tiles {
 		if tile.Solid() && tile.Breakable() {
+			tile.DestroyTrigger = BasicDestroy
 			if tile.Bomb {
-				tile.DestroyTrigger = func(t *cave.Tile) {
-					descent.CreateBomb(t.Transform.Pos)
-				}
 				descent.CaveTotalBombs++
 				descent.CaveBombsLeft++
 				tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
-			} else if random.CaveGen.Intn(tile.Chunk.Cave.GemRate) == 0 {
-				collect := descent.Collectibles[descent.GemDiamond]
-				tile.Entity = &descent.CollectibleItem{
-					Collect: collect,
-				}
-				tile.XRay = collect.Sprite
 			}
 		}
 	}
@@ -42,31 +43,18 @@ func FillBasic(ch *cave.Chunk) {
 	for _, row := range ch.Rows {
 		for _, tile := range row {
 			if tile.Solid() && tile.Breakable() {
+				tile.DestroyTrigger = BasicDestroy
 				if tile.Bomb {
-					tile.DestroyTrigger = func(t *cave.Tile) {
-						descent.CreateBomb(t.Transform.Pos)
-					}
 					descent.CaveTotalBombs++
 					descent.CaveBombsLeft++
 					tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
-				} else if random.CaveGen.Intn(ch.Cave.GemRate) == 0 {
-					collect := descent.Collectibles[descent.GemDiamond]
-					tile.Entity = &descent.CollectibleItem{
-						Collect: collect,
-					}
-					tile.XRay = collect.Sprite
 				} else if random.CaveGen.Intn(80) == 0 {
 					switch random.CaveGen.Intn(2) {
 					case 0:
 						tile.Entity = &descent.Slug{}
 					case 1:
 						tile.Entity = &descent.MadMonk{}
-					//case 2:
-					//	p := &descent.Popper{}
-					//	p.Create(tile.Transform.Pos)
 					}
-					//p := &descent.Popper{}
-					//p.Create(tile.Transform.Pos)
 				} else if random.CaveGen.Intn(50) == 0 && tile.Solid() && tile.Breakable() {
 					tile.Entity = &descent.Bat{}
 				}

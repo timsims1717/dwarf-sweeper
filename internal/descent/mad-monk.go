@@ -45,7 +45,7 @@ func (m *MadMonk) Update() {
 			playerCoords := Descent.GetPlayerTile().RCoords
 			ownPos := m.Transform.Pos
 			playerPos := Descent.GetPlayer().Transform.Pos
-			if math.Abs(ownPos.X - playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y && m.AtkTimer.Done() {
+			if math.Abs(ownPos.X-playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y && m.AtkTimer.Done() {
 				m.Attack = true
 				m.faceLeft = ownCoords.X > playerCoords.X
 			}

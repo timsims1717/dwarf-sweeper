@@ -50,18 +50,18 @@ Thank you for playing!
 
 ### DwarfSweeper Links
 
-![DwarfSweeper on Github](https://github.com/timsims1717/dwarf-sweeper)
+[DwarfSweeper on Github](https://github.com/timsims1717/dwarf-sweeper)
 
-![DwarfSweeper on Itch (Original LD48 Version)](https://thetimsims.itch.io/dwarfsweeper)
+[DwarfSweeper on Itch (Original LD48 Version)](https://thetimsims.itch.io/dwarfsweeper)
 
-![DwarfSweeper Ludum Dare Entry](https://ldjam.com/events/ludum-dare/48/dwarfsweeper)
+[DwarfSweeper Ludum Dare Entry](https://ldjam.com/events/ludum-dare/48/dwarfsweeper)
 
 ### Resources/Credits
 
-![Pixel by Faiface](https://github.com/faiface/pixel) (Graphics Library)
+[Pixel by Faiface](https://github.com/faiface/pixel) (Graphics Library)
 
-![Beep by Faiface](https://github.com/faiface/beep) (Audio Library)
+[Beep by Faiface](https://github.com/faiface/beep) (Audio Library)
 
-![Music by Ben Reber](https://soundcloud.com/user-411047148)
+[Music by Ben Reber](https://soundcloud.com/user-411047148)
 
-![Input Prompts by Kenney](https://kenney-assets.itch.io/input-prompts-pixel-16)
+[Input Prompts by Kenney](https://kenney-assets.itch.io/input-prompts-pixel-16)

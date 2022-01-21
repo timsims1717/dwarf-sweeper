@@ -13,7 +13,7 @@ import (
 
 var begun bool
 
-type Challenge struct{
+type Challenge struct {
 	Width, Height, Mines int
 }
 
@@ -47,13 +47,13 @@ func outline(chal Challenge) []structures.Path {
 		{data.Down, 1},
 		{data.Right, 3},
 		{data.Up, chal.Height},
-		{data.Right, chal.Width+3},
+		{data.Right, chal.Width + 3},
 		{data.Down, chal.Height},
 		{data.Right, 3},
 		{data.Up, 1},
 		{data.Right, 4},
 		{data.Down, 3},
-		{data.Left, chal.Width+15},
+		{data.Left, chal.Width + 15},
 	}
 }
 
@@ -63,14 +63,14 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	chal := challenge(level)
 	w := 1
 	h := 1
-	for w <= (chal.Width + 28) / constants.ChunkSize {
+	for w <= (chal.Width+28)/constants.ChunkSize {
 		w++
 	}
-	for h <= (chal.Height + 12) / constants.ChunkSize {
+	for h <= (chal.Height+12)/constants.ChunkSize {
 		h++
 	}
 	c.SetSize(0, w, h-1)
-	c.StartC = world.Coords{X: 12, Y: h * constants.ChunkSize - 8}
+	c.StartC = world.Coords{X: 12, Y: h*constants.ChunkSize - 8}
 	exitC := c.StartC
 	exitC.X += chal.Width + 13
 	c.ExitC = exitC
@@ -83,7 +83,7 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	structures.Outline(c, pathS, outline(chal))
 	structures.Entrance(c, c.StartC, 5, 3, 0, false)
 	structures.Entrance(c, exitC, 5, 3, 0, true)
-	for x := c.StartC.X+1; x < c.ExitC.X; x++ {
+	for x := c.StartC.X + 1; x < c.ExitC.X; x++ {
 		tile := c.GetTileInt(x, c.StartC.Y)
 		structures.ToBlock(tile, cave.BlockCollapse, false, true)
 		tile.Bomb = false
@@ -121,8 +121,8 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	curr = c.StartC
 	curr.X += 6
 	x = curr.X
-	for i := 0; i < chal.Height + 1; i++ {
-		for j := 0; j < chal.Width + 2; j++ {
+	for i := 0; i < chal.Height+1; i++ {
+		for j := 0; j < chal.Width+2; j++ {
 			structures.ToEmpty(c.GetTileInt(curr.X, curr.Y), true, true, true)
 			curr.X++
 		}

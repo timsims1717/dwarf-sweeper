@@ -53,31 +53,31 @@ func CreateBomb(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran).
 			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-						CaveBombsLeft--
-						CaveBlownUpBombs++
-						tile := Descent.GetCave().GetTile(trans.Pos)
-						for _, n := range tile.SubCoords.Neighbors() {
-							t := tile.Chunk.Get(n)
-							t.Destroy(false)
-						}
-						myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
-							SourceID:       trans.ID,
-							Center:         trans.Pos,
-							Radius:         MineBaseRadius * world.TileSize,
-							Amount:         1,
-							Dazed:          3.,
-							Knockback:      MineBaseKnockback,
-							KnockbackDecay: true,
-						})
-						vfx.CreateExplosion(trans.Pos)
-						sfx.SoundPlayer.PlaySound("blast1", 0.0)
-						camera.Cam.Shake(0.5, 10.)
-						myecs.Manager.DisposeEntity(e)
-						return false
-					}))
+					CaveBombsLeft--
+					CaveBlownUpBombs++
+					tile := Descent.GetCave().GetTile(trans.Pos)
+					for _, n := range tile.SubCoords.Neighbors() {
+						t := tile.Chunk.Get(n)
+						t.Destroy(false)
+					}
+					myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+						SourceID:       trans.ID,
+						Center:         trans.Pos,
+						Radius:         MineBaseRadius * world.TileSize,
+						Amount:         1,
+						Dazed:          3.,
+						Knockback:      MineBaseKnockback,
+						KnockbackDecay: true,
+					})
+					vfx.CreateExplosion(trans.Pos)
+					sfx.SoundPlayer.PlaySound("blast1", 0.0)
+					camera.Cam.Shake(0.5, 10.)
+					myecs.Manager.DisposeEntity(e)
+					return false
+				}))
 			})).
 		SetChooseFn(func() int {
-			if BombFuse - fuse.Elapsed() > 0.3 {
+			if BombFuse-fuse.Elapsed() > 0.3 {
 				return 0
 			} else {
 				return 1

@@ -28,7 +28,7 @@ func NewRoomyCave(biome string, level, left, right, bottom int) *cave.Cave {
 	newCave.SetSize(left, right, bottom)
 	newCave.StartC = startT
 	newCave.ExitC = exitT
-	newCave.GemRate = constants.BaseGem
+	newCave.GemRate2 = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
 	newCave.BombPMin = 0.12
 	newCave.BombPMax = 0.22
@@ -79,7 +79,7 @@ func NewRoomyCave(biome string, level, left, right, bottom int) *cave.Cave {
 	fillVar := newCave.Width * newCave.Height / 128.
 	fillVarF := float64(fillVar)
 	// generate path branching from orig paths
-	count := random.CaveGen.Intn(fillVar / 4) + fillVar / 3
+	count := random.CaveGen.Intn(fillVar/4) + fillVar/3
 	for i := 0; i < count && len(marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(marked))
 		include := marked[sti]
@@ -90,12 +90,12 @@ func NewRoomyCave(biome string, level, left, right, bottom int) *cave.Cave {
 		marked = append(marked, m2...)
 	}
 	// place rectangles at random marked tiles
-	count = random.CaveGen.Intn(fillVar / 4) + fillVar / 3
+	count = random.CaveGen.Intn(fillVar/4) + fillVar/3
 	for i := 0; i < count && len(marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(marked))
 		include := marked[sti]
 		marked = append(marked[:sti], marked[sti+1:]...)
-		r1, m1 := structures.RandRectRoom(newCave, 7, (constants.ChunkSize/ 4) * 3, include)
+		r1, m1 := structures.RandRectRoom(newCave, 7, (constants.ChunkSize/4)*3, include)
 		room = append(room, r1...)
 		marked = append(marked, m1...)
 	}
@@ -103,23 +103,23 @@ func NewRoomyCave(biome string, level, left, right, bottom int) *cave.Cave {
 	/* ***********  This marks where the Base Cave Generation ends  *********** */
 	/* ***********        and structures begin to be created.       *********** */
 	// pockets
-	count = random.CaveGen.Intn(int(fillVarF * 0.16) + int(fillVarF * 0.2))
+	count = random.CaveGen.Intn(int(fillVarF*0.16) + int(fillVarF*0.2))
 	for i := 0; i < count && len(marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(marked))
 		include := marked[sti]
 		marked = append(marked[:sti], marked[sti+1:]...)
-		structures.Pocket(newCave, random.CaveGen.Intn(3) + 2, world.TileSize * 2., false, include)
+		structures.Pocket(newCave, random.CaveGen.Intn(3)+2, world.TileSize*2., false, include)
 	}
 	// rings
-	count = random.CaveGen.Intn(int(fillVarF * 0.16)) + int(fillVarF * 0.2)
+	count = random.CaveGen.Intn(int(fillVarF*0.16)) + int(fillVarF*0.2)
 	for i := 0; i < count && len(marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(marked))
 		include := marked[sti]
 		marked = append(marked[:sti], marked[sti+1:]...)
-		structures.Ring(newCave, random.CaveGen.Intn(5) + 3, world.TileSize * 3., false, include)
+		structures.Ring(newCave, random.CaveGen.Intn(5)+3, world.TileSize*3., false, include)
 	}
 	// noodle caves
-	count = random.CaveGen.Intn(int(fillVarF * 0.16)) + int(fillVarF * 0.2)
+	count = random.CaveGen.Intn(int(fillVarF*0.16)) + int(fillVarF*0.2)
 	for i := 0; i < count && len(marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(marked))
 		s := marked[sti]
@@ -150,18 +150,13 @@ func NewRoomyCave(biome string, level, left, right, bottom int) *cave.Cave {
 	newCave.MarkAsNotChanged()
 	// bombable nodes
 	if len(room) > 0 {
-		count = random.CaveGen.Intn(int(fillVarF * 0.125)) + int(fillVarF * 0.25)
+		count = random.CaveGen.Intn(int(fillVarF*0.125)) + int(fillVarF*0.25)
 		for i := 0; i < count; i++ {
 			s := room[random.CaveGen.Intn(len(room))]
-			structures.BombableNode(newCave, random.CaveGen.Intn(2) + 1, world.TileSize * 2., true, s)
+			structures.BombableNode(newCave, random.CaveGen.Intn(2)+1, world.TileSize*2., true, s)
 		}
 	}
-	for _, ch := range newCave.LChunks {
-		structures.FillBasic(ch)
-	}
-	for _, ch := range newCave.RChunks {
-		structures.FillBasic(ch)
-	}
+	structures.FillCave(newCave)
 	fmt.Println("Total bombs:", descent.CaveTotalBombs)
 	newCave.PrintCaveToTerminal()
 	return newCave
@@ -184,7 +179,7 @@ func RoomyCave(newCave *cave.Cave, level int) {
 	newCave.SetSize(left, right, bottom)
 	newCave.StartC = startT
 	newCave.ExitC = exitT
-	newCave.GemRate = constants.BaseGem
+	newCave.GemRate2 = constants.BaseGem
 	newCave.ItemRate = constants.BaseItem
 	newCave.BombPMin = 0.12
 	newCave.BombPMax = 0.22
@@ -230,7 +225,7 @@ func RoomyCave(newCave *cave.Cave, level int) {
 	newCave.DeadEnds = append(newCave.DeadEnds, d2...)
 	newCave.Marked = append(newCave.Marked, m2...)
 	// generate path branching from orig paths
-	count := random.CaveGen.Intn(int(newCave.FillVar * 0.25)) + int(newCave.FillVar * 0.3)
+	count := random.CaveGen.Intn(int(newCave.FillVar*0.25)) + int(newCave.FillVar*0.3)
 	for i := 0; i < count && len(newCave.Marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(newCave.Marked))
 		include := newCave.Marked[sti]
@@ -241,12 +236,12 @@ func RoomyCave(newCave *cave.Cave, level int) {
 		newCave.Marked = append(newCave.Marked, m2...)
 	}
 	// place rectangles at random marked tiles
-	count = random.CaveGen.Intn(int(newCave.FillVar * 0.25)) + int(newCave.FillVar * 0.3)
+	count = random.CaveGen.Intn(int(newCave.FillVar*0.25)) + int(newCave.FillVar*0.3)
 	for i := 0; i < count && len(newCave.Marked) > 0; i++ {
 		sti := random.CaveGen.Intn(len(newCave.Marked))
 		include := newCave.Marked[sti]
 		newCave.Marked = append(newCave.Marked[:sti], newCave.Marked[sti+1:]...)
-		r1, m1 := structures.RandRectRoom(newCave, 7, int(newCave.FillVar * 0.25), include)
+		r1, m1 := structures.RandRectRoom(newCave, 7, int(newCave.FillVar*0.25), include)
 		room = append(room, r1...)
 		newCave.Marked = append(newCave.Marked, m1...)
 	}

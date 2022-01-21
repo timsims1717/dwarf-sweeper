@@ -2,6 +2,7 @@ package state
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/enchants"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
@@ -65,7 +66,7 @@ func ClearEnchantMenu() {
 
 func FillEnchantMenu() bool {
 	ClearEnchantMenu()
-	choices := enchants.PickEnchantments()
+	choices := enchants.PickEnchantments(descent.Descent.Player.Enchants)
 	if len(choices) == 0 {
 		return false
 	}

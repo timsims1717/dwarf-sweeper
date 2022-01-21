@@ -31,7 +31,7 @@ type CaveBuilder struct {
 	Desc       string        `json:"desc"`
 	Tracks     []string      `json:"tracks"`
 	Type       cave.CaveType `json:"type"`
-    Base       Base          `json:"base"`
+	Base       Base          `json:"base"`
 	Structures []Structure   `json:"structures"`
 }
 
@@ -44,8 +44,6 @@ type Structure struct {
 	RandMult float64  `json:"randMult"`
 	Enemies  []string `json:"enemies"`
 }
-
-
 
 var toBaseString = map[Base]string{
 	Roomy:  "Roomy",

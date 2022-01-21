@@ -59,7 +59,7 @@ func AddToInventory(item *InvItem) bool {
 func UseEquipped() {
 	if len(Inventory) > 0 && InvIndex < len(Inventory) {
 		item := Inventory[InvIndex]
-		if !item.Using || item.Timer == nil || item.Sec - item.Timer.Elapsed() < 0.1 {
+		if !item.Using || item.Timer == nil || item.Sec-item.Timer.Elapsed() < 0.1 {
 			item.OnUse()
 			if item.Sec > 0. {
 				item.Timer = timing.New(item.Sec)
@@ -77,7 +77,7 @@ func PrevItem() {
 		if newInv < 0 {
 			newInv += len(Inventory)
 		}
-		InvIndex = newInv% len(Inventory)
+		InvIndex = newInv % len(Inventory)
 	} else {
 		InvIndex = 0
 	}

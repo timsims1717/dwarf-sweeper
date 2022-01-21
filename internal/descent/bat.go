@@ -48,8 +48,8 @@ func (b *Bat) Update() {
 		}
 		if !b.roosting {
 			if b.flight.X == 0. && b.flight.Y == 0. {
-				b.flight.X = (random.Effects.Float64()-0.5) * 2.
-				b.flight.Y = (random.Effects.Float64()-0.5) * 2.
+				b.flight.X = (random.Effects.Float64() - 0.5) * 2.
+				b.flight.Y = (random.Effects.Float64() - 0.5) * 2.
 				b.flight = util.Normalize(b.flight)
 			}
 			if b.Physics.RightBound && b.Physics.LeftBound {
@@ -67,12 +67,12 @@ func (b *Bat) Update() {
 				b.flight.Y -= batAcc * timing.DT
 			}
 			b.flight = util.Normalize(b.flight)
-			b.Physics.SetVelX(b.flight.X * batSpeed, batAcc)
-			b.Physics.SetVelY(b.flight.Y * batSpeed, batAcc)
+			b.Physics.SetVelX(b.flight.X*batSpeed, batAcc)
+			b.Physics.SetVelY(b.flight.Y*batSpeed, batAcc)
 			b.faceLeft = b.flight.X < 0.
 			// randomize a bit
-			b.flight.X += (random.Effects.Float64()-0.5) * timing.DT
-			b.flight.Y += (random.Effects.Float64()-0.5) * timing.DT
+			b.flight.X += (random.Effects.Float64() - 0.5) * timing.DT
+			b.flight.Y += (random.Effects.Float64() - 0.5) * timing.DT
 			b.flight = util.Normalize(b.flight)
 			// check for roost
 			tPos := b.Transform.Pos

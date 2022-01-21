@@ -13,7 +13,7 @@ const (
 	BaseH   = 240.
 
 	// Tile Constants
-	TileSize = 16.0
+	TileSize     = 16.0
 	DrawDistance = 24.0 * TileSize
 
 	// Batcher Keys
@@ -57,7 +57,7 @@ var (
 	FullScreen       = false
 	VSync            = true
 	ChangeScreenSize = false
-	Resolutions = []pixel.Vec{
+	Resolutions      = []pixel.Vec{
 		pixel.V(800, 600),
 		pixel.V(1280, 960),
 		pixel.V(1600, 900),

@@ -11,7 +11,7 @@ var (
 )
 
 var (
-	Manager  = ecs.NewManager()
+	Manager = ecs.NewManager()
 
 	Temp    = Manager.NewComponent()
 	Func    = Manager.NewComponent()

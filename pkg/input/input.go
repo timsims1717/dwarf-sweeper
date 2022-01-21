@@ -34,14 +34,14 @@ type Input struct {
 	World      pixel.Vec
 	MouseMoved bool
 	// todo: add mouse axes
-	ScrollV    float64
-	ScrollH    float64
-	Axes       map[string]*AxisSet
-	Buttons    map[string]*ButtonSet
-	Joystick   pixelgl.Joystick
-	StickD     bool
-	Mode       Mode
-	joyConn    bool
+	ScrollV  float64
+	ScrollH  float64
+	Axes     map[string]*AxisSet
+	Buttons  map[string]*ButtonSet
+	Joystick pixelgl.Joystick
+	StickD   bool
+	Mode     Mode
+	joyConn  bool
 }
 
 func (i *Input) Update(win *pixelgl.Window) {
@@ -147,7 +147,7 @@ func (in *Input) FirstKey(s string) string {
 	if in.Get(s) == nil {
 		return ""
 	}
-	if in.Mode != Gamepad && len(in.Get(s).Keys) > 0{
+	if in.Mode != Gamepad && len(in.Get(s).Keys) > 0 {
 		return in.Get(s).Keys[0].String()
 	} else if in.Mode != KeyboardMouse && len(in.Get(s).Buttons) > 0 {
 		return GamepadString(in.Get("up").Buttons[0])

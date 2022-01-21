@@ -89,9 +89,9 @@ func CreateConfig() {
 				AxisV:   1,
 			},
 			Flag: &input.ButtonSet{
-				Keys:    []pixelgl.Button{pixelgl.MouseButtonRight},
-				Axis:    pixelgl.AxisLeftTrigger,
-				AxisV:   1,
+				Keys:  []pixelgl.Button{pixelgl.MouseButtonRight},
+				Axis:  pixelgl.AxisLeftTrigger,
+				AxisV: 1,
 			},
 			Use:      input.New(pixelgl.KeyE, pixelgl.ButtonB),
 			Interact: input.New(pixelgl.KeyQ, pixelgl.ButtonY),

@@ -90,8 +90,8 @@ func (p *Popper) Update() {
 		if p.target != nil {
 			tarDist = util.Magnitude(Descent.GetPlayer().Transform.Pos.Sub(p.target.Transform.Pos))
 		}
-		wait := distance > world.TileSize * seekDist
-		run := distance < world.TileSize * runDist
+		wait := distance > world.TileSize*seekDist
+		run := distance < world.TileSize*runDist
 		switch p.action {
 		case Wait:
 			p.Physics.SetVelX(0., popperAcc)
@@ -103,7 +103,7 @@ func (p *Popper) Update() {
 			if wait {
 				action = Wait
 			} else {
-				if p.target == nil || len(p.path) == 0 || !p.target.Solid() || tarDist < world.TileSize * runDist || tarDist > world.TileSize * seekDist {
+				if p.target == nil || len(p.path) == 0 || !p.target.Solid() || tarDist < world.TileSize*runDist || tarDist > world.TileSize*seekDist {
 					tries := 0
 					targetFound := false
 					for tries < 5 && !targetFound {
@@ -203,7 +203,7 @@ func (p *Popper) Update() {
 							action = Pop
 							p.rootPos = p.target.Transform.Pos
 							p.poppedPos = empty.Transform.Pos
-							p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0.,0.,16., 16.), true, true))
+							p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), true, true))
 							p.Health.Immune[data.Shovel] = data.Immunity{
 								KB:    false,
 								DMG:   false,
@@ -231,8 +231,8 @@ func (p *Popper) Update() {
 							p.effectTimer = timing.New(effectSec)
 						}
 						move := util.Normalize(next.Transform.Pos.Sub(p.Transform.Pos))
-						p.Physics.SetVelX(move.X * popperSpeed, popperAcc)
-						p.Physics.SetVelY(move.Y * popperSpeed, popperAcc)
+						p.Physics.SetVelX(move.X*popperSpeed, popperAcc)
+						p.Physics.SetVelY(move.Y*popperSpeed, popperAcc)
 						if debug.Debug {
 							moveDir := p.Transform.Pos
 							moveDir.X += move.X * 8.
@@ -298,22 +298,22 @@ func (p *Popper) Update() {
 					p.Transform.Rot = 0.5
 					p.angle = ray.Rotated(math.Pi * -0.5).Angle()
 					p.Transform.Flip = pPos.Y > p.poppedPos.Y
-					shoot = pPos.X < p.poppedPos.X + world.TileSize * 0.25
+					shoot = pPos.X < p.poppedPos.X+world.TileSize*0.25
 				} else if p.rootPos.X < p.poppedPos.X { // root to left
 					p.Transform.Rot = -0.5
 					p.angle = ray.Rotated(math.Pi * 0.5).Angle()
 					p.Transform.Flip = pPos.Y < p.poppedPos.Y
-					shoot = pPos.X > p.poppedPos.X - world.TileSize * 0.25
+					shoot = pPos.X > p.poppedPos.X-world.TileSize*0.25
 				} else if p.rootPos.Y > p.poppedPos.Y { // root above
 					p.Transform.Rot = 1.
 					p.angle = ray.Rotated(ray.Angle() * -2.).Angle()
 					p.Transform.Flip = pPos.X < p.poppedPos.X
-					shoot = pPos.Y < p.poppedPos.Y + world.TileSize * 0.25
+					shoot = pPos.Y < p.poppedPos.Y+world.TileSize*0.25
 				} else { // root below
 					p.Transform.Rot = 0.
 					p.angle = ray.Angle()
 					p.Transform.Flip = pPos.X > p.poppedPos.X
-					shoot = pPos.Y > p.poppedPos.Y - world.TileSize * 0.25
+					shoot = pPos.Y > p.poppedPos.Y-world.TileSize*0.25
 				}
 				if debug.Debug {
 					aimDir := p.poppedPos
@@ -421,7 +421,7 @@ func (p *Popper) Create(pos pixel.Vec) {
 		Curr:         2,
 		TempInvTimer: timing.New(0.5),
 		TempInvSec:   0.5,
-		Immune:       map[data.DamageType]data.Immunity{
+		Immune: map[data.DamageType]data.Immunity{
 			data.Enemy: {
 				KB:    true,
 				DMG:   true,
@@ -443,7 +443,7 @@ func (p *Popper) Create(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("popper_out", img.Batchers[constants.EntityKey].GetAnimation("popper_out").S, reanimator.Tran).
 			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_in" {
-					a.Step = 4-pFrame
+					a.Step = 4 - pFrame
 				} else {
 					exit := p.poppedPos
 					var varX, varY, angle float64
@@ -464,7 +464,7 @@ func (p *Popper) Create(pos pixel.Vec) {
 						varX = 2.
 						angle = math.Pi * -0.5
 					}
-					particles.BiomeParticles(exit, Descent.Cave.Biome, 4, 6, varX, varY, angle, 0.5, 100., 15.,  0.75, 0.1, true)
+					particles.BiomeParticles(exit, Descent.Cave.Biome, 4, 6, varX, varY, angle, 0.5, 100., 15., 0.75, 0.1, true)
 				}
 			}).
 			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
@@ -474,7 +474,7 @@ func (p *Popper) Create(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("popper_in", img.Reverse(img.Batchers[constants.EntityKey].GetAnimation("popper_out").S), reanimator.Tran).
 			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_out" {
-					a.Step = 4-pFrame
+					a.Step = 4 - pFrame
 				}
 			}).
 			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
@@ -584,8 +584,8 @@ func (p *Popper) CreateProjectile(norm pixel.Vec) {
 	trans.Pos.X += norm.X * 8.
 	trans.Pos.Y += norm.Y * 8.
 	phys := physics.New()
-	phys.SetVelX(norm.X * fireVel, 0.)
-	phys.SetVelY(norm.Y * fireVel, 0.)
+	phys.SetVelX(norm.X*fireVel, 0.)
+	phys.SetVelY(norm.Y*fireVel, 0.)
 	phys.RagDollX = true
 	phys.RagDollY = true
 	spr := img.Batchers[constants.ParticleKey].GetSprite("dirt_shot")
@@ -608,7 +608,7 @@ func (p *Popper) CreateProjectile(norm pixel.Vec) {
 			coll.Damage.Source = trans.Pos
 			if coll.Collided {
 				myecs.Manager.DisposeEntity(e)
-				particles.CreateRandomParticles(4, 6, []string{"dirt_shot_0", "dirt_shot_1", "dirt_shot_2", "dirt_shot_3", "dirt_shot_4"}, trans.Pos, 0., 0., phys.Velocity.Rotated(math.Pi).Angle(), math.Pi * 0.25, math.Min(util.Magnitude(phys.Velocity), 120.), 10.0, 2., 0.5, true)
+				particles.CreateRandomParticles(4, 6, []string{"dirt_shot_0", "dirt_shot_1", "dirt_shot_2", "dirt_shot_3", "dirt_shot_4"}, trans.Pos, 0., 0., phys.Velocity.Rotated(math.Pi).Angle(), math.Pi*0.25, math.Min(util.Magnitude(phys.Velocity), 120.), 10.0, 2., 0.5, true)
 			}
 			return false
 		})).

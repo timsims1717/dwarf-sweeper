@@ -22,7 +22,7 @@ func Initialize() {
 	if err != nil {
 		panic(err)
 	}
-	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done,)
+	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done)
 	particleSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
 	if err != nil {
 		panic(err)
@@ -39,7 +39,7 @@ func Update() {
 			drop = append(drop, i)
 		}
 	}
-	for i := len(drop)-1; i >= 0; i-- {
+	for i := len(drop) - 1; i >= 0; i-- {
 		effects = append(effects[:drop[i]], effects[drop[i]+1:]...)
 	}
 }

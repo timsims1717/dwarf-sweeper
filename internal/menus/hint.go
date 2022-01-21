@@ -86,7 +86,7 @@ func NewHint(cam *camera.Camera) *HintBox {
 		STR:      STR,
 		STD:      STD,
 		STL:      STL,
-		EntryT:  EntryT,
+		EntryT:   EntryT,
 	}
 }
 
@@ -106,26 +106,26 @@ func (h *HintBox) UpdateSize() {
 		var width, height float64
 		fullW := h.Text.BoundsOf(h.Raw).W()
 		if fullW < h.MaxWidth {
-			width = fullW*0.8
-			height = h.Text.LineHeight*0.8
+			width = fullW * 0.8
+			height = h.Text.LineHeight * 0.8
 		} else {
-			width = h.MaxWidth*0.8
-			height = math.Ceil(fullW/h.MaxWidth)*h.Text.LineHeight*0.8
+			width = h.MaxWidth * 0.8
+			height = math.Ceil(fullW/h.MaxWidth) * h.Text.LineHeight * 0.8
 		}
-		h.Rect = pixel.R(0.,0., width, height)
-		if h.StepV < h.Rect.H() * 0.5 {
+		h.Rect = pixel.R(0., 0., width, height)
+		if h.StepV < h.Rect.H()*0.5 {
 			h.StepV += timing.DT * VStep
 		}
-		if h.StepV > h.Rect.H() * 0.5 {
+		if h.StepV > h.Rect.H()*0.5 {
 			h.StepV = h.Rect.H() * 0.5
 		}
-		if h.StepH < h.Rect.W() * 0.5 {
+		if h.StepH < h.Rect.W()*0.5 {
 			h.StepH += timing.DT * HStep
 		}
-		if h.StepH > h.Rect.W() * 0.5 {
+		if h.StepH > h.Rect.W()*0.5 {
 			h.StepH = h.Rect.W() * 0.5
 		}
-		if h.StepH >= h.Rect.W() * 0.5 && h.StepV >= h.Rect.H() * 0.5 {
+		if h.StepH >= h.Rect.W()*0.5 && h.StepV >= h.Rect.H()*0.5 {
 			h.opened = true
 		} else {
 			h.opened = false
@@ -191,24 +191,24 @@ func (h *HintBox) UpdateTransforms() {
 	h.CTDL.Scalar = pixel.V(1.4, 1.4)
 	h.CTDL.Update()
 	h.STU.Pos = pixel.V(h.Tran.Pos.X, h.Tran.Pos.Y+h.StepV)
-	h.STU.Scalar = pixel.V(1.4 * h.StepH * 0.1735, 1.4)
+	h.STU.Scalar = pixel.V(1.4*h.StepH*0.1735, 1.4)
 	h.STU.Update()
 	h.STR.Pos = pixel.V(h.Tran.Pos.X+h.StepH, h.Tran.Pos.Y)
-	h.STR.Scalar = pixel.V(1.4, 1.4 * h.StepV * 0.1735)
+	h.STR.Scalar = pixel.V(1.4, 1.4*h.StepV*0.1735)
 	h.STR.Update()
 	h.STD.Pos = pixel.V(h.Tran.Pos.X, h.Tran.Pos.Y-h.StepV)
-	h.STD.Scalar = pixel.V(1.4 * h.StepH * 0.1735, 1.4)
+	h.STD.Scalar = pixel.V(1.4*h.StepH*0.1735, 1.4)
 	h.STD.Update()
 	h.STL.Pos = pixel.V(h.Tran.Pos.X-h.StepH, h.Tran.Pos.Y)
-	h.STL.Scalar = pixel.V(1.4, 1.4 * h.StepV * 0.1735)
+	h.STL.Scalar = pixel.V(1.4, 1.4*h.StepV*0.1735)
 	h.STL.Update()
 	h.Center.Pos = h.Tran.Pos
-	h.Center.Scalar = pixel.V(1.4 * h.StepH * 0.1735, 1.4 * h.StepV * 0.1735)
+	h.Center.Scalar = pixel.V(1.4*h.StepH*0.1735, 1.4*h.StepV*0.1735)
 	h.Center.Update()
 	h.EntryT.Pos = pixel.V(h.Tran.Pos.X-h.StepH-hintA.Frame().W()*7/6, h.Tran.Pos.Y)
 	h.EntryT.Scalar = pixel.V(1.4, 1.4)
 	h.EntryT.Update()
-	h.TTran.Pos = pixel.V(h.Tran.Pos.X-h.Rect.W() * 0.5, h.Tran.Pos.Y+(h.Rect.H()-h.Text.BoundsOf(h.Raw).H()) * 0.5)
+	h.TTran.Pos = pixel.V(h.Tran.Pos.X-h.Rect.W()*0.5, h.Tran.Pos.Y+(h.Rect.H()-h.Text.BoundsOf(h.Raw).H())*0.5)
 	h.TTran.Update()
 }
 

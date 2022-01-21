@@ -38,9 +38,9 @@ func TileCollisionSystem() {
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				var hb pixel.Rect
 				if math.Abs(tran.Rot) == 0.5 {
-					hb = pixel.R(0.,0., coll.Hitbox.H(), coll.Hitbox.W())
+					hb = pixel.R(0., 0., coll.Hitbox.H(), coll.Hitbox.W())
 				} else {
-					hb = pixel.R(0.,0., coll.Hitbox.W(), coll.Hitbox.H())
+					hb = pixel.R(0., 0., coll.Hitbox.W(), coll.Hitbox.H())
 				}
 				hb = hb.Moved(tran.Pos).Moved(pixel.V(hb.W()*-0.5, hb.H()*-0.5))
 				lastPos := tran.LastPos
@@ -73,30 +73,30 @@ func TileCollisionSystem() {
 						// collision rays init
 						w := hb.W()
 						h := hb.H()
-						wcr := int(w) / int(world.TileSize * 0.5)
-						hcr := int(h) / int(world.TileSize * 0.5)
+						wcr := int(w) / int(world.TileSize*0.5)
+						hcr := int(h) / int(world.TileSize*0.5)
 						if wcr < 2 {
 							wcr = 2
 						}
 						if hcr < 2 {
 							hcr = 2
 						}
-						iw := w - CollisionStep * 2.
-						ih := h - CollisionStep * 2.
+						iw := w - CollisionStep*2.
+						ih := h - CollisionStep*2.
 
 						// collision rays up and down
 						var dwn, up, gr *cave.Tile
 						for i := 0; i < wcr; i++ {
-							dy := next.Y-h*0.51
-							uy := next.Y+h*0.51
+							dy := next.Y - h*0.51
+							uy := next.Y + h*0.51
 							gy := dy - NearGroundThresh
 							var x float64
 							if i == 0 {
-								x = next.X - iw * 0.5
-							} else if i == wcr - 1 {
-								x = next.X + iw * 0.5
+								x = next.X - iw*0.5
+							} else if i == wcr-1 {
+								x = next.X + iw*0.5
 							} else {
-								x = next.X - w * 0.5 + stepSize + float64(i) * iw / float64(wcr - 1)
+								x = next.X - w*0.5 + stepSize + float64(i)*iw/float64(wcr-1)
 							}
 							d := descent.Descent.GetCave().GetTile(pixel.V(x, dy))
 							u := descent.Descent.GetCave().GetTile(pixel.V(x, uy))
@@ -104,7 +104,7 @@ func TileCollisionSystem() {
 							if d != nil && d.Solid() {
 								if i == 0 {
 									coll.DL = true
-								} else if i == wcr - 1 {
+								} else if i == wcr-1 {
 									coll.DR = true
 								}
 								dwn = d
@@ -117,7 +117,7 @@ func TileCollisionSystem() {
 							if u != nil && u.Solid() {
 								if i == 0 {
 									coll.UL = true
-								} else if i == wcr - 1 {
+								} else if i == wcr-1 {
 									coll.UR = true
 								}
 								up = u
@@ -134,8 +134,8 @@ func TileCollisionSystem() {
 						}
 
 						// collision checks up and down
-						uY := loc.Transform.Pos.Y + (world.TileSize - h) * 0.5
-						dY := loc.Transform.Pos.Y - (world.TileSize - h) * 0.5
+						uY := loc.Transform.Pos.Y + (world.TileSize-h)*0.5
+						dY := loc.Transform.Pos.Y - (world.TileSize-h)*0.5
 						if up != nil && up.Solid() {
 							if next.Y > uY {
 								next.Y = uY

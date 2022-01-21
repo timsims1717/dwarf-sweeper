@@ -168,7 +168,7 @@ func (c *Camera) Update(win *pixelgl.Window) {
 		c.APos.X = math.Round(c.APos.X)
 		c.APos.Y = math.Round(c.APos.Y)
 	}
-	c.Mat = pixel.IM.Scaled(c.APos, c.Height / c.Opt.WindowScale).Scaled(c.APos, c.AZoom).Moved(win.Bounds().Center().Sub(c.APos))
+	c.Mat = pixel.IM.Scaled(c.APos, c.Height/c.Opt.WindowScale).Scaled(c.APos, c.AZoom).Moved(win.Bounds().Center().Sub(c.APos))
 	win.SetMatrix(c.Mat)
 	win.SetColorMask(c.Mask)
 }
@@ -188,14 +188,14 @@ func (c *Camera) SnapTo(v pixel.Vec) {
 
 func (c *Camera) StayWithin(v pixel.Vec, d float64) {
 	if !c.lock {
-		if c.Pos.X >= v.X + d {
+		if c.Pos.X >= v.X+d {
 			c.Pos.X = v.X + d
-		} else if c.Pos.X <= v.X - d {
+		} else if c.Pos.X <= v.X-d {
 			c.Pos.X = v.X - d
 		}
-		if c.Pos.Y >= v.Y + d {
+		if c.Pos.Y >= v.Y+d {
 			c.Pos.Y = v.Y + d
-		} else if c.Pos.Y <= v.Y - d {
+		} else if c.Pos.Y <= v.Y-d {
 			c.Pos.Y = v.Y - d
 		}
 	}
@@ -289,8 +289,8 @@ func (c *Camera) SetColor(col color.RGBA) {
 }
 
 func (c *Camera) Shake(dur, freq float64) {
-	c.shakeX = gween.New((rand.Float64() - 0.5) * 8., 0., dur, SetSine(freq))
-	c.shakeY = gween.New((rand.Float64() - 0.5) * 8., 0., dur, SetSine(freq))
+	c.shakeX = gween.New((rand.Float64()-0.5)*8., 0., dur, SetSine(freq))
+	c.shakeY = gween.New((rand.Float64()-0.5)*8., 0., dur, SetSine(freq))
 }
 
 func (c *Camera) ZoomShake(dur, freq float64) {
@@ -299,10 +299,10 @@ func (c *Camera) ZoomShake(dur, freq float64) {
 
 func SetSine(freq float64) func(float64, float64, float64, float64) float64 {
 	return func(t, b, c, d float64) float64 {
-		return b * math.Pow(math.E, -math.Abs(c) * t) * math.Sin(freq * math.Pi * t)
+		return b * math.Pow(math.E, -math.Abs(c)*t) * math.Sin(freq*math.Pi*t)
 	}
 }
 
 func Sine(t, b, c, d float64) float64 {
-	return b * math.Pow(math.E, -math.Abs(c) * t) * math.Sin(10. * math.Pi * t)
+	return b * math.Pow(math.E, -math.Abs(c)*t) * math.Sin(10.*math.Pi*t)
 }

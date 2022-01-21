@@ -40,6 +40,7 @@ var (
 	ShovelKnockback = 8.
 	ShovelDazed     = 2.
 	ShovelDamage    = 0
+	GemRate         = 1.
 )
 
 type DwarfStats struct {
@@ -49,6 +50,7 @@ type DwarfStats struct {
 	ShovelKnockback float64
 	ShovelDazed     float64
 	ShovelDamage    int
+	GemRate         float64
 }
 
 func DefaultStats() DwarfStats {
@@ -59,6 +61,7 @@ func DefaultStats() DwarfStats {
 		ShovelKnockback: ShovelKnockback,
 		ShovelDazed:     ShovelDazed,
 		ShovelDamage:    ShovelDamage,
+		GemRate:         GemRate,
 	}
 }
 
@@ -84,7 +87,7 @@ type Dwarf struct {
 	isRelative  bool
 	digTile     *cave.Tile
 	attackPoint pixel.Vec
-	tileQueue   []struct{
+	tileQueue   []struct {
 		a int
 		t *cave.Tile
 		f pixel.Vec
@@ -107,8 +110,8 @@ type Dwarf struct {
 	digHold   bool
 	flagHold  bool
 
-	Health    *data.Health
-	DeadStop  bool
+	Health   *data.Health
+	DeadStop bool
 
 	Bubble *Bubble
 }
@@ -149,7 +152,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							return 0
 						}
 					}
-				})).
+															})).
 			AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)). // flat
 			SetChooseFn(func() int {
 				if !d.Physics.Grounded {
@@ -157,8 +160,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				} else {
 					return 1
 				}
-			})).
-		AddAnimation(reanimator.NewAnimFromSprite("dig_hold", batcher.GetSprite("dig"), reanimator.Hold)). // dig hold
+															})).
+		AddAnimation(reanimator.NewAnimFromSprite("dig_hold", batcher.GetSprite("dig"), reanimator.Hold)).   // dig hold
 		AddAnimation(reanimator.NewAnimFromSprite("flag_hold", batcher.GetSprite("flag"), reanimator.Hold)). // flag hold
 		AddAnimation(reanimator.NewAnimFromSprites("dig", batcher.GetAnimation("dig").S, reanimator.Tran).
 			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
@@ -194,11 +197,11 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					anim := img.Batchers[constants.ParticleKey].GetAnimation(key).S
 					e := myecs.Manager.NewEntity()
 					e.AddComponent(myecs.Animation, reanimator.NewSimple(
-							reanimator.NewAnimFromSprites("swipe", anim, reanimator.Done).
-								SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
-									myecs.Manager.DisposeEntity(e)
-								}),
-						)).
+						reanimator.NewAnimFromSprites("swipe", anim, reanimator.Done).
+							SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+								myecs.Manager.DisposeEntity(e)
+							}),
+					)).
 						AddComponent(myecs.Transform, trans).
 						AddComponent(myecs.Batch, constants.ParticleKey).
 						AddComponent(myecs.Temp, myecs.ClearFlag(false))
@@ -241,10 +244,10 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			AddSubSwitch(reanimator.NewSwitch().
 				AddAnimation(reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop).
 					SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
-						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4) + 1), 0.)
+						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
 					})). // run
 				AddSubSwitch(reanimator.NewSwitch().
-					AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)). // flat
+					AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)).       // flat
 					AddAnimation(reanimator.NewAnimFromSprites("idle", batcher.GetAnimation("idle").S, reanimator.Loop)). // idle
 					SetChooseFn(func() int {
 						if d.distFell > 100. {
@@ -261,9 +264,9 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}
 				})).
 			AddSubSwitch(reanimator.NewSwitch().
-				AddAnimation(reanimator.NewAnimFromSprites("climb_up", climbAnim.S, reanimator.Loop)). // climb_up
+				AddAnimation(reanimator.NewAnimFromSprites("climb_up", climbAnim.S, reanimator.Loop)).               // climb_up
 				AddAnimation(reanimator.NewAnimFromSprites("climb_dwn", img.Reverse(climbAnim.S), reanimator.Loop)). // climb_dwn
-				AddAnimation(reanimator.NewAnimFromSprite("climb_still", climbAnim.S[3], reanimator.Hold)). // climb_still
+				AddAnimation(reanimator.NewAnimFromSprite("climb_still", climbAnim.S[3], reanimator.Hold)).          // climb_still
 				SetChooseFn(func() int {
 					if d.Physics.Velocity.Y > 0. {
 						return 0
@@ -275,7 +278,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				})).
 			AddSubSwitch(reanimator.NewSwitch().
 				AddAnimation(reanimator.NewAnimFromSprites("jump", batcher.GetAnimation("jump").S, reanimator.Hold)). // jump
-				AddAnimation(reanimator.NewAnimFromSprite("fall", batcher.GetSprite("fall"), reanimator.Hold)).   // fall
+				AddAnimation(reanimator.NewAnimFromSprite("fall", batcher.GetSprite("fall"), reanimator.Hold)).       // fall
 				SetChooseFn(func() int {
 					if d.Physics.Velocity.Y > 0. || d.jumping || d.toJump || d.jumpEnd ||
 						(d.Bubble != nil && d.Bubble.Physics.Velocity.Y > 0.) {
@@ -310,7 +313,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			}
 		}), "idle")
 	d.Collider = &data.Collider{
-		Hitbox: pixel.R(0., 0., 16., 16.),
+		Hitbox:  pixel.R(0., 0., 16., 16.),
 		CanPass: true,
 	}
 	d.Entity = myecs.Manager.NewEntity().
@@ -361,7 +364,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		if constants.AimDedicated {
 			if in.Mode != input.KeyboardMouse &&
 				(in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. ||
-				in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.) {
+					in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.) {
 				x := in.Axes["targetX"].R
 				y := in.Axes["targetY"].R
 				xA := math.Abs(x)
@@ -517,16 +520,16 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else {
 				var x, y float64
 				if d.facing.Y < 0 {
-					y = d.Transform.Pos.Y - world.TileSize * 0.6
+					y = d.Transform.Pos.Y - world.TileSize*0.6
 				} else if d.facing.Y > 0 {
-					y = d.Transform.Pos.Y + world.TileSize * 0.6
+					y = d.Transform.Pos.Y + world.TileSize*0.6
 				} else {
 					y = d.Transform.Pos.Y
 				}
 				if d.facing.X < 0 {
-					x = d.Transform.Pos.X - world.TileSize * 0.6
+					x = d.Transform.Pos.X - world.TileSize*0.6
 				} else if d.facing.X > 0 {
-					x = d.Transform.Pos.X + world.TileSize * 0.6
+					x = d.Transform.Pos.X + world.TileSize*0.6
 				} else {
 					x = d.Transform.Pos.X
 				}

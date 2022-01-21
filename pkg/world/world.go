@@ -6,7 +6,7 @@ import (
 
 var (
 	TileSize float64
-	Origin = Coords{
+	Origin   = Coords{
 		X: 0,
 		Y: 0,
 	}

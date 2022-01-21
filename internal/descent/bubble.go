@@ -53,12 +53,12 @@ func (b *Bubble) Create(_ pixel.Vec) {
 			vibe.S[1], vibe.S[1],
 		}, reanimator.Loop)).
 		AddAnimation(reanimator.NewAnimFromSprites("bubble_pop", []*pixel.Sprite{
-				img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
-				img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
-			}, reanimator.Tran).
+			img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
+			img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
+		}, reanimator.Tran).
 			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
-					b.Delete()
-				})).
+				b.Delete()
+			})).
 		SetChooseFn(func() int {
 			if !b.popped {
 				return 0

@@ -16,7 +16,7 @@ import (
 
 var (
 	Difficulty = 1
-	Depth = 6
+	Depth      = 6
 )
 
 var Descent = &descent{

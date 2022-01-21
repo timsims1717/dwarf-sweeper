@@ -43,34 +43,34 @@ func MakeAvoidPathRule(orig, avoid world.Coords, legalTypes map[TileType]float64
 
 var (
 	AllTypes = map[TileType]float64{
-		Deco: 1.,
-		Empty: 1.,
+		Deco:          1.,
+		Empty:         1.,
 		BlockCollapse: 1.,
-		BlockDig: 1.,
-		BlockBlast: 1.,
-		Wall: 1.,
+		BlockDig:      1.,
+		BlockBlast:    1.,
+		Wall:          1.,
 	}
 	AllButWallTypes = map[TileType]float64{
-		Deco: 1.,
-		Empty: 1.,
+		Deco:          1.,
+		Empty:         1.,
 		BlockCollapse: 1.,
-		BlockDig: 1.,
-		BlockBlast: 1.,
+		BlockDig:      1.,
+		BlockBlast:    1.,
 	}
 	EmptyTypes = map[TileType]float64{
-		Deco: 1.,
+		Deco:  1.,
 		Empty: 1.,
 	}
 	SolidTypes = map[TileType]float64{
 		BlockCollapse: 1.,
-		BlockDig: 1.,
-		BlockBlast: 1.,
-		Wall: 1.,
+		BlockDig:      1.,
+		BlockBlast:    1.,
+		Wall:          1.,
 	}
 	NonWallTypes = map[TileType]float64{
 		BlockCollapse: 1.,
-		BlockDig: 1.,
-		BlockBlast: 1.,
+		BlockDig:      1.,
+		BlockBlast:    1.,
 	}
 )
 
@@ -153,13 +153,13 @@ func (tile *Tile) PathNeighborCost(to astar.Pather) float64 {
 	}
 	avoid := tile.Chunk.Cave.PathRule.Avoid
 	if avoid != nil {
-		w += float64(util.Max(0., 4 - util.Abs(avoid.X-t.RCoords.X))) * 2.
-		w += float64(util.Max(0., 4 - util.Abs(avoid.Y-t.RCoords.Y))) * 2.
+		w += float64(util.Max(0., 4-util.Abs(avoid.X-t.RCoords.X))) * 2.
+		w += float64(util.Max(0., 4-util.Abs(avoid.Y-t.RCoords.Y))) * 2.
 	}
 	if t.Type == tile.Type || (!t.Solid() && !tile.Solid()) {
 		return w
 	} else if t.Solid() && tile.Solid() {
-		return w + float64(util.Abs(int(t.Type - tile.Type)))
+		return w + float64(util.Abs(int(t.Type-tile.Type)))
 	} else {
 		return w + 3.
 	}

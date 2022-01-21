@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-type Board struct{
+type Board struct {
 	board    [][]bool
 	nums     [][]int
 	revealed [][]bool

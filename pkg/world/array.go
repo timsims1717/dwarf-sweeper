@@ -62,7 +62,6 @@ func Combine(a, b []Coords) []Coords {
 	return n
 }
 
-
 func Intersection(a, b []Coords) []Coords {
 	var n []Coords
 	for _, c := range a {

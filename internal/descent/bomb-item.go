@@ -36,7 +36,7 @@ func (b *BombItem) Update() {
 }
 
 func (b *BombItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomPosAndVel(pos, 0., 0., math.Pi * 0.5, math.Pi * 0.25, 5., 2., random.Effects)
+	b.Physics, b.Transform = util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 5., 2., random.Effects)
 	b.Transform.Pos = pos
 	b.created = true
 	b.sprite = img.Batchers[constants.EntityKey].Sprites["bomb_item"]
@@ -45,7 +45,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 			return AddToInventory(&InvItem{
 				Name:   "bomb",
 				Sprite: b.sprite,
-				OnUse:  func() {
+				OnUse: func() {
 					tile := Descent.GetPlayerTile()
 					CreateBomb(tile.Transform.Pos)
 				},
@@ -64,7 +64,7 @@ func (b *BombItem) Create(pos pixel.Vec) {
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Physics, b.Physics).
 		AddComponent(myecs.Collision, &data.Collider{
-			Hitbox: b.sprite.Frame(),
+			Hitbox:     b.sprite.Frame(),
 			GroundOnly: true,
 		}).
 		AddComponent(myecs.Collect, b.collect).

@@ -22,7 +22,7 @@ type soundPlayer struct {
 
 func init() {
 	SoundPlayer = &soundPlayer{
-		sounds: make(map[string]*beep.Buffer),
+		sounds:     make(map[string]*beep.Buffer),
 		currSounds: make(map[string]time.Time),
 	}
 }

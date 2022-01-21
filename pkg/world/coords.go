@@ -15,13 +15,13 @@ func (a Coords) Eq(b Coords) bool {
 // moving clockwise
 func (a Coords) Neighbors() []Coords {
 	return []Coords{
-		{ a.X, a.Y+1 },
-		{ a.X+1, a.Y+1 },
-		{ a.X+1, a.Y },
-		{ a.X+1, a.Y-1 },
-		{ a.X, a.Y-1 },
-		{ a.X-1, a.Y-1 },
-		{ a.X-1, a.Y },
-		{ a.X-1, a.Y+1 },
+		{a.X, a.Y + 1},
+		{a.X + 1, a.Y + 1},
+		{a.X + 1, a.Y},
+		{a.X + 1, a.Y - 1},
+		{a.X, a.Y - 1},
+		{a.X - 1, a.Y - 1},
+		{a.X - 1, a.Y},
+		{a.X - 1, a.Y + 1},
 	}
 }

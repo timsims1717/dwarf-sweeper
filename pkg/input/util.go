@@ -11,7 +11,7 @@ func NextGamepad(win *pixelgl.Window, curr int) int {
 	} else {
 		next = curr + 1
 	}
-	for next < int(pixelgl.JoystickLast) + 1 {
+	for next < int(pixelgl.JoystickLast)+1 {
 		jsN := pixelgl.Joystick(next)
 		if win.JoystickPresent(jsN) {
 			return next

@@ -6,7 +6,7 @@ import (
 )
 
 type Physics struct {
-	Velocity    pixel.Vec
+	Velocity pixel.Vec
 
 	XJustSet    bool
 	YJustSet    bool

@@ -46,8 +46,8 @@ type Transform struct {
 	Hide bool
 	Mask color.RGBA
 
-	UIPos   pixel.Vec
-	UIZoom  float64
+	UIPos  pixel.Vec
+	UIZoom float64
 }
 
 func NewTransform() *Transform {
@@ -58,7 +58,7 @@ func NewTransform() *Transform {
 			Y: 1.,
 		},
 		UIZoom: 1.,
-		Mask: colornames.White,
+		Mask:   colornames.White,
 	}
 }
 
@@ -109,7 +109,7 @@ func (t *Transform) Update() {
 		t.Mat = t.Mat.ScaledXY(pixel.ZV, pixel.V(t.Parent.W()/t.oPRect.W(), t.Parent.H()/t.oPRect.H()))
 	}
 	t.Mat = t.Mat.ScaledXY(pixel.ZV, t.Scalar.Scaled(t.UIZoom))
-	t.Mat = t.Mat.Rotated(pixel.ZV, math.Pi * t.Rot)
+	t.Mat = t.Mat.Rotated(pixel.ZV, math.Pi*t.Rot)
 	t.Mat = t.Mat.Moved(t.APos.Scaled(t.UIZoom))
 	t.Mat = t.Mat.Moved(t.UIPos)
 }

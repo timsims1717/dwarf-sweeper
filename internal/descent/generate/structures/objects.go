@@ -42,10 +42,7 @@ func addChest(tile *cave.Tile) {
 					collectible = descent.XRayItem
 				}
 				if collectible != "" {
-					item := &descent.CollectibleItem{
-						Collect: descent.Collectibles[collectible],
-					}
-					item.Create(pos)
+					descent.CreateCollectible(pos, collectible)
 				}
 				e.AddComponent(myecs.Sprite, img.Batchers[constants.TileEntityKey].Sprites["chest_opened"])
 				e.RemoveComponent(myecs.Interact)

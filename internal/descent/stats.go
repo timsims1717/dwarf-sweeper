@@ -4,7 +4,7 @@ import (
 	"dwarf-sweeper/pkg/timing"
 )
 
-var(
+var (
 	CaveBlocksDug    int
 	CaveGemsFound    int
 	CaveTotalBombs   int
