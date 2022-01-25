@@ -1,7 +1,9 @@
 package menus
 
 import (
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
@@ -17,6 +19,9 @@ const (
 type HintBox struct {
 	Raw  string
 	Text *text.Text
+
+	Symbols []string
+	SymMats []pixel.Matrix
 
 	Tran     *transform.Transform
 	Rect     pixel.Rect
@@ -48,7 +53,7 @@ func NewHint(cam *camera.Camera) *HintBox {
 		V: transform.Center,
 	}
 	tTran := transform.NewTransform()
-	tTran.Scalar = HintSize
+	tTran.Scalar = pixel.V(constants.ActualHintSize, constants.ActualHintSize)
 	Center := transform.NewTransform()
 	CTUL := transform.NewTransform()
 	CTUR := transform.NewTransform()
@@ -65,7 +70,7 @@ func NewHint(cam *camera.Camera) *HintBox {
 	CTDL.Flop = true
 	STR.Flip = true
 	STD.Flop = true
-	tex := text.New(pixel.ZV, typeface.BasicAtlas)
+	tex := text.New(pixel.ZV, typeface.Atlases["main"])
 	tex.LineHeight *= 1.2
 	return &HintBox{
 		Text:     tex,
@@ -95,7 +100,19 @@ func (h *HintBox) Update() {
 	h.Text.Clear()
 	h.Text.Color = DefaultColor
 	if h.Raw != "" {
-		typeface.SetText(h.Text, h.Raw, h.MaxWidth, typeface.DefaultAlign)
+		symPos := typeface.SetText(h.Text, h.Raw, h.MaxWidth / constants.ActualHintSize, typeface.DefaultAlign)
+		if len(symPos) > 0 {
+			t := transform.NewTransform()
+			t.Scalar = h.Tran.Scalar.Scaled(SymbolScalar)
+			h.SymMats = []pixel.Matrix{}
+			for _, pos := range symPos {
+				t.Pos = h.TTran.APos
+				t.Pos.X += pos.X
+				t.Pos.Y += pos.Y + 2.
+				t.Update()
+				h.SymMats = append(h.SymMats, t.Mat)
+			}
+		}
 	}
 }
 
@@ -104,13 +121,13 @@ func (h *HintBox) UpdateSize() {
 	if !h.closing {
 		h.Closed = false
 		var width, height float64
-		fullW := h.Text.BoundsOf(h.Raw).W()
+		fullW := h.Text.BoundsOf(h.Raw).W() * constants.ActualHintSize
 		if fullW < h.MaxWidth {
-			width = fullW * 0.8
-			height = h.Text.LineHeight * 0.8
+			width = fullW
+			height = h.Text.LineHeight * constants.ActualHintSize
 		} else {
-			width = h.MaxWidth * 0.8
-			height = math.Ceil(fullW/h.MaxWidth) * h.Text.LineHeight * 0.8
+			width = h.MaxWidth
+			height = math.Ceil(fullW/h.MaxWidth) * h.Text.LineHeight * constants.ActualHintSize
 		}
 		h.Rect = pixel.R(0., 0., width, height)
 		if h.StepV < h.Rect.H()*0.5 {
@@ -208,7 +225,7 @@ func (h *HintBox) UpdateTransforms() {
 	h.EntryT.Pos = pixel.V(h.Tran.Pos.X-h.StepH-hintA.Frame().W()*7/6, h.Tran.Pos.Y)
 	h.EntryT.Scalar = pixel.V(1.4, 1.4)
 	h.EntryT.Update()
-	h.TTran.Pos = pixel.V(h.Tran.Pos.X-h.Rect.W()*0.5, h.Tran.Pos.Y+(h.Rect.H()-h.Text.BoundsOf(h.Raw).H())*0.5)
+	h.TTran.Pos = pixel.V(h.Tran.Pos.X-h.Rect.W()*0.5, h.Tran.Pos.Y+(h.Rect.H()-h.Text.BoundsOf(h.Raw).H()*constants.ActualHintSize)*0.5)
 	h.TTran.Update()
 }
 
@@ -226,6 +243,14 @@ func (h *HintBox) Draw(target pixel.Target) {
 		hintA.Draw(target, h.EntryT.Mat)
 		if !h.closing && h.opened && h.Raw != "" {
 			h.Text.Draw(target, h.TTran.Mat)
+			if len(h.SymMats) == len(h.Symbols) {
+				for j := 0; j < len(h.Symbols); j++ {
+					sym := img.Batchers[constants.MenuSprites].Sprites[h.Symbols[j]]
+					if sym != nil {
+						sym.Draw(target, h.SymMats[j])
+					}
+				}
+			}
 		}
 	}
 }

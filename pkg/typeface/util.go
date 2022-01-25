@@ -8,7 +8,7 @@ import (
 
 var (
 	SymbolMarker = '^'
-	SymbolItem   = "^^"
+	SymbolItem   = "^"
 )
 
 func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pixel.Vec {
@@ -18,16 +18,7 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 	cut := false
 	space := false
 	var syms []int
-	sym := 0
 	for i, r := range raw {
-		if sym > 0 {
-			sym++
-			if sym < len(SymbolItem) {
-				continue
-			} else {
-				sym = 0
-			}
-		}
 		switch r {
 		case '\n':
 			cut = true
@@ -37,7 +28,6 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 			e = i
 		case SymbolMarker:
 			syms = append(syms, i)
-			sym = 1
 			continue
 		}
 		if maxWidth > 0. && txt.BoundsOf(raw[b:i]).W() > maxWidth && space {
@@ -56,12 +46,10 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 					nb := b
 					for j := 0; j < len(syms); j++ {
 						if syms[j] >= nb {
-							symbols = append(symbols, pixel.V(txt.Dot.X+txt.BoundsOf(raw[nb:syms[j]]).W()+txt.BoundsOf(SymbolItem).W()*0.5, txt.Dot.Y))
 							fmt.Fprint(txt, raw[nb:syms[j]])
-							for range SymbolItem {
-								fmt.Fprint(txt, " ")
-							}
-							nb = syms[j] + len(SymbolItem)
+							symbols = append(symbols, pixel.V(txt.Dot.X+txt.BoundsOf(SymbolItem).W()*0.5, txt.Dot.Y))
+							txt.Dot.X += txt.BoundsOf(SymbolItem).W()
+							nb = syms[j] + 1
 						}
 					}
 					fmt.Fprintf(txt, "%s\n", raw[nb:e])
@@ -84,15 +72,13 @@ func SetText(txt *text.Text, raw string, maxWidth float64, align Alignment) []pi
 		nb := b
 		for j := 0; j < len(syms); j++ {
 			if syms[j] >= nb {
-				symbols = append(symbols, pixel.V(txt.Dot.X+txt.BoundsOf(raw[nb:syms[j]]).W()+txt.BoundsOf(SymbolItem).W()*0.5, txt.Dot.Y))
 				fmt.Fprint(txt, raw[nb:syms[j]])
-				for range SymbolItem {
-					fmt.Fprint(txt, " ")
-				}
-				nb = syms[j] + len(SymbolItem)
+				symbols = append(symbols, pixel.V(txt.Dot.X+txt.BoundsOf(SymbolItem).W()*0.5, txt.Dot.Y))
+				txt.Dot.X += txt.BoundsOf(SymbolItem).W()
+				nb = syms[j] + 1
 			}
 		}
-		fmt.Fprint(txt, raw[nb:])
+		fmt.Fprintln(txt, raw[nb:])
 	} else {
 		fmt.Fprintln(txt, raw[b:])
 	}

@@ -71,6 +71,15 @@ var (
 	}
 	ResIndex = 2
 
+	// Accessibility
+	BaseMenuSize    = 1.4
+	BaseHoverSize   = 1.45
+	BaseHintSize    = 0.8
+	TypeFaceSize    = 200.
+	ActualMenuSize  = BaseMenuSize * (10 / TypeFaceSize)
+	ActualHoverSize = BaseHoverSize * (10 / TypeFaceSize)
+	ActualHintSize  = BaseHintSize * (10 / TypeFaceSize)
+
 	// Input
 	AimDedicated = true
 	DigOnRelease = true

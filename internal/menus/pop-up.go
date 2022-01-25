@@ -8,7 +8,6 @@ import (
 	"dwarf-sweeper/pkg/typeface"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/text"
-	"math"
 )
 
 const Offset = 20.
@@ -55,7 +54,7 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 		V: transform.Center,
 	}
 	tTran := transform.NewTransform()
-	tTran.Scalar = HintSize
+	tTran.Scalar = pixel.V(constants.ActualHintSize, constants.ActualHintSize)
 	Center := transform.NewTransform()
 	CTUL := transform.NewTransform()
 	CTUR := transform.NewTransform()
@@ -73,7 +72,7 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 	STR.Flip = true
 	STD.Flop = true
 	EntryT.Rot = 0.5
-	tex := text.New(pixel.ZV, typeface.BasicAtlas)
+	tex := text.New(pixel.ZV, typeface.Atlases["main"])
 	tex.LineHeight *= 1.2
 	return &PopUp{
 		Raw:      raw,
@@ -86,7 +85,7 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 		Closed:   true,
 		StepV:    8.,
 		StepH:    8.,
-		MaxWidth: DefaultMax * 2.,
+		MaxWidth: DefaultMax,
 		TTran:    tTran,
 		Center:   Center,
 		CTUL:     CTUL,
@@ -102,41 +101,33 @@ func NewPopUp(raw string, parent *transform.Transform) *PopUp {
 }
 
 func (p *PopUp) Update() {
-	p.UpdateSize()
-	p.UpdateTransforms()
 	p.Text.Clear()
 	p.Text.Color = DefaultColor
 	if p.Raw != "" {
-		symPos := typeface.SetText(p.Text, p.Raw, p.MaxWidth, typeface.DefaultAlign)
+		symPos := typeface.SetText(p.Text, p.Raw, p.MaxWidth / constants.ActualHintSize, typeface.DefaultAlign)
 		if len(symPos) > 0 {
 			t := transform.NewTransform()
 			t.Scalar = p.Tran.Scalar.Scaled(SymbolScalar)
 			p.SymMats = []pixel.Matrix{}
 			for _, pos := range symPos {
 				t.Pos = p.TTran.APos
-				t.Pos.X += pos.X
-				t.Pos.Y += pos.Y + 2.
+				t.Pos.X += pos.X*constants.ActualHintSize
+				t.Pos.Y += pos.Y + p.Text.LineHeight*0.5*constants.ActualHintSize
 				t.Update()
 				p.SymMats = append(p.SymMats, t.Mat)
 			}
 		}
 	}
+	p.UpdateSize()
+	p.UpdateTransforms()
 }
 
 func (p *PopUp) UpdateSize() {
-	p.closing = !p.Display
+	p.closing = !p.Display || p.Raw == ""
 	if !p.closing {
 		p.Closed = false
-		var width, height float64
-		fullW := p.Text.BoundsOf(p.Raw).W()
-		if fullW < p.MaxWidth {
-			width = fullW * 0.8
-			height = p.Text.LineHeight * 0.8
-		} else {
-			width = p.MaxWidth * 0.8
-			height = math.Ceil(fullW/p.MaxWidth) * p.Text.LineHeight * 0.8
-		}
-		p.Rect = pixel.R(0., 0., width, height)
+		r := p.Text.Bounds()
+		p.Rect = pixel.R(0., 0., r.W()*constants.ActualHintSize + 15., r.H()*constants.ActualHintSize)
 		if p.StepV < p.Rect.H()*0.5 {
 			p.StepV += timing.DT * VStep
 		}
@@ -210,7 +201,7 @@ func (p *PopUp) UpdateTransforms() {
 	p.EntryT.Pos = pixel.V(p.Tran.Pos.X, p.Tran.Pos.Y-p.StepV-hintA.Frame().W()*7/6)
 	p.EntryT.Scalar = pixel.V(1.4, 1.4)
 	p.EntryT.Update()
-	p.TTran.Pos = pixel.V(p.Tran.Pos.X-p.Rect.W()*0.5, p.Tran.Pos.Y+(p.Rect.H()-p.Text.BoundsOf(p.Raw).H())*0.5)
+	p.TTran.Pos = pixel.V(p.Tran.Pos.X-p.Text.Bounds().W()*constants.ActualHintSize*0.5, p.Tran.Pos.Y+(p.Text.Bounds().H()*0.5-p.Text.LineHeight)*constants.ActualHintSize)
 	p.TTran.Update()
 }
 

@@ -39,7 +39,7 @@ func run() {
 		panic(err)
 	}
 	win.SetSmooth(false)
-	mainFont, err := typeface.LoadTTF("assets/FR73PixD.ttf", 100.)
+	mainFont, err := typeface.LoadTTF("assets/FR73PixD.ttf", constants.TypeFaceSize)
 	typeface.Atlases["main"] = text.NewAtlas(mainFont, text.ASCII)
 
 	camera.Cam = camera.New(true)

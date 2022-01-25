@@ -3,7 +3,6 @@ package state
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
-	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/minesweeper"
@@ -45,24 +44,26 @@ func InitDebugMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	bossLevel.SetClickFn(func() {
-		caveBuilder, err := builder.LoadBuilder(fmt.Sprint("assets/caves.json"))
+		descent.New()
+		caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/bosses.json"))
 		if err != nil {
 			panic(err)
 		}
-		newState = 0
-		switchState = true
-		descent.Descent.Builder = caveBuilder[2]
-		descent.Descent.Level = 1
-		descent.Descent.Start = true
+		choice := random.Effects.Intn(len(caveBuilders))
+		descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+		SwitchState(0)
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	mineLevel.SetClickFn(func() {
-		newState = 0
-		switchState = true
-		descent.Descent.Type = cave.Minesweeper
-		descent.Descent.Level = 1
-		descent.Descent.Start = true
+		descent.New()
+		caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/puzzles.json"))
+		if err != nil {
+			panic(err)
+		}
+		choice := random.Effects.Intn(len(caveBuilders))
+		descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+		SwitchState(0)
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})

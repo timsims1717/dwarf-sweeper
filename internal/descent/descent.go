@@ -22,7 +22,7 @@ var (
 var Descent = &descent{
 	Difficulty: 1,
 	CoordsMap:  make(map[string]world.Coords),
-	ExitPop:    menus.NewPopUp("", nil),
+	ExitPop:    nil,
 }
 
 type descent struct {

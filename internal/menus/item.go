@@ -47,8 +47,8 @@ func NewItem(key, raw string) *Item {
 		H: transform.Left,
 		V: transform.Bottom,
 	}
-	tran.Scalar = DefaultSize
-	tex := text.New(pixel.ZV, typeface.BasicAtlas)
+	tran.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
+	tex := text.New(pixel.ZV, typeface.Atlases["main"])
 	tex.LineHeight *= 1.5
 	return &Item{
 		Key:       key,
@@ -64,21 +64,21 @@ func (i *Item) Update() {
 		i.disabled = true
 		i.hovered = false
 		i.TextColor = DisabledColor
-		i.Transform.Scalar = DefaultSize
+		i.Transform.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
 	} else if !i.Disabled && i.disabled {
 		i.disabled = false
 		i.TextColor = DefaultColor
-		i.Transform.Scalar = DefaultSize
+		i.Transform.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
 	}
 	if !i.disabled {
 		if i.Hovered && !i.hovered {
 			i.hovered = true
 			i.TextColor = HoverColor
-			i.Transform.Scalar = HoverSize
+			i.Transform.Scalar = pixel.V(constants.ActualHoverSize, constants.ActualHoverSize)
 		} else if !i.Hovered && i.hovered {
 			i.hovered = false
 			i.TextColor = DefaultColor
-			i.Transform.Scalar = DefaultSize
+			i.Transform.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
 		}
 	}
 	i.Text.Clear()
@@ -90,14 +90,14 @@ func (i *Item) Update() {
 	symPos := typeface.SetText(i.Text, i.Raw, 0., align)
 	if len(symPos) > 0 {
 		t := transform.NewTransform()
-		t.Scalar = i.Transform.Scalar.Scaled(SymbolScalar)
-		t.UIZoom = camera.Cam.GetZoomScale()
-		t.UIPos = camera.Cam.APos
+		t.Scalar = pixel.V(SymbolScalar, SymbolScalar)
 		i.SymMats = []pixel.Matrix{}
 		for _, pos := range symPos {
 			t.Pos = i.Transform.APos
-			t.Pos.X += pos.X
-			t.Pos.Y += pos.Y + i.Text.LineHeight*0.5
+			t.Pos.X += pos.X*constants.ActualMenuSize
+			t.Pos.Y += pos.Y + i.Text.LineHeight*0.5*constants.ActualMenuSize
+			t.UIZoom = camera.Cam.GetZoomScale()
+			t.UIPos = camera.Cam.APos
 			t.Update()
 			i.SymMats = append(i.SymMats, t.Mat)
 		}

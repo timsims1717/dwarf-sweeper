@@ -24,16 +24,9 @@ const (
 )
 
 var (
-	defaultSize = 1.4
-	hoverSize   = 1.45
-	hintSize    = 0.8
-
 	DefaultColor  color.RGBA
 	HoverColor    color.RGBA
 	DisabledColor color.RGBA
-	DefaultSize   pixel.Vec
-	HoverSize     pixel.Vec
-	HintSize      pixel.Vec
 	SymbolScalar  float64
 
 	corner *pixel.Sprite
@@ -59,9 +52,6 @@ func Initialize() {
 	}
 	HoverColor = colornames.Mediumblue
 	DisabledColor = colornames.Darkgray
-	DefaultSize = pixel.V(defaultSize, defaultSize)
-	HoverSize = pixel.V(hoverSize, hoverSize)
-	HintSize = pixel.V(hintSize, hintSize)
 	SymbolScalar = 0.8
 	DefaultDist = world.TileSize * 4.
 }
@@ -264,13 +254,16 @@ func (m *DwarfMenu) UpdateView(in *input.Input) {
 		for i, item := range m.Items {
 			if !item.Hovered && !item.Disabled && !item.NoHover && !item.noShowT {
 				b := item.Text.BoundsOf(item.Raw)
+				if !m.HideArrow {
+					b.Min.X -= 30. / constants.ActualMenuSize
+				}
 				point := in.World
 				if item.Right {
-					point.X += b.W() * 0.5
+					point.X += b.W() * 0.5 * constants.ActualMenuSize
 				} else {
-					point.X -= b.W() * 0.5
+					point.X -= b.W() * 0.5 * constants.ActualMenuSize
 				}
-				point.Y -= b.H() * 2.
+				point.Y -= b.H() * 1.45 * constants.ActualMenuSize
 				if util.PointInside(point, b, item.Transform.Mat) {
 					m.setHover(i)
 				}
@@ -299,9 +292,9 @@ func (m *DwarfMenu) UpdateSize() {
 				sW = next.Text.BoundsOf(next.Raw).W() + next.Text.BoundsOf("   ").W()
 				sameLine = true
 			}
-			minWidth = math.Max((bW+sW)*1.4, minWidth)
+			minWidth = math.Max((bW+sW)*constants.ActualMenuSize, minWidth)
 			if !sameLine {
-				minHeight += item.Text.LineHeight
+				minHeight += item.Text.LineHeight * constants.ActualMenuSize
 				lines++
 				tLines++
 			}
@@ -320,6 +313,7 @@ func (m *DwarfMenu) UpdateSize() {
 		}
 	}
 	m.TLines = tLines
+	minWidth += 15.
 	if !m.HideArrow {
 		minWidth += 30.
 	}
@@ -330,10 +324,10 @@ func (m *DwarfMenu) UpdateSize() {
 	for i, item := range m.Items {
 		if !item.noShowT {
 			if item.Right {
-				item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight
+				item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight*constants.ActualMenuSize
 				item.Transform.Pos.X = minWidth*0.5 - 10.
 			} else {
-				item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight
+				item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight*constants.ActualMenuSize
 				if !m.HideArrow {
 					item.Transform.Pos.X = minWidth*-0.5 + 20.
 				} else {
@@ -437,9 +431,9 @@ func (m *DwarfMenu) UpdateTransforms() {
 	m.Center.Update()
 	if m.Hovered != -1 {
 		hovered := m.Items[m.Hovered]
-		m.ArrowT.Pos.Y = hovered.Transform.Pos.Y + hovered.Text.BoundsOf(hovered.Raw).H()*0.5
+		m.ArrowT.Pos.Y = hovered.Transform.Pos.Y + hovered.Text.BoundsOf(hovered.Raw).H()*0.5*constants.ActualMenuSize
 		if hovered.Right {
-			m.ArrowT.Pos.X = hovered.Transform.Pos.X - hovered.Text.BoundsOf(hovered.Raw).W()*1.45 - 10.
+			m.ArrowT.Pos.X = hovered.Transform.Pos.X - hovered.Text.BoundsOf(hovered.Raw).W()*1.45*constants.ActualMenuSize - 10.
 		} else {
 			m.ArrowT.Pos.X = hovered.Transform.Pos.X - 10.
 		}
