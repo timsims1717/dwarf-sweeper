@@ -71,3 +71,28 @@ func RevealTilSolvableP(b *Board, rando *rand.Rand) {
 	fmt.Println("Final state:")
 	b.PrintToTerminal()
 }
+
+func UnRevealWhileSolvableP(b *Board, rando *rand.Rand) {
+	tries := 0
+	for tries < 50 {
+		x := rando.Intn(len(b.Board[0]))
+		y := rando.Intn(len(b.Board))
+		for !b.Board[y][x].Rev || b.Board[y][x].Bomb {
+			x = rando.Intn(len(b.Board[0]))
+			y = rando.Intn(len(b.Board))
+			tries++
+			if tries >= 50 {
+				return
+			}
+		}
+		b.Board[y][x].Rev = false
+		b.Board[y][x].Ex = false
+		if !SolvableP(b.Copy()) {
+			b.Board[y][x].Rev = true
+			b.Board[y][x].Ex = false
+			break
+		}
+	}
+	fmt.Println("Final state:")
+	b.PrintToTerminal()
+}

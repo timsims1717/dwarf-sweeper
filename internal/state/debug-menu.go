@@ -5,7 +5,6 @@ import (
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
-	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -68,9 +67,8 @@ func InitDebugMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	testMineSolver.SetClickFn(func() {
-		minePuzzle = puzzles.NewMinePuzzle(camera.Cam, 1)
-		minePuzzle.Open()
-		DebugMenu.Close()
+		SwitchState(6)
+		DebugMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	giveBombs.SetClickFn(func() {

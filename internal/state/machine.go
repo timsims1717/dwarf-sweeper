@@ -34,6 +34,7 @@ var (
 	newState    = 1
 
 	minePuzzle *puzzles.MinePuzzle
+	puzLevel   int
 
 	pressAKey      = menu.NewItemText("press any key", colornames.Aliceblue, pixel.V(1.4, 1.4), menu.Center, menu.Center)
 	pressAKeyTimer *timing.FrameTimer
@@ -110,9 +111,6 @@ func Update(win *pixelgl.Window) {
 	debugInput.Update(win)
 	menuInput.Update(win)
 	data.GameInput.Update(win)
-	if minePuzzle != nil {
-		minePuzzle.Update(nil)
-	}
 	if debugInput.Get("debug").JustPressed() {
 		debug.Debug = !debug.Debug
 		if debug.Debug {
@@ -192,38 +190,40 @@ func Update(win *pixelgl.Window) {
 				}
 			}
 			if MenuClosed() {
-				descent.UpdatePlayer(data.GameInput)
-				systems.TemporarySystem()
-				systems.EntitySystem()
-				systems.UpdateSystem()
-				systems.FunctionSystem()
-				systems.PhysicsSystem()
-				systems.TileCollisionSystem()
-				systems.CollisionSystem()
-				systems.CollisionBoundSystem()
-				systems.ParentSystem()
-				systems.TransformSystem()
-				systems.CollectSystem()
-				systems.InteractSystem()
-				systems.HealingSystem()
-				systems.AreaDamageSystem()
-				systems.DamageSystem()
-				systems.HealthSystem()
-				systems.PopUpSystem()
-				systems.VFXSystem()
-				systems.TriggerSystem()
-				vfx.Update()
-				descent.UpdateInventory()
-				systems.AnimationSystem()
-				descent.Update()
-				player.UpdateHUD()
-				if data.GameInput.Get("up").JustPressed() &&
-					descent.Descent.GetPlayerTile().IsExit() &&
-					descent.Descent.CanExit() {
-					if descent.Descent.CurrDepth >= descent.Descent.Depth-1 {
-						SwitchState(2)
-					} else {
-						SwitchState(5)
+				if !descent.UpdatePuzzle(data.GameInput) {
+					descent.UpdatePlayer(data.GameInput)
+					systems.TemporarySystem()
+					systems.EntitySystem()
+					systems.UpdateSystem()
+					systems.FunctionSystem()
+					systems.PhysicsSystem()
+					systems.TileCollisionSystem()
+					systems.CollisionSystem()
+					systems.CollisionBoundSystem()
+					systems.ParentSystem()
+					systems.TransformSystem()
+					systems.CollectSystem()
+					systems.InteractSystem()
+					systems.HealingSystem()
+					systems.AreaDamageSystem()
+					systems.DamageSystem()
+					systems.HealthSystem()
+					systems.PopUpSystem()
+					systems.VFXSystem()
+					systems.TriggerSystem()
+					vfx.Update()
+					descent.UpdateInventory()
+					systems.AnimationSystem()
+					descent.Update()
+					player.UpdateHUD()
+					if data.GameInput.Get("up").JustPressed() &&
+						descent.Descent.GetPlayerTile().IsExit() &&
+						descent.Descent.CanExit() {
+						if descent.Descent.CurrDepth >= descent.Descent.Depth-1 {
+							SwitchState(2)
+						} else {
+							SwitchState(5)
+						}
 					}
 				}
 			}
@@ -311,6 +311,17 @@ func Update(win *pixelgl.Window) {
 				ClearEnchantMenu()
 				SwitchState(0)
 			}
+		} else if state == 6 {
+			if minePuzzle != nil {
+				reanimator.Update()
+				minePuzzle.Update(data.GameInput)
+				if minePuzzle.Solved() {
+					minePuzzle.Close()
+				}
+				if minePuzzle.IsClosed() && minePuzzle.Solved() {
+					SwitchState(1)
+				}
+			}
 		}
 	}
 	camera.Cam.Update(win)
@@ -329,6 +340,9 @@ func Draw(win *pixelgl.Window) {
 		vfx.Draw(win)
 		systems.PopUpDraw(win)
 		player.DrawHUD(win)
+		if descent.Descent.DoPuzzle {
+			descent.Descent.Puzzle.Draw(win)
+		}
 		for _, m := range menuStack {
 			m.Draw(win)
 		}
@@ -390,9 +404,10 @@ func Draw(win *pixelgl.Window) {
 		for _, m := range menuStack {
 			m.Draw(win)
 		}
-	}
-	if minePuzzle != nil {
-		minePuzzle.Draw(win)
+	} else if state == 6 {
+		if minePuzzle != nil {
+			minePuzzle.Draw(win)
+		}
 	}
 }
 
@@ -463,6 +478,13 @@ func updateState() {
 				sfx.MusicPlayer.PlayMusic("pause")
 			}
 			descent.AddStats()
+		case 6:
+			puzLevel++
+			reanimator.SetFrameRate(10)
+			reanimator.Reset()
+			minePuzzle = &puzzles.MinePuzzle{}
+			minePuzzle.Create(camera.Cam, puzLevel)
+			minePuzzle.Open()
 		}
 		state = newState
 		switchState = false

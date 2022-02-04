@@ -27,6 +27,7 @@ const (
 	CaveBGKey     = "cave_bg"
 	CaveKey       = "cave"
 	TileLayerKey  = "tile_layer"
+	PuzzleKey     = "puzzle"
 
 	// Music Keys
 	GameMusic  = "gameMusic"

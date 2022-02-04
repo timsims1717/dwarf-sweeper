@@ -102,6 +102,11 @@ func run() {
 		panic(err)
 	}
 	img.AddBatcher(constants.FogKey, fogSheet, true, false)
+	puzzleSheet, err := img.LoadSpriteSheet("assets/img/puzzles.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.PuzzleKey, puzzleSheet, false, true)
 	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
 	if err != nil {
 		panic(err)

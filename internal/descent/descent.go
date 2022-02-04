@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/typeface"
@@ -42,6 +43,9 @@ type descent struct {
 	CoordsMap    map[string]world.Coords
 
 	Builders [][]builder.CaveBuilder
+	Puzzle   puzzles.Puzzle
+	DoPuzzle bool
+	OnSolve  func()
 }
 
 func New() {
@@ -95,6 +99,25 @@ func UpdatePlayer(in *input.Input) {
 			Descent.Player.Update(in)
 		}
 	}
+}
+
+// return true if the puzzle is still open
+func UpdatePuzzle(in *input.Input) bool {
+	if Descent.Puzzle == nil || Descent.Puzzle.IsClosed() {
+		if Descent.Puzzle.Solved() {
+			Descent.Puzzle = nil
+		}
+		Descent.DoPuzzle = false
+		return false
+	} else if Descent.DoPuzzle {
+		Descent.Puzzle.Update(in)
+		if Descent.Puzzle.Solved() && Descent.Puzzle.IsOpen() {
+			// this is where to put the onSolve function
+			Descent.Puzzle.Close()
+		}
+		return true
+	}
+	return false
 }
 
 func (d *descent) CanExit() bool {
