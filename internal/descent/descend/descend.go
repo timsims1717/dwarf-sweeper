@@ -16,28 +16,30 @@ import (
 func Generate() {
 	descent.New()
 	for i := 0; i < descent.Descent.Depth; i++ {
+		var cb builder.CaveBuilder
 		if i == descent.Descent.Depth-1 {
 			caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/bosses.json"))
 			if err != nil {
 				panic(err)
 			}
 			choice := random.Effects.Intn(len(caveBuilders))
-			descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+			cb = caveBuilders[choice].Copy()
 		} else if i%2 == 0 {
 			caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/caves.json"))
 			if err != nil {
 				panic(err)
 			}
 			choice := random.Effects.Intn(len(caveBuilders))
-			descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+			cb = caveBuilders[choice].Copy()
 		} else {
 			caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/puzzles.json"))
 			if err != nil {
 				panic(err)
 			}
 			choice := random.Effects.Intn(len(caveBuilders))
-			descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+			cb = caveBuilders[choice].Copy()
 		}
+		descent.Descent.Builders = append(descent.Descent.Builders, []builder.CaveBuilder{cb})
 	}
 }
 
@@ -54,10 +56,10 @@ func Descend() {
 		descent.Descent.Start = false
 	} else {
 		descent.ResetCaveStats()
-		descent.Descent.Level++
+		descent.Descent.CurrDepth++
 	}
-	descent.Descent.Builder = descent.Descent.Builders[descent.Descent.Level][0]
-	descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.Level*descent.Descent.Difficulty))
+	descent.Descent.Builder = &descent.Descent.Builders[descent.Descent.CurrDepth][0]
+	descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.CurrDepth*descent.Descent.Difficulty))
 	if len(descent.Descent.Builder.Tracks) > 0 {
 		sfx.MusicPlayer.ChooseNextTrack(constants.GameMusic, descent.Descent.Builder.Tracks)
 	} else {

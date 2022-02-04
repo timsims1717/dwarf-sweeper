@@ -3,58 +3,18 @@ package menus
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
-	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
-	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"golang.org/x/image/colornames"
-	"image/color"
 	"math"
 )
 
 const (
 	MaxLines = 10
-	VStep    = 300.
-	HStep    = 400.
 )
-
-var (
-	DefaultColor  color.RGBA
-	HoverColor    color.RGBA
-	DisabledColor color.RGBA
-	SymbolScalar  float64
-
-	corner *pixel.Sprite
-	sideV  *pixel.Sprite
-	sideH  *pixel.Sprite
-	inner  *pixel.Sprite
-	arrow  *pixel.Sprite
-	hintA  *pixel.Sprite
-)
-
-func Initialize() {
-	corner = img.Batchers[constants.MenuSprites].Sprites["menu_corner"]
-	sideV = img.Batchers[constants.MenuSprites].Sprites["menu_side_v"]
-	sideH = img.Batchers[constants.MenuSprites].Sprites["menu_side_h"]
-	inner = img.Batchers[constants.MenuSprites].Sprites["menu_inner"]
-	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
-	hintA = img.Batchers[constants.MenuSprites].Sprites["menu_side_entry"]
-	DefaultColor = color.RGBA{
-		R: 74,
-		G: 84,
-		B: 98,
-		A: 255,
-	}
-	HoverColor = colornames.Mediumblue
-	DisabledColor = colornames.Darkgray
-	SymbolScalar = 0.8
-	DefaultDist = world.TileSize * 4.
-}
 
 type DwarfMenu struct {
 	Key       string
@@ -67,31 +27,16 @@ type DwarfMenu struct {
 	TLines    int
 	HideArrow bool
 
+	Box  *MenuBox
 	Hint *HintBox
 	Tran *transform.Transform
-	Rect pixel.Rect
 	Cam  *camera.Camera
-
-	Closed  bool
-	closing bool
-	opened  bool
-	StepV   float64
-	StepH   float64
 
 	backFn   func()
 	openFn   func()
 	closeFn  func()
 	updateFn func(*input.Input)
 
-	Center *transform.Transform
-	CTUL   *transform.Transform
-	CTUR   *transform.Transform
-	CTDR   *transform.Transform
-	CTDL   *transform.Transform
-	STU    *transform.Transform
-	STR    *transform.Transform
-	STD    *transform.Transform
-	STL    *transform.Transform
 	ArrowT *transform.Transform
 }
 
@@ -101,42 +46,15 @@ func New(key string, cam *camera.Camera) *DwarfMenu {
 		H: transform.Center,
 		V: transform.Center,
 	}
-	//tran.SetRect(rect)
-	Center := transform.NewTransform()
-	CTUL := transform.NewTransform()
-	CTUR := transform.NewTransform()
-	CTDR := transform.NewTransform()
-	CTDL := transform.NewTransform()
-	STU := transform.NewTransform()
-	STR := transform.NewTransform()
-	STD := transform.NewTransform()
-	STL := transform.NewTransform()
 	AT := transform.NewTransform()
-	CTUR.Flip = true
-	CTDR.Flip = true
-	CTDR.Flop = true
-	CTDL.Flop = true
-	STR.Flip = true
-	STD.Flop = true
 	return &DwarfMenu{
 		Key:     key,
 		ItemMap: map[string]*Item{},
 		Items:   []*Item{},
+		Box:     NewBox(cam),
 		Hint:    NewHint(cam),
 		Tran:    tran,
 		Cam:     cam,
-		Rect:    pixel.R(0., 0., 64., 64.),
-		StepV:   16.,
-		StepH:   16.,
-		Center:  Center,
-		CTUL:    CTUL,
-		CTUR:    CTUR,
-		CTDR:    CTDR,
-		CTDL:    CTDL,
-		STU:     STU,
-		STR:     STR,
-		STD:     STD,
-		STL:     STL,
 		ArrowT:  AT,
 	}
 }
@@ -187,9 +105,7 @@ func (m *DwarfMenu) RemoveItem(key string) {
 }
 
 func (m *DwarfMenu) Open() {
-	m.Closed = false
-	m.closing = false
-	m.opened = false
+	m.Box.Open()
 	m.setHover(-1)
 	if m.openFn != nil {
 		m.openFn()
@@ -197,36 +113,35 @@ func (m *DwarfMenu) Open() {
 }
 
 func (m *DwarfMenu) IsOpen() bool {
-	return m.opened
+	return m.Box.opened
+}
+
+func (m *DwarfMenu) IsClosed() bool {
+	return m.Box.closed
 }
 
 func (m *DwarfMenu) Close() {
-	m.closing = true
-	m.opened = false
+	m.Box.Close()
 	if m.closeFn != nil {
 		m.closeFn()
 	}
 }
 
 func (m *DwarfMenu) CloseInstant() {
-	m.closing = true
-	m.Closed = true
-	m.opened = false
-	m.StepV = 16.
-	m.StepH = 16.
+	m.Box.CloseInstant()
 	if m.closeFn != nil {
 		m.closeFn()
 	}
 }
 
 func (m *DwarfMenu) Update(in *input.Input) {
-	if m.opened && in != nil {
+	if m.Box.opened && in != nil {
 		m.UpdateView(in)
 	}
 	m.UpdateSize()
-	m.UpdateBox()
+	m.Box.Update()
 	m.UpdateTransforms()
-	if m.opened && in != nil {
+	if m.Box.opened && in != nil {
 		m.UpdateItems(in)
 	}
 }
@@ -259,7 +174,7 @@ func (m *DwarfMenu) UpdateView(in *input.Input) {
 				}
 				point := in.World
 				if item.Right {
-					point.X += b.W() * 0.5 * constants.ActualMenuSize
+					point.X += 15.
 				} else {
 					point.X -= b.W() * 0.5 * constants.ActualMenuSize
 				}
@@ -319,7 +234,7 @@ func (m *DwarfMenu) UpdateSize() {
 	}
 	//minWidth = math.Floor(math.Max(minWidth, m.Rect.W()))
 	//minHeight = math.Floor(math.Max(minHeight, m.Rect.H()))
-	m.Rect = pixel.R(0., 0., minWidth, minHeight)
+	m.Box.SetSize(pixel.R(0., 0., minWidth, minHeight))
 	line := 0
 	for i, item := range m.Items {
 		if !item.noShowT {
@@ -341,108 +256,28 @@ func (m *DwarfMenu) UpdateSize() {
 	}
 }
 
-func (m *DwarfMenu) UpdateBox() {
-	if !m.closing {
-		if m.StepV < m.Rect.H()*0.5 {
-			m.StepV += timing.DT * VStep
-		}
-		if m.StepV > m.Rect.H()*0.5 {
-			m.StepV = m.Rect.H() * 0.5
-		}
-		if m.StepH < m.Rect.W()*0.5 {
-			m.StepH += timing.DT * HStep
-		}
-		if m.StepH > m.Rect.W()*0.5 {
-			m.StepH = m.Rect.W() * 0.5
-		}
-		if m.StepH >= m.Rect.W()*0.5 && m.StepV >= m.Rect.H()*0.5 {
-			m.opened = true
-		}
-	} else {
-		if m.StepV > 16. {
-			m.StepV -= timing.DT * VStep
-		}
-		if m.StepV < 16. {
-			m.StepV = 16.
-		}
-		if m.StepH > 16. {
-			m.StepH -= timing.DT * HStep
-		}
-		if m.StepH < 16. {
-			m.StepH = 16.
-		}
-		if m.StepH < 20. && m.StepV < 20. {
-			m.Closed = true
-		}
-	}
-}
-
 func (m *DwarfMenu) UpdateTransforms() {
 	if m.Cam != nil {
 		m.Tran.UIZoom = m.Cam.GetZoomScale()
 		m.Tran.UIPos = m.Cam.APos
-		m.CTUL.UIZoom = m.Cam.GetZoomScale()
-		m.CTUL.UIPos = m.Cam.APos
-		m.CTUR.UIZoom = m.Cam.GetZoomScale()
-		m.CTUR.UIPos = m.Cam.APos
-		m.CTDR.UIZoom = m.Cam.GetZoomScale()
-		m.CTDR.UIPos = m.Cam.APos
-		m.CTDL.UIZoom = m.Cam.GetZoomScale()
-		m.CTDL.UIPos = m.Cam.APos
-		m.STU.UIZoom = m.Cam.GetZoomScale()
-		m.STU.UIPos = m.Cam.APos
-		m.STR.UIZoom = m.Cam.GetZoomScale()
-		m.STR.UIPos = m.Cam.APos
-		m.STD.UIZoom = m.Cam.GetZoomScale()
-		m.STD.UIPos = m.Cam.APos
-		m.STL.UIZoom = m.Cam.GetZoomScale()
-		m.STL.UIPos = m.Cam.APos
-		m.Center.UIZoom = m.Cam.GetZoomScale()
-		m.Center.UIPos = m.Cam.APos
 		m.ArrowT.UIZoom = m.Cam.GetZoomScale()
 		m.ArrowT.UIPos = m.Cam.APos
 	}
 	m.Tran.Update()
-	m.CTUL.Pos = pixel.V(-m.StepH, m.StepV)
-	m.CTUL.Scalar = pixel.V(1.4, 1.4)
-	m.CTUL.Update()
-	m.CTUR.Pos = pixel.V(m.StepH, m.StepV)
-	m.CTUR.Scalar = pixel.V(1.4, 1.4)
-	m.CTUR.Update()
-	m.CTDR.Pos = pixel.V(m.StepH, -m.StepV)
-	m.CTDR.Scalar = pixel.V(1.4, 1.4)
-	m.CTDR.Update()
-	m.CTDL.Pos = pixel.V(-m.StepH, -m.StepV)
-	m.CTDL.Scalar = pixel.V(1.4, 1.4)
-	m.CTDL.Update()
-	m.STU.Pos = pixel.V(0., m.StepV)
-	m.STU.Scalar = pixel.V(1.4*m.StepH*0.1735, 1.4)
-	m.STU.Update()
-	m.STR.Pos = pixel.V(m.StepH, 0.)
-	m.STR.Scalar = pixel.V(1.4, 1.4*m.StepV*0.1735)
-	m.STR.Update()
-	m.STD.Pos = pixel.V(0., -m.StepV)
-	m.STD.Scalar = pixel.V(1.4*m.StepH*0.1735, 1.4)
-	m.STD.Update()
-	m.STL.Pos = pixel.V(-m.StepH, 0.)
-	m.STL.Scalar = pixel.V(1.4, 1.4*m.StepV*0.1735)
-	m.STL.Update()
-	m.Center.Scalar = pixel.V(1.4*m.StepH*0.1735, 1.4*m.StepV*0.1735)
-	m.Center.Update()
 	if m.Hovered != -1 {
 		hovered := m.Items[m.Hovered]
 		m.ArrowT.Pos.Y = hovered.Transform.Pos.Y + hovered.Text.BoundsOf(hovered.Raw).H()*0.5*constants.ActualMenuSize
 		if hovered.Right {
-			m.ArrowT.Pos.X = hovered.Transform.Pos.X - hovered.Text.BoundsOf(hovered.Raw).W()*1.45*constants.ActualMenuSize - 10.
+			m.ArrowT.Pos.X = hovered.Transform.Pos.X - hovered.Text.BoundsOf(hovered.Raw).W()*constants.ActualHoverSize - 10.
 		} else {
 			m.ArrowT.Pos.X = hovered.Transform.Pos.X - 10.
 		}
 		m.ArrowT.Scalar = pixel.V(1.4, 1.4)
 		m.ArrowT.Update()
-		if hovered.Hint != "" && m.opened {
+		if hovered.Hint != "" && m.Box.opened {
 			m.Hint.Raw = hovered.Hint
 			m.Hint.UpdateSize()
-			m.Hint.Tran.Pos.X = m.STR.Pos.X + m.Hint.Rect.W()*0.5 + 6.
+			m.Hint.Tran.Pos.X = m.Box.STR.Pos.X + m.Hint.Rect.W()*0.5 + 6.
 			m.Hint.Tran.Pos.Y = m.ArrowT.Pos.Y
 			m.Hint.Update()
 		} else {
@@ -614,16 +449,8 @@ func (m *DwarfMenu) GetNextHoverVert(dir, curr int, right bool, in *input.Input)
 }
 
 func (m *DwarfMenu) Draw(target pixel.Target) {
-	inner.Draw(target, m.Center.Mat)
-	sideH.Draw(target, m.STU.Mat)
-	sideV.Draw(target, m.STR.Mat)
-	sideH.Draw(target, m.STD.Mat)
-	sideV.Draw(target, m.STL.Mat)
-	corner.Draw(target, m.CTUL.Mat)
-	corner.Draw(target, m.CTUR.Mat)
-	corner.Draw(target, m.CTDR.Mat)
-	corner.Draw(target, m.CTDL.Mat)
-	if !m.closing && m.opened {
+	m.Box.Draw(target)
+	if !m.Box.closing && m.Box.opened {
 		for _, item := range m.Items {
 			item.Draw(target)
 			if item.Hovered && !item.Ignore && !item.noShowT && !item.NoDraw && !m.HideArrow {

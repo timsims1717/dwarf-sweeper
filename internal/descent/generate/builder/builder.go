@@ -10,18 +10,9 @@ type Base int
 
 const (
 	Roomy = iota
+	Blob
 	Maze
 	Custom
-)
-
-type Seed int
-
-const (
-	Path = iota
-	Marked
-	DeadEnd
-	Room
-	Random
 )
 
 type CaveBuilder struct {
@@ -33,26 +24,32 @@ type CaveBuilder struct {
 	Type       cave.CaveType `json:"type"`
 	Base       Base          `json:"base"`
 	Structures []Structure   `json:"structures"`
+	Enemies    []string      `json:"enemies"`
+	Exits      []string      `json:"exits"`
+	ExitI      []int         `json:"-"`
 }
 
 type Structure struct {
 	Key      string   `json:"key"`
-	Seed     Seed     `json:"seed"`
 	Minimum  int      `json:"minimum"`
 	Maximum  int      `json:"maximum"`
-	MinMult  float64  `json:"minMult"`
-	RandMult float64  `json:"randMult"`
+	MarginL  int      `json:"marginL"`
+	MarginR  int      `json:"marginR"`
+	MarginT  int      `json:"marginT"`
+	MarginB  int      `json:"marginB"`
 	Enemies  []string `json:"enemies"`
 }
 
 var toBaseString = map[Base]string{
 	Roomy:  "Roomy",
+	Blob:   "Blob",
 	Maze:   "Maze",
 	Custom: "Custom",
 }
 
 var toBaseID = map[string]Base{
 	"Roomy":  Roomy,
+	"Blob":   Blob,
 	"Maze":   Maze,
 	"Custom": Custom,
 }
@@ -74,35 +71,17 @@ func (base *Base) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-var toSeedString = map[Seed]string{
-	Path:    "Path",
-	Marked:  "Marked",
-	DeadEnd: "DeadEnd",
-	Room:    "Room",
-	Random:  "Random",
-}
-
-var toSeedID = map[string]Seed{
-	"Path":    Path,
-	"Marked":  Marked,
-	"DeadEnd": DeadEnd,
-	"Room":    Room,
-	"Random":  Random,
-}
-
-func (seed Seed) MarshalJSON() ([]byte, error) {
-	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(toSeedString[seed])
-	buffer.WriteString(`"`)
-	return buffer.Bytes(), nil
-}
-
-func (seed *Seed) UnmarshalJSON(b []byte) error {
-	var j string
-	err := json.Unmarshal(b, &j)
-	if err != nil {
-		return err
+func (cb *CaveBuilder) Copy() CaveBuilder {
+	newCB := CaveBuilder{
+		Key:        cb.Key,
+		Biome:      cb.Biome,
+		Title:      cb.Title,
+		Desc:       cb.Desc,
+		Tracks:     cb.Tracks,
+		Type:       cb.Type,
+		Base:       cb.Base,
+		Structures: cb.Structures,
+		Exits:      cb.Exits,
 	}
-	*seed = toSeedID[j]
-	return nil
+	return newCB
 }

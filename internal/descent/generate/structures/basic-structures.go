@@ -56,8 +56,9 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 							ty = cave.Deco
 							s = "door_tr"
 						}
-						tile.Type = cave.TileType(ty)
+						tile.Type = cave.BlockType(ty)
 						tile.NeverChange = true
+						tile.ClearSprites()
 						tile.AddSprite(s, pixel.IM, true)
 					}
 					tile.Bomb = false
@@ -115,7 +116,7 @@ func Door(c *cave.Cave, door world.Coords, exit bool) {
 					ty = cave.Deco
 					s = "door_tr"
 				}
-				tile.Type = cave.TileType(ty)
+				tile.Type = cave.BlockType(ty)
 				tile.NeverChange = true
 				tile.ClearSprites()
 				tile.AddSprite(s, pixel.IM, true)
@@ -127,15 +128,21 @@ func Door(c *cave.Cave, door world.Coords, exit bool) {
 	}
 }
 
-func RectRoom(c *cave.Cave, tl world.Coords, width, height int) {
+func RectRoom(c *cave.Cave, tl world.Coords, width, height, curve int, blockType cave.BlockType) {
 	for y := tl.Y; y < tl.Y+height; y++ {
 		for x := tl.X; x < tl.X+width; x++ {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
-				if !tile.NeverChange && !tile.IsChanged && (x == tl.X || x == tl.X+width-1 || y == tl.Y || y == tl.Y+height-1) {
-					tile.Type = cave.Wall
-				} else if !tile.NeverChange && !tile.IsChanged {
-					tile.Type = cave.BlockCollapse
+				dx := util.Min(util.Abs(x-tl.X), util.Abs(x-(tl.X+width)))
+				dy := util.Abs(y - tl.Y)
+				if !tile.NeverChange && !tile.IsChanged && !(dx+dy+random.CaveGen.Intn(2) < curve*width/8) {
+					if blockType != cave.Unknown {
+						tile.Type = blockType
+					} else if tile.Perlin < 0 {
+						tile.Type = cave.BlockCollapse
+					} else {
+						tile.Type = cave.BlockDig
+					}
 					tile.IsChanged = true
 				}
 			}
@@ -166,13 +173,8 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
 					ToBlock(tile, cave.Wall, false, true)
 				} else if !tile.NeverChange {
-					if random.CaveGen.Intn(10) == 0 {
-						ToBlock(tile, cave.BlockCollapse, false, true)
-					} else {
-						ToBlock(tile, cave.BlockDig, false, true)
-					}
+					ToBlock(tile, cave.Unknown, false, true)
 					roomTiles = append(roomTiles, tile.RCoords)
-					tile.Room = true
 					if random.CaveGen.Intn(toMark) == 0 {
 						toMark += 12
 						marked = append(marked, tile.RCoords)

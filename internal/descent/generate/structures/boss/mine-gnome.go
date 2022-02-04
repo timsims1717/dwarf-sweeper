@@ -17,8 +17,6 @@ import (
 func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	c.FillChunk = structures.FillChunkWall
 	c.StartC = world.Coords{X: 16, Y: 9}
-	c.GemRate2 = constants.BaseGem
-	c.ItemRate = constants.BaseItem
 	c.BombPMin = 0.2
 	c.BombPMax = 0.3
 	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, c, cave.Wall)
@@ -26,17 +24,15 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, c, cave.Wall)
 	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, c, cave.Wall)
 	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, c, cave.Wall)
-
 	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, c, cave.Wall)
 	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, c, cave.Wall)
 
-	c.RChunks[chunk0.Coords] = chunk0
-	c.RChunks[chunkr1.Coords] = chunkr1
-	c.RChunks[chunkr2.Coords] = chunkr2
-	c.RChunks[chunkr3.Coords] = chunkr3
-
-	c.LChunks[chunkl1.Coords] = chunkl1
-	c.LChunks[chunkl2.Coords] = chunkl2
+	c.Chunks[chunk0.Coords] = chunk0
+	c.Chunks[chunkr1.Coords] = chunkr1
+	c.Chunks[chunkr2.Coords] = chunkr2
+	c.Chunks[chunkr3.Coords] = chunkr3
+	c.Chunks[chunkl1.Coords] = chunkl1
+	c.Chunks[chunkl2.Coords] = chunkl2
 	structures.Entrance(c, c.StartC, 9, 5, 3, false)
 	structures.Stairs(c, world.Coords{X: 11, Y: 10}, true, true, 12, 6)
 	structures.Stairs(c, world.Coords{X: 21, Y: 10}, false, true, 12, 6)

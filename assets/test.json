@@ -1,0 +1,39 @@
+[
+  {
+    "key": "testBlob",
+    "title": "Mine Blobby",
+    "biome": "mine",
+    "desc": "",
+    "tracks": [
+      "prairie"
+    ],
+    "type": "Normal",
+    "base": "Blob",
+    "structures": [
+      {
+        "key": "mineComplex",
+        "seed": "Room",
+        "minimum": 2,
+        "maximum": 4
+      },
+      {
+        "key": "noodleCave",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      },
+      {
+        "key": "treasure",
+        "seed": "Room",
+        "minimum": 8,
+        "maximum": 12
+      },
+      {
+        "key": "bombable",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      }
+    ]
+  }
+]

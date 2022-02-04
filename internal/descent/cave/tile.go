@@ -3,10 +3,12 @@ package cave
 import (
 	"bytes"
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/noise"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
@@ -14,6 +16,7 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	"image/color"
 )
 
 const (
@@ -26,10 +29,11 @@ var (
 	zero = []byte("0")
 )
 
-type TileType int
+type BlockType int
 
 const (
-	Deco = iota
+	Unknown = iota
+	Deco
 	Empty
 	BlockCollapse
 	BlockDig
@@ -37,7 +41,7 @@ const (
 	Wall
 )
 
-func (t TileType) String() string {
+func (t BlockType) String() string {
 	switch t {
 	case BlockCollapse:
 		return "Block-Collapse"
@@ -63,7 +67,7 @@ type TileSpr struct {
 }
 
 type Tile struct {
-	Type      TileType
+	Type      BlockType
 	Special   bool
 	SubCoords world.Coords
 	RCoords   world.Coords
@@ -94,22 +98,27 @@ type Tile struct {
 
 	NeverChange bool
 	IsChanged   bool
+	Change      bool
 	Path        bool
 	Marked      bool
 	DeadEnd     bool
-	Room        bool
+	Group       int
+	Perlin      float64
 
 	DestroyTrigger func(*Tile)
 	GemRate        float64
+
 }
 
-func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
+func NewTile(x, y int, coords world.Coords, bomb bool, chunk *Chunk) *Tile {
 	tran := transform.NewTransform()
-	tran.Pos = pixel.V(float64(x+ch.X*constants.ChunkSize)*world.TileSize, -(float64(y+ch.Y*constants.ChunkSize) * world.TileSize))
+	tran.Pos = pixel.V(float64(x+coords.X*constants.ChunkSize)*world.TileSize, -(float64(y+coords.Y*constants.ChunkSize) * world.TileSize))
+	rCoords := world.Coords{X: x + coords.X*constants.ChunkSize, Y: y + coords.Y*constants.ChunkSize}
+	p := noise.BlockType(rCoords)
 	return &Tile{
 		Type:      BlockCollapse,
 		SubCoords: world.Coords{X: x, Y: y},
-		RCoords:   world.Coords{X: x + ch.X*constants.ChunkSize, Y: y + ch.Y*constants.ChunkSize},
+		RCoords:   rCoords,
 		Sprites: []TileSpr{
 			{
 				SprKey: startSprite,
@@ -119,6 +128,7 @@ func NewTile(x, y int, ch world.Coords, bomb bool, chunk *Chunk) *Tile {
 		Transform: tran,
 		Chunk:     chunk,
 		GemRate:   1.,
+		Perlin:    p,
 	}
 }
 
@@ -153,10 +163,25 @@ func (tile *Tile) Draw() {
 	for _, spr := range tile.Sprites {
 		if spr.SprKey != "" {
 			mat := spr.Matrix.ScaledXY(pixel.ZV, pixel.V(1.001, 1.001)).Moved(tile.Transform.Pos)
-			if spr.BG {
-				img.Batchers[constants.CaveBGKey].DrawSprite(spr.SprKey, mat)
+			if debug.Debug && tile.Group != 0 {
+				col := color.RGBA{
+					R: uint8((((tile.Group * 7) % 8) * 32) % 256),
+					G: uint8((((tile.Group * 13) % 8) * 32) % 256),
+					B: uint8((((tile.Group * 11) % 8) * 32) % 256),
+					A: 255,
+				}
+				// 1: Yellow, 2: Pink, 3: Lime, 4: Gray, 5: Purple, 6: Green, 7: Blue
+				if spr.BG {
+					img.Batchers[constants.CaveBGKey].DrawSpriteColor(spr.SprKey, mat, col)
+				} else {
+					img.Batchers[constants.CaveKey].DrawSpriteColor(spr.SprKey, mat, col)
+				}
 			} else {
-				img.Batchers[constants.CaveKey].DrawSprite(spr.SprKey, mat)
+				if spr.BG {
+					img.Batchers[constants.CaveBGKey].DrawSprite(spr.SprKey, mat)
+				} else {
+					img.Batchers[constants.CaveKey].DrawSprite(spr.SprKey, mat)
+				}
 			}
 		}
 	}
@@ -457,6 +482,7 @@ func (tile *Tile) GetTileCode() string {
 
 func (tile *Tile) ClearSprites() {
 	tile.Sprites = []TileSpr{}
+	tile.Chunk.Cave.UpdateBatch = true
 }
 
 func (tile *Tile) AddSprite(key string, mat pixel.Matrix, isBG bool) {
@@ -465,6 +491,7 @@ func (tile *Tile) AddSprite(key string, mat pixel.Matrix, isBG bool) {
 		Matrix: mat,
 		BG:     isBG,
 	})
+	tile.Chunk.Cave.UpdateBatch = true
 }
 
 func (tile *Tile) IsExit() bool {

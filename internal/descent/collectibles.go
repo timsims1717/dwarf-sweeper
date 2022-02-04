@@ -110,57 +110,6 @@ func InitCollectibles() {
 	}
 }
 
-//type CollectibleItem struct {
-//	Physics   *physics.Physics
-//	Transform *transform.Transform
-//	created   bool
-//	Collect   *data.Collectible
-//	sprite    *pixel.Sprite
-//	entity    *ecs.Entity
-//	health    *data.SimpleHealth
-//}
-//
-//func (b *CollectibleItem) Update() {
-//	if b.health.Dead {
-//		b.Delete()
-//	}
-//}
-//
-//func (b *CollectibleItem) Create(pos pixel.Vec) {
-//	b.Physics, b.Transform = util.RandomPosAndVel(pos, 0., 0., math.Pi * 0.5, math.Pi * 0.25, 5., 2., random.Effects)
-//	b.Transform.Pos = pos
-//	b.created = true
-//	b.sprite = b.Collect.Sprite
-//	b.health = &data.SimpleHealth{}
-//	b.entity = myecs.Manager.NewEntity().
-//		AddComponent(myecs.Entity, b).
-//		AddComponent(myecs.Transform, b.Transform).
-//		AddComponent(myecs.Physics, b.Physics).
-//		AddComponent(myecs.Collision, &data.Collider{
-//			Hitbox: b.Collect.Sprite.Frame(),
-//			GroundOnly: true,
-//		}).
-//		AddComponent(myecs.Temp, timing.New(10.)).
-//		AddComponent(myecs.Collect, b.Collect).
-//		AddComponent(myecs.Health, b.health).
-//		AddComponent(myecs.Sprite, b.sprite).
-//		AddComponent(myecs.Batch, constants.EntityKey)
-//	b.entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
-//		myecs.AddEffect(b.entity, data.NewBlink(2.))
-//		return true
-//	}, 8.))
-//	if !b.Collect.AutoCollect {
-//		popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
-//		popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
-//		popUp.Dist = (b.Collect.Sprite.Frame().W() + world.TileSize) * 0.5
-//		b.entity.AddComponent(myecs.PopUp, popUp)
-//	}
-//}
-//
-//func (b *CollectibleItem) Delete() {
-//	myecs.Manager.DisposeEntity(b.entity)
-//}
-
 func CreateCollectible(pos pixel.Vec, key string) {
 	c := Collectibles[key]
 	e := myecs.Manager.NewEntity()

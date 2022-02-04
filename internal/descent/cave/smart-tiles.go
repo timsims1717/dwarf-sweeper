@@ -156,7 +156,7 @@ func SmartTileFade(list string) (string, pixel.Matrix) {
 	//	       "10100001","00000011","00011100","00000111"
 }
 
-func SmartTileSolid(t TileType, list string, surrounded bool) (string, pixel.Matrix) {
+func SmartTileSolid(t BlockType, list string, surrounded bool) (string, pixel.Matrix) {
 	if surrounded {
 		return "blank", pixel.IM
 	}

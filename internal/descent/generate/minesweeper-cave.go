@@ -90,7 +90,6 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	}
 	c.MarkAsNotChanged()
 	MineBlock(c, chal)
-	c.PrintCaveToTerminal()
 	c.UpdateAllTileSprites()
 	return c
 }

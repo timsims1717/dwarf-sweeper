@@ -14,11 +14,36 @@ func ToEmpty(tile *cave.Tile, perm, asDeco, override bool) {
 	}
 }
 
-func ToBlock(tile *cave.Tile, tt cave.TileType, perm, override bool) {
+func ToBlock(tile *cave.Tile, tt cave.BlockType, perm, override bool) {
 	if tile != nil && !tile.NeverChange && (!tile.IsChanged || override) && (tt <= cave.BlockDig || !tile.Path) {
-		tile.Type = tt
+		if tt == cave.Unknown {
+			if tile.Perlin < 0 {
+				tile.Type = cave.BlockCollapse
+			} else {
+				tile.Type = cave.BlockDig
+			}
+		} else {
+			tile.Type = tt
+		}
 		tile.IsChanged = true
 		tile.NeverChange = perm
+	}
+}
+
+func BlockUp(tile *cave.Tile, tt cave.BlockType) {
+	for _, n := range tile.SubCoords.Neighbors() {
+		t := tile.Chunk.Get(n)
+		if t != nil && !t.NeverChange && !t.IsChanged && !t.Path {
+			if tt == cave.Unknown {
+				if tile.Perlin < 0 {
+					tile.Type = cave.BlockCollapse
+				} else {
+					tile.Type = cave.BlockDig
+				}
+			} else {
+				tile.Type = tt
+			}
+		}
 	}
 }
 

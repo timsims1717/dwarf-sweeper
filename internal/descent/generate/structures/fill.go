@@ -31,10 +31,7 @@ func UpdateTiles(tiles []*cave.Tile) {
 }
 
 func FillCave(c *cave.Cave) {
-	for _, ch := range c.LChunks {
-		FillBasic(ch)
-	}
-	for _, ch := range c.RChunks {
+	for _, ch := range c.Chunks {
 		FillBasic(ch)
 	}
 }
@@ -47,12 +44,11 @@ func FillBasic(ch *cave.Chunk) {
 				if tile.Bomb {
 					descent.CaveTotalBombs++
 					descent.CaveBombsLeft++
-					tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
+					//tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
 				} else if random.CaveGen.Intn(80) == 0 {
-					switch random.CaveGen.Intn(2) {
-					case 0:
+					if ch.Cave.Biome == "mine" {
 						tile.Entity = &descent.Slug{}
-					case 1:
+					} else {
 						tile.Entity = &descent.MadMonk{}
 					}
 				} else if random.CaveGen.Intn(50) == 0 && tile.Solid() && tile.Breakable() {
@@ -67,13 +63,7 @@ func StartMinesweeper(c *cave.Cave, t *cave.Tile) {
 	nb := false
 	first := true
 	for !nb || first {
-		for _, ch := range c.LChunks {
-			nb = FillMinesweeper(ch, t, nb)
-			if !first && !nb {
-				return
-			}
-		}
-		for _, ch := range c.RChunks {
+		for _, ch := range c.Chunks {
 			nb = FillMinesweeper(ch, t, nb)
 			if !first && !nb {
 				return
@@ -87,23 +77,25 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 	needBomb := nb
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid() && tile.Breakable() && t.RCoords != tile.RCoords {
-				if tile.Bomb {
-					tile.Entity = &descent.Mine{
-						Tile: tile,
+			if tile.Solid() && tile.Breakable() {
+				if t.RCoords != tile.RCoords {
+					if tile.Bomb {
+						tile.Entity = &descent.Mine{
+							Tile: tile,
+						}
+						tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
+					} else if needBomb {
+						tile.Bomb = true
+						tile.Entity = &descent.Mine{
+							Tile: tile,
+						}
+						tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
+						needBomb = false
 					}
-					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
-				} else if needBomb {
-					tile.Bomb = true
-					tile.Entity = &descent.Mine{
-						Tile: tile,
-					}
-					tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
-					needBomb = false
+				} else if tile.Bomb {
+					tile.Bomb = false
+					needBomb = true
 				}
-			} else if tile.Bomb {
-				tile.Bomb = false
-				needBomb = true
 			}
 		}
 	}

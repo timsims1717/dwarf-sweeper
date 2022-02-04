@@ -5,12 +5,6 @@ import (
 	"math/rand"
 )
 
-type Board struct {
-	board    [][]bool
-	nums     [][]int
-	revealed [][]bool
-}
-
 func CreateBoard(w, h, amt int, rando *rand.Rand) *Board {
 	list := make([]bool, w*h)
 	for i := 0; i < amt; i++ {
@@ -24,61 +18,57 @@ func CreateBoard(w, h, amt int, rando *rand.Rand) *Board {
 	var board Board
 	t := 0
 	for i := 0; i < h; i++ {
-		var row []bool
+		var row []Cell
 		for j := 0; j < w; j++ {
-			row = append(row, list[t])
+			row = append(row, Cell{
+				Bomb: list[t],
+			})
 			t++
 		}
-		board.board = append(board.board, row)
+		board.Board = append(board.Board, row)
 	}
-	for y, row := range board.board {
-		var numRow []int
-		for x, bomb := range row {
-			if bomb {
-				numRow = append(numRow, -1)
+	for y, row := range board.Board {
+		for x, cell := range row {
+			if cell.Bomb {
+				board.Board[y][x].Num = -1
 			} else {
 				c := 0
-				if x > 0 && y > 0 && board.board[y-1][x-1] {
+				if board.cellIsBomb(x, y+1) {
 					c++
 				}
-				if y > 0 && board.board[y-1][x] {
+				if board.cellIsBomb(x+1, y+1) {
 					c++
 				}
-				if x < w-1 && y > 0 && board.board[y-1][x+1] {
+				if board.cellIsBomb(x+1, y) {
 					c++
 				}
-				if x > 0 && board.board[y][x-1] {
+				if board.cellIsBomb(x+1, y-1) {
 					c++
 				}
-				if x < w-1 && board.board[y][x+1] {
+				if board.cellIsBomb(x, y-1) {
 					c++
 				}
-				if x > 0 && y < h-1 && board.board[y+1][x-1] {
+				if board.cellIsBomb(x-1, y-1) {
 					c++
 				}
-				if y < h-1 && board.board[y+1][x] {
+				if board.cellIsBomb(x-1, y) {
 					c++
 				}
-				if x < w-1 && y < h-1 && board.board[y+1][x+1] {
+				if board.cellIsBomb(x-1, y+1) {
 					c++
 				}
-				numRow = append(numRow, c)
+				board.Board[y][x].Num = c
 			}
 		}
-		board.nums = append(board.nums, numRow)
-	}
-	board.revealed = make([][]bool, h)
-	for i := range board.revealed {
-		board.revealed[i] = make([]bool, w)
 	}
 	return &board
 }
 
 func (b *Board) AsArray() []bool {
 	var result []bool
-	for _, row := range b.board {
-		for _, bomb := range row {
-			result = append(result, bomb)
+	for _, row := range b.Board {
+		for _, cell := range row {
+			result = append(result, cell.Bomb)
 		}
 	}
 	return result
@@ -86,14 +76,15 @@ func (b *Board) AsArray() []bool {
 
 func (b *Board) PrintToTerminal() {
 	fmt.Println("Printing board ... ")
-	fmt.Println()
-	for y, row := range b.nums {
-		for x, cell := range row {
-			if b.revealed[y][x] {
-				if cell == -1 {
+	for _, row := range b.Board {
+		for _, cell := range row {
+			if cell.Rev {
+				if cell.Bomb {
 					fmt.Print("ó")
+				} else if cell.Ex {
+					fmt.Print("X")
 				} else {
-					fmt.Print(cell)
+					fmt.Print(cell.Num)
 				}
 			} else {
 				fmt.Print("□")
@@ -101,19 +92,36 @@ func (b *Board) PrintToTerminal() {
 		}
 		fmt.Print("\n")
 	}
+	fmt.Println()
 }
 
 func (b *Board) PrintToTerminalFull() {
 	fmt.Println("Printing full board ... ")
-	fmt.Println()
-	for _, row := range b.nums {
+	for _, row := range b.Board {
 		for _, cell := range row {
-			if cell == -1 {
+			if cell.Bomb {
 				fmt.Print("ó")
 			} else {
-				fmt.Print(cell)
+				fmt.Print(cell.Num)
 			}
 		}
 		fmt.Print("\n")
 	}
+	fmt.Println()
+}
+
+func (b *Board) Copy() *Board {
+	c := &Board{}
+	for i, row := range b.Board {
+		c.Board = append(c.Board, []Cell{})
+		for _, cell := range row {
+			c.Board[i] = append(c.Board[i], Cell{
+				Num:  cell.Num,
+				Bomb: cell.Bomb,
+				Ex:   cell.Ex,
+				Rev:  cell.Rev,
+			})
+		}
+	}
+	return c
 }

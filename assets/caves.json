@@ -1,124 +1,86 @@
 [
   {
-    "key": "mineRoomy",
-    "title": "Mine Roomy",
+    "key": "testBlob",
+    "title": "Mine Blobby",
     "biome": "mine",
     "desc": "",
     "tracks": [
       "prairie"
     ],
     "type": "Normal",
-    "base": "Roomy",
+    "base": "Blob",
     "structures": [
       {
-        "key": "pocket",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.2
-      },
-      {
-        "key": "ring",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.2
-      },
-      {
-        "key": "mineLayer",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.16
+        "key": "mineComplex",
+        "seed": "Room",
+        "minimum": 2,
+        "maximum": 4
       },
       {
         "key": "noodleCave",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.2
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
       },
       {
         "key": "treasure",
-        "seed": "DeadEnd",
-        "minimum": 10,
-        "maximum": 10
+        "seed": "Room",
+        "minimum": 8,
+        "maximum": 12
       },
       {
         "key": "bombable",
         "seed": "Room",
-        "minimum": 0,
-        "randMult": 0.125,
-        "minMult": 0.25
-      },
-      {
-        "key": "stairs",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.04,
-        "minMult": 0.05
+        "minimum": 6,
+        "maximum": 10
       }
+    ],
+    "enemies": [
+      "slug",
+      "popper",
+      "bat"
     ]
   },
   {
-    "key": "darkRoomy",
-    "title": "Dark Roomy",
+    "key": "testBlob",
+    "title": "Dark Blobby",
     "biome": "dark",
     "desc": "",
     "tracks": [
       "turbo"
     ],
     "type": "Normal",
-    "base": "Roomy",
+    "base": "Blob",
     "structures": [
       {
-        "key": "pocket",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.2
-      },
-      {
-        "key": "ring",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.2
-      },
-      {
-        "key": "mineLayer",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.16
+        "key": "mineComplex",
+        "seed": "Room",
+        "minimum": 2,
+        "maximum": 4
       },
       {
         "key": "noodleCave",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.16,
-        "minMult": 0.2
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
       },
       {
         "key": "treasure",
-        "seed": "DeadEnd",
-        "minimum": 10,
-        "maximum": 10
+        "seed": "Room",
+        "minimum": 8,
+        "maximum": 12
       },
       {
         "key": "bombable",
         "seed": "Room",
-        "minimum": 0,
-        "randMult": 0.125,
-        "minMult": 0.25
-      },
-      {
-        "key": "stairs",
-        "seed": "Marked",
-        "minimum": 0,
-        "randMult": 0.04,
-        "minMult": 0.05
+        "minimum": 6,
+        "maximum": 10
       }
+    ],
+    "enemies": [
+      "slug",
+      "popper",
+      "bat"
     ]
   }
 ]

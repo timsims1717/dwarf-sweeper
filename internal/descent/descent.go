@@ -27,7 +27,7 @@ var Descent = &descent{
 
 type descent struct {
 	Cave       *cave.Cave
-	Level      int
+	CurrDepth  int
 	Depth      int
 	Difficulty int
 	Player     *Dwarf
@@ -41,7 +41,7 @@ type descent struct {
 	DisableInput bool
 	CoordsMap    map[string]world.Coords
 
-	Builders [][]*builder.CaveBuilder
+	Builders [][]builder.CaveBuilder
 }
 
 func New() {
@@ -64,20 +64,11 @@ func Update() {
 			p := cave.WorldToChunk(Descent.Cave.Pivot)
 			all := append([]world.Coords{p}, p.Neighbors()...)
 			for _, i := range all {
-				if i.X >= 0 && i.Y >= 0 {
-					if _, ok := Descent.Cave.RChunks[i]; !ok {
-						Descent.Cave.RChunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
-						Descent.Cave.FillChunk(Descent.Cave.RChunks[i])
-						Descent.Cave.UpdateBatch = true
-						IncreaseLevelInf()
-					}
-				} else if i.X < 0 && i.Y >= 0 {
-					if _, ok := Descent.Cave.LChunks[i]; !ok {
-						Descent.Cave.LChunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
-						Descent.Cave.FillChunk(Descent.Cave.LChunks[i])
-						Descent.Cave.UpdateBatch = true
-						IncreaseLevelInf()
-					}
+				if _, ok := Descent.Cave.Chunks[i]; !ok {
+					Descent.Cave.Chunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
+					Descent.Cave.FillChunk(Descent.Cave.Chunks[i])
+					Descent.Cave.UpdateBatch = true
+					IncreaseLevelInf()
 				}
 			}
 		}
@@ -147,7 +138,7 @@ func (d *descent) GetTile(pos pixel.Vec) *cave.Tile {
 }
 
 func IncreaseLevelInf() {
-	Descent.Level++
+	Descent.CurrDepth++
 	Descent.Cave.BombPMin += 0.01
 	Descent.Cave.BombPMax += 0.01
 	if Descent.Cave.BombPMin > 0.3 {

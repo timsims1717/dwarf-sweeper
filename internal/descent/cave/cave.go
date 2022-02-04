@@ -14,8 +14,7 @@ import (
 )
 
 type Cave struct {
-	RChunks     map[world.Coords]*Chunk
-	LChunks     map[world.Coords]*Chunk
+	Chunks      map[world.Coords]*Chunk
 	FillChunk   func(chunk *Chunk)
 	Pivot       pixel.Vec
 	UpdateBatch bool
@@ -32,17 +31,16 @@ type Cave struct {
 	StartC world.Coords
 	ExitC  world.Coords
 
-	Paths    []world.Coords
-	DeadEnds []world.Coords
-	Marked   []world.Coords
-	Rooms    []world.Coords
-	FillVar  float64
+	Paths     []world.Coords
+	DeadEnds  []world.Coords
+	Marked    []world.Coords
+	Rooms     []world.Coords
+	MainGroup int
+	FillVar   float64
 
 	BombPMin float64
 	BombPMax float64
 	GemRate  float64
-	GemRate2 int
-	ItemRate int
 
 	Biome      string
 	BGBatch    *pixel.Batch
@@ -57,7 +55,8 @@ type Cave struct {
 	BGTD       *transform.Transform
 	BGTDR      *transform.Transform
 
-	Fog bool
+	Fog     bool
+	LoadAll bool
 
 	PathRule PathRule
 }
@@ -84,8 +83,7 @@ func NewCave(biome string, caveType CaveType) *Cave {
 	img.AddBatcher(constants.CaveKey, sheet, true, false)
 
 	return &Cave{
-		RChunks:     make(map[world.Coords]*Chunk),
-		LChunks:     make(map[world.Coords]*Chunk),
+		Chunks:      make(map[world.Coords]*Chunk),
 		Type:        caveType,
 		UpdateBatch: true,
 		Biome:       biome,
@@ -122,22 +120,13 @@ func (c *Cave) SetSize(left, right, bottom int) {
 func (c *Cave) Update() {
 	p := WorldToChunk(c.Pivot)
 	all := append([]world.Coords{p}, p.Neighbors()...)
-	for i, chunk := range c.RChunks {
+	for i, chunk := range c.Chunks {
 		dis := world.CoordsIn(i, all)
 		if dis && !chunk.Display {
 			chunk.Reload = true
 			c.UpdateBatch = true
 		}
-		chunk.Display = dis
-		chunk.Update()
-	}
-	for i, chunk := range c.LChunks {
-		dis := world.CoordsIn(i, all)
-		if dis && !chunk.Display {
-			chunk.Reload = true
-			c.UpdateBatch = true
-		}
-		chunk.Display = dis
+		chunk.Display = dis || c.LoadAll
 		chunk.Update()
 	}
 
@@ -163,14 +152,6 @@ func (c *Cave) Update() {
 		c.BGTD.Pos = pixel.V(offset.X, -c.Background.Frame().H()+offset.Y)
 		c.BGTDR.Pos = pixel.V(c.Background.Frame().W()+offset.X, -c.Background.Frame().H()+offset.Y)
 	}
-	//for _, chunk := range c.RChunks {
-	//	chunk.display = true
-	//	chunk.Update()
-	//}
-	//for _, chunk := range c.LChunks {
-	//	chunk.display = true
-	//	chunk.Update()
-	//}
 }
 
 func (c *Cave) Draw(win *pixelgl.Window) {
@@ -210,10 +191,7 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		img.Batchers[constants.CaveBGKey].Clear()
 		img.Batchers[constants.CaveKey].Clear()
 		img.Batchers[constants.FogKey].Clear()
-		for _, chunk := range c.RChunks {
-			chunk.Draw()
-		}
-		for _, chunk := range c.LChunks {
+		for _, chunk := range c.Chunks {
 			chunk.Draw()
 		}
 		c.hasUpdated = false
@@ -243,39 +221,20 @@ func (c *Cave) CurrentBoundaries() (pixel.Vec, pixel.Vec) {
 	x2 := -10000000.
 	y2 := -10000000.
 	for _, i := range all {
-		if i.X >= 0 && i.Y >= 0 {
-			if chunk, ok := c.RChunks[i]; ok {
-				tr := chunk.Rows[0][constants.ChunkSize-1].Transform.Pos
-				bl := chunk.Rows[constants.ChunkSize-1][0].Transform.Pos
-				if bl.X < x1 {
-					x1 = bl.X
-				}
-				if bl.Y < y1 {
-					y1 = bl.Y
-				}
-				if tr.X > x2 {
-					x2 = tr.X
-				}
-				if tr.Y > y2 {
-					y2 = tr.Y
-				}
+		if chunk, ok := c.Chunks[i]; ok {
+			tr := chunk.Rows[0][constants.ChunkSize-1].Transform.Pos
+			bl := chunk.Rows[constants.ChunkSize-1][0].Transform.Pos
+			if bl.X < x1 {
+				x1 = bl.X
 			}
-		} else if i.X < 0 && i.Y >= 0 {
-			if chunk, ok := c.LChunks[i]; ok {
-				tr := chunk.Rows[0][constants.ChunkSize-1].Transform.Pos
-				bl := chunk.Rows[constants.ChunkSize-1][0].Transform.Pos
-				if bl.X < x1 {
-					x1 = bl.X
-				}
-				if bl.Y < y1 {
-					y1 = bl.Y
-				}
-				if tr.X > x2 {
-					x2 = tr.X
-				}
-				if tr.Y > y2 {
-					y2 = tr.Y
-				}
+			if bl.Y < y1 {
+				y1 = bl.Y
+			}
+			if tr.X > x2 {
+				x2 = tr.X
+			}
+			if tr.Y > y2 {
+				y2 = tr.Y
 			}
 		}
 	}
@@ -298,10 +257,8 @@ func (c *Cave) GetTileInt(x, y int) *Tile {
 }
 
 func (c *Cave) GetChunk(coords world.Coords) *Chunk {
-	if chunkR, okR := c.RChunks[coords]; okR {
-		return chunkR
-	} else if chunkL, okL := c.LChunks[coords]; okL {
-		return chunkL
+	if chunk, ok := c.Chunks[coords]; ok {
+		return chunk
 	} else {
 		return nil
 	}
@@ -323,7 +280,7 @@ func (c *Cave) GetExit() *Tile {
 }
 
 func (c *Cave) UpdateAllTileSprites() {
-	for _, chunk := range c.RChunks {
+	for _, chunk := range c.Chunks {
 		if chunk.Display {
 			for _, row := range chunk.Rows {
 				for _, tile := range row {
@@ -332,7 +289,7 @@ func (c *Cave) UpdateAllTileSprites() {
 			}
 		}
 	}
-	for _, chunk := range c.LChunks {
+	for _, chunk := range c.Chunks {
 		if chunk.Display {
 			for _, row := range chunk.Rows {
 				for _, tile := range row {
@@ -341,34 +298,7 @@ func (c *Cave) UpdateAllTileSprites() {
 			}
 		}
 	}
-	for _, chunk := range c.RChunks {
-		if chunk.Display {
-			for _, row := range chunk.Rows {
-				for _, tile := range row {
-					tile.UpdateDetails()
-				}
-			}
-		}
-	}
-	for _, chunk := range c.LChunks {
-		if chunk.Display {
-			for _, row := range chunk.Rows {
-				for _, tile := range row {
-					tile.UpdateDetails()
-				}
-			}
-		}
-	}
-	for _, chunk := range c.RChunks {
-		if chunk.Display {
-			for _, row := range chunk.Rows {
-				for _, tile := range row {
-					tile.UpdateSprites()
-				}
-			}
-		}
-	}
-	for _, chunk := range c.LChunks {
+	for _, chunk := range c.Chunks {
 		if chunk.Display {
 			for _, row := range chunk.Rows {
 				for _, tile := range row {
@@ -380,27 +310,17 @@ func (c *Cave) UpdateAllTileSprites() {
 }
 
 func (c *Cave) MarkAsNotChanged() {
-	for _, chunk := range c.RChunks {
-		for _, row := range chunk.Rows {
-			for _, tile := range row {
-				tile.IsChanged = false
-			}
-		}
-	}
-	for _, chunk := range c.LChunks {
-		for _, row := range chunk.Rows {
-			for _, tile := range row {
-				tile.IsChanged = false
-			}
-		}
-	}
+	c.MapFn(func(tile *Tile) {
+		tile.IsChanged = false
+		tile.Change = false
+	})
 }
 
 func WorldToChunk(v pixel.Vec) world.Coords {
 	if v.X >= 0-world.TileSize*0.5 {
-		return world.Coords{X: int((v.X + world.TileSize*0.5) / constants.ChunkSize / world.TileSize), Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
+		return world.Coords{X: int((v.X+world.TileSize*0.5) / constants.ChunkSize / world.TileSize), Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
 	} else {
-		return world.Coords{X: int((v.X+world.TileSize*0.5)/constants.ChunkSize/world.TileSize) - 1, Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
+		return world.Coords{X: int((v.X+world.TileSize*0.5) / constants.ChunkSize / world.TileSize) - 1, Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
 	}
 }
 
@@ -419,6 +339,16 @@ func WorldToTile(v pixel.Vec, left bool) world.Coords {
 
 func TileInTile(a, b pixel.Vec) bool {
 	return math.Abs(a.X-b.X) <= world.TileSize*0.5 && math.Abs(a.Y-b.Y) <= world.TileSize*0.5
+}
+
+func (c *Cave) MapFn(fn func(*Tile)) {
+	for _, ch := range c.Chunks {
+		for _, row := range ch.Rows {
+			for _, tile := range row {
+				fn(tile)
+			}
+		}
+	}
 }
 
 func (c *Cave) PrintCaveToTerminal() {

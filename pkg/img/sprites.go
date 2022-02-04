@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/pkg/errors"
+	"image/color"
 	"os"
 	"path/filepath"
 )
@@ -109,6 +110,10 @@ func (b *Batcher) Batch() *pixel.Batch {
 
 func (b *Batcher) DrawSprite(key string, mat pixel.Matrix) {
 	b.Sprites[key].Draw(b.batch, mat)
+}
+
+func (b *Batcher) DrawSpriteColor(key string, mat pixel.Matrix, mask color.Color) {
+	b.Sprites[key].DrawColorMask(b.batch, mat, mask)
 }
 
 func (b *Batcher) Draw(target pixel.Target) {

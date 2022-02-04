@@ -101,7 +101,6 @@ func UpdateHUD() {
 		}
 	}
 	if descent.CaveGemsFound != lastGem {
-		fmt.Println("gem collected")
 		lastGem = descent.CaveGemsFound
 		gemNumberItem.SetText(fmt.Sprintf("x%d", lastGem))
 		gemTimer = timing.New(3.0)

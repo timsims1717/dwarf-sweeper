@@ -50,7 +50,7 @@ func UpdateMenus(win *pixelgl.Window) {
 				me.UnhoverAll()
 			}
 			me.Update(menuInput)
-			if me.Closed {
+			if me.IsClosed() {
 				if len(menuStack) > 1 {
 					menuStack = menuStack[:len(menuStack)-1]
 				} else {

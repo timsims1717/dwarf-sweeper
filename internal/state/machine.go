@@ -10,6 +10,7 @@ import (
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/player"
+	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -31,6 +32,8 @@ var (
 	switchState = true
 	state       = -1
 	newState    = 1
+
+	minePuzzle *puzzles.MinePuzzle
 
 	pressAKey      = menu.NewItemText("press any key", colornames.Aliceblue, pixel.V(1.4, 1.4), menu.Center, menu.Center)
 	pressAKeyTimer *timing.FrameTimer
@@ -107,6 +110,9 @@ func Update(win *pixelgl.Window) {
 	debugInput.Update(win)
 	menuInput.Update(win)
 	data.GameInput.Update(win)
+	if minePuzzle != nil {
+		minePuzzle.Update(nil)
+	}
 	if debugInput.Get("debug").JustPressed() {
 		debug.Debug = !debug.Debug
 		if debug.Debug {
@@ -214,7 +220,7 @@ func Update(win *pixelgl.Window) {
 				if data.GameInput.Get("up").JustPressed() &&
 					descent.Descent.GetPlayerTile().IsExit() &&
 					descent.Descent.CanExit() {
-					if descent.Descent.Level >= descent.Descent.Depth-1 {
+					if descent.Descent.CurrDepth >= descent.Descent.Depth-1 {
 						SwitchState(2)
 					} else {
 						SwitchState(5)
@@ -384,6 +390,9 @@ func Draw(win *pixelgl.Window) {
 		for _, m := range menuStack {
 			m.Draw(win)
 		}
+	}
+	if minePuzzle != nil {
+		minePuzzle.Draw(win)
 	}
 }
 

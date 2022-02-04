@@ -15,7 +15,7 @@ type Chunk struct {
 	Cave    *Cave
 }
 
-func NewChunk(coords world.Coords, c *Cave, tt TileType) *Chunk {
+func NewChunk(coords world.Coords, c *Cave, tt BlockType) *Chunk {
 	// Array of 1024 bools
 	var list []bool
 	// fill first BombPMin-BombPMax% with true

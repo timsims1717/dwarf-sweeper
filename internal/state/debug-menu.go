@@ -5,7 +5,7 @@ import (
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
-	"dwarf-sweeper/internal/minesweeper"
+	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -50,7 +50,7 @@ func InitDebugMenu() {
 			panic(err)
 		}
 		choice := random.Effects.Intn(len(caveBuilders))
-		descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+		descent.Descent.Builders = append(descent.Descent.Builders, []builder.CaveBuilder{caveBuilders[choice].Copy()})
 		SwitchState(0)
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -62,17 +62,14 @@ func InitDebugMenu() {
 			panic(err)
 		}
 		choice := random.Effects.Intn(len(caveBuilders))
-		descent.Descent.Builders = append(descent.Descent.Builders, []*builder.CaveBuilder{caveBuilders[choice]})
+		descent.Descent.Builders = append(descent.Descent.Builders, []builder.CaveBuilder{caveBuilders[choice].Copy()})
 		SwitchState(0)
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	testMineSolver.SetClickFn(func() {
-		b := minesweeper.CreateBoard(5, 5, 10, random.Effects)
-		b.PrintToTerminalFull()
-		b.RevealTilSolvable(random.Effects)
-		b.PrintToTerminal()
-		fmt.Printf("Was it solvable: %t", b.Solvable())
+		minePuzzle = puzzles.NewMinePuzzle(camera.Cam, 1)
+		minePuzzle.Open()
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})

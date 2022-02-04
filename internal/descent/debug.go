@@ -15,6 +15,7 @@ func Debug(in *input.Input) {
 	if debug.Text {
 		debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(in.World.X), int(in.World.Y)))
 		if d.Hovered != nil {
+			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.Hovered.Chunk.Coords.X, d.Hovered.Chunk.Coords.Y))
 			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.Hovered.RCoords.X, d.Hovered.RCoords.Y))
 			//debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.hovered.Chunk.Coords.X, d.hovered.Chunk.Coords.Y))
 			//debug.AddText(fmt.Sprintf("tile sub coords: (%d,%d)", d.hovered.SubCoords.X, d.hovered.SubCoords.Y))

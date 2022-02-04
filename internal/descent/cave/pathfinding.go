@@ -10,14 +10,14 @@ import (
 type PathRule struct {
 	Origin     world.Coords
 	Avoid      *world.Coords
-	LegalTypes map[TileType]float64
+	LegalTypes map[BlockType]float64
 	Climb      bool
 	Ceiling    bool
 	Fly        bool
 	Bomb       bool
 }
 
-func MakePathRule(orig world.Coords, legalTypes map[TileType]float64, climb, ceiling, fly, bomb bool) PathRule {
+func MakePathRule(orig world.Coords, legalTypes map[BlockType]float64, climb, ceiling, fly, bomb bool) PathRule {
 	return PathRule{
 		Origin:     orig,
 		Avoid:      nil,
@@ -29,7 +29,7 @@ func MakePathRule(orig world.Coords, legalTypes map[TileType]float64, climb, cei
 	}
 }
 
-func MakeAvoidPathRule(orig, avoid world.Coords, legalTypes map[TileType]float64, climb, ceiling, fly, bomb bool) PathRule {
+func MakeAvoidPathRule(orig, avoid world.Coords, legalTypes map[BlockType]float64, climb, ceiling, fly, bomb bool) PathRule {
 	return PathRule{
 		Origin:     orig,
 		Avoid:      &avoid,
@@ -42,7 +42,7 @@ func MakeAvoidPathRule(orig, avoid world.Coords, legalTypes map[TileType]float64
 }
 
 var (
-	AllTypes = map[TileType]float64{
+	AllTypes = map[BlockType]float64{
 		Deco:          1.,
 		Empty:         1.,
 		BlockCollapse: 1.,
@@ -50,24 +50,24 @@ var (
 		BlockBlast:    1.,
 		Wall:          1.,
 	}
-	AllButWallTypes = map[TileType]float64{
+	AllButWallTypes = map[BlockType]float64{
 		Deco:          1.,
 		Empty:         1.,
 		BlockCollapse: 1.,
 		BlockDig:      1.,
 		BlockBlast:    1.,
 	}
-	EmptyTypes = map[TileType]float64{
+	EmptyTypes = map[BlockType]float64{
 		Deco:  1.,
 		Empty: 1.,
 	}
-	SolidTypes = map[TileType]float64{
+	SolidTypes = map[BlockType]float64{
 		BlockCollapse: 1.,
 		BlockDig:      1.,
 		BlockBlast:    1.,
 		Wall:          1.,
 	}
-	NonWallTypes = map[TileType]float64{
+	NonWallTypes = map[BlockType]float64{
 		BlockCollapse: 1.,
 		BlockDig:      1.,
 		BlockBlast:    1.,
@@ -75,7 +75,7 @@ var (
 )
 
 // CoordsIn returns true if Coords c are in the list.
-func TypeLegal(t TileType, list map[TileType]float64) bool {
+func TypeLegal(t BlockType, list map[BlockType]float64) bool {
 	if f, ok := list[t]; ok && f > 0. {
 		return true
 	}

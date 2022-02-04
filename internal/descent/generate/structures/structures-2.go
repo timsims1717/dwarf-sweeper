@@ -13,35 +13,21 @@ import (
 func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 	t := start
 	dir := iDir
-	currType := cave.BlockCollapse
 	chance := random.CaveGen.Intn(40) + 40
-	switch random.CaveGen.Intn(4) {
-	case 0, 1, 2:
-		currType = cave.Empty
-	case 3:
-		currType = cave.BlockCollapse
-	}
+	empty := random.CaveGen.Intn(6) > 0
 	for {
 		tile := c.GetTileInt(t.X, t.Y)
 		if (chance < 25 && random.CaveGen.Intn(chance) == 0) || tile == nil || tile.NeverChange {
 			break
 		} else {
 			chance--
-			if currType == cave.Empty {
+			if empty {
 				ToEmpty(tile, false, false, false)
 			} else {
-				ToBlock(tile, cave.TileType(currType), false, true)
+				ToBlock(tile, cave.Unknown, false, false)
 			}
 			// carve out a bit
-			ns := tile.RCoords.Neighbors()
-			for _, n := range ns {
-				tmp := c.GetTileInt(n.X, n.Y)
-				if random.CaveGen.Intn(4) == 0 {
-					ToBlock(tmp, cave.BlockDig, false, true)
-				} else {
-					ToBlock(tmp, cave.BlockCollapse, false, true)
-				}
-			}
+			BlockUp(tile, cave.Unknown)
 			// change to next tile
 			switch dir {
 			case data.Left:
@@ -54,12 +40,7 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 				t.Y++
 			}
 			// change type
-			switch random.CaveGen.Intn(2) {
-			case 0:
-				currType = cave.Empty
-			case 1:
-				currType = cave.BlockCollapse
-			}
+			empty = random.CaveGen.Intn(6) > 0
 			// maybe change direction
 			change := random.CaveGen.Intn(4)
 			switch iDir {
