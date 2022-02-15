@@ -30,7 +30,7 @@ func (f *Flag) Update() {
 }
 
 func (f *Flag) Create(_ pixel.Vec) {
-	f.Transform = transform.NewTransform()
+	f.Transform = transform.New()
 	f.Transform.Pos = f.Tile.Transform.Pos
 	f.created = true
 	f.correct = f.Tile.Bomb

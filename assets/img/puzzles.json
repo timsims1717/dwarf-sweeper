@@ -2,23 +2,21 @@
  "img": "puzzles.png",
  "sprites": [
   {
-   "key": "background",
+   "key": "background_num",
    "x": 0,
    "y": 0,
    "h": 16,
    "w": 16
   },
   {
-   "key": "green_x",
-   "anim": true,
+   "key": "background_click",
    "x": 16,
    "y": 0,
    "h": 16,
    "w": 16
   },
   {
-   "key": "green_x",
-   "anim": true,
+   "key": "background_empty",
    "x": 32,
    "y": 0,
    "h": 16,
@@ -36,6 +34,22 @@
    "key": "green_x",
    "anim": true,
    "x": 64,
+   "y": 0,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "green_x",
+   "anim": true,
+   "x": 80,
+   "y": 0,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "green_x",
+   "anim": true,
+   "x": 96,
    "y": 0,
    "h": 16,
    "w": 16

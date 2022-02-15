@@ -36,28 +36,28 @@ var (
 func InitHUD() {
 	heartTransforms = []*transform.Transform{}
 	for i := 0; i < descent.Descent.Player.Health.Max; i++ {
-		tran := transform.NewTransform()
+		tran := transform.New()
 		tran.Anchor.H = transform.Left
 		tran.Anchor.V = transform.Center
 		tran.Scalar = pixel.V(1.6, 1.6)
 		tran.Pos = pixel.V(constants.BaseW*-0.5+8.+float64(i)*1.2*world.TileSize, constants.BaseH*0.5-world.TileSize)
 		heartTransforms = append(heartTransforms, tran)
 	}
-	gemTransform = transform.NewTransform()
+	gemTransform = transform.New()
 	gemTransform.Anchor.H = transform.Left
 	gemTransform.Anchor.V = transform.Center
 	gemTransform.Scalar = pixel.V(1.6, 1.6)
 	gemTransform.Pos = pixel.V(constants.BaseW*-0.5+8., constants.BaseH*0.5-(4.+2.0*world.TileSize))
 	gemNumberItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(1.6, 1.6), menu.Left, menu.Center)
 	gemNumberItem.Transform.Pos = pixel.V(constants.BaseW*-0.5+24., constants.BaseH*0.5-(4.+2.0*world.TileSize))
-	itemTransform = transform.NewTransform()
+	itemTransform = transform.New()
 	itemTransform.Anchor.H = transform.Right
 	itemTransform.Anchor.V = transform.Center
 	itemTransform.Scalar = pixel.V(1.6, 1.6)
 	itemTransform.Pos = pixel.V(constants.BaseW*0.5-8., constants.BaseH*0.5-world.TileSize)
 	itemCountItem = menu.NewItemText("", colornames.Aliceblue, pixel.V(0.8, 0.8), menu.Right, menu.Bottom)
 	itemCountItem.Transform.Pos = pixel.V(constants.BaseW*0.5, constants.BaseH*0.5-world.TileSize*1.5)
-	bombCountTransform = transform.NewTransform()
+	bombCountTransform = transform.New()
 	bombCountTransform.Anchor.H = transform.Right
 	bombCountTransform.Anchor.V = transform.Center
 	bombCountTransform.Scalar = pixel.V(1.6, 1.6)
@@ -92,7 +92,7 @@ func UpdateHUD() {
 	if len(heartTransforms) != thp {
 		heartTransforms = []*transform.Transform{}
 		for i := 0; i < thp; i++ {
-			tran := transform.NewTransform()
+			tran := transform.New()
 			tran.Anchor.H = transform.Left
 			tran.Anchor.V = transform.Center
 			tran.Scalar = pixel.V(1.6, 1.6)

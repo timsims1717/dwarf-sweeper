@@ -37,7 +37,7 @@ func (b *Bubble) Update() {
 
 func (b *Bubble) Create(_ pixel.Vec) {
 	b.Timer = timing.New(BubbleSec)
-	b.Transform = transform.NewTransform()
+	b.Transform = transform.New()
 	b.Physics = physics.New()
 	b.Physics.Gravity = 50.
 	b.Physics.Friction = 200.

@@ -79,7 +79,7 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	pathS.Y += 1
 	descent.CaveTotalBombs = chal.Mines
 	descent.CaveBombsLeft = chal.Mines
-	structures.CreateChunks(c)
+	structures.CreateChunks(c, cave.Wall)
 	structures.Outline(c, pathS, outline(chal))
 	structures.Entrance(c, c.StartC, 5, 3, 0, false)
 	structures.Entrance(c, exitC, 5, 3, 0, true)

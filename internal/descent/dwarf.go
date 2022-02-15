@@ -117,7 +117,7 @@ type Dwarf struct {
 }
 
 func NewDwarf(start pixel.Vec) *Dwarf {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Pos = start
 	d := &Dwarf{
 		DwarfStats: DefaultStats(),
@@ -152,7 +152,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							return 0
 						}
 					}
-															})).
+				})).
 			AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)). // flat
 			SetChooseFn(func() int {
 				if !d.Physics.Grounded {
@@ -160,13 +160,13 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 				} else {
 					return 1
 				}
-															})).
+			})).
 		AddAnimation(reanimator.NewAnimFromSprite("dig_hold", batcher.GetSprite("dig"), reanimator.Hold)).   // dig hold
 		AddAnimation(reanimator.NewAnimFromSprite("flag_hold", batcher.GetSprite("flag"), reanimator.Hold)). // flag hold
 		AddAnimation(reanimator.NewAnimFromSprites("dig", batcher.GetAnimation("dig").S, reanimator.Tran).
 			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
 				if d.digTile == nil || !d.digTile.Solid() {
-					trans := transform.NewTransform()
+					trans := transform.New()
 					trans.Pos = d.attackPoint
 					trans.Flip = d.faceLeft
 					key := "shovel_swipe"
@@ -201,7 +201,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 							SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
 								myecs.Manager.DisposeEntity(e)
 							}),
-					)).
+						)).
 						AddComponent(myecs.Transform, trans).
 						AddComponent(myecs.Batch, constants.ParticleKey).
 						AddComponent(myecs.Temp, myecs.ClearFlag(false))

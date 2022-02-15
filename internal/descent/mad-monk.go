@@ -66,7 +66,7 @@ func (m *MadMonk) Update() {
 
 func (m *MadMonk) Create(pos pixel.Vec) {
 	m.AtkTimer = timing.New(mmAtkWait)
-	m.Transform = transform.NewTransform()
+	m.Transform = transform.New()
 	m.Transform.Pos = pos
 	m.Physics = physics.New()
 	m.Physics.Terminal = 100.

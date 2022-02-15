@@ -74,7 +74,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 			newCave.MapFn(func(tile *cave.Tile) {
 				if tile.Group == g {
 					tile.Group = 0
-					tile.Type = cave.Wall
+					tile.Type = cave.BlockBlast
 				}
 			})
 			delete(groups, g)
@@ -87,9 +87,9 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 		}
 	}
 	newCave.MapFn(func(tile *cave.Tile) {
-		if tile.Group == 0 && tile.Type != cave.Wall {
+		if tile.Group == 0 && tile.Diggable() {
 			tile.Group = 0
-			tile.Type = cave.Wall
+			tile.Type = cave.BlockBlast
 		}
 	})
 	if signal != nil {
@@ -118,7 +118,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 					for _, n := range ns {
 						nt := newCave.GetTileInt(n.X, n.Y)
 						if nt != nil {
-							if nt.Type == cave.Wall {
+							if !nt.Diggable() {
 								structures.ToBlock(nt, cave.Unknown, false, false)
 							}
 							nt.Group = newGroup
@@ -155,7 +155,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 		}
 	}
 	newCave.MapFn(func(tile *cave.Tile) {
-		if tile.Group != 0 && tile.Type != cave.Wall {
+		if tile.Group != 0 && tile.Diggable() {
 			newCave.Rooms = append(newCave.Rooms, tile.RCoords)
 		}
 	})
@@ -168,11 +168,11 @@ func CellAutoB678S345678(newCave *cave.Cave) {
 			c := 0
 			for _, n := range tile.RCoords.Neighbors() {
 				t := newCave.GetTileInt(n.X, n.Y)
-				if t != nil && t.Solid() && t.Type != cave.Wall {
+				if t != nil && t.Solid() && t.Diggable() {
 					c++
 				}
 			}
-			if tile.Type == cave.Wall {
+			if !tile.Diggable() {
 				switch c {
 				case 6, 7, 8:
 					tile.Change = true
@@ -186,10 +186,10 @@ func CellAutoB678S345678(newCave *cave.Cave) {
 	})
 	newCave.MapFn(func(tile *cave.Tile) {
 		if !tile.NeverChange && tile.Change {
-			if tile.Type == cave.Wall {
+			if !tile.Diggable() {
 				structures.ToBlock(tile, cave.Unknown, false, false)
 			} else {
-				tile.Type = cave.Wall
+				tile.Type = cave.BlockBlast
 			}
 			tile.Change = false
 		}
@@ -242,7 +242,7 @@ func GetRandomUngroupedTile(newCave *cave.Cave) *cave.Tile {
 		x := random.Effects.Intn(constants.ChunkSize * (newCave.Right - newCave.Left + 1))
 		y := random.Effects.Intn(constants.ChunkSize * (newCave.Bottom + 1))
 		tile := newCave.GetTileInt(x, y)
-		if tile.Type != cave.Wall && tile.Group == 0 && !tile.Change {
+		if tile.Diggable() && tile.Group == 0 && !tile.Change {
 			return tile
 		}
 		tries++
@@ -250,7 +250,7 @@ func GetRandomUngroupedTile(newCave *cave.Cave) *cave.Tile {
 	return nil
 }
 
-func GroupTile(newCave *cave.Cave, tile *cave.Tile, group int) ([]world.Coords) {
+func GroupTile(newCave *cave.Cave, tile *cave.Tile, group int) []world.Coords {
 	tile.Change = true
 	qu := []*cave.Tile{
 		tile,
@@ -264,7 +264,7 @@ func GroupTile(newCave *cave.Cave, tile *cave.Tile, group int) ([]world.Coords) 
 			for i, n := range next.RCoords.Neighbors() {
 				if i % 2 == 0 {
 					t := newCave.GetTileInt(n.X, n.Y)
-					if t.Type != cave.Wall && !t.Change && t.Group != group {
+					if t.Diggable() && !t.Change && t.Group != group {
 						t.Change = true
 						qu = append(qu, t)
 					}

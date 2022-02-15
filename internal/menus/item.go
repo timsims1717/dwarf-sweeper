@@ -42,7 +42,7 @@ type Item struct {
 }
 
 func NewItem(key, raw string) *Item {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Anchor = transform.Anchor{
 		H: transform.Left,
 		V: transform.Bottom,
@@ -89,7 +89,7 @@ func (i *Item) Update() {
 	}
 	symPos := typeface.SetText(i.Text, i.Raw, 0., align)
 	if len(symPos) > 0 {
-		t := transform.NewTransform()
+		t := transform.New()
 		t.Scalar = pixel.V(SymbolScalar, SymbolScalar)
 		i.SymMats = []pixel.Matrix{}
 		for _, pos := range symPos {

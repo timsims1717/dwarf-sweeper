@@ -170,6 +170,7 @@ func TileCollisionSystem() {
 									phys.RagDollX = wasRDX
 								} else {
 									phys.Velocity.Y = 0
+									phys.RagDollY = false
 								}
 								stopped = true
 							}

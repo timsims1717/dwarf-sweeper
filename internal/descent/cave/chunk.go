@@ -15,7 +15,7 @@ type Chunk struct {
 	Cave    *Cave
 }
 
-func NewChunk(coords world.Coords, c *Cave, tt BlockType) *Chunk {
+func NewChunk(coords world.Coords, c *Cave, blockType BlockType) *Chunk {
 	// Array of 1024 bools
 	var list []bool
 	// fill first BombPMin-BombPMax% with true
@@ -50,7 +50,7 @@ func NewChunk(coords world.Coords, c *Cave, tt BlockType) *Chunk {
 			tile.NeverChange = true
 		} else {
 			tile = NewTile(x, y, coords, b, chunk)
-			tile.Type = tt
+			tile.Type = blockType
 		}
 		chunk.Rows[y][x] = tile
 		x++

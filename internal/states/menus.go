@@ -1,4 +1,4 @@
-package state
+package states
 
 import (
 	"dwarf-sweeper/internal/data"
@@ -36,6 +36,7 @@ func InitializeMenus(win *pixelgl.Window) {
 	InitEnchantMenu()
 	InitPostGameMenu()
 	InitDebugMenu()
+	UpdateKeybindings()
 }
 
 func UpdateMenus(win *pixelgl.Window) {

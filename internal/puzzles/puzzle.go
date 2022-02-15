@@ -15,4 +15,5 @@ type Puzzle interface {
 	Update(*input.Input)
 	Draw(pixel.Target)
 	Solved() bool
+	OnSolve()
 }

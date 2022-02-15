@@ -6,9 +6,11 @@ import (
 )
 
 // can the board be solved without guessing?
-func SolvableP(b *Board) bool {
-	fmt.Println("State of the board:")
-	b.PrintToTerminal()
+func SolvableP(b *Board, print bool) bool {
+	if print {
+		fmt.Println("State of the board:")
+		b.PrintToTerminal()
+	}
 	for {
 		found := false
 		for y, row := range b.Board {
@@ -33,11 +35,15 @@ func SolvableP(b *Board) bool {
 			}
 		}
 		if !found {
-			fmt.Println("failed to reveal new cells")
+			if print {
+				fmt.Println("failed to reveal new cells")
+			}
 			break
 		}
-		fmt.Println("After a pass:")
-		b.PrintToTerminal()
+		if print {
+			fmt.Println("After a pass:")
+			b.PrintToTerminal()
+		}
 	}
 	allRevealed := true
 outer:
@@ -52,9 +58,9 @@ outer:
 	return allRevealed
 }
 
-func RevealTilSolvableP(b *Board, rando *rand.Rand) {
+func RevealTilSolvableP(b *Board, rando *rand.Rand, print bool) {
 	tries := 0
-	for !SolvableP(b.Copy()) && tries < 200 {
+	for !SolvableP(b.Copy(), print) && tries < 200 {
 		x := rando.Intn(len(b.Board[0]))
 		y := rando.Intn(len(b.Board))
 		for b.Board[y][x].Rev || b.Board[y][x].Bomb {
@@ -68,11 +74,13 @@ func RevealTilSolvableP(b *Board, rando *rand.Rand) {
 		b.Board[y][x].Rev = true
 		b.Board[y][x].Ex = false
 	}
-	fmt.Println("Final state:")
-	b.PrintToTerminal()
+	if print {
+		fmt.Println("Final state:")
+		b.PrintToTerminal()
+	}
 }
 
-func UnRevealWhileSolvableP(b *Board, rando *rand.Rand) {
+func UnRevealWhileSolvableP(b *Board, rando *rand.Rand, print bool) {
 	tries := 0
 	for tries < 50 {
 		x := rando.Intn(len(b.Board[0]))
@@ -87,12 +95,14 @@ func UnRevealWhileSolvableP(b *Board, rando *rand.Rand) {
 		}
 		b.Board[y][x].Rev = false
 		b.Board[y][x].Ex = false
-		if !SolvableP(b.Copy()) {
+		if !SolvableP(b.Copy(), print) {
 			b.Board[y][x].Rev = true
 			b.Board[y][x].Ex = false
 			break
 		}
 	}
-	fmt.Println("Final state:")
-	b.PrintToTerminal()
+	if print {
+		fmt.Println("Final state:")
+		b.PrintToTerminal()
+	}
 }

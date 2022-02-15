@@ -89,7 +89,7 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 	s := max - min
 	width, height := c.Dimensions()
 	if max > width*constants.ChunkSize || max > height*constants.ChunkSize {
-		fmt.Printf("WARNING: rect room not generated: max %d is greater than cave width %d or height %d\n", max, width, height)
+		fmt.Printf("WARNING: treasure room not generated: max %d is greater than cave width %d or height %d\n", max, width, height)
 		return
 	}
 	w := random.CaveGen.Intn(s) + min
@@ -185,6 +185,45 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 				} else if dist < fRad+random.CaveGen.Float64()*variance {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						ToBlock(tile, cave.BlockCollapse, false, false)
+					}
+				}
+			}
+		}
+	}
+}
+
+func BombRoom(c *cave.Cave, minH, maxH, minW, maxW, curve, level int, include world.Coords) {
+	width, height := c.Dimensions()
+	if maxW > width*constants.ChunkSize || maxH > height*constants.ChunkSize {
+		fmt.Printf("WARNING: bomb room not generated: max width %d or max height %d is greater than cave width %d or height %d\n", maxW, maxH, width, height)
+		return
+	}
+	if minH < 3 {
+		minH = 3
+	}
+	if minW < 5 {
+		minW = 5
+	}
+	sW := maxW - minW
+	sH := maxH - minH
+	w := random.CaveGen.Intn(sW) + minW
+	h := random.CaveGen.Intn(sH) + minH
+	sX := include.X - int(float64(w) * 0.33) + random.CaveGen.Intn(int(float64(w) * 0.167))
+	sY := include.Y - h + 1
+	for y := sY; y < sY+h; y++ {
+		for x := sX; x < sX+w; x++ {
+			tile := c.GetTileInt(x, y)
+			if tile != nil {
+				dx := util.Min(util.Abs(x-sX), util.Abs(x-(sX+width)))
+				dy := util.Abs(y - sY)
+				if !tile.NeverChange && !tile.IsChanged && !(dx+dy+random.CaveGen.Intn(2) < curve*maxW/8) {
+					ToEmpty(tile, true, false, true)
+					if y == include.Y && x == include.X {
+						addBigBomb(tile, level)
+						t1 := c.GetTileInt(x, y+1)
+						t2 := c.GetTileInt(x+1, y+1)
+						ToBlock(t1, cave.Wall, true, true)
+						ToBlock(t2, cave.Wall, true, true)
 					}
 				}
 			}

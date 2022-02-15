@@ -27,7 +27,7 @@ func RoomyCave(newCave *cave.Cave, level int, signal chan bool) {
 	newCave.StartC = startT
 	newCave.ExitC = exitT
 	newCave.BombPMin, newCave.BombPMax = BombLevel(level)
-	structures.CreateChunks(newCave)
+	structures.CreateChunks(newCave, cave.BlockBlast)
 	if signal != nil {
 		signal <- false
 		if !<-signal {

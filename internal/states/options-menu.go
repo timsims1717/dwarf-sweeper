@@ -1,4 +1,4 @@
-package state
+package states
 
 import (
 	"dwarf-sweeper/internal/config"

@@ -89,15 +89,15 @@ func NewCave(biome string, caveType CaveType) *Cave {
 		Biome:       biome,
 		Background:  bgSpr,
 		BGBatch:     bgBatch,
-		BGTC:        transform.NewTransform(),
-		BGTUL:       transform.NewTransform(),
-		BGTU:        transform.NewTransform(),
-		BGTUR:       transform.NewTransform(),
-		BGTL:        transform.NewTransform(),
-		BGTR:        transform.NewTransform(),
-		BGTDL:       transform.NewTransform(),
-		BGTD:        transform.NewTransform(),
-		BGTDR:       transform.NewTransform(),
+		BGTC:        transform.New(),
+		BGTUL:       transform.New(),
+		BGTU:        transform.New(),
+		BGTUR:       transform.New(),
+		BGTL:        transform.New(),
+		BGTR:        transform.New(),
+		BGTDL:       transform.New(),
+		BGTD:        transform.New(),
+		BGTDR:       transform.New(),
 		Fog:         true,
 		GemRate:     0.05,
 	}
@@ -365,14 +365,16 @@ func (c *Cave) PrintCaveToTerminal() {
 						//	fmt.Print("p")
 					} else {
 						switch tile.Type {
-						case BlockCollapse, BlockDig, BlockBlast:
+						case BlockCollapse, BlockDig:
 							if tile.Bomb {
 								fmt.Print("ó")
 							} else {
 								fmt.Print("□")
 							}
-						case Wall:
+						case BlockBlast:
 							fmt.Print("▣")
+						case Wall:
+							fmt.Print("#")
 						case Deco:
 							fmt.Print("*")
 						case Empty:

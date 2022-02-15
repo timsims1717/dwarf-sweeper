@@ -170,7 +170,7 @@ func (gnome *GnomeBoss) Update() bool {
 
 func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	e := myecs.Manager.NewEntity()
-	trans := transform.NewTransform()
+	trans := transform.New()
 	phys := physics.New()
 	phys.GravityOff = true
 	hp := &data.Health{
@@ -295,9 +295,11 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				}, 0.3))
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_roar", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_roar").S, reanimator.Hold).
+			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+   				sfx.SoundPlayer.PlaySound("roar", 0.)
+			}).
 			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
 				camera.Cam.ZoomShake(1.4, 30.)
-				sfx.SoundPlayer.PlaySound("roar", 0.)
 				gb.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 					if gb.Charge {
 						gb.State = GBCharge

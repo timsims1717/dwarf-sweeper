@@ -50,7 +50,7 @@ type Transform struct {
 	UIZoom float64
 }
 
-func NewTransform() *Transform {
+func New() *Transform {
 	return &Transform{
 		ID: uuid.New(),
 		Scalar: pixel.Vec{

@@ -40,7 +40,7 @@ var BombImmunity = map[data.DamageType]data.Immunity{
 
 func CreateBomb(pos pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	trans := transform.NewTransform()
+	trans := transform.New()
 	trans.Pos = pos
 	phys := physics.New()
 	phys.GravityOff = true

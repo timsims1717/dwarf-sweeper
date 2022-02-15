@@ -47,23 +47,23 @@ type HintBox struct {
 }
 
 func NewHint(cam *camera.Camera) *HintBox {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Anchor = transform.Anchor{
 		H: transform.Center,
 		V: transform.Center,
 	}
-	tTran := transform.NewTransform()
+	tTran := transform.New()
 	tTran.Scalar = pixel.V(constants.ActualHintSize, constants.ActualHintSize)
-	Center := transform.NewTransform()
-	CTUL := transform.NewTransform()
-	CTUR := transform.NewTransform()
-	CTDR := transform.NewTransform()
-	CTDL := transform.NewTransform()
-	STU := transform.NewTransform()
-	STR := transform.NewTransform()
-	STD := transform.NewTransform()
-	STL := transform.NewTransform()
-	EntryT := transform.NewTransform()
+	Center := transform.New()
+	CTUL := transform.New()
+	CTUR := transform.New()
+	CTDR := transform.New()
+	CTDL := transform.New()
+	STU := transform.New()
+	STR := transform.New()
+	STD := transform.New()
+	STL := transform.New()
+	EntryT := transform.New()
 	CTUR.Flip = true
 	CTDR.Flip = true
 	CTDR.Flop = true
@@ -102,7 +102,7 @@ func (h *HintBox) Update() {
 	if h.Raw != "" {
 		symPos := typeface.SetText(h.Text, h.Raw, h.MaxWidth / constants.ActualHintSize, typeface.DefaultAlign)
 		if len(symPos) > 0 {
-			t := transform.NewTransform()
+			t := transform.New()
 			t.Scalar = h.Tran.Scalar.Scaled(SymbolScalar)
 			h.SymMats = []pixel.Matrix{}
 			for _, pos := range symPos {

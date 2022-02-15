@@ -7,10 +7,10 @@ import (
 	"dwarf-sweeper/pkg/world"
 )
 
-func CreateChunks(newCave *cave.Cave) {
+func CreateChunks(newCave *cave.Cave, blockType cave.BlockType) {
 	for y := 0; y <= newCave.Bottom; y++ {
 		for x := newCave.Left; x <= newCave.Right; x++ {
-			chunk := cave.NewChunk(world.Coords{X: x, Y: y}, newCave, cave.Wall)
+			chunk := cave.NewChunk(world.Coords{X: x, Y: y}, newCave, blockType)
 			newCave.Chunks[chunk.Coords] = chunk
 		}
 	}

@@ -25,7 +25,7 @@ type Menu struct {
 }
 
 func NewMenu(rect pixel.Rect, cam *camera.Camera) *Menu {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Anchor = transform.Anchor{
 		H: transform.Center,
 		V: transform.Center,

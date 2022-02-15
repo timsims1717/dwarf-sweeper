@@ -43,7 +43,7 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	descent.Descent.CoordsMap["current_layer"] = cl
 	tt := c.StartC
 	tt.Y = 22
-	trans := transform.NewTransform()
+	trans := transform.New()
 	trans.Pos = c.GetTileInt(tt.X, tt.Y).Transform.Pos
 	coll := data.NewCollider(pixel.R(0., 0., world.TileSize*70., world.TileSize*3.), true, true)
 	coll.Debug = true

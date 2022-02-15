@@ -98,7 +98,7 @@ func (b *Bat) Update() {
 }
 
 func (b *Bat) Create(pos pixel.Vec) {
-	b.Transform = transform.NewTransform()
+	b.Transform = transform.New()
 	b.Transform.Pos = pos
 	tPos := pos
 	tPos.Y += world.TileSize

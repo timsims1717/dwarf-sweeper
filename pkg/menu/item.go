@@ -39,7 +39,7 @@ type Item struct {
 }
 
 func NewItem(t *ItemText, rect, parent pixel.Rect) *Item {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Anchor = transform.Anchor{
 		H: transform.Left,
 		V: transform.Bottom,

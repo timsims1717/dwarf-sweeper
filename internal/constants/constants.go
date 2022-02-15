@@ -80,6 +80,7 @@ var (
 	ActualMenuSize  = BaseMenuSize * (10 / TypeFaceSize)
 	ActualHoverSize = BaseHoverSize * (10 / TypeFaceSize)
 	ActualHintSize  = BaseHintSize * (10 / TypeFaceSize)
+	ActualOneSize   = 10 / TypeFaceSize
 
 	// Input
 	AimDedicated = true

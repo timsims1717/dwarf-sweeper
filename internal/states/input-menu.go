@@ -1,4 +1,4 @@
-package state
+package states
 
 import (
 	"dwarf-sweeper/internal/config"
@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/typeface"
@@ -292,6 +293,7 @@ func UpdateKeybinding(key string) {
 		for _, k := range in.Keys {
 			if first {
 				first = false
+				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(k.String()), 1.)
 			} else {
 				builder.WriteString(" ")
 			}
@@ -301,6 +303,7 @@ func UpdateKeybinding(key string) {
 		if in.Scroll > 0 {
 			if first {
 				first = false
+				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite("MouseScrollUp"), 1.)
 			} else {
 				builder.WriteString(" ")
 			}
@@ -309,6 +312,7 @@ func UpdateKeybinding(key string) {
 		} else if in.Scroll < 0 {
 			if first {
 				first = false
+				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite("MouseScrollDown"), 1.)
 			} else {
 				builder.WriteString(" ")
 			}
@@ -320,6 +324,7 @@ func UpdateKeybinding(key string) {
 		for _, b := range in.Buttons {
 			if first {
 				first = false
+				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(input.GamepadString(b)), 1.)
 			} else {
 				builder.WriteString(" ")
 			}
@@ -329,6 +334,7 @@ func UpdateKeybinding(key string) {
 		if in.AxisV != 0 {
 			if first {
 				first = false
+				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(input.AxisDirString(in.Axis, in.AxisV > 0)), 1.)
 			} else {
 				builder.WriteString(" ")
 			}

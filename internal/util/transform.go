@@ -22,7 +22,7 @@ func RandomVelocity(angle, angleVar, force, forceVar float64, rando *rand.Rand) 
 }
 
 func RandomPosAndVel(orig pixel.Vec, varX, varY, angle, angleVar, force, forceVar float64, rando *rand.Rand) (*physics.Physics, *transform.Transform) {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	phys := physics.New()
 	tran.Pos = RandomPosition(orig, varX, varY, rando)
 	phys.Velocity = RandomVelocity(angle, angleVar, force, forceVar, rando)

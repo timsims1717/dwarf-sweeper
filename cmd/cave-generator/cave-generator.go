@@ -212,7 +212,7 @@ func initMenu(win *pixelgl.Window) {
 	CaveMenu = menus.New("caves", camera.Cam)
 	CaveMenu.Title = true
 	CaveMenu.SetCloseFn(func() {
-		if !CaveMenu.Closed {
+		if !CaveMenu.IsClosed() {
 			win.SetClosed(true)
 		}
 	})
@@ -247,7 +247,7 @@ func updateMenu(win *pixelgl.Window) {
 				me.UnhoverAll()
 			}
 			me.Update(theInput)
-			if me.Closed {
+			if me.IsClosed() {
 				if len(menuStack) > 1 {
 					menuStack = menuStack[:len(menuStack)-1]
 				} else {

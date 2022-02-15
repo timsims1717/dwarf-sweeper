@@ -59,7 +59,7 @@ func (m *Mine) Update() {
 }
 
 func (m *Mine) Create(pos pixel.Vec) {
-	m.Transform = transform.NewTransform()
+	m.Transform = transform.New()
 	m.Transform.Pos = pos
 	m.created = true
 	m.Timer = timing.New(MineFuse)

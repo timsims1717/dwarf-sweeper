@@ -11,9 +11,11 @@ import (
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/text"
 )
 
 const (
@@ -28,20 +30,40 @@ type MinePuzzle struct {
 	Board *minesweeper.Board
 	Hover world.Coords
 
-	Box *menus.MenuBox
+	Box        *menus.MenuBox
+	InfoText   *typeface.Item
+	InfoSyms   []pixel.Vec
+	CountText  *text.Text
+	CountTrans *transform.Transform
 
 	CellTrans [][]*transform.Transform
 	solved    bool
+	OnSolveFn func()
 
 	FlagAnim *reanimator.Tree
 	ExAnim   *reanimator.Tree
+
+	ButtonPressed bool
 }
 
 func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
-	size := 4 + level / 4
+	size := 5 + level / 4
 	mp.SizeW = util.Min(size, 9)
 	mp.SizeH = util.Min(size, 7)
+	mp.InfoText = typeface.New(camera.Cam,"main", typeface.DefaultAlign, 2.0, constants.ActualHintSize, 0., 0.)
+	mp.InfoText.SetColor(menus.DefaultColor)
+	mp.InfoText.SetText("{symbol:flag}:mark a bomb tile\n{symbol:dig}:mark a safe tile")
+	mp.CountText = text.New(pixel.ZV, typeface.Atlases["main"])
+	mp.CountText.LineHeight *= 1.2
+	mp.CountText.Color = menus.DefaultColor
 	mp.Box = menus.NewBox(cam)
+	mp.Box.SetSize(pixel.R(0., 0., float64(mp.SizeW) * (world.TileSize + 2.) * scalar, float64(mp.SizeH) * (world.TileSize + 2.) * scalar + mp.InfoText.Height))
+	mp.InfoText.SetPos(pixel.V(mp.Box.Rect.W() * -0.5 + 5., mp.Box.Rect.H() * 0.5 - 15.))
+	mp.CountTrans = transform.New()
+	mp.CountTrans.Pos.X = mp.Box.Rect.W() * 0.5
+	mp.CountTrans.Pos.Y = mp.Box.Rect.H() * 0.5 - mp.CountText.LineHeight * constants.ActualHintSize
+	mp.CountTrans.Scalar = pixel.V(constants.ActualHintSize, constants.ActualHintSize)
+	topPadding := mp.InfoText.Height * 0.5
 	var cts [][]*transform.Transform
 	for y := 0; y < mp.SizeH; y++ {
 		cts = append(cts, []*transform.Transform{})
@@ -53,7 +75,7 @@ func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
 		} else {
 			multY = float64(y-midY)
 		}
-		yPos := multY*(world.TileSize*scalar+1)
+		yPos := multY*(world.TileSize*scalar+1)-topPadding
 		for x := 0; x < mp.SizeW; x++ {
 			evenX := mp.SizeW % 2 == 0
 			midX := mp.SizeW / 2
@@ -63,7 +85,7 @@ func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
 			} else {
 				multX = float64(x-midX)
 			}
-			trans := transform.NewTransform()
+			trans := transform.New()
 			trans.Pos = pixel.V(multX*(world.TileSize*scalar+1), yPos)
 			trans.Scalar = pixel.V(scalar, scalar)
 			cts[y] = append(cts[y], trans)
@@ -87,10 +109,9 @@ func (mp *MinePuzzle) Open() {
 	r := util.Min(mp.SizeW, mp.SizeH) - 1
 	amt := area / util.Max(mp.SizeW, mp.SizeH) + random.Effects.Intn(r) - r / 2
 	mp.Board = minesweeper.CreateBoard(mp.SizeW, mp.SizeH, amt, random.Effects)
-	minesweeper.RevealTilSolvableP(mp.Board, random.Effects)
-	minesweeper.UnRevealWhileSolvableP(mp.Board, random.Effects)
+	minesweeper.RevealTilSolvableP(mp.Board, random.Effects, false)
+	minesweeper.UnRevealWhileSolvableP(mp.Board, random.Effects, false)
 	mp.Box.Open()
-	mp.Box.SetSize(pixel.R(0., 0., float64(mp.SizeW) * (world.TileSize + 2.) * scalar, float64(mp.SizeH) * (world.TileSize + 2.) * scalar))
 	mp.Hover.Y = mp.SizeH-1
 }
 
@@ -101,6 +122,7 @@ func (mp *MinePuzzle) Close() {
 func (mp *MinePuzzle) Update(in *input.Input) {
 	mp.Box.Update()
 	mp.UpdateTransforms()
+	mp.InfoText.Update()
 	mp.FlagAnim.Update()
 	mp.ExAnim.Update()
 	if !mp.solved {
@@ -112,6 +134,7 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 						if util.PointInside(point, pixel.R(0., 0., 16., 16.), ct.Mat) {
 							mp.Hover.X = x
 							mp.Hover.Y = y
+							sfx.SoundPlayer.PlaySound("click", 2.0)
 						}
 					}
 				}
@@ -135,13 +158,15 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
 		}
 		cell := mp.Board.Board[mp.Hover.Y][mp.Hover.X]
-		if in.Get("flag").JustPressed() && !cell.Rev && !cell.Ex {
+		mp.ButtonPressed = in.Get("flag").Pressed() || in.Get("dig").Pressed()
+		if in.Get("flag").JustReleased() && !cell.Rev && !cell.Ex {
 			in.Get("flag").Consume()
 			cell.Flag = !cell.Flag
-		} else if in.Get("dig").JustPressed() && !cell.Rev && !cell.Flag {
+		} else if in.Get("dig").JustReleased() && !cell.Rev && !cell.Flag {
 			in.Get("dig").Consume()
 			if cell.Bomb {
 				cell.Rev = true
+				sfx.SoundPlayer.PlaySound("mpwrong", 1.)
 			} else {
 				cell.Ex = true
 			}
@@ -161,6 +186,9 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 
 func (mp *MinePuzzle) UpdateTransforms() {
 	if mp.Box.Cam != nil {
+		mp.CountTrans.UIZoom = mp.Box.Cam.GetZoomScale()
+		mp.CountTrans.UIPos = mp.Box.Cam.APos
+		mp.CountTrans.Update()
 		for _, row := range mp.CellTrans {
 			for _, ct := range row {
 				ct.UIZoom = mp.Box.Cam.GetZoomScale()
@@ -174,11 +202,13 @@ func (mp *MinePuzzle) UpdateTransforms() {
 func (mp *MinePuzzle) Draw(target pixel.Target) {
 	mp.Box.Draw(target)
 	if !mp.Box.IsClosed() && mp.Box.IsOpen() {
+		mp.InfoText.Draw(target)
+		mp.CountText.Draw(target, mp.CountTrans.Mat)
 		for y, row := range mp.CellTrans {
 			for x, ct := range row {
-				img.Batchers[constants.PuzzleKey].Sprites["background"].Draw(target, ct.Mat)
 				cell := mp.Board.Board[y][x]
 				if cell.Rev {
+					img.Batchers[constants.PuzzleKey].Sprites["background_num"].Draw(target, ct.Mat)
 					if cell.Bomb {
 						img.Batchers[constants.EntityKey].Sprites["mine_1"].Draw(target, ct.Mat)
 					} else {
@@ -205,10 +235,18 @@ func (mp *MinePuzzle) Draw(target pixel.Target) {
 						}
 						img.Batchers[constants.PuzzleKey].Sprites[str].Draw(target, ct.Mat)
 					}
-				} else if cell.Flag {
-					mp.FlagAnim.Draw(target, ct.Mat)
-				} else if cell.Ex {
-					mp.ExAnim.Draw(target, ct.Mat)
+				} else {
+					if mp.ButtonPressed && mp.Hover.X == x && mp.Hover.Y == y {
+						img.Batchers[constants.PuzzleKey].Sprites["background_click"].Draw(target, ct.Mat)
+					} else {
+						img.Batchers[constants.PuzzleKey].Sprites["background_empty"].Draw(target, ct.Mat)
+					}
+					if cell.Flag {
+						//img.Batchers[constants.EntityKey].Sprites["mine_1"].Draw(target, ct.Mat)
+						mp.FlagAnim.Draw(target, ct.Mat)
+					} else if cell.Ex {
+						mp.ExAnim.Draw(target, ct.Mat)
+					}
 				}
 			}
 		}
@@ -218,4 +256,10 @@ func (mp *MinePuzzle) Draw(target pixel.Target) {
 
 func (mp *MinePuzzle) Solved() bool {
 	return mp.solved
+}
+
+func (mp *MinePuzzle) OnSolve() {
+	if mp.OnSolveFn != nil {
+		mp.OnSolveFn()
+	}
 }

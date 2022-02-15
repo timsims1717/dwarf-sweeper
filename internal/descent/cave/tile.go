@@ -111,7 +111,7 @@ type Tile struct {
 }
 
 func NewTile(x, y int, coords world.Coords, bomb bool, chunk *Chunk) *Tile {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Pos = pixel.V(float64(x+coords.X*constants.ChunkSize)*world.TileSize, -(float64(y+coords.Y*constants.ChunkSize) * world.TileSize))
 	rCoords := world.Coords{X: x + coords.X*constants.ChunkSize, Y: y + coords.Y*constants.ChunkSize}
 	p := noise.BlockType(rCoords)
@@ -508,4 +508,15 @@ func (tile *Tile) Solid() bool {
 
 func (tile *Tile) Diggable() bool {
 	return tile.Type == BlockDig || tile.Type == BlockCollapse
+}
+
+func (tile *Tile) Neighbors() []*Tile {
+	var neighbors []*Tile
+	for _, n := range tile.RCoords.Neighbors() {
+		t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
+		if t != nil {
+			neighbors = append(neighbors, t)
+		}
+	}
+	return neighbors
 }

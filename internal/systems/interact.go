@@ -20,7 +20,7 @@ func InteractSystem() {
 					math.Abs(descent.Descent.GetPlayer().Transform.Pos.Y-trans.Pos.Y) < inter.Distance {
 					if data.GameInput.Get("interact").JustPressed() {
 						data.GameInput.Get("interact").Consume()
-						if inter.OnInteract(trans.APos) {
+						if inter.OnInteract == nil || inter.OnInteract(trans.APos) {
 							inter.Interacted = true
 							if inter.Remove {
 								myecs.Manager.DisposeEntity(result.Entity)

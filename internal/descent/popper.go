@@ -221,7 +221,7 @@ func (p *Popper) Update() {
 					} else {
 						if p.effectTimer == nil || p.effectTimer.UpdateDone() {
 							e := myecs.Manager.NewEntity()
-							trans := transform.NewTransform()
+							trans := transform.New()
 							trans.Pos = p.Transform.Pos
 							e.AddComponent(myecs.Transform, trans).
 								AddComponent(myecs.Temp, timing.New(1.5)).
@@ -412,7 +412,7 @@ func (p *Popper) Update() {
 }
 
 func (p *Popper) Create(pos pixel.Vec) {
-	p.Transform = transform.NewTransform()
+	p.Transform = transform.New()
 	p.Transform.Pos = pos
 	p.Physics = physics.New()
 	p.Physics.GravityOff = true
@@ -579,7 +579,7 @@ func (p *Popper) Delete() {
 
 func (p *Popper) CreateProjectile(norm pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	trans := transform.NewTransform()
+	trans := transform.New()
 	trans.Pos = p.poppedPos
 	trans.Pos.X += norm.X * 8.
 	trans.Pos.Y += norm.Y * 8.

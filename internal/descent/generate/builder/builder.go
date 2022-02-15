@@ -29,6 +29,15 @@ type CaveBuilder struct {
 	ExitI      []int         `json:"-"`
 }
 
+type DigDist int
+
+const (
+	Any = iota
+	Close // should be within 1.5 chunks of entrance
+	Medium // should be between 1 chunk and the longest side length of the cave
+	Far // should be longest side length - 1 chunk or further
+)
+
 type Structure struct {
 	Key      string   `json:"key"`
 	Minimum  int      `json:"minimum"`
@@ -37,7 +46,23 @@ type Structure struct {
 	MarginR  int      `json:"marginR"`
 	MarginT  int      `json:"marginT"`
 	MarginB  int      `json:"marginB"`
+	DigDist  DigDist  `json:"digDist"`
 	Enemies  []string `json:"enemies"`
+}
+
+func (s *Structure) Margins() {
+	if s.MarginL < 5 {
+		s.MarginL = 5
+	}
+	if s.MarginR < 5 {
+		s.MarginR = 5
+	}
+	if s.MarginT < 5 {
+		s.MarginT = 5
+	}
+	if s.MarginB < 5 {
+		s.MarginB = 5
+	}
 }
 
 var toBaseString = map[Base]string{
@@ -68,6 +93,37 @@ func (base *Base) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*base = toBaseID[j]
+	return nil
+}
+
+var toDigDistString = map[DigDist]string{
+	Any:    "Any",
+	Close:  "Close",
+	Medium: "Medium",
+	Far:    "Far",
+}
+
+var toDigDistID = map[string]DigDist{
+	"Any":    Any,
+	"Close":  Close,
+	"Medium": Medium,
+	"Far":    Far,
+}
+
+func (digDist DigDist) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(toDigDistString[digDist])
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (digDist *DigDist) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err != nil {
+		return err
+	}
+	*digDist = toDigDistID[j]
 	return nil
 }
 

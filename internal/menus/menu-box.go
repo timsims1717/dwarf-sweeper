@@ -73,15 +73,15 @@ type MenuBox struct {
 }
 
 func NewBox(cam *camera.Camera) *MenuBox {
-	Center := transform.NewTransform()
-	CTUL := transform.NewTransform()
-	CTUR := transform.NewTransform()
-	CTDR := transform.NewTransform()
-	CTDL := transform.NewTransform()
-	STU := transform.NewTransform()
-	STR := transform.NewTransform()
-	STD := transform.NewTransform()
-	STL := transform.NewTransform()
+	Center := transform.New()
+	CTUL := transform.New()
+	CTUR := transform.New()
+	CTDR := transform.New()
+	CTDL := transform.New()
+	STU := transform.New()
+	STR := transform.New()
+	STD := transform.New()
+	STL := transform.New()
 	CTUR.Flip = true
 	CTDR.Flip = true
 	CTDR.Flop = true
@@ -103,6 +103,7 @@ func NewBox(cam *camera.Camera) *MenuBox {
 		Cam:     cam,
 		StepV:   16.,
 		StepH:   16.,
+		closed:  true,
 	}
 }
 

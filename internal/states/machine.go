@@ -1,4 +1,4 @@
-package state
+package states
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -21,6 +21,7 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -135,9 +136,9 @@ func Update(win *pixelgl.Window) {
 		OpenMenu(DebugMenu)
 	}
 	if debugInput.Get("debugTest").JustPressed() {
-		in := debugInput.World
-		p := descent.Popper{}
-		p.Create(in)
+		item := typeface.New(camera.Cam,"main", typeface.DefaultAlign, 1.2, constants.ActualHintSize,100., 0.)
+		item.SetText("this is a test of {here's the tricky bit} the line width stuff man {penis} I hope this works")
+		item.PrintLines()
 	}
 	if debugInput.Get("debugSP").JustPressed() {
 		if state == 1 {
@@ -315,6 +316,7 @@ func Update(win *pixelgl.Window) {
 			if minePuzzle != nil {
 				reanimator.Update()
 				minePuzzle.Update(data.GameInput)
+				debug.AddText(fmt.Sprintf("orig: (%d,%d)", int(minePuzzle.InfoText.Text.Orig.X), int(minePuzzle.InfoText.Text.Orig.Y)))
 				if minePuzzle.Solved() {
 					minePuzzle.Close()
 				}
@@ -340,7 +342,7 @@ func Draw(win *pixelgl.Window) {
 		vfx.Draw(win)
 		systems.PopUpDraw(win)
 		player.DrawHUD(win)
-		if descent.Descent.DoPuzzle {
+		if descent.Descent.Puzzle != nil {
 			descent.Descent.Puzzle.Draw(win)
 		}
 		for _, m := range menuStack {
@@ -444,9 +446,9 @@ func updateState() {
 			pressAKey.Transform.Pos = pixel.V(0., -75.)
 			pressAKey.NoShow = true
 			pressAKeyTimer = timing.New(2.5)
-			titleTran = transform.NewTransform()
+			titleTran = transform.New()
 			titleTran.Pos = pixel.V(0., titleY)
-			splashTran = transform.NewTransform()
+			splashTran = transform.New()
 			camera.Cam.SnapTo(pixel.ZV)
 			if state != -1 {
 				OpenMenu(MainMenu)

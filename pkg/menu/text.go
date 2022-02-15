@@ -42,7 +42,7 @@ const (
 )
 
 func NewItemText(raw string, color color.RGBA, size pixel.Vec, hAlign, vAlign TextAlign) *ItemText {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	if hAlign == Left {
 		tran.Anchor.H = transform.Left
 	} else if hAlign == Center {

@@ -44,11 +44,10 @@ type descent struct {
 
 	Builders [][]builder.CaveBuilder
 	Puzzle   puzzles.Puzzle
-	DoPuzzle bool
-	OnSolve  func()
 }
 
 func New() {
+	Clear()
 	Descent = &descent{
 		Difficulty: Difficulty,
 		Depth:      Depth,
@@ -103,21 +102,32 @@ func UpdatePlayer(in *input.Input) {
 
 // return true if the puzzle is still open
 func UpdatePuzzle(in *input.Input) bool {
-	if Descent.Puzzle == nil || Descent.Puzzle.IsClosed() {
-		if Descent.Puzzle.Solved() {
+	if Descent.Puzzle != nil {
+		if Descent.Puzzle.IsClosed() {
+			if Descent.Puzzle.Solved() {
+				Descent.Puzzle.OnSolve()
+				Descent.Puzzle = nil
+			}
 			Descent.Puzzle = nil
+			return false
+		} else {
+			Descent.Puzzle.Update(in)
+			if Descent.Puzzle.Solved() && Descent.Puzzle.IsOpen() {
+				Descent.Puzzle.Close()
+			}
+			return true
 		}
-		Descent.DoPuzzle = false
-		return false
-	} else if Descent.DoPuzzle {
-		Descent.Puzzle.Update(in)
-		if Descent.Puzzle.Solved() && Descent.Puzzle.IsOpen() {
-			// this is where to put the onSolve function
-			Descent.Puzzle.Close()
-		}
-		return true
 	}
 	return false
+}
+
+func StartPuzzle(puzz puzzles.Puzzle) bool {
+	if Descent.Puzzle != nil {
+		return false
+	}
+	Descent.Puzzle = puzz
+	Descent.Puzzle.Open()
+	return true
 }
 
 func (d *descent) CanExit() bool {
@@ -169,5 +179,17 @@ func IncreaseLevelInf() {
 	}
 	if Descent.Cave.BombPMax > 0.4 {
 		Descent.Cave.BombPMax = 0.4
+	}
+}
+
+func Clear() {
+	if Descent != nil {
+		if Descent.Player != nil {
+			Descent.Player.Delete()
+		}
+		if Descent.Puzzle != nil {
+			Descent.Puzzle.Close()
+			Descent.Puzzle = nil
+		}
 	}
 }

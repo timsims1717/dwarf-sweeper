@@ -231,7 +231,7 @@ func (s *Slug) Update() {
 }
 
 func (s *Slug) Create(pos pixel.Vec) {
-	s.Transform = transform.NewTransform()
+	s.Transform = transform.New()
 	s.Transform.Pos = pos
 	s.Physics = physics.New()
 	s.Physics.GravityOff = true

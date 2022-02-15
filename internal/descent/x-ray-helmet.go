@@ -37,7 +37,7 @@ func (x *XRayHelmet) Update() {
 				if tile != nil && tile.Breakable() && tile.Solid() && tile.XRay != nil && !util.IsNil(tile.Entity) {
 					myecs.Manager.NewEntity().
 						AddComponent(myecs.Sprite, tile.XRay).
-						AddComponent(myecs.Transform, transform.NewTransform()).
+						AddComponent(myecs.Transform, transform.New()).
 						AddComponent(myecs.Parent, tile.Transform).
 						AddComponent(myecs.Batch, constants.EntityKey).
 						AddComponent(myecs.Temp, timing.New(0.25))
@@ -51,14 +51,14 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 	x.Timer = timing.New(XRaySec)
 	x.created = true
 	ring := img.Batchers[constants.ParticleKey].Sprites["x-ray-ring"]
-	t1 := transform.NewTransform()
+	t1 := transform.New()
 	t1.Offset = pixel.V(-world.TileSize, world.TileSize)
 	e1 := myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t1).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
-	t2 := transform.NewTransform()
+	t2 := transform.New()
 	t2.Offset = pixel.V(world.TileSize, world.TileSize)
 	t2.Flip = true
 	e2 := myecs.Manager.NewEntity().
@@ -66,7 +66,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
-	t3 := transform.NewTransform()
+	t3 := transform.New()
 	t3.Offset = pixel.V(world.TileSize, -world.TileSize)
 	t3.Flip = true
 	t3.Flop = true
@@ -75,7 +75,7 @@ func (x *XRayHelmet) Create(_ pixel.Vec) {
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Sprite, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
-	t4 := transform.NewTransform()
+	t4 := transform.New()
 	t4.Offset = pixel.V(-world.TileSize, -world.TileSize)
 	t4.Flop = true
 	e4 := myecs.Manager.NewEntity().

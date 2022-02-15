@@ -31,7 +31,7 @@ func BiomeParticles(orig pixel.Vec, biome string, min, max int, varX, varY, angl
 func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64) {
 	c := random.Effects.Intn(max-min+1) + min
 	for i := 0; i < c; i++ {
-		tran := transform.NewTransform()
+		tran := transform.New()
 		tran.Pos = util.RandomPosition(orig, variance, variance, random.Effects)
 		if random.Effects.Intn(2) == 0 {
 			tran.Flip = true

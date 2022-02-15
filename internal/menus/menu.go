@@ -41,12 +41,12 @@ type DwarfMenu struct {
 }
 
 func New(key string, cam *camera.Camera) *DwarfMenu {
-	tran := transform.NewTransform()
+	tran := transform.New()
 	tran.Anchor = transform.Anchor{
 		H: transform.Center,
 		V: transform.Center,
 	}
-	AT := transform.NewTransform()
+	AT := transform.New()
 	return &DwarfMenu{
 		Key:     key,
 		ItemMap: map[string]*Item{},

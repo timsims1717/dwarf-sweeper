@@ -5,8 +5,8 @@ import (
 	"dwarf-sweeper/pkg/camera"
 	gween "dwarf-sweeper/pkg/gween64"
 	"dwarf-sweeper/pkg/gween64/ease"
-	"dwarf-sweeper/pkg/menu"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/typeface"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"image/color"
@@ -36,7 +36,7 @@ faiface and the Pixel team,
 the Ludum Dare LD48 team.
 
 Thank you for playing!`
-	Credits *menu.ItemText
+	Credits *typeface.Item
 	overlay *imdraw.IMDraw
 	interY  *gween.Tween
 	interA  *gween.Tween
@@ -47,13 +47,15 @@ Thank you for playing!`
 
 func Initialize() {
 	overlay = imdraw.New(nil)
-	Credits = menu.NewItemText(CreditString, color.RGBA{
+	Credits = typeface.New(camera.Cam,"main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1.2, constants.ActualHintSize, 0., 0.)
+	Credits.Color = color.RGBA{
 		R: 218,
 		G: 224,
 		B: 234,
 		A: 0,
-	}, pixel.V(1., 1.), menu.Center, menu.Center)
-	Credits.Transform.Pos.Y = (Credits.Text.Bounds().H()+constants.BaseH)*-0.5 - 20.
+	}
+	Credits.SetText(CreditString)
+	Credits.Transform.Pos.Y = constants.BaseH*-0.5 - 20.
 }
 
 func Update() {
@@ -71,7 +73,7 @@ func Update() {
 				B: 0,
 				A: uint8(a),
 			}
-			Credits.TextColor = color.RGBA{
+			Credits.Color = color.RGBA{
 				R: 218,
 				G: 224,
 				B: 234,
@@ -86,10 +88,7 @@ func Update() {
 			y, fin := interY.Update(timing.DT)
 			Credits.Transform.Pos.Y = y
 			if fin {
-				interY = nil
-				closing = true
-				open = false
-				interA = gween.New(210., 0., 2., ease.Linear)
+				Close()
 			}
 		}
 		overlay.EndShape = imdraw.SharpEndShape
@@ -102,7 +101,7 @@ func Update() {
 		overlay.Polygon(0.)
 		Credits.Transform.UIPos = camera.Cam.APos
 		Credits.Transform.UIZoom = camera.Cam.GetZoomScale()
-		Credits.Update(pixel.Rect{})
+		Credits.Update()
 	}
 }
 
@@ -121,8 +120,8 @@ func Open() {
 	if !opening && !open {
 		closing = false
 		opening = true
-		s := (Credits.Text.BoundsOf(CreditString).H()+constants.BaseH)*-0.5 - 20.
-		e := (Credits.Text.BoundsOf(CreditString).H()+constants.BaseH)*0.5 + 20.
+		s := constants.BaseH*-0.5 - 20.
+		e := (Credits.Text.BoundsOf(CreditString).H() * Credits.RelativeSize + constants.BaseH*0.5) + 20.
 		Credits.Transform.Pos.Y = s
 		overlay.Color = color.RGBA{
 			R: 0,
