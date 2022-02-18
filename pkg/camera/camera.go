@@ -77,6 +77,10 @@ func (c *Camera) GetZoomScale() float64 {
 	return 1 / c.Zoom
 }
 
+func (c *Camera) GetZoom() float64 {
+	return c.Zoom
+}
+
 func (c *Camera) Moving() bool {
 	return c.lock
 }

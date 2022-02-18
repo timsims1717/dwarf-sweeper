@@ -216,8 +216,8 @@ func initMenu(win *pixelgl.Window) {
 			win.SetClosed(true)
 		}
 	})
-	gen1 := CaveMenu.AddItem("gen1", "Generate")
-	quit := CaveMenu.AddItem("quit", "Quit")
+	gen1 := CaveMenu.AddItem("gen1", "Generate", false)
+	quit := CaveMenu.AddItem("quit", "Quit", false)
 
 	gen1.SetClickFn(func() {
 		caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/test.json"))

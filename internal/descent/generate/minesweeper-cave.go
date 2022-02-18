@@ -3,9 +3,9 @@ package generate
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/structures"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
@@ -77,8 +77,8 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	pathS := c.StartC
 	pathS.X -= 2
 	pathS.Y += 1
-	descent.CaveTotalBombs = chal.Mines
-	descent.CaveBombsLeft = chal.Mines
+	player.CaveTotalBombs = chal.Mines
+	player.CaveBombsLeft = chal.Mines
 	structures.CreateChunks(c, cave.Wall)
 	structures.Outline(c, pathS, outline(chal))
 	structures.Entrance(c, c.StartC, 5, 3, 0, false)

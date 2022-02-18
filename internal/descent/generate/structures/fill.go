@@ -1,11 +1,10 @@
 package structures
 
 import (
-	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/img"
 )
 
 func BasicDestroy(t *cave.Tile) {
@@ -13,7 +12,7 @@ func BasicDestroy(t *cave.Tile) {
 	if t.Bomb {
 		descent.CreateBomb(t.Transform.Pos)
 	} else if random.CaveGen.Float64() < gemRate {
-		descent.CreateCollectible(t.Transform.Pos, descent.GemDiamond)
+		descent.CreateGem(t.Transform.Pos)
 	}
 }
 
@@ -22,9 +21,9 @@ func UpdateTiles(tiles []*cave.Tile) {
 		if tile.Solid() && tile.Breakable() {
 			tile.DestroyTrigger = BasicDestroy
 			if tile.Bomb {
-				descent.CaveTotalBombs++
-				descent.CaveBombsLeft++
-				tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
+				player.CaveTotalBombs++
+				player.CaveBombsLeft++
+				tile.XRay = "bomb"
 			}
 		}
 	}
@@ -42,9 +41,9 @@ func FillBasic(ch *cave.Chunk) {
 			if tile.Solid() && tile.Breakable() {
 				tile.DestroyTrigger = BasicDestroy
 				if tile.Bomb {
-					descent.CaveTotalBombs++
-					descent.CaveBombsLeft++
-					//tile.XRay = img.Batchers[constants.EntityKey].Sprites["bomb_fuse"]
+					player.CaveTotalBombs++
+					player.CaveBombsLeft++
+					tile.XRay = "bomb"
 				} else if random.CaveGen.Intn(80) == 0 {
 					if ch.Cave.Biome == "mine" {
 						tile.Entity = &descent.Slug{}
@@ -83,13 +82,13 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 						tile.Entity = &descent.Mine{
 							Tile: tile,
 						}
-						tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
+						tile.XRay = "mine"
 					} else if needBomb {
 						tile.Bomb = true
 						tile.Entity = &descent.Mine{
 							Tile: tile,
 						}
-						tile.XRay = img.Batchers[constants.EntityKey].Sprites["mine_1"]
+						tile.XRay = "mine"
 						needBomb = false
 					}
 				} else if tile.Bomb {

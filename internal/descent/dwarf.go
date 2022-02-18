@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/random"
@@ -210,7 +211,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				if d.digTile != nil && d.digTile.Solid() {
 					if d.digTile.Diggable() {
-						CaveBlocksDug++
+						player.CaveBlocksDug++
 						d.digTile.Destroy(true)
 					} // todo: add rebound here
 					d.digTile = nil
@@ -715,11 +716,11 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 			}
 			if in.Get("prev").JustPressed() {
-				PrevItem()
+				player.PrevItem()
 			} else if in.Get("next").JustPressed() {
-				NextItem()
+				player.NextItem()
 			} else if in.Get("use").JustPressed() {
-				UseEquipped()
+				player.UseEquipped()
 			}
 		}
 	}

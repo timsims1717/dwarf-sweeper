@@ -36,7 +36,7 @@ faiface and the Pixel team,
 the Ludum Dare LD48 team.
 
 Thank you for playing!`
-	Credits *typeface.Item
+	Credits *typeface.Text
 	overlay *imdraw.IMDraw
 	interY  *gween.Tween
 	interA  *gween.Tween
@@ -47,7 +47,7 @@ Thank you for playing!`
 
 func Initialize() {
 	overlay = imdraw.New(nil)
-	Credits = typeface.New(camera.Cam,"main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1.2, constants.ActualHintSize, 0., 0.)
+	Credits = typeface.New(camera.Cam,"main", typeface.Alignment{ H: typeface.Center, V: typeface.Top }, 1.2, constants.ActualHintSize, 0., 0.)
 	Credits.Color = color.RGBA{
 		R: 218,
 		G: 224,
@@ -88,6 +88,7 @@ func Update() {
 			y, fin := interY.Update(timing.DT)
 			Credits.Transform.Pos.Y = y
 			if fin {
+				interY = nil
 				Close()
 			}
 		}

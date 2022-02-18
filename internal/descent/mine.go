@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/img"
@@ -33,8 +34,8 @@ type Mine struct {
 func (m *Mine) Update() {
 	if m.created {
 		if m.Timer.UpdateDone() || m.explode {
-			CaveBombsLeft--
-			CaveBlownUpBombs++
+			player.CaveBombsLeft--
+			player.CaveBlownUpBombs++
 			area := []pixel.Vec{m.Transform.Pos}
 			for _, n := range m.Tile.SubCoords.Neighbors() {
 				t := m.Tile.Chunk.Get(n)

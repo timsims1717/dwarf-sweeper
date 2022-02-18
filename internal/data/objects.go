@@ -46,15 +46,22 @@ type Collectible struct {
 	Sprite      *pixel.Sprite
 	Collected   bool
 	AutoCollect bool
+	Timer       *timing.FrameTimer
 }
 
 type Interact struct {
 	OnInteract func(pos pixel.Vec) bool
 	Distance   float64
-	//Timer      *timing.FrameTimer
-	//Sec        float64
 	Interacted bool
 	Remove     bool
+}
+
+func NewInteract(fn func(pos pixel.Vec) bool, dist float64, remove bool) *Interact {
+	return &Interact{
+		OnInteract: fn,
+		Distance:   dist,
+		Remove:     remove,
+	}
 }
 
 type TimerFunc struct {

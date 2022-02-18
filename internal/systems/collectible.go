@@ -17,21 +17,16 @@ func CollectSystem() {
 		collider, okC1 := result.Components[myecs.Collision].(*data.Collider)
 		if okT && okC && okC1 {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
+			coll.Timer.Update()
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if descent.Descent.GetPlayer() != nil &&
 					!descent.Descent.GetPlayer().Health.Dazed &&
 					!descent.Descent.GetPlayer().Health.Dead {
 					if math.Abs(descent.Descent.GetPlayer().Transform.Pos.X-tran.Pos.X) < (descent.Descent.GetPlayer().Collider.Hitbox.W()+collider.Hitbox.W())*0.5 &&
 						math.Abs(descent.Descent.GetPlayer().Transform.Pos.Y-tran.Pos.Y) < (descent.Descent.GetPlayer().Collider.Hitbox.H()+collider.Hitbox.H())*0.5 {
-						pickUp := data.GameInput.Get("interact").JustPressed()
-						if coll.AutoCollect || pickUp {
-							if coll.OnCollect(tran.Pos) {
-								coll.Collected = true
-								myecs.Manager.DisposeEntity(result.Entity)
-								if pickUp {
-									data.GameInput.Get("interact").Consume()
-								}
-							}
+						if coll.Timer.Done() && coll.OnCollect(tran.Pos) {
+							coll.Collected = true
+							myecs.Manager.DisposeEntity(result.Entity)
 						}
 					}
 				}

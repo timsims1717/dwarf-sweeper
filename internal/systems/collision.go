@@ -23,7 +23,8 @@ const (
 	collisionPush     = 10.
 	CollisionStep     = 3.
 	NearGroundThresh  = 4.
-	BounceThreshold   = 100.
+	BounceThresholdX  = 70.
+	BounceThresholdY  = 120.
 )
 
 func TileCollisionSystem() {
@@ -143,7 +144,7 @@ func TileCollisionSystem() {
 							next.Y = uY
 							coll.TopBound = true
 							if phys.Velocity.Y > 0 {
-								if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThreshold {
+								if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThresholdY / phys.Bounciness {
 									phys.Velocity.Y *= -phys.Bounciness
 									coll.TopBound = false
 								} else {
@@ -163,7 +164,7 @@ func TileCollisionSystem() {
 							wasRDX := phys.RagDollX
 							phys.RagDollX = false
 							if phys.Velocity.Y < 0 {
-								if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThreshold {
+								if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThresholdY / phys.Bounciness {
 									phys.Velocity.Y *= -phys.Bounciness
 									phys.Grounded = false
 									coll.BottomBound = false
@@ -234,7 +235,7 @@ func TileCollisionSystem() {
 								}
 								coll.RightBound = true
 								if phys.Velocity.X > 0 {
-									if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+									if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThresholdX / phys.Bounciness {
 										phys.Velocity.X *= -phys.Bounciness
 										coll.RightBound = false
 									} else {
@@ -251,7 +252,7 @@ func TileCollisionSystem() {
 								}
 								coll.LeftBound = true
 								if phys.Velocity.X < 0 {
-									if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+									if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThresholdX / phys.Bounciness {
 										phys.Velocity.X *= -phys.Bounciness
 										coll.LeftBound = false
 									} else {

@@ -22,7 +22,7 @@ func PopUpSystem() {
 			pop.Display = false
 			disp := math.Abs(pivot.X-tran.Pos.X) < pop.Dist && math.Abs(pivot.Y-tran.Pos.Y) < pop.Dist
 			tDist := util.Magnitude(pivot.Sub(tran.Pos))
-			if disp && dist == -1. || dist > tDist {
+			if disp && dist == -1. || dist > tDist && pop.Raw != "" {
 				dist = tDist
 				toDisplay = pop
 			}

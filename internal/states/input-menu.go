@@ -19,52 +19,52 @@ func InitInputMenu(win *pixelgl.Window) {
 	InputMenu = menus.New("input", camera.Cam)
 	InputMenu.Title = true
 	InputMenu.SetCloseFn(config.SaveAsync)
-	inputTitle := InputMenu.AddItem("title", "Input Options")
-	device := InputMenu.AddItem("device", "Device")
-	deviceR := InputMenu.AddItem("device_r", "")
-	aimMode := InputMenu.AddItem("aim_mode", "Aim Mode")
-	aimModeR := InputMenu.AddItem("aim_mode_r", "")
-	digOn := InputMenu.AddItem("dig_on", "Dig On")
-	digOnR := InputMenu.AddItem("dig_on_r", "")
-	deadzone := InputMenu.AddItem("deadzone", "Deadzone")
-	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", input.Deadzone))
-	leftStickA := InputMenu.AddItem("left_stick_a", "Move with")
-	leftStickR := InputMenu.AddItem("left_stick_r", "Yes")
-	leftStickB := InputMenu.AddItem("left_stick_b", " Left Stick")
-	left := InputMenu.AddItem("left", "Move Left")
-	leftR := InputMenu.AddItem("left_r", "")
-	right := InputMenu.AddItem("right", "Move Right")
-	rightR := InputMenu.AddItem("right_r", "")
-	up := InputMenu.AddItem("up", "Climb Up")
-	upR := InputMenu.AddItem("up_r", "")
-	down := InputMenu.AddItem("down", "Climb Down")
-	downR := InputMenu.AddItem("down_r", "")
-	jump := InputMenu.AddItem("jump", "Jump")
-	jumpR := InputMenu.AddItem("jump_r", "")
-	dig := InputMenu.AddItem("dig", "Dig")
-	digR := InputMenu.AddItem("dig_r", "")
-	flag := InputMenu.AddItem("flag", "Flag")
-	flagR := InputMenu.AddItem("flag_r", "")
-	interact := InputMenu.AddItem("interact", "Interact")
-	interactR := InputMenu.AddItem("interact_r", "")
-	use := InputMenu.AddItem("use", "Use Item")
-	useR := InputMenu.AddItem("use_r", "")
-	prev := InputMenu.AddItem("prev", "Prev Item")
-	prevR := InputMenu.AddItem("prev_r", "")
-	next := InputMenu.AddItem("next", "Next Item")
-	nextR := InputMenu.AddItem("next_r", "")
-	back := InputMenu.AddItem("back", "Back")
+	inputTitle := InputMenu.AddItem("title", "Input Options", false)
+	device := InputMenu.AddItem("device", "Device", false)
+	deviceR := InputMenu.AddItem("device_r", "", true)
+	aimMode := InputMenu.AddItem("aim_mode", "Aim Mode", false)
+	aimModeR := InputMenu.AddItem("aim_mode_r", "", true)
+	digOn := InputMenu.AddItem("dig_on", "Dig On", false)
+	digOnR := InputMenu.AddItem("dig_on_r", "", true)
+	deadzone := InputMenu.AddItem("deadzone", "Deadzone", false)
+	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", input.Deadzone), true)
+	leftStickA := InputMenu.AddItem("left_stick_a", "Move with", false)
+	leftStickR := InputMenu.AddItem("left_stick_r", "Yes", true)
+	leftStickB := InputMenu.AddItem("left_stick_b", " Left Stick", false)
+	left := InputMenu.AddItem("left", "Move Left", false)
+	leftR := InputMenu.AddItem("left_r", "", true)
+	right := InputMenu.AddItem("right", "Move Right", false)
+	rightR := InputMenu.AddItem("right_r", "", true)
+	up := InputMenu.AddItem("up", "Climb Up", false)
+	upR := InputMenu.AddItem("up_r", "", true)
+	down := InputMenu.AddItem("down", "Climb Down", false)
+	downR := InputMenu.AddItem("down_r", "", true)
+	jump := InputMenu.AddItem("jump", "Jump", false)
+	jumpR := InputMenu.AddItem("jump_r", "", true)
+	dig := InputMenu.AddItem("dig", "Dig", false)
+	digR := InputMenu.AddItem("dig_r", "", true)
+	flag := InputMenu.AddItem("flag", "Flag", false)
+	flagR := InputMenu.AddItem("flag_r", "", true)
+	interact := InputMenu.AddItem("interact", "Interact", false)
+	interactR := InputMenu.AddItem("interact_r", "", true)
+	use := InputMenu.AddItem("use", "Use Item", false)
+	useR := InputMenu.AddItem("use_r", "", true)
+	prev := InputMenu.AddItem("prev", "Prev Item", false)
+	prevR := InputMenu.AddItem("prev_r", "", true)
+	next := InputMenu.AddItem("next", "Next Item", false)
+	nextR := InputMenu.AddItem("next_r", "", true)
+	back := InputMenu.AddItem("back", "Back", false)
 
 	aimModeUpdate := func() {
 		if constants.AimDedicated {
-			aimModeR.Raw = "Dedicated"
+			aimModeR.SetText("Dedicated")
 			if data.GameInput.Mode == input.KeyboardMouse {
 				aimMode.Hint = "Use the mouse to aim for digging, flagging, and attacking."
 			} else {
 				aimMode.Hint = "Use the right stick to aim for digging, flagging, and attacking."
 			}
 		} else {
-			aimModeR.Raw = "Movement"
+			aimModeR.SetText("Movement")
 			aimMode.Hint = "Use the movement keys to aim for digging, flagging, and attacking."
 		}
 	}
@@ -73,10 +73,10 @@ func InitInputMenu(win *pixelgl.Window) {
 		km := data.GameInput.Mode == input.KeyboardMouse
 		if km {
 			device.Hint = ""
-			deviceR.Raw = "KB&Mouse"
+			deviceR.SetText("KB&Mouse")
 		} else {
 			device.Hint = win.JoystickName(data.GameInput.Joystick)
-			deviceR.Raw = fmt.Sprintf("Gamepad %d", data.GameInput.Joystick+1)
+			deviceR.SetText(fmt.Sprintf("Gamepad %d", data.GameInput.Joystick+1))
 		}
 		leftStickA.Ignore = km
 		leftStickB.Ignore = km
@@ -87,10 +87,10 @@ func InitInputMenu(win *pixelgl.Window) {
 	deviceUpdate()
 	digOnUpdate := func() {
 		if constants.DigOnRelease {
-			digOnR.Raw = "On Release"
+			digOnR.SetText("On Release")
 			digOn.Hint = "Digging, Flagging, and Attacking happen when you release the button."
 		} else {
-			digOnR.Raw = "On Press"
+			digOnR.SetText("On Press")
 			digOn.Hint = "Digging, Flagging, and Attacking happen when you press the button."
 		}
 	}
@@ -134,7 +134,6 @@ func InitInputMenu(win *pixelgl.Window) {
 	device.SetClickFn(rfn1)
 	device.SetRightFn(rfn1)
 	device.SetLeftFn(lfn1)
-	deviceR.Right = true
 	deviceR.NoHover = true
 	rfn2 := func() {
 		constants.AimDedicated = !constants.AimDedicated
@@ -144,7 +143,6 @@ func InitInputMenu(win *pixelgl.Window) {
 	aimMode.SetClickFn(rfn2)
 	aimMode.SetRightFn(rfn2)
 	aimMode.SetLeftFn(rfn2)
-	aimModeR.Right = true
 	aimModeR.NoHover = true
 	fn3 := func() {
 		constants.DigOnRelease = !constants.DigOnRelease
@@ -154,7 +152,6 @@ func InitInputMenu(win *pixelgl.Window) {
 	digOn.SetClickFn(fn3)
 	digOn.SetRightFn(fn3)
 	digOn.SetLeftFn(fn3)
-	digOnR.Right = true
 	digOnR.NoHover = true
 	deadzone.SetRightFn(func() {
 		n := input.Deadzone + 0.05
@@ -162,7 +159,7 @@ func InitInputMenu(win *pixelgl.Window) {
 			n = 0.5
 		}
 		input.Deadzone = n
-		deadzoneR.Raw = fmt.Sprintf("%f", n)
+		deadzoneR.SetText(fmt.Sprintf("%f", n))
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	deadzone.SetLeftFn(func() {
@@ -171,17 +168,16 @@ func InitInputMenu(win *pixelgl.Window) {
 			n = 0.05
 		}
 		input.Deadzone = n
-		deadzoneR.Raw = fmt.Sprintf("%f", n)
+		deadzoneR.SetText(fmt.Sprintf("%f", n))
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	deadzoneR.NoHover = true
-	deadzoneR.Right = true
 	rfn3 := func() {
 		data.GameInput.StickD = !data.GameInput.StickD
 		if data.GameInput.StickD {
-			leftStickR.Raw = "Yes"
+			leftStickR.SetText("Yes")
 		} else {
-			leftStickR.Raw = "No"
+			leftStickR.SetText("No")
 		}
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	}
@@ -196,11 +192,10 @@ func InitInputMenu(win *pixelgl.Window) {
 	})
 	leftStickB.NoHover = true
 	leftStickR.NoHover = true
-	leftStickR.Right = true
 	if data.GameInput.StickD {
-		leftStickR.Raw = "Yes"
+		leftStickR.SetText("Yes")
 	} else {
-		leftStickR.Raw = "No"
+		leftStickR.SetText("No")
 	}
 	keyFn := func(item *menus.Item) func() {
 		return func() {
@@ -208,37 +203,26 @@ func InitInputMenu(win *pixelgl.Window) {
 		}
 	}
 	left.SetClickFn(keyFn(left))
-	leftR.Right = true
 	leftR.NoHover = true
 	right.SetClickFn(keyFn(right))
-	rightR.Right = true
 	rightR.NoHover = true
 	up.SetClickFn(keyFn(up))
-	upR.Right = true
 	upR.NoHover = true
 	down.SetClickFn(keyFn(down))
-	downR.Right = true
 	downR.NoHover = true
 	jump.SetClickFn(keyFn(jump))
-	jumpR.Right = true
 	jumpR.NoHover = true
 	dig.SetClickFn(keyFn(dig))
-	digR.Right = true
 	digR.NoHover = true
 	flag.SetClickFn(keyFn(flag))
-	flagR.Right = true
 	flagR.NoHover = true
 	interact.SetClickFn(keyFn(interact))
-	interactR.Right = true
 	interactR.NoHover = true
 	use.SetClickFn(keyFn(use))
-	useR.Right = true
 	useR.NoHover = true
 	next.SetClickFn(keyFn(next))
-	nextR.Right = true
 	nextR.NoHover = true
 	prev.SetClickFn(keyFn(prev))
-	prevR.Right = true
 	prevR.NoHover = true
 
 	InputMenu.SetOpenFn(func() {
@@ -256,14 +240,14 @@ func InitKeybindingMenu() {
 	KeybindingMenu = menus.New("keybinding", camera.Cam)
 	KeybindingMenu.HideArrow = true
 	KeybindingMenu.SetCloseFn(UpdateKeybindings)
-	keybindingA := KeybindingMenu.AddItem("line_a", "Set key/button ")
+	keybindingA := KeybindingMenu.AddItem("line_a", "Set key/button ", false)
 	keybindingA.NoHover = true
-	keybindingB := KeybindingMenu.AddItem("line_b", "")
+	keybindingB := KeybindingMenu.AddItem("line_b", "", false)
 	keybindingB.NoHover = true
 }
 
 func OpenKeybindingMenu(name, key string) {
-	KeybindingMenu.ItemMap["line_b"].Raw = fmt.Sprintf("for %s", name)
+	KeybindingMenu.ItemMap["line_b"].SetText(fmt.Sprintf("for %s", name))
 	KeyString = key
 	OpenMenu(KeybindingMenu)
 	sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -287,7 +271,6 @@ func UpdateKeybinding(key string) {
 	r := InputMenu.ItemMap[fmt.Sprintf("%s_r", key)]
 	in := data.GameInput.Buttons[key]
 	builder := strings.Builder{}
-	var symKeys []string
 	first := true
 	if data.GameInput.Mode != input.Gamepad {
 		for _, k := range in.Keys {
@@ -297,8 +280,7 @@ func UpdateKeybinding(key string) {
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(typeface.SymbolItem)
-			symKeys = append(symKeys, k.String())
+			builder.WriteString(fmt.Sprintf("{symbol:%s}", k.String()))
 		}
 		if in.Scroll > 0 {
 			if first {
@@ -307,8 +289,7 @@ func UpdateKeybinding(key string) {
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(typeface.SymbolItem)
-			symKeys = append(symKeys, "MouseScrollUp")
+			builder.WriteString("{symbol:MouseScrollUp}")
 		} else if in.Scroll < 0 {
 			if first {
 				first = false
@@ -316,8 +297,7 @@ func UpdateKeybinding(key string) {
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(typeface.SymbolItem)
-			symKeys = append(symKeys, "MouseScrollDown")
+			builder.WriteString("{symbol:MouseScrollDown}")
 		}
 	}
 	if data.GameInput.Mode != input.KeyboardMouse {
@@ -328,8 +308,7 @@ func UpdateKeybinding(key string) {
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(typeface.SymbolItem)
-			symKeys = append(symKeys, input.GamepadString(b))
+			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.GamepadString(b)))
 		}
 		if in.AxisV != 0 {
 			if first {
@@ -338,10 +317,8 @@ func UpdateKeybinding(key string) {
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(typeface.SymbolItem)
-			symKeys = append(symKeys, input.AxisDirString(in.Axis, in.AxisV > 0))
+			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.AxisDirString(in.Axis, in.AxisV > 0)))
 		}
 	}
-	r.Raw = builder.String()
-	r.Symbols = symKeys
+	r.SetText(builder.String())
 }

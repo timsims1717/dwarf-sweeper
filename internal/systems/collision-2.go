@@ -146,7 +146,7 @@ func CollisionSystem() {
 
 func BounceX(phys *physics.Physics, left bool) bool {
 	if (phys.Velocity.X < 0. && left) || (phys.Velocity.X > 0. && !left) {
-		if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThreshold {
+		if phys.RagDollX && math.Abs(phys.Velocity.X) > BounceThresholdX / phys.Bounciness {
 			phys.Velocity.X *= -phys.Bounciness
 			return true
 		} else {
@@ -158,7 +158,7 @@ func BounceX(phys *physics.Physics, left bool) bool {
 
 func BounceY(phys *physics.Physics, down bool) bool {
 	if (phys.Velocity.Y < 0. && down) || (phys.Velocity.Y > 0. && !down) {
-		if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThreshold {
+		if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThresholdY / phys.Bounciness {
 			phys.Velocity.Y *= -phys.Bounciness
 			return true
 		} else {

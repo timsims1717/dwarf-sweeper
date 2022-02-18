@@ -71,6 +71,7 @@ var (
 		"1920x1080",
 	}
 	ResIndex = 2
+	ActualW  = 320.
 
 	// Accessibility
 	BaseMenuSize    = 1.4

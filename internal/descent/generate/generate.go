@@ -3,11 +3,11 @@ package generate
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/descent/generate/structures/boss"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/pathfinding"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/noise"
@@ -171,7 +171,7 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, level int, signal chan bo
 	if c.Type != cave.Minesweeper {
 		structures.FillCave(c)
 	}
-	fmt.Println("Total bombs:", descent.CaveTotalBombs)
+	fmt.Println("Total bombs:", player.CaveTotalBombs)
 	c.PrintCaveToTerminal()
 	if signal != nil {
 		signal <- true

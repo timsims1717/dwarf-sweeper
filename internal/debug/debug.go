@@ -1,6 +1,9 @@
 package debug
 
-import "github.com/faiface/pixel/pixelgl"
+import (
+	"github.com/faiface/pixel/pixelgl"
+	"strings"
+)
 
 var (
 	Debug = false
@@ -25,6 +28,5 @@ func Draw(win *pixelgl.Window) {
 
 func Clear() {
 	imd.Clear()
-	debugText.SetText("")
-	fpsText.SetText("")
+	lines = &strings.Builder{}
 }

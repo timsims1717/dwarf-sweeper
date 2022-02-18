@@ -17,11 +17,11 @@ func InitPauseMenu(win *pixelgl.Window) {
 		sfx.MusicPlayer.Pause("pause", true)
 		sfx.MusicPlayer.Resume(constants.GameMusic)
 	})
-	pauseTitle := PauseMenu.AddItem("title", "Paused")
-	resume := PauseMenu.AddItem("resume", "Resume")
-	options := PauseMenu.AddItem("options", "Options")
-	mainMenu := PauseMenu.AddItem("main_menu", "Abandon Run")
-	quit := PauseMenu.AddItem("quit", "Quit Game")
+	pauseTitle := PauseMenu.AddItem("title", "Paused", false)
+	resume := PauseMenu.AddItem("resume", "Resume", false)
+	options := PauseMenu.AddItem("options", "Options", false)
+	mainMenu := PauseMenu.AddItem("main_menu", "Abandon Run", false)
+	quit := PauseMenu.AddItem("quit", "Quit Game", false)
 
 	pauseTitle.NoHover = true
 	resume.SetClickFn(func() {
@@ -34,7 +34,7 @@ func InitPauseMenu(win *pixelgl.Window) {
 	})
 	mainMenu.SetClickFn(func() {
 		PauseMenu.CloseInstant()
-		SwitchState(1)
+		SwitchState(MenuStateKey)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	quit.SetClickFn(func() {
@@ -46,15 +46,15 @@ func InitPauseMenu(win *pixelgl.Window) {
 func InitEnchantMenu() {
 	EnchantMenu = menus.New("enchant", camera.Cam)
 	EnchantMenu.Title = true
-	chooseTitle := EnchantMenu.AddItem("title", "Enchant!")
-	skip := EnchantMenu.AddItem("skip", "Skip")
+	chooseTitle := EnchantMenu.AddItem("title", "Enchant!", false)
+	skip := EnchantMenu.AddItem("skip", "Skip", false)
 
 	chooseTitle.NoHover = true
 	skip.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		EnchantMenu.CloseInstant()
 		ClearEnchantMenu()
-		SwitchState(0)
+		SwitchState(DescentStateKey)
 	})
 }
 
@@ -71,36 +71,36 @@ func FillEnchantMenu() bool {
 		return false
 	}
 	e1 := choices[0]
-	option1 := EnchantMenu.InsertItem("option1", e1.Title, 1)
+	option1 := EnchantMenu.InsertItem("option1", e1.Title, 1, false)
 	option1.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		enchants.AddEnchantment(e1)
 		EnchantMenu.CloseInstant()
 		ClearEnchantMenu()
-		SwitchState(0)
+		SwitchState(DescentStateKey)
 	})
 	option1.Hint = e1.Desc
 	if len(choices) > 1 {
 		e2 := choices[1]
-		option2 := EnchantMenu.InsertItem("option2", e2.Title, 2)
+		option2 := EnchantMenu.InsertItem("option2", e2.Title, 2, false)
 		option2.SetClickFn(func() {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
 			enchants.AddEnchantment(e2)
 			EnchantMenu.CloseInstant()
 			ClearEnchantMenu()
-			SwitchState(0)
+			SwitchState(DescentStateKey)
 		})
 		option2.Hint = e2.Desc
 	}
 	if len(choices) > 2 {
 		e3 := choices[2]
-		option3 := EnchantMenu.InsertItem("option3", e3.Title, 3)
+		option3 := EnchantMenu.InsertItem("option3", e3.Title, 3, false)
 		option3.SetClickFn(func() {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
 			enchants.AddEnchantment(e3)
 			EnchantMenu.CloseInstant()
 			ClearEnchantMenu()
-			SwitchState(0)
+			SwitchState(DescentStateKey)
 		})
 		option3.Hint = e3.Desc
 	}
@@ -111,53 +111,48 @@ func InitPostGameMenu() {
 	PostMenu = menus.New("post", camera.Cam)
 	PostMenu.Title = true
 	PostMenu.SetBackFn(func() {})
-	blocksDug := PostMenu.AddItem("blocks", "Blocks Dug")
-	blocksDugS := PostMenu.AddItem("blocks_s", "")
-	gems := PostMenu.AddItem("gem_count", "Gems Found")
-	gemsS := PostMenu.AddItem("gem_count_s", "")
-	bombs := PostMenu.AddItem("bombs_flagged", "Bombs Flagged")
-	bombsS := PostMenu.AddItem("bombs_flagged_s", "")
-	wrongFlags := PostMenu.AddItem("wrong_flags", "Incorrect Flags")
-	wrongFlagsS := PostMenu.AddItem("wrong_flags_s", "")
-	totalScore := PostMenu.AddItem("total_score", "Total Score")
-	totalScoreS := PostMenu.AddItem("total_score_s", "")
-	retry := PostMenu.AddItem("retry", "Retry")
-	backToMenu := PostMenu.AddItem("menu", "Main Menu")
+	blocksDug := PostMenu.AddItem("blocks", "Blocks Dug", false)
+	blocksDugS := PostMenu.AddItem("blocks_s", "", true)
+	gems := PostMenu.AddItem("gem_count", "Gems Found", false)
+	gemsS := PostMenu.AddItem("gem_count_s", "", true)
+	bombs := PostMenu.AddItem("bombs_flagged", "Bombs Flagged", false)
+	bombsS := PostMenu.AddItem("bombs_flagged_s", "", true)
+	wrongFlags := PostMenu.AddItem("wrong_flags", "Incorrect Flags", false)
+	wrongFlagsS := PostMenu.AddItem("wrong_flags_s", "", true)
+	totalScore := PostMenu.AddItem("total_score", "Total Score", false)
+	totalScoreS := PostMenu.AddItem("total_score_s", "", true)
+	retry := PostMenu.AddItem("retry", "Retry", false)
+	backToMenu := PostMenu.AddItem("menu", "Main Menu", true)
 
 	blocksDug.NoHover = true
 	blocksDug.NoDraw = true
-	blocksDugS.Right = true
 	blocksDugS.NoHover = true
 	blocksDugS.NoDraw = true
 	gems.NoHover = true
 	gems.NoDraw = true
-	gemsS.Right = true
 	gemsS.NoHover = true
 	gemsS.NoDraw = true
 	bombs.NoHover = true
 	bombs.NoDraw = true
-	bombsS.Right = true
 	bombsS.NoHover = true
 	bombsS.NoDraw = true
 	wrongFlags.NoHover = true
 	wrongFlags.NoDraw = true
-	wrongFlagsS.Right = true
 	wrongFlagsS.NoHover = true
 	wrongFlagsS.NoDraw = true
 	totalScore.NoHover = true
 	totalScore.NoDraw = true
-	totalScoreS.Right = true
 	totalScoreS.NoHover = true
 	totalScoreS.NoDraw = true
 	retry.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		SwitchState(4)
+		DescentState.start = true
+		SwitchState(DescentStateKey)
 	})
-	backToMenu.Right = true
 	backToMenu.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		SwitchState(1)
+		SwitchState(MenuStateKey)
 	})
 }

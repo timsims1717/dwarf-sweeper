@@ -3,6 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/vfx"
@@ -53,8 +54,8 @@ func CreateBomb(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran).
 			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					CaveBombsLeft--
-					CaveBlownUpBombs++
+					player.CaveBombsLeft--
+					player.CaveBlownUpBombs++
 					tile := Descent.GetCave().GetTile(trans.Pos)
 					for _, n := range tile.SubCoords.Neighbors() {
 						t := tile.Chunk.Get(n)

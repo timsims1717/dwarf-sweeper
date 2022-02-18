@@ -15,7 +15,7 @@ const (
 	CloseItem   = "}"
 )
 
-func (item *Item) SetText(raw string) {
+func (item *Text) SetText(raw string) {
 	item.Raw = raw
 	item.rawLines = []string{}
 	item.lineWidths = []float64{}
@@ -96,12 +96,13 @@ func (item *Item) SetText(raw string) {
 	}
 	item.rawLines = append(item.rawLines, raw[b:])
 	lineWidth := item.Text.BoundsOf(item.Raw[b:]).W() - widthMod
+	lineWidthRelative := lineWidth * item.RelativeSize
 	item.lineWidths = append(item.lineWidths, lineWidth)
 	item.fullHeight = float64(len(item.rawLines)) * item.Text.LineHeight
-	maxX := item.MaxWidth
-	if maxX == 0. {
-		maxX = maxLineWidth
+	if maxLineWidth < lineWidthRelative {
+		maxLineWidth = lineWidthRelative
 	}
+	maxX := maxLineWidth
 	maxY := item.MaxHeight
 	if maxY == 0. {
 		maxY = item.fullHeight * item.RelativeSize
@@ -111,16 +112,7 @@ func (item *Item) SetText(raw string) {
 	item.updateText()
 }
 
-func (item *Item) updateText() {
-	orig := item.Transform.Pos
-	orig.Y -= item.Text.LineHeight * item.RelativeSize
-	if item.Align.V == Top {
-		orig.Y += item.Height
-	} else if item.Align.V == Center {
-		orig.Y += item.Height * 0.5 + item.fullHeight * 0.5 * item.RelativeSize
-	} else {
-		orig.Y += item.fullHeight * item.RelativeSize
-	}
+func (item *Text) updateText() {
 	item.Text.Clear()
 	item.Text.Color = item.Color
 	//var colorStack []color.RGBA
@@ -128,6 +120,12 @@ func (item *Item) updateText() {
 	inBrackets := false
 	mode := ""
 	buf := bytes.NewBuffer(nil)
+	item.Text.Dot.Y -= item.Text.LineHeight
+	if item.Align.V == Center {
+		item.Text.Dot.Y += item.fullHeight * 0.5
+	} else if item.Align.V == Bottom {
+		item.Text.Dot.Y += item.fullHeight
+	}
 	for li, line := range item.rawLines {
 		b := 0
 		inBrackets = false
@@ -151,12 +149,9 @@ func (item *Item) updateText() {
 						if sym, ok := theSymbols[buf.String()]; ok {
 							trans := transform.New()
 							trans.Scalar = pixel.V(item.SymbolSize, item.SymbolSize).Scaled(sym.sca)
-							//mat := pixel.IM.Scaled(pixel.ZV, item.SymbolSize).Scaled(pixel.ZV, sym.sca)
 							trans.Pos = item.Transform.Pos
 							trans.Pos = trans.Pos.Add(item.Text.Dot.Scaled(item.RelativeSize))
-							trans.Pos = trans.Pos.Add(pixel.V(sym.spr.Frame().W() * 0.5, sym.spr.Frame().H() * 0.25).ScaledXY(item.Transform.Scalar.Scaled(sym.sca)))
-							//mat = mat.Moved(padOrig).Moved(orig).Moved()
-							//mat = mat.Moved())
+							trans.Pos = trans.Pos.Add(pixel.V(sym.spr.Frame().W() * 0.5, sym.spr.Frame().H() * 0.25).Scaled(item.SymbolSize * sym.sca))
 							item.Symbols = append(item.Symbols, symbolHandle{
 								symbol: sym,
 								trans:  trans,

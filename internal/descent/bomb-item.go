@@ -3,77 +3,59 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/util"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/typeface"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
-	"fmt"
-	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"math"
 )
 
-type BombItem struct {
-	Physics   *physics.Physics
-	Transform *transform.Transform
-	created   bool
-	collect   *data.Collectible
-	sprite    *pixel.Sprite
-	entity    *ecs.Entity
-	health    *data.SimpleHealth
-}
-
-func (b *BombItem) Update() {
-	if b.health.Dead {
-		CreateBomb(b.Transform.Pos)
-		b.Delete()
-	}
-}
-
-func (b *BombItem) Create(pos pixel.Vec) {
-	b.Physics, b.Transform = util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 5., 2., random.Effects)
-	b.Transform.Pos = pos
-	b.created = true
-	b.sprite = img.Batchers[constants.EntityKey].Sprites["bomb_item"]
-	b.collect = &data.Collectible{
-		OnCollect: func(pos pixel.Vec) bool {
-			return AddToInventory(&InvItem{
+func CreateBombItem(pos pixel.Vec) {
+	e := myecs.Manager.NewEntity()
+	spr := img.Batchers[constants.EntityKey].Sprites["bomb_item"]
+	i := &data.Interact{
+		OnInteract: func(pos pixel.Vec) bool {
+			return player.AddToInventory(&player.InvItem{
 				Name:   "bomb",
-				Sprite: b.sprite,
+				Sprite: spr,
 				OnUse: func() {
 					tile := Descent.GetPlayerTile()
 					CreateBomb(tile.Transform.Pos)
 				},
-				Count: 1,
+				Count: 3,
 				Limit: 3,
 			})
 		},
-		Sprite: b.sprite,
+		Distance:   spr.Frame().W() * 0.5,
+		Remove:     true,
 	}
-	b.health = &data.SimpleHealth{}
-	popUp := menus.NewPopUp(fmt.Sprintf("%s to pick up", typeface.SymbolItem), nil)
-	popUp.Symbols = []string{data.GameInput.FirstKey("interact")}
-	popUp.Dist = (b.collect.Sprite.Frame().W() + world.TileSize) * 0.5
-	b.entity = myecs.Manager.NewEntity().
-		AddComponent(myecs.Entity, b).
-		AddComponent(myecs.Transform, b.Transform).
-		AddComponent(myecs.Physics, b.Physics).
-		AddComponent(myecs.Collision, &data.Collider{
-			Hitbox:     b.sprite.Frame(),
-			GroundOnly: true,
-		}).
-		AddComponent(myecs.Collect, b.collect).
-		AddComponent(myecs.Health, b.health).
-		AddComponent(myecs.Sprite, b.sprite).
+	popUp := menus.NewPopUp("{symbol:interact}: pick up")
+	popUp.Dist = (spr.Frame().W() + world.TileSize) * 0.5
+	phys, trans := util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 5., 2., random.Effects)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)
+	hp := &data.SimpleHealth{Immune: data.ItemImmunity}
+	e.AddComponent(myecs.Transform, trans).
+		AddComponent(myecs.Physics, phys).
+		AddComponent(myecs.Collision, coll).
+		AddComponent(myecs.Health, hp).
+		AddComponent(myecs.Temp, timing.New(10.)).
+		AddComponent(myecs.Interact, i).
 		AddComponent(myecs.PopUp, popUp).
-		AddComponent(myecs.Batch, constants.EntityKey)
-}
-
-func (b *BombItem) Delete() {
-	myecs.Manager.DisposeEntity(b.entity)
+		AddComponent(myecs.Sprite, spr).
+		AddComponent(myecs.Batch, constants.EntityKey).
+		AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
+			myecs.AddEffect(e, data.NewBlink(2.))
+			return true
+		}, 8.)).
+		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
+			if hp.Dead {
+				CreateBomb(trans.Pos)
+			}
+			return false
+		}))
 }

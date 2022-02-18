@@ -10,17 +10,13 @@ import (
 	"image/color"
 )
 
-var (
-	padding = 5.
-	padOrig = pixel.V(padding, padding)
-)
-
-type Item struct {
+type Text struct {
 	Raw     string
 	Text    *text.Text
 	Color   color.RGBA
 	Align   Alignment
 	Symbols []symbolHandle
+	NoShow  bool
 
 	Increment bool
 	CurrPos   int
@@ -40,10 +36,10 @@ type Item struct {
 	fullHeight float64
 }
 
-func New(cam *camera.Camera, atlas string, align Alignment, lineHeight, relativeSize, maxWidth, maxHeight float64) *Item {
+func New(cam *camera.Camera, atlas string, align Alignment, lineHeight, relativeSize, maxWidth, maxHeight float64) *Text {
 	tex := text.New(pixel.ZV, Atlases[atlas])
 	tex.LineHeight *= lineHeight
-	return &Item{
+	return &Text{
 		Text:         tex,
 		Align:        align,
 		Color:        colornames.White,
@@ -59,7 +55,7 @@ func New(cam *camera.Camera, atlas string, align Alignment, lineHeight, relative
 	}
 }
 
-func (item *Item) Update() {
+func (item *Text) Update() {
 	item.Transform.Scalar = pixel.V(item.RelativeSize, item.RelativeSize)
 	if item.Cam != nil {
 		item.Transform.UIZoom = item.Cam.GetZoomScale()
@@ -75,45 +71,53 @@ func (item *Item) Update() {
 	}
 }
 
-func (item *Item) Draw(target pixel.Target) {
-	item.Text.Draw(target, item.Transform.Mat)
-	for _, sym := range item.Symbols {
-		sym.symbol.spr.Draw(target, sym.trans.Mat)
+func (item *Text) Draw(target pixel.Target) {
+	if !item.NoShow {
+		item.Text.Draw(target, item.Transform.Mat)
+		for _, sym := range item.Symbols {
+			sym.symbol.spr.Draw(target, sym.trans.Mat)
+		}
 	}
 }
 
-func (item *Item) SetWidth(width float64) {
+func (item *Text) SetWidth(width float64) {
 	item.MaxWidth = width
-	item.updateText()
+	item.SetText(item.Raw)
 }
 
-func (item *Item) SetHeight(height float64) {
+func (item *Text) SetHeight(height float64) {
 	item.MaxHeight = height
+	item.SetText(item.Raw)
+}
+
+func (item *Text) SetColor(col color.RGBA) {
+	item.Color = col
 	item.updateText()
 }
 
-func (item *Item) SetColor(col color.RGBA) {
-	item.Color = col
+func (item *Text) SetSize(size float64) {
+	item.RelativeSize = size
+	item.SetText(item.Raw)
 }
 
-func (item *Item) SetPos(pos pixel.Vec) {
+func (item *Text) SetPos(pos pixel.Vec) {
 	item.Transform.Pos = pos
 	item.updateText()
 }
 
-func (item *Item) IncrementTextPos() {
+func (item *Text) IncrementTextPos() {
 	if item.Increment {
 
 	}
 }
 
-func (item *Item) SkipIncrement() {
+func (item *Text) SkipIncrement() {
 	if item.Increment {
 
 	}
 }
 
-func (item *Item) PrintLines() {
+func (item *Text) PrintLines() {
 	for _, line := range item.rawLines {
 		fmt.Println(line)
 	}

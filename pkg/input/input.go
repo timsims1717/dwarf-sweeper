@@ -213,6 +213,10 @@ func (bs *ButtonSet) Consume() {
 	if bs == nil {
 		return
 	}
+	bs.Button.pressed = false
+	bs.Button.justPressed = false
+	bs.Button.justReleased = false
+	bs.Button.repeated = false
 	for _, b := range bs.Buttons {
 		consumeGamepad[b] = true
 	}

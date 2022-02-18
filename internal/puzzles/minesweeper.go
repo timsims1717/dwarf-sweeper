@@ -31,7 +31,7 @@ type MinePuzzle struct {
 	Hover world.Coords
 
 	Box        *menus.MenuBox
-	InfoText   *typeface.Item
+	InfoText   *typeface.Text
 	InfoSyms   []pixel.Vec
 	CountText  *text.Text
 	CountTrans *transform.Transform
@@ -47,16 +47,17 @@ type MinePuzzle struct {
 }
 
 func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
+	mp.solved = false
 	size := 5 + level / 4
 	mp.SizeW = util.Min(size, 9)
-	mp.SizeH = util.Min(size, 7)
-	mp.InfoText = typeface.New(camera.Cam,"main", typeface.DefaultAlign, 2.0, constants.ActualHintSize, 0., 0.)
+	mp.SizeH = util.Min(size, 6)
+	mp.InfoText = typeface.New(camera.Cam,"main", typeface.NewAlign(typeface.Left, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
 	mp.InfoText.SetColor(menus.DefaultColor)
 	mp.InfoText.SetText("{symbol:flag}:mark a bomb tile\n{symbol:dig}:mark a safe tile")
 	mp.CountText = text.New(pixel.ZV, typeface.Atlases["main"])
 	mp.CountText.LineHeight *= 1.2
 	mp.CountText.Color = menus.DefaultColor
-	mp.Box = menus.NewBox(cam)
+	mp.Box = menus.NewBox(cam, 1.4)
 	mp.Box.SetSize(pixel.R(0., 0., float64(mp.SizeW) * (world.TileSize + 2.) * scalar, float64(mp.SizeH) * (world.TileSize + 2.) * scalar + mp.InfoText.Height))
 	mp.InfoText.SetPos(pixel.V(mp.Box.Rect.W() * -0.5 + 5., mp.Box.Rect.H() * 0.5 - 15.))
 	mp.CountTrans = transform.New()

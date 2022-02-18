@@ -1,4 +1,4 @@
-package descent
+package player
 
 import (
 	"dwarf-sweeper/pkg/timing"

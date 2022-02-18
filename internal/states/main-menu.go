@@ -14,10 +14,10 @@ import (
 func InitMainMenu(win *pixelgl.Window) {
 	MainMenu = menus.New("main", camera.Cam)
 	MainMenu.Title = true
-	start := MainMenu.AddItem("start", "Start Game")
-	options := MainMenu.AddItem("options", "Options")
-	credit := MainMenu.AddItem("credits", "Credits")
-	quit := MainMenu.AddItem("quit", "Quit")
+	start := MainMenu.AddItem("start", "Start Game", false)
+	options := MainMenu.AddItem("options", "Options", false)
+	credit := MainMenu.AddItem("credits", "Credits", false)
+	quit := MainMenu.AddItem("quit", "Quit", false)
 
 	start.SetClickFn(func() {
 		OpenMenu(StartMenu)
@@ -41,17 +41,18 @@ func InitMainMenu(win *pixelgl.Window) {
 func InitStartMenu() {
 	StartMenu = menus.New("start", camera.Cam)
 	StartMenu.Title = true
-	normal := StartMenu.AddItem("normal", "Normal Descent")
+	normal := StartMenu.AddItem("normal", "Normal Descent", false)
 	//infinite := StartMenu.AddItem("infinite", "Infinite Cave")
-	difficulty := StartMenu.AddItem("difficulty", "Difficulty")
-	difficultyR := StartMenu.AddItem("difficulty-r", strconv.Itoa(descent.Difficulty))
-	back := StartMenu.AddItem("back", "Back")
+	difficulty := StartMenu.AddItem("difficulty", "Difficulty", false)
+	difficultyR := StartMenu.AddItem("difficulty-r", strconv.Itoa(descent.Difficulty), true)
+	back := StartMenu.AddItem("back", "Back", false)
 
 	normal.SetClickFn(func() {
 		StartMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Descent.Type = cave.Normal
-		SwitchState(4)
+		DescentState.start = true
+		SwitchState(DescentStateKey)
 	})
 	normal.Hint = "Start a new run through a variety of caves!"
 	//infinite.SetClickFn(func() {
@@ -67,7 +68,7 @@ func InitStartMenu() {
 		if descent.Difficulty > 5 {
 			descent.Difficulty = 5
 		}
-		difficultyR.Raw = strconv.Itoa(descent.Difficulty)
+		difficultyR.SetText(strconv.Itoa(descent.Difficulty))
 	})
 	difficulty.SetLeftFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -75,9 +76,8 @@ func InitStartMenu() {
 		if descent.Difficulty < 1 {
 			descent.Difficulty = 1
 		}
-		difficultyR.Raw = strconv.Itoa(descent.Difficulty)
+		difficultyR.SetText(strconv.Itoa(descent.Difficulty))
 	})
-	difficultyR.Right = true
 	difficultyR.NoHover = true
 	back.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)

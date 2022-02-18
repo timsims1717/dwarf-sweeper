@@ -74,7 +74,7 @@ func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, for
 		AddComponent(myecs.Batch, constants.ParticleKey).
 		AddComponent(myecs.Temp, timing.New(nDur))
 	if collide {
-		coll := data.NewCollider(spr.Frame(), true, true)
+		coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, true)
 		e.AddComponent(myecs.Collision, coll)
 	}
 }

@@ -86,7 +86,7 @@ type Tile struct {
 	BombCount   int
 
 	Entity     myecs.AnEntity
-	XRay       *pixel.Sprite
+	XRay       string
 	Bomb       bool
 	Destroyed  bool
 	revealT    *timing.FrameTimer

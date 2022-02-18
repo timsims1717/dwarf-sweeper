@@ -3,31 +3,21 @@ package menus
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/text"
-	"image/color"
 )
 
 type Item struct {
 	Key     string
 	Raw     string
 	Hint    string
-	Text    *text.Text
-	Symbols []string
-	SymMats []pixel.Matrix
+	Text    *typeface.Text
 
 	clickFn   func()
 	leftFn    func()
 	rightFn   func()
 	hoverFn   func()
 	unHoverFn func()
-
-	Transform *transform.Transform
-
-	TextColor color.RGBA
 
 	Right    bool
 	Hovered  bool
@@ -41,21 +31,19 @@ type Item struct {
 	CurrLine int
 }
 
-func NewItem(key, raw string) *Item {
-	tran := transform.New()
-	tran.Anchor = transform.Anchor{
-		H: transform.Left,
-		V: transform.Bottom,
+func NewItem(key, raw string, right bool) *Item {
+	align := typeface.Left
+	if right {
+		align = typeface.Right
 	}
-	tran.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
-	tex := text.New(pixel.ZV, typeface.Atlases["main"])
-	tex.LineHeight *= 1.5
+	tex := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Align(align), typeface.Bottom), 1.5, constants.ActualMenuSize, 0., 0.)
+	tex.SetColor(DefaultColor)
+	tex.SetText(raw)
 	return &Item{
-		Key:       key,
-		Raw:       raw,
-		Text:      tex,
-		Transform: tran,
-		TextColor: DefaultColor,
+		Key:   key,
+		Raw:   raw,
+		Text:  tex,
+		Right: right,
 	}
 }
 
@@ -63,62 +51,35 @@ func (i *Item) Update() {
 	if i.Disabled && !i.disabled {
 		i.disabled = true
 		i.hovered = false
-		i.TextColor = DisabledColor
-		i.Transform.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
+		i.Text.SetColor(DisabledColor)
+		i.Text.SetSize(constants.ActualMenuSize)
 	} else if !i.Disabled && i.disabled {
 		i.disabled = false
-		i.TextColor = DefaultColor
-		i.Transform.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
+		i.Text.SetColor(DefaultColor)
+		i.Text.SetSize(constants.ActualMenuSize)
 	}
 	if !i.disabled {
 		if i.Hovered && !i.hovered {
 			i.hovered = true
-			i.TextColor = HoverColor
-			i.Transform.Scalar = pixel.V(constants.ActualHoverSize, constants.ActualHoverSize)
+			i.Text.SetColor(HoverColor)
+			i.Text.SetSize(constants.ActualHoverSize)
 		} else if !i.Hovered && i.hovered {
 			i.hovered = false
-			i.TextColor = DefaultColor
-			i.Transform.Scalar = pixel.V(constants.ActualMenuSize, constants.ActualMenuSize)
+			i.Text.SetColor(DefaultColor)
+			i.Text.SetSize(constants.ActualMenuSize)
 		}
 	}
-	i.Text.Clear()
-	i.Text.Color = i.TextColor
-	align := typeface.DefaultAlign
-	if i.Right {
-		align.H = typeface.Right
-	}
-	symPos := typeface.SetText(i.Text, i.Raw, 0., align)
-	if len(symPos) > 0 {
-		t := transform.New()
-		t.Scalar = pixel.V(SymbolScalar, SymbolScalar)
-		i.SymMats = []pixel.Matrix{}
-		for _, pos := range symPos {
-			t.Pos = i.Transform.APos
-			t.Pos.X += pos.X*constants.ActualMenuSize
-			t.Pos.Y += pos.Y + i.Text.LineHeight*0.5*constants.ActualMenuSize
-			t.UIZoom = camera.Cam.GetZoomScale()
-			t.UIPos = camera.Cam.APos
-			t.Update()
-			i.SymMats = append(i.SymMats, t.Mat)
-		}
-	}
-	i.Transform.UIZoom = camera.Cam.GetZoomScale()
-	i.Transform.UIPos = camera.Cam.APos
-	i.Transform.Update()
+	i.Text.Update()
 }
 
 func (i *Item) Draw(target pixel.Target) {
 	if i.Text != nil && !i.Ignore && !i.noShowT && !i.NoDraw {
-		i.Text.Draw(target, i.Transform.Mat)
-		if len(i.SymMats) == len(i.Symbols) {
-			for j := 0; j < len(i.Symbols); j++ {
-				sym := img.Batchers[constants.MenuSprites].Sprites[i.Symbols[j]]
-				if sym != nil {
-					sym.Draw(target, i.SymMats[j])
-				}
-			}
-		}
+		i.Text.Draw(target)
 	}
+}
+
+func (i *Item) SetText(raw string) {
+	i.Text.SetText(raw)
 }
 
 func (i *Item) SetHoverFn(fn func()) {

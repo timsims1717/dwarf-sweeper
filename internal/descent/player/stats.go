@@ -1,8 +1,4 @@
-package descent
-
-import (
-	"dwarf-sweeper/pkg/timing"
-)
+package player
 
 var (
 	CaveBlocksDug    int
@@ -19,12 +15,6 @@ var (
 	BombsFlagged      int
 	CorrectMarks      int
 	WrongFlags        int
-	BlocksDugTimer    = 0.4
-	GemsFoundTimer    = 0.8
-	BombsFlaggedTimer = 1.0
-	WrongFlagsTimer   = 1.2
-	TotalScoreTimer   = 1.4
-	ScoreTimer        *timing.FrameTimer
 )
 
 func ResetStats() {

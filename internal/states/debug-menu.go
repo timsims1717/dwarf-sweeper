@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate/builder"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
@@ -16,15 +17,15 @@ import (
 func InitDebugMenu() {
 	DebugMenu = menus.New("debug", camera.Cam)
 	DebugMenu.Title = true
-	debugTitle := DebugMenu.AddItem("title", "Debug Menu")
-	back := DebugMenu.AddItem("back", "Back")
-	freeCam := DebugMenu.AddItem("free-cam", "Free Camera")
-	mineLevel := DebugMenu.AddItem("mine-level", "Start Mine Level")
-	bossLevel := DebugMenu.AddItem("boss-level", "Start Boss Level")
-	testMineSolver := DebugMenu.AddItem("test-solver", "Test Mine Solver")
-	giveBombs := DebugMenu.AddItem("give-bombs", "Give Bombs")
-	fogToggle := DebugMenu.AddItem("fog-toggle", "Toggle Fog")
-	tpExit := DebugMenu.AddItem("tp-exit", "Teleport to Exit")
+	debugTitle := DebugMenu.AddItem("title", "Debug Menu", false)
+	back := DebugMenu.AddItem("back", "Back", false)
+	freeCam := DebugMenu.AddItem("free-cam", "Free Camera", false)
+	mineLevel := DebugMenu.AddItem("mine-level", "Start Mine Level", false)
+	bossLevel := DebugMenu.AddItem("boss-level", "Start Boss Level", false)
+	testMineSolver := DebugMenu.AddItem("test-solver", "Test Mine Solver", false)
+	giveBombs := DebugMenu.AddItem("give-bombs", "Give Bombs", false)
+	fogToggle := DebugMenu.AddItem("fog-toggle", "Toggle Fog", false)
+	tpExit := DebugMenu.AddItem("tp-exit", "Teleport to Exit", false)
 
 	debugTitle.NoHover = true
 	back.SetClickFn(func() {
@@ -50,7 +51,7 @@ func InitDebugMenu() {
 		}
 		choice := random.Effects.Intn(len(caveBuilders))
 		descent.Descent.Builders = append(descent.Descent.Builders, []builder.CaveBuilder{caveBuilders[choice].Copy()})
-		SwitchState(0)
+		SwitchState(DescentStateKey)
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
@@ -62,18 +63,18 @@ func InitDebugMenu() {
 		}
 		choice := random.Effects.Intn(len(caveBuilders))
 		descent.Descent.Builders = append(descent.Descent.Builders, []builder.CaveBuilder{caveBuilders[choice].Copy()})
-		SwitchState(0)
+		SwitchState(DescentStateKey)
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	testMineSolver.SetClickFn(func() {
-		SwitchState(6)
+		SwitchState(PuzzleStateKey)
 		DebugMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	giveBombs.SetClickFn(func() {
 		if descent.Descent.Player != nil {
-			descent.AddToInventory(&descent.InvItem{
+			player.AddToInventory(&player.InvItem{
 				Name:   "bomb",
 				Sprite: img.Batchers[constants.EntityKey].Sprites["bomb_item"],
 				OnUse: func() {

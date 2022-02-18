@@ -19,3 +19,10 @@ var DefaultAlign = Alignment{
 	H: Left,
 	V: Bottom,
 }
+
+func NewAlign(h, v Align) Alignment {
+	return Alignment{
+		H: h,
+		V: v,
+	}
+}

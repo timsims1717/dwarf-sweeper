@@ -3,6 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -35,10 +36,10 @@ func (f *Flag) Create(_ pixel.Vec) {
 	f.created = true
 	f.correct = f.Tile.Bomb
 	if f.correct {
-		CaveBombsMarked++
-		CaveCorrectMarks++
+		player.CaveBombsMarked++
+		player.CaveCorrectMarks++
 	} else {
-		CaveWrongMarks++
+		player.CaveWrongMarks++
 	}
 	f.Reanimator = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.ParticleKey].Animations["flag_hang"].S, reanimator.Loop))
 	f.entity = myecs.Manager.NewEntity().
@@ -52,15 +53,15 @@ func (f *Flag) Delete() {
 	f.Tile.Flagged = false
 	if f.Tile.Solid() {
 		if f.correct {
-			CaveBombsMarked--
-			CaveCorrectMarks--
+			player.CaveBombsMarked--
+			player.CaveCorrectMarks--
 		} else {
-			CaveWrongMarks--
+			player.CaveWrongMarks--
 		}
 	} else if f.correct {
-		CaveBombsMarked--
+		player.CaveBombsMarked--
 	} else {
-		CaveWrongMarks--
+		player.CaveWrongMarks--
 	}
 	myecs.Manager.DisposeEntity(f.entity)
 }

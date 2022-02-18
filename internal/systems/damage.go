@@ -50,7 +50,8 @@ func AreaDamageSystem() {
 							hit := false
 							tarHB := coll.Hitbox.Moved(tran.Pos).Moved(pixel.V(coll.Hitbox.W()*-0.5, coll.Hitbox.H()*-0.5))
 							if area.Radius > 0. {
-								v := pixel.C(area.Center, area.Radius).IntersectRect(tarHB)
+								c := pixel.C(area.Center, area.Radius)
+								v := c.IntersectRect(tarHB)
 								hit = v.X != 0 || v.Y != 0
 							} else if area.Rect.W() > 0. && area.Rect.H() > 0. {
 								dmgHB := area.Rect.Moved(area.Center).Moved(pixel.V(area.Rect.W()*-0.5, area.Rect.H()*-0.5))

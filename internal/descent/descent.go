@@ -1,17 +1,15 @@
 package descent
 
 import (
-	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
+	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/input"
-	"dwarf-sweeper/pkg/typeface"
 	"dwarf-sweeper/pkg/world"
-	"fmt"
 	"github.com/faiface/pixel"
 )
 
@@ -53,7 +51,7 @@ func New() {
 		Depth:      Depth,
 		Start:      true,
 		CoordsMap:  make(map[string]world.Coords),
-		ExitPop:    menus.NewPopUp("", nil),
+		ExitPop:    menus.NewPopUp(""),
 	}
 }
 
@@ -78,14 +76,13 @@ func Update() {
 		Descent.Cave.Update()
 		switch Descent.Type {
 		case cave.Minesweeper:
-			Descent.canExit = CaveBombsMarked == CaveBombsLeft && CaveWrongMarks < 1
-			Descent.ExitPop.Raw = "Flag all the remaining bombs to exit."
+			Descent.canExit = player.CaveBombsMarked == player.CaveBombsLeft && player.CaveWrongMarks < 1
+			Descent.ExitPop.SetText("Flag all the remaining bombs to exit.")
 		default:
 			Descent.canExit = true
 		}
 		if Descent.canExit {
-			Descent.ExitPop.Raw = fmt.Sprintf("%s to Exit", typeface.SymbolItem)
-			Descent.ExitPop.Symbols = []string{data.GameInput.FirstKey("up")}
+			Descent.ExitPop.SetText("{symbol:up}:Exit")
 		}
 	}
 }
@@ -147,7 +144,7 @@ func (d *descent) SetCave(cave *cave.Cave) {
 }
 
 func (d *descent) SetExitPopup() {
-	d.ExitPop = menus.NewPopUp("", nil)
+	d.ExitPop = menus.NewPopUp("")
 	myecs.Manager.NewEntity().
 		AddComponent(myecs.PopUp, d.ExitPop).
 		AddComponent(myecs.Transform, d.GetCave().GetExit().Transform).

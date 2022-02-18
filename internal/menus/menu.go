@@ -46,34 +46,36 @@ func New(key string, cam *camera.Camera) *DwarfMenu {
 		H: transform.Center,
 		V: transform.Center,
 	}
+	hint := NewHintBox("", cam)
+	hint.Box.SetEntry(Left)
 	AT := transform.New()
 	return &DwarfMenu{
 		Key:     key,
 		ItemMap: map[string]*Item{},
 		Items:   []*Item{},
-		Box:     NewBox(cam),
-		Hint:    NewHint(cam),
+		Box:     NewBox(cam, 1.4),
+		Hint:    hint,
 		Tran:    tran,
 		Cam:     cam,
 		ArrowT:  AT,
 	}
 }
 
-func (m *DwarfMenu) AddItem(key, raw string) *Item {
+func (m *DwarfMenu) AddItem(key, raw string, right bool) *Item {
 	if _, ok := m.ItemMap[key]; ok {
 		panic(fmt.Errorf("menu '%s' already has item '%s'", m.Key, key))
 	}
-	item := NewItem(key, raw)
+	item := NewItem(key, raw, right)
 	m.ItemMap[key] = item
 	m.Items = append(m.Items, item)
 	return item
 }
 
-func (m *DwarfMenu) InsertItem(key, raw string, i int) *Item {
+func (m *DwarfMenu) InsertItem(key, raw string, i int, right bool) *Item {
 	if _, ok := m.ItemMap[key]; ok {
 		panic(fmt.Errorf("menu '%s' already has item '%s'", m.Key, key))
 	}
-	item := NewItem(key, raw)
+	item := NewItem(key, raw, right)
 	m.ItemMap[key] = item
 	if i < 0 {
 		i = 0
@@ -168,7 +170,7 @@ func (m *DwarfMenu) UpdateView(in *input.Input) {
 	} else if in.MouseMoved {
 		for i, item := range m.Items {
 			if !item.Hovered && !item.Disabled && !item.NoHover && !item.noShowT {
-				b := item.Text.BoundsOf(item.Raw)
+				b := item.Text.Text.BoundsOf(item.Raw)
 				if !m.HideArrow {
 					b.Min.X -= 30. / constants.ActualMenuSize
 				}
@@ -179,7 +181,7 @@ func (m *DwarfMenu) UpdateView(in *input.Input) {
 					point.X -= b.W() * 0.5 * constants.ActualMenuSize
 				}
 				point.Y -= b.H() * 1.45 * constants.ActualMenuSize
-				if util.PointInside(point, b, item.Transform.Mat) {
+				if util.PointInside(point, b, item.Text.Transform.Mat) {
 					m.setHover(i)
 				}
 			}
@@ -198,56 +200,58 @@ func (m *DwarfMenu) UpdateSize() {
 			item.noShowT = true
 			continue
 		}
-		if (m.Title && i == 0) || (tLines >= m.Top && lines < MaxLines) {
-			item.CurrLine = tLines
-			bW := item.Text.BoundsOf(item.Raw).W()
-			sW := 0.
-			if !item.Right && i+1 < len(m.Items) && m.Items[i+1].Right {
-				next := m.Items[i+1]
-				sW = next.Text.BoundsOf(next.Raw).W() + next.Text.BoundsOf("   ").W()
-				sameLine = true
-			}
-			minWidth = math.Max((bW+sW)*constants.ActualMenuSize, minWidth)
-			if !sameLine {
-				minHeight += item.Text.LineHeight * constants.ActualMenuSize
-				lines++
-				tLines++
-			}
-			sameLine = false
-			item.noShowT = false
-		} else {
-			item.CurrLine = tLines
-			if !item.Right && i+1 < len(m.Items) && m.Items[i+1].Right {
-				sameLine = true
-			}
-			if !sameLine {
-				tLines++
-			}
-			sameLine = false
-			item.noShowT = true
+		visible := (m.Title && i == 0) || (tLines >= m.Top && lines < MaxLines)
+		//if (m.Title && i == 0) || (tLines >= m.Top && lines < MaxLines) {
+		item.CurrLine = tLines
+		bW := item.Text.Text.Bounds().W() * constants.ActualMenuSize
+		sW := 0.
+		if !item.Right && i+1 < len(m.Items) && m.Items[i+1].Right {
+			next := m.Items[i+1]
+			sW = (next.Text.Text.Bounds().W() + next.Text.Text.BoundsOf("   ").W()) * constants.ActualMenuSize
+			sameLine = true
 		}
+		minWidth = math.Max(bW+sW, minWidth)
+		if !sameLine {
+			if visible {
+				minHeight += item.Text.Text.LineHeight * constants.ActualMenuSize
+				lines++
+			}
+			tLines++
+		}
+		sameLine = false
+		item.noShowT = !visible
+		//} else {
+		//	item.CurrLine = tLines
+		//	if !item.Right && i+1 < len(m.Items) && m.Items[i+1].Right {
+		//		sameLine = true
+		//	}
+		//	if !sameLine {
+		//		tLines++
+		//	}
+		//	sameLine = false
+		//	item.noShowT = true
+		//}
 	}
 	m.TLines = tLines
 	minWidth += 15.
 	if !m.HideArrow {
 		minWidth += 30.
 	}
-	//minWidth = math.Floor(math.Max(minWidth, m.Rect.W()))
-	//minHeight = math.Floor(math.Max(minHeight, m.Rect.H()))
 	m.Box.SetSize(pixel.R(0., 0., minWidth, minHeight))
 	line := 0
 	for i, item := range m.Items {
 		if !item.noShowT {
 			if item.Right {
-				item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight*constants.ActualMenuSize
-				item.Transform.Pos.X = minWidth*0.5 - 10.
+				item.Text.SetPos(pixel.V(minWidth*0.5 - 10., minHeight*0.5 - float64(line+1)*item.Text.Text.LineHeight * constants.ActualMenuSize))
 			} else {
-				item.Transform.Pos.Y = minHeight*0.5 - float64(line+1)*item.Text.LineHeight*constants.ActualMenuSize
+				nextY := minHeight*0.5 - float64(line+1)*item.Text.Text.LineHeight * constants.ActualMenuSize
+				var nextX float64
 				if !m.HideArrow {
-					item.Transform.Pos.X = minWidth*-0.5 + 20.
+					nextX = minWidth*-0.5 + 20.
 				} else {
-					item.Transform.Pos.X = minWidth*-0.5 + 5.
+					nextX = minWidth*-0.5 + 5.
 				}
+				item.Text.SetPos(pixel.V(nextX, nextY))
 			}
 			if item.Right || i >= len(m.Items)-1 || !m.Items[i+1].Right {
 				line++
@@ -266,29 +270,29 @@ func (m *DwarfMenu) UpdateTransforms() {
 	m.Tran.Update()
 	if m.Hovered != -1 {
 		hovered := m.Items[m.Hovered]
-		m.ArrowT.Pos.Y = hovered.Transform.Pos.Y + hovered.Text.BoundsOf(hovered.Raw).H()*0.5*constants.ActualMenuSize
+		m.ArrowT.Pos.Y = hovered.Text.Transform.Pos.Y + hovered.Text.Height*0.25
 		if hovered.Right {
-			m.ArrowT.Pos.X = hovered.Transform.Pos.X - hovered.Text.BoundsOf(hovered.Raw).W()*constants.ActualHoverSize - 10.
+			m.ArrowT.Pos.X = hovered.Text.Transform.Pos.X - hovered.Text.Width - 10.
 		} else {
-			m.ArrowT.Pos.X = hovered.Transform.Pos.X - 10.
+			m.ArrowT.Pos.X = hovered.Text.Transform.Pos.X - 10.
 		}
 		m.ArrowT.Scalar = pixel.V(1.4, 1.4)
 		m.ArrowT.Update()
-		if hovered.Hint != "" && m.Box.opened {
-			m.Hint.Raw = hovered.Hint
-			m.Hint.UpdateSize()
-			m.Hint.Tran.Pos.X = m.Box.STR.Pos.X + m.Hint.Rect.W()*0.5 + 6.
+		if hovered.Hint != "" && m.Box.IsOpen() {
+			m.Hint.SetText(hovered.Hint)
+			m.Hint.Tran.Pos.X = m.Box.STR.Pos.X + m.Hint.Box.Rect.W() * 0.5
 			m.Hint.Tran.Pos.Y = m.ArrowT.Pos.Y
 			m.Hint.Update()
+			m.Hint.Display = true
 		} else {
-			m.Hint.Raw = ""
-			m.Hint.UpdateSize()
+			m.Hint.SetText("")
 			m.Hint.Update()
+			m.Hint.Display = false
 		}
 	} else {
-		m.Hint.Raw = ""
-		m.Hint.UpdateSize()
+		m.Hint.SetText("")
 		m.Hint.Update()
+		m.Hint.Display = false
 	}
 }
 
@@ -318,9 +322,6 @@ func (m *DwarfMenu) UpdateItems(in *input.Input) {
 		in.Get("menuLeft").Consume()
 	}
 	for _, item := range m.Items {
-		//point := m.Trans.Mat.Unproject(world)
-		item.Transform.UIZoom = m.Cam.GetZoomScale()
-		item.Transform.UIPos = m.Cam.APos
 		item.Update()
 	}
 }

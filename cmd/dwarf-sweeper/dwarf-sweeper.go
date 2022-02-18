@@ -5,7 +5,6 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/load"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/states"
@@ -42,27 +41,33 @@ func run() {
 	win.SetSmooth(false)
 	mainFont, err := typeface.LoadTTF("assets/FR73PixD.ttf", constants.TypeFaceSize)
 	typeface.Atlases["main"] = text.NewAtlas(mainFont, text.ASCII)
+	typeface.Atlases["basic"] = typeface.BasicAtlas
 
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = constants.BaseH
 	camera.Cam.SetZoom(4. / 3.)
 	camera.Cam.SetILock(true)
 	camera.Cam.SetSize(res.X, res.Y)
+	ratio := res.X/res.Y
+	constants.ActualW = constants.BaseH * ratio
 
 	debug.Initialize()
 	credits.Initialize()
 
 	vfx.Initialize()
+
 	splash, err := img.LoadImage("assets/img/splash.png")
 	if err != nil {
 		panic(err)
 	}
-	states.Splash = pixel.NewSprite(splash, splash.Bounds())
+	states.MenuState.Splash = pixel.NewSprite(splash, splash.Bounds())
+
 	title, err := img.LoadImage("assets/img/title.png")
 	if err != nil {
 		panic(err)
 	}
-	states.Title = pixel.NewSprite(title, title.Bounds())
+	states.MenuState.Title = pixel.NewSprite(title, title.Bounds())
+
 	bgSheet, err := img.LoadSpriteSheet("assets/img/the-dark-bg.json")
 	if err != nil {
 		panic(err)
@@ -116,24 +121,11 @@ func run() {
 
 	menus.Initialize()
 	states.InitializeMenus(win)
-	descent.InitCollectibles()
+	states.LoadingState.Load()
 
 	load.SFX()
 	load.Symbols()
-
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Crab Nebula.wav", "crab")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Honeybee.wav", "honey")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Prairie Oyster.wav", "prairie")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Sable.wav", "sable")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Strawberry Jam.wav", "strawberry")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/The Dawn Approaches.wav", "dawn")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/The Hero Approaches.wav", "hero")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Twin Turbo.wav", "turbo")
-	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Voyage.wav", "voyage")
-
-	sfx.MusicPlayer.SetTracks("menu", []string{"crab"})
-	sfx.MusicPlayer.SetTracks("pause", []string{"sable"})
-	sfx.MusicPlayer.NewSet(constants.GameMusic, []string{"honey", "strawberry", "dawn", "hero", "voyage", "prairie"}, sfx.Repeat, 0., 2.)
+	load.Music()
 
 	timing.Reset()
 	win.Show()
@@ -192,6 +184,12 @@ func run() {
 			res := constants.Resolutions[constants.ResIndex]
 			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
 			camera.Cam.SetSize(res.X, res.Y)
+			newRatio := res.X / res.Y
+			if constants.FullScreen {
+				x, y := picked.Size()
+				newRatio = x / y
+			}
+			constants.ActualW = constants.BaseH * newRatio
 		}
 	}
 }

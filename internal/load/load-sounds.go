@@ -3,6 +3,7 @@ package load
 import "dwarf-sweeper/pkg/sfx"
 
 func SFX() {
+	sfx.SoundPlayer.RegisterSound("assets/sound/bite.wav", "bite")
 	sfx.SoundPlayer.RegisterSound("assets/sound/blast1.wav", "blast1")
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
 	sfx.SoundPlayer.RegisterSound("assets/sound/clink.wav", "clink")
