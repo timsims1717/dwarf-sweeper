@@ -25,11 +25,6 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var (
-	//canvas1 *pixelgl.Canvas
-	//pos     pixel.Vec
-)
-
 type descentState struct {
 	*state.AbstractState
 	deathTimer *timing.FrameTimer
@@ -45,7 +40,6 @@ func (s *descentState) Load(done chan struct{}) {
 	if s.start {
 		s.start = false
 		s.Generate()
-		//canvas1 = pixelgl.NewCanvas(pixel.R(0., 0., constants.ActualW, constants.BaseH))
 	}
 	s.deathTimer = nil
 	systems.ClearSystem()
@@ -125,14 +119,12 @@ func (s *descentState) Update(win *pixelgl.Window) {
 	tr.Y -= constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
 	camera.Cam.Restrict(bl, tr)
 	descent.Debug(data.GameInput)
-	//pos = camera.Cam.APos
 }
 
 func (s *descentState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	systems.DrawSystem()
 	img.DrawBatches(win)
-	//systems.SplitScreenDrawSystem(win, canvas1, pos)
 	vfx.Draw(win)
 	systems.PopUpDraw(win)
 	player.DrawHUD(win)
