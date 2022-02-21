@@ -277,6 +277,7 @@ func (s *Slug) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, s).
 		AddComponent(myecs.Transform, s.Transform).
 		AddComponent(myecs.Animation, s.Reanimator).
+		AddComponent(myecs.Drawable, s.Reanimator).
 		AddComponent(myecs.Physics, s.Physics).
 		AddComponent(myecs.Health, s.Health).
 		AddComponent(myecs.Collision, s.Collider).

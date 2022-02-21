@@ -197,12 +197,14 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 					}
 					anim := img.Batchers[constants.ParticleKey].GetAnimation(key).S
 					e := myecs.Manager.NewEntity()
-					e.AddComponent(myecs.Animation, reanimator.NewSimple(
+					tree := reanimator.NewSimple(
 						reanimator.NewAnimFromSprites("swipe", anim, reanimator.Done).
 							SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
 								myecs.Manager.DisposeEntity(e)
 							}),
-						)).
+					)
+					e.AddComponent(myecs.Animation, tree).
+						AddComponent(myecs.Drawable, tree).
 						AddComponent(myecs.Transform, trans).
 						AddComponent(myecs.Batch, constants.ParticleKey).
 						AddComponent(myecs.Temp, myecs.ClearFlag(false))
@@ -322,6 +324,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 		AddComponent(myecs.Physics, d.Physics).
 		AddComponent(myecs.Collision, d.Collider).
 		AddComponent(myecs.Animation, d.Reanimator).
+		AddComponent(myecs.Drawable, d.Reanimator).
 		AddComponent(myecs.Batch, constants.DwarfKey).
 		AddComponent(myecs.Health, d.Health)
 	return d

@@ -376,6 +376,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 			}
 		}), "")
 	e.AddComponent(myecs.Animation, gb.Reanimator).
+		AddComponent(myecs.Drawable, gb.Reanimator).
 		AddComponent(myecs.Transform, gb.Transform).
 		AddComponent(myecs.Physics, gb.Physics).
 		AddComponent(myecs.Health, gb.Health).

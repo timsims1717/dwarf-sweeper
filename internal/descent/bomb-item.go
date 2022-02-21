@@ -46,7 +46,7 @@ func CreateBombItem(pos pixel.Vec) {
 		AddComponent(myecs.Temp, timing.New(10.)).
 		AddComponent(myecs.Interact, i).
 		AddComponent(myecs.PopUp, popUp).
-		AddComponent(myecs.Sprite, spr).
+		AddComponent(myecs.Drawable, spr).
 		AddComponent(myecs.Batch, constants.EntityKey).
 		AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 			myecs.AddEffect(e, data.NewBlink(2.))

@@ -7,6 +7,7 @@ import (
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/load"
 	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/states"
 	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
@@ -103,6 +104,11 @@ func run() {
 		panic(err)
 	}
 	img.AddBatcher(constants.ParticleKey, partSheet, true, true)
+	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.ExpKey, expSheet, true, true)
 	fogSheet, err := img.LoadSpriteSheet("assets/img/fog.json")
 	if err != nil {
 		panic(err)
@@ -126,6 +132,8 @@ func run() {
 	load.SFX()
 	load.Symbols()
 	load.Music()
+
+	particles.Initialize()
 
 	timing.Reset()
 	win.Show()

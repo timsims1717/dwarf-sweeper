@@ -71,6 +71,7 @@ func (b *Bubble) Create(_ pixel.Vec) {
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
+		AddComponent(myecs.Drawable, b.Reanimator).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 }
 

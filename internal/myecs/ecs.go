@@ -18,9 +18,9 @@ var (
 	Update  = Manager.NewComponent()
 	Trigger = Manager.NewComponent()
 
+	Drawable  = Manager.NewComponent()
 	Animation = Manager.NewComponent()
 	Batch     = Manager.NewComponent()
-	Sprite    = Manager.NewComponent()
 	Entity    = Manager.NewComponent()
 	PopUp     = Manager.NewComponent()
 	VFX       = Manager.NewComponent()
@@ -42,8 +42,7 @@ var (
 	HasUpdate = ecs.BuildTag(Update)
 
 	HasAnimation   = ecs.BuildTag(Animation, Transform)
-	HasAnimDrawing = ecs.BuildTag(Animation, Transform, Batch)
-	HasSprDrawing  = ecs.BuildTag(Sprite, Transform, Batch)
+	IsDrawable     = ecs.BuildTag(Drawable, Transform, Batch)
 	IsEntity       = ecs.BuildTag(Entity, Transform)
 	HasPopUp       = ecs.BuildTag(PopUp, Transform)
 	HasVFX         = ecs.BuildTag(VFX, Transform)

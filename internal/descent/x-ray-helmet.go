@@ -27,7 +27,7 @@ func StartXRayVision() {
 				tile := Descent.GetPlayerTile().Chunk.Get(c)
 				if tile != nil && tile.Breakable() && tile.Solid() && tile.XRay != "" {
 					myecs.Manager.NewEntity().
-						AddComponent(myecs.Sprite, img.Batchers[constants.ParticleKey].GetSprite(tile.XRay)).
+						AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite(tile.XRay)).
 						AddComponent(myecs.Transform, transform.New()).
 						AddComponent(myecs.Parent, tile.Transform).
 						AddComponent(myecs.Batch, constants.ParticleKey).
@@ -44,7 +44,7 @@ func StartXRayVision() {
 		AddComponent(myecs.Transform, t1).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
-		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 	t2 := transform.New()
 	t2.Offset = pixel.V(world.TileSize, world.TileSize)
@@ -53,7 +53,7 @@ func StartXRayVision() {
 		AddComponent(myecs.Transform, t2).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
-		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 	t3 := transform.New()
 	t3.Offset = pixel.V(world.TileSize, -world.TileSize)
@@ -63,7 +63,7 @@ func StartXRayVision() {
 		AddComponent(myecs.Transform, t3).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
-		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 	t4 := transform.New()
 	t4.Offset = pixel.V(-world.TileSize, -world.TileSize)
@@ -72,6 +72,6 @@ func StartXRayVision() {
 		AddComponent(myecs.Transform, t4).
 		AddComponent(myecs.Parent, Descent.Player.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
-		AddComponent(myecs.Sprite, ring).
+		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 }

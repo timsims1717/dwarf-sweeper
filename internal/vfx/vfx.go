@@ -18,11 +18,6 @@ var (
 )
 
 func Initialize() {
-	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
-	if err != nil {
-		panic(err)
-	}
-	explosion = reanimator.NewAnimFromSheet("explosion", expSheet, nil, reanimator.Done)
 	particleSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
 	if err != nil {
 		panic(err)

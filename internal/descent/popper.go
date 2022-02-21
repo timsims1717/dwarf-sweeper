@@ -225,7 +225,7 @@ func (p *Popper) Update() {
 							trans.Pos = p.Transform.Pos
 							e.AddComponent(myecs.Transform, trans).
 								AddComponent(myecs.Temp, timing.New(1.5)).
-								AddComponent(myecs.Sprite, img.Batchers[constants.ParticleKey].GetSprite("dig_thru")).
+								AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite("dig_thru")).
 								AddComponent(myecs.Batch, constants.ParticleKey)
 							myecs.AddEffect(e, data.NewFadeOut(colornames.White, 1.5))
 							p.effectTimer = timing.New(effectSec)
@@ -566,6 +566,7 @@ func (p *Popper) Create(pos pixel.Vec) {
 	p.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, p).
 		AddComponent(myecs.Animation, p.Reanimator).
+		AddComponent(myecs.Drawable, p.Reanimator).
 		AddComponent(myecs.Transform, p.Transform).
 		AddComponent(myecs.Physics, p.Physics).
 		AddComponent(myecs.Health, p.Health).
@@ -612,6 +613,6 @@ func (p *Popper) CreateProjectile(norm pixel.Vec) {
 			}
 			return false
 		})).
-		AddComponent(myecs.Sprite, spr).
+		AddComponent(myecs.Drawable, spr).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 }

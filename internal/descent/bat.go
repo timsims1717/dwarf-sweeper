@@ -131,6 +131,7 @@ func (b *Bat) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
+		AddComponent(myecs.Drawable, b.Reanimator).
 		AddComponent(myecs.Physics, b.Physics).
 		AddComponent(myecs.Health, b.Health).
 		AddComponent(myecs.Collision, b.Collider).

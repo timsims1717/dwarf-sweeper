@@ -26,32 +26,20 @@ func AnimationSystem() {
 	}
 }
 
-func AnimationDraw() {
-	for _, result := range myecs.Manager.Query(myecs.HasAnimDrawing) {
-		anim, okA := result.Components[myecs.Animation].(*reanimator.Tree)
+func DrawSystem() {
+	for _, result := range myecs.Manager.Query(myecs.IsDrawable) {
+		draw := result.Components[myecs.Drawable]
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
-		if okA && okT && okB && !tran.Hide {
+		if okT && okB && !tran.Hide {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if batcher, ok := img.Batchers[bkey]; ok {
-					anim.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
-				}
-			}
-		}
-	}
-}
-
-func SpriteDraw() {
-	for _, result := range myecs.Manager.Query(myecs.HasSprDrawing) {
-		spr, okS := result.Components[myecs.Sprite].(*pixel.Sprite)
-		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
-		bkey, okB := result.Components[myecs.Batch].(string)
-		if okS && okT && okB && !tran.Hide {
-			dist := camera.Cam.Pos.Sub(tran.Pos)
-			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
-				if batcher, ok := img.Batchers[bkey]; ok {
-					spr.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
+					if spr, okS := draw.(*pixel.Sprite); okS {
+						spr.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
+					} else if anim, okA := draw.(*reanimator.Tree); okA {
+						anim.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
+					}
 				}
 			}
 		}

@@ -47,8 +47,7 @@ func (s *enchantState) Update(win *pixelgl.Window) {
 
 func (s *enchantState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
-	systems.AnimationDraw()
-	systems.SpriteDraw()
+	systems.DrawSystem()
 	img.DrawBatches(win)
 	vfx.Draw(win)
 	player.DrawHUD(win)

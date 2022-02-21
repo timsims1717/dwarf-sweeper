@@ -6,7 +6,7 @@ import (
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/vfx"
+	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -52,7 +52,7 @@ func (m *Mine) Update() {
 					Knockback:      MineBaseKnockback,
 					KnockbackDecay: true,
 				})
-			vfx.CreateExplosion(m.Tile.Transform.Pos)
+			particles.CreateSmallExplosion(m.Tile.Transform.Pos)
 			sfx.SoundPlayer.PlaySound("blast1", -1.0)
 			m.Delete()
 		}
@@ -82,6 +82,7 @@ func (m *Mine) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).
 		AddComponent(myecs.Animation, m.Reanimator).
+		AddComponent(myecs.Drawable, m.Reanimator).
 		AddComponent(myecs.Batch, constants.EntityKey)
 }
 

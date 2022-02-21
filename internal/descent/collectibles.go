@@ -58,7 +58,7 @@ func CreateCollectible(pos pixel.Vec, fn func(pos pixel.Vec) bool, spr *pixel.Sp
 		AddComponent(myecs.Health, hp).
 		AddComponent(myecs.Temp, timing.New(10.)).
 		AddComponent(myecs.Collect, c).
-		AddComponent(myecs.Sprite, spr).
+		AddComponent(myecs.Drawable, spr).
 		AddComponent(myecs.Batch, constants.EntityKey).
 		AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 			myecs.AddEffect(e, data.NewBlink(2.))

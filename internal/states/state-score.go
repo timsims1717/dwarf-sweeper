@@ -65,8 +65,7 @@ func (s *scoreState) Update(win *pixelgl.Window) {
 func (s *scoreState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	//descent.Descent.GetPlayer().Draw(win, data.GameInput)
-	systems.AnimationDraw()
-	systems.SpriteDraw()
+	systems.DrawSystem()
 	img.DrawBatches(win)
 	vfx.Draw(win)
 	player.DrawHUD(win)

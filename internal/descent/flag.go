@@ -46,6 +46,7 @@ func (f *Flag) Create(_ pixel.Vec) {
 		AddComponent(myecs.Entity, f).
 		AddComponent(myecs.Transform, f.Transform).
 		AddComponent(myecs.Animation, f.Reanimator).
+		AddComponent(myecs.Drawable, f.Reanimator).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 }
 

@@ -123,6 +123,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		AddComponent(myecs.Entity, m).
 		AddComponent(myecs.Transform, m.Transform).
 		AddComponent(myecs.Animation, m.Reanimator).
+		AddComponent(myecs.Drawable, m.Reanimator).
 		AddComponent(myecs.Physics, m.Physics).
 		AddComponent(myecs.Health, m.Health).
 		AddComponent(myecs.Collision, &data.Collider{

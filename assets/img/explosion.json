@@ -4,11 +4,29 @@
  "width": 48,
  "singleRow": true,
  "sprites": [
-  {},
-  {},
-  {},
-  {},
-  {},
-  {}
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  }
  ]
 }

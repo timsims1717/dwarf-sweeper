@@ -43,7 +43,7 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 		key := keys[random.Effects.Intn(len(keys))]
 		myecs.Manager.NewEntity().
 			AddComponent(myecs.Transform, tran).
-			AddComponent(myecs.Sprite, img.Batchers[constants.ParticleKey].GetSprite(key)).
+			AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite(key)).
 			AddComponent(myecs.Batch, constants.ParticleKey).
 			AddComponent(myecs.Temp, timing.New(nDur))
 	}
@@ -70,7 +70,7 @@ func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, for
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, tran).
 		AddComponent(myecs.Physics, phys).
-		AddComponent(myecs.Sprite, spr).
+		AddComponent(myecs.Drawable, spr).
 		AddComponent(myecs.Batch, constants.ParticleKey).
 		AddComponent(myecs.Temp, timing.New(nDur))
 	if collide {

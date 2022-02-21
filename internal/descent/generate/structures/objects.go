@@ -23,7 +23,7 @@ func addChest(tile *cave.Tile) {
 	popUp.Dist = world.TileSize
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, tile.Transform).
-		AddComponent(myecs.Sprite, img.Batchers[constants.TileEntityKey].Sprites["chest_closed"]).
+		AddComponent(myecs.Drawable, img.Batchers[constants.TileEntityKey].Sprites["chest_closed"]).
 		AddComponent(myecs.Batch, constants.TileEntityKey).
 		AddComponent(myecs.PopUp, popUp).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false)).
@@ -45,7 +45,7 @@ func addChest(tile *cave.Tile) {
 				for i := 0; i < gemCount; i++ {
 					descent.CreateGem(pos)
 				}
-				e.AddComponent(myecs.Sprite, img.Batchers[constants.TileEntityKey].Sprites["chest_opened"])
+				e.AddComponent(myecs.Drawable, img.Batchers[constants.TileEntityKey].Sprites["chest_opened"])
 				e.RemoveComponent(myecs.Interact)
 				e.RemoveComponent(myecs.PopUp)
 				return true
@@ -97,6 +97,7 @@ func addBigBomb(blTile *cave.Tile, level int) {
 		}), "big_bomb_idle")
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Animation, anim).
+		AddComponent(myecs.Drawable, anim).
 		AddComponent(myecs.Batch, constants.TileEntityKey).
 		AddComponent(myecs.PopUp, popUp).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false)).
