@@ -37,6 +37,8 @@ var (
 	gemTransform  *transform.Transform
 	gemNumberText *typeface.Text
 
+	timerText *typeface.Text
+
 	itemBoxSpr    *pixel.Sprite
 	itemTransform *transform.Transform
 	itemCountText *typeface.Text
@@ -69,6 +71,9 @@ func InitHUD() {
 	gemNumberText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
 	gemNumberText.SetColor(hudTextColor)
 	gemSpr = img.Batchers[constants.EntityKey].GetSprite("gem_diamond")
+
+	timerText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Right, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
+	timerText.SetColor(hudTextColor)
 
 	itemTransform = transform.New()
 	itemTransform.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
@@ -147,12 +152,27 @@ func UpdateHUD() {
 	gemTimer.Update()
 
 	itemTransform.Pos = pixel.V(hudDistXR-itemBoxSpr.Frame().W()*0.5, hudDistY - itemBoxSpr.Frame().H()*0.5)
-	itemCountText.Transform.Pos = pixel.V(hudDistXR, hudDistY - itemBoxSpr.Frame().H())
+	itemCountText.SetPos(pixel.V(hudDistXR, hudDistY - itemBoxSpr.Frame().H()))
 	if len(player.Inventory) > 0 && player.InvIndex < len(player.Inventory) && player.Inventory[player.InvIndex].Count > 1 {
 		itemCountText.SetText(strconv.Itoa(player.Inventory[player.InvIndex].Count))
 	} else {
 		itemCountText.SetText("")
 	}
+
+	if descent.Descent.Timer != nil {
+		elapsed := int(descent.Descent.Timer.Elapsed())
+		h := elapsed / 3600
+		m := elapsed / 60 % 60
+		s := elapsed % 60
+		if h > 0 {
+			timerText.SetText(fmt.Sprintf("%d:%02d:%02d", h, m, s))
+		} else {
+			timerText.SetText(fmt.Sprintf("%02d:%02d", m, s))
+		}
+	} else {
+		timerText.SetText("")
+	}
+	timerText.SetPos(pixel.V(hudDistXR - itemBoxSpr.Frame().W() - 8., hudDistY))
 
 	currY = world.TileSize * 1.5
 	if descent.Descent.Type == cave.Minesweeper {
@@ -215,16 +235,16 @@ func DrawHUD(win *pixelgl.Window) {
 	}
 
 	if !gemTimer.Done() {
-	//if true {
 		gemTransform.UIPos = camera.Cam.APos
 		gemTransform.UIZoom = camera.Cam.GetZoomScale()
 		gemTransform.Update()
-		gemNumberText.Transform.UIPos = camera.Cam.APos
-		gemNumberText.Transform.UIZoom = camera.Cam.GetZoomScale()
 		gemNumberText.Update()
 		gemSpr.Draw(win, gemTransform.Mat)
 		gemNumberText.Draw(win)
 	}
+
+	timerText.Update()
+	timerText.Draw(win)
 
 	itemTransform.UIPos = camera.Cam.APos
 	itemTransform.UIZoom = camera.Cam.GetZoomScale()
@@ -241,8 +261,6 @@ func DrawHUD(win *pixelgl.Window) {
 			img.Batchers[constants.MenuSprites].Sprites[fmt.Sprintf("item_timer_%d", i)].Draw(win, itemTransform.Mat)
 		}
 	}
-	itemCountText.Transform.UIPos = camera.Cam.APos
-	itemCountText.Transform.UIZoom = camera.Cam.GetZoomScale()
 	itemCountText.Update()
 	itemCountText.Draw(win)
 
@@ -250,8 +268,6 @@ func DrawHUD(win *pixelgl.Window) {
 		bombTransform.UIPos = camera.Cam.APos
 		bombTransform.UIZoom = camera.Cam.GetZoomScale()
 		bombTransform.Update()
-		bombCountText.Transform.UIPos = camera.Cam.APos
-		bombCountText.Transform.UIZoom = camera.Cam.GetZoomScale()
 		bombCountText.Update()
 		img.Batchers[constants.EntityKey].Sprites["bomb_fuse"].Draw(win, bombTransform.Mat)
 		bombCountText.Draw(win)

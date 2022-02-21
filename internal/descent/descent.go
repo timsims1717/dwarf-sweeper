@@ -9,6 +9,7 @@ import (
 	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/input"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 )
@@ -42,6 +43,7 @@ type descent struct {
 
 	Builders [][]builder.CaveBuilder
 	Puzzle   puzzles.Puzzle
+	Timer    *timing.FrameTimer
 }
 
 func New() {
@@ -52,11 +54,13 @@ func New() {
 		Start:      true,
 		CoordsMap:  make(map[string]world.Coords),
 		ExitPop:    menus.NewPopUp(""),
+		Timer:      timing.New(0.),
 	}
 }
 
 func Update() {
 	if Descent != nil && Descent.Cave != nil {
+		Descent.Timer.Update()
 		Descent.Cave.Pivot = Descent.GetPlayer().Transform.Pos
 		if !Descent.FreeCam {
 			camera.Cam.StayWithin(Descent.Cave.Pivot, world.TileSize*1.5)
