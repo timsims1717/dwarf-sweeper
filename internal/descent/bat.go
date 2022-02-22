@@ -139,6 +139,5 @@ func (b *Bat) Create(pos pixel.Vec) {
 }
 
 func (b *Bat) Delete() {
-	b.Health.Delete()
 	myecs.Manager.DisposeEntity(b.Entity)
 }

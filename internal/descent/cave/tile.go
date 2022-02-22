@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
@@ -12,10 +11,10 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	"golang.org/x/image/colornames"
 	"image/color"
 )
 
@@ -60,12 +59,6 @@ func (t BlockType) String() string {
 	}
 }
 
-type TileSpr struct {
-	SprKey string
-	Matrix pixel.Matrix
-	BG     bool
-}
-
 type Tile struct {
 	Type      BlockType
 	Special   bool
@@ -73,19 +66,17 @@ type Tile struct {
 	RCoords   world.Coords
 	Transform *transform.Transform
 	Chunk     *Chunk
+	Biome     string
 
-	Sprites     []TileSpr
+	Sprites     []img.Sprite
 	SmartStr    string
-	SmartChange bool
 	FogSmartStr string
-	FogSprite   string
 	FogSpriteS  string
-	FogMatrix   pixel.Matrix
 	Surrounded  bool
 	DSurrounded bool
 	BombCount   int
 
-	Entity     myecs.AnEntity
+	//Entity     *ecs.Entity
 	XRay       string
 	Bomb       bool
 	Destroyed  bool
@@ -107,26 +98,26 @@ type Tile struct {
 
 	DestroyTrigger func(*Tile)
 	GemRate        float64
-
 }
 
 func NewTile(x, y int, coords world.Coords, bomb bool, chunk *Chunk) *Tile {
 	tran := transform.New()
+	tran.Scalar = pixel.V(1.001, 1.001)
 	tran.Pos = pixel.V(float64(x+coords.X*constants.ChunkSize)*world.TileSize, -(float64(y+coords.Y*constants.ChunkSize) * world.TileSize))
 	rCoords := world.Coords{X: x + coords.X*constants.ChunkSize, Y: y + coords.Y*constants.ChunkSize}
 	p := noise.BlockType(rCoords)
+	//e := myecs.Manager.NewEntity()
+	//e.AddComponent(myecs.Transform, tran).
+	//	AddComponent(myecs.Batch, constants.FogKey)
 	return &Tile{
 		Type:      BlockCollapse,
 		SubCoords: world.Coords{X: x, Y: y},
 		RCoords:   rCoords,
-		Sprites: []TileSpr{
-			{
-				SprKey: startSprite,
-			},
-		},
+		Sprites:   []img.Sprite{},
 		Bomb:      bomb,
 		Transform: tran,
 		Chunk:     chunk,
+		Biome:     chunk.Cave.Biome,
 		GemRate:   1.,
 		Perlin:    p,
 	}
@@ -156,39 +147,26 @@ func (tile *Tile) Update() {
 		}
 	}
 	tile.Transform.Update()
+	if debug.Debug && tile.Group != 0 {
+		tile.Transform.Mask = color.RGBA{
+			R: uint8((((tile.Group * 7) % 8) * 32) % 256),
+			G: uint8((((tile.Group * 13) % 8) * 32) % 256),
+			B: uint8((((tile.Group * 11) % 8) * 32) % 256),
+			A: 255,
+		}
+		// 1: Yellow, 2: Pink, 3: Lime, 4: Gray, 5: Purple, 6: Green, 7: Blue
+	} else {
+		tile.Transform.Mask = colornames.White
+	}
 }
 
 func (tile *Tile) Draw() {
-	//if !tile.Destroyed {
 	for _, spr := range tile.Sprites {
-		if spr.SprKey != "" {
-			mat := spr.Matrix.ScaledXY(pixel.ZV, pixel.V(1.001, 1.001)).Moved(tile.Transform.Pos)
-			if debug.Debug && tile.Group != 0 {
-				col := color.RGBA{
-					R: uint8((((tile.Group * 7) % 8) * 32) % 256),
-					G: uint8((((tile.Group * 13) % 8) * 32) % 256),
-					B: uint8((((tile.Group * 11) % 8) * 32) % 256),
-					A: 255,
-				}
-				// 1: Yellow, 2: Pink, 3: Lime, 4: Gray, 5: Purple, 6: Green, 7: Blue
-				if spr.BG {
-					img.Batchers[constants.CaveBGKey].DrawSpriteColor(spr.SprKey, mat, col)
-				} else {
-					img.Batchers[constants.CaveKey].DrawSpriteColor(spr.SprKey, mat, col)
-				}
-			} else {
-				if spr.BG {
-					img.Batchers[constants.CaveBGKey].DrawSprite(spr.SprKey, mat)
-				} else {
-					img.Batchers[constants.CaveKey].DrawSprite(spr.SprKey, mat)
-				}
-			}
+		if spr.S != nil {
+			spr.S.DrawColorMask(spr.B.Batch(), spr.M, tile.Transform.Mask)
 		}
+		//spr.B.DrawSpriteColor(spr.K, spr.M, tile.Transform.Mask)
 	}
-	if tile.FogSprite != "" {
-		img.Batchers[constants.FogKey].DrawSprite(tile.FogSprite, tile.FogMatrix.ScaledXY(pixel.ZV, pixel.V(1.001, 1.001)).Moved(tile.Transform.Pos))
-	}
-	//}
 }
 
 func (tile *Tile) Destroy(playSound bool) {
@@ -242,9 +220,6 @@ func (tile *Tile) destroy() {
 		}
 		if wasSolid {
 			particles.BlockParticles(tile.Transform.Pos, tile.Chunk.Cave.Biome)
-			if !util.IsNil(tile.Entity) {
-				tile.Entity.Create(tile.Transform.Pos)
-			}
 		}
 	}
 }
@@ -270,9 +245,6 @@ func (tile *Tile) Reveal(instant bool) {
 					c++
 				}
 			}
-		}
-		if !util.IsNil(tile.Entity) {
-			tile.Entity.Create(tile.Transform.Pos)
 		}
 		if c == 0 {
 			tile.Destroyed = true
@@ -374,47 +346,33 @@ func (tile *Tile) UpdateDetails() {
 			tile.FogSmartStr = ""
 			tile.Type = Empty
 		}
-		tile.SmartChange = tile.SmartStr != smartStr
 		tile.SmartStr = smartStr
 	} else {
 		tile.FogSmartStr = ""
-		tile.FogSpriteS = ""
-		tile.FogSprite = ""
 	}
 }
 
 func (tile *Tile) UpdateSprites() {
 	if tile.Type != Deco {
+		tile.ClearSprites()
 		if tile.Solid() {
+			tile.FogSpriteS = ""
 			// main tile
-			spr, mat := SmartTileSolid(tile.Type, tile.SmartStr, tile.DSurrounded && tile.Chunk.Cave.Fog)
-			if len(tile.Sprites) == 0 || tile.Sprites[0].SprKey != spr || tile.SmartChange {
-				tile.Sprites = []TileSpr{}
-				tile.AddSprite(spr, mat, false)
-			}
+			spr, mat := SmartTileSolid(tile.Type, tile.SmartStr, tile.DSurrounded && tile.Chunk.Cave.Fog, tile.Perlin)
+			tile.AddSprite(spr, mat, tile.Biome, false)
 			// fog
 			var fogSpr string
 			var fogMat pixel.Matrix
 			if tile.Surrounded && !tile.DSurrounded && tile.Chunk.Cave.Fog {
 				fogSpr, fogMat = SmartTileFade(tile.FogSmartStr)
-			} else if tile.Surrounded && tile.DSurrounded && tile.Chunk.Cave.Fog {
-				fogSpr, fogMat = "empty", pixel.IM
-			} else {
-				fogSpr = ""
-				fogMat = pixel.IM
-			}
-			if tile.FogSpriteS != fogSpr || tile.FogMatrix != fogMat {
-				tile.FogMatrix = fogMat
 				tile.FogSpriteS = fogSpr
-				if fogSpr != "" {
-					tile.FogSprite = fogSpr
-				} else {
-					tile.FogSprite = ""
-				}
+				tile.AddSprite(fogSpr, fogMat, constants.FogKey, false)
+			} else if tile.Surrounded && tile.DSurrounded && tile.Chunk.Cave.Fog {
+				tile.AddSprite("empty", pixel.IM, constants.FogKey, false)
 			}
 		} else if tile.BombCount > 0 {
 			// main tile
-			spr, mat := SmartTileNum(tile.SmartStr)
+			spr, mat := SmartTileNum(tile.SmartStr, tile.Perlin)
 			// number sprite
 			var numSpr string
 			switch tile.BombCount {
@@ -435,23 +393,11 @@ func (tile *Tile) UpdateSprites() {
 			case 8:
 				numSpr = "eight"
 			}
-			if len(tile.Sprites) == 0 || tile.Sprites[0].SprKey != spr || tile.SmartChange {
-				tile.Sprites = []TileSpr{}
-				tile.AddSprite(spr, mat, true)
-				tile.AddSprite(numSpr, pixel.IM, true)
-			} else {
-				if len(tile.Sprites) > 1 {
-					tile.Sprites[1].SprKey = numSpr
-				} else {
-					tile.AddSprite(numSpr, pixel.IM, true)
-				}
-			}
-			tile.FogSprite = ""
-		} else {
-			tile.FogSprite = ""
-			tile.Sprites = []TileSpr{}
+			tile.AddSprite(spr, mat, tile.Biome, true)
+			tile.AddSprite(numSpr, pixel.IM, tile.Biome, true)
 		}
 	}
+	//tile.Entity.AddComponent(myecs.Drawable, tile.Sprites)
 }
 
 func (tile *Tile) GetTileCode() string {
@@ -481,15 +427,22 @@ func (tile *Tile) GetTileCode() string {
 }
 
 func (tile *Tile) ClearSprites() {
-	tile.Sprites = []TileSpr{}
+	tile.Sprites = []img.Sprite{}
 	tile.Chunk.Cave.UpdateBatch = true
 }
 
-func (tile *Tile) AddSprite(key string, mat pixel.Matrix, isBG bool) {
-	tile.Sprites = append(tile.Sprites, TileSpr{
-		SprKey: key,
-		Matrix: mat,
-		BG:     isBG,
+func (tile *Tile) AddSprite(key string, mat pixel.Matrix, biome string, bg bool) {
+	var batch *img.Batcher
+	if bg {
+		batch = img.Batchers[fmt.Sprintf(constants.CaveBGFMT, biome)]
+	} else {
+		batch = img.Batchers[biome]
+	}
+	tile.Sprites = append(tile.Sprites, img.Sprite{
+		K: key,
+		S: batch.GetSprite(key),
+		M: mat.ScaledXY(pixel.ZV, tile.Transform.Scalar).Moved(tile.Transform.Pos),
+		B: batch,
 	})
 	tile.Chunk.Cave.UpdateBatch = true
 }

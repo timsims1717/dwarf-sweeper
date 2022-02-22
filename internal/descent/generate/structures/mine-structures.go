@@ -37,10 +37,10 @@ func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
 				if pillarX%6 == currX%6 && (above2.Solid() || layer == 1) {
 					ToEmpty(mainTile, false, true, false)
 					mainTile.ClearSprites()
-					mainTile.AddSprite("pillar", pixel.IM, true)
+					mainTile.AddSprite("pillar", pixel.IM, c.Biome, true)
 					ToEmpty(above1, false, true, false)
 					above1.ClearSprites()
-					above1.AddSprite("pillar_top", pixel.IM, true)
+					above1.AddSprite("pillar_top", pixel.IM, c.Biome, true)
 				} else {
 					ToEmpty(mainTile, false, false, false)
 					ToEmpty(above1, false, false, false)
@@ -108,9 +108,9 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 			} else {
 				if pillarX%6 == currX%6 {
 					ToEmpty(mainTile, false, true, false)
-					mainTile.AddSprite("pillar", pixel.IM, true)
+					mainTile.AddSprite("pillar", pixel.IM, c.Biome, true)
 					ToEmpty(above1, false, true, false)
-					above1.AddSprite("pillar_top", pixel.IM, true)
+					above1.AddSprite("pillar_top", pixel.IM, c.Biome, true)
 				} else {
 					ToEmpty(mainTile, false, false, false)
 					ToEmpty(above1, false, false, false)

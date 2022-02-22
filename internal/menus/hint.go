@@ -23,10 +23,6 @@ type HintBox struct {
 
 func NewHintBox(raw string, cam *camera.Camera) *HintBox {
 	tran := transform.New()
-	tran.Anchor = transform.Anchor{
-		H: transform.Center,
-		V: transform.Center,
-	}
 	tex := typeface.New(cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.2, constants.ActualHintSize, DefaultMax, 0.)
 	tex.SetColor(DefaultColor)
 	tex.SetText(raw)

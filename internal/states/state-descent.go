@@ -12,7 +12,6 @@ import (
 	"dwarf-sweeper/internal/player"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/systems"
-	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -85,7 +84,6 @@ func (s *descentState) Update(win *pixelgl.Window) {
 			systems.PopUpSystem()
 			systems.VFXSystem()
 			systems.TriggerSystem()
-			vfx.Update()
 			player2.UpdateInventory()
 			systems.AnimationSystem()
 			descent.Update()
@@ -125,7 +123,6 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	systems.DrawSystem()
 	img.DrawBatches(win)
-	vfx.Draw(win)
 	systems.PopUpDraw(win)
 	player.DrawHUD(win)
 	if descent.Descent.Puzzle != nil {

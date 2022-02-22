@@ -5,7 +5,6 @@ import (
 	player2 "dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/player"
 	"dwarf-sweeper/internal/systems"
-	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -35,7 +34,6 @@ func (s *enchantState) Load(done chan struct{}) {
 
 func (s *enchantState) Update(win *pixelgl.Window) {
 	reanimator.Update()
-	vfx.Update()
 	descent.Update()
 	player.UpdateHUD()
 	UpdateMenus(win)
@@ -49,7 +47,6 @@ func (s *enchantState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	systems.DrawSystem()
 	img.DrawBatches(win)
-	vfx.Draw(win)
 	player.DrawHUD(win)
 	for _, m := range menuStack {
 		m.Draw(win)

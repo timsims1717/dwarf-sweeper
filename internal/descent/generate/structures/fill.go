@@ -46,12 +46,12 @@ func FillBasic(ch *cave.Chunk) {
 					tile.XRay = "bomb"
 				} else if random.CaveGen.Intn(80) == 0 {
 					if ch.Cave.Biome == "mine" {
-						tile.Entity = &descent.Slug{}
+						//tile.Entity = &descent.Slug{}
 					} else {
-						tile.Entity = &descent.MadMonk{}
+						//tile.Entity = &descent.MadMonk{}
 					}
 				} else if random.CaveGen.Intn(50) == 0 && tile.Solid() && tile.Breakable() {
-					tile.Entity = &descent.Bat{}
+					//tile.Entity = &descent.Bat{}
 				}
 			}
 		}
@@ -72,6 +72,10 @@ func StartMinesweeper(c *cave.Cave, t *cave.Tile) {
 	}
 }
 
+func MineDestroy(t *cave.Tile) {
+	descent.CreateMine(t.Transform.Pos)
+}
+
 func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 	needBomb := nb
 	for _, row := range ch.Rows {
@@ -79,15 +83,11 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 			if tile.Solid() && tile.Breakable() {
 				if t.RCoords != tile.RCoords {
 					if tile.Bomb {
-						tile.Entity = &descent.Mine{
-							Tile: tile,
-						}
+						tile.DestroyTrigger = MineDestroy
 						tile.XRay = "mine"
 					} else if needBomb {
 						tile.Bomb = true
-						tile.Entity = &descent.Mine{
-							Tile: tile,
-						}
+						tile.DestroyTrigger = MineDestroy
 						tile.XRay = "mine"
 						needBomb = false
 					}

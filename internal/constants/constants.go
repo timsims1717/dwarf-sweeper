@@ -25,8 +25,7 @@ const (
 	MenuSprites   = "menu_sprites"
 	ParticleKey   = "particle_sprites"
 	ExpKey        = "explosions"
-	CaveBGKey     = "cave_bg"
-	CaveKey       = "cave"
+	CaveBGFMT     = "%s_bg"
 	TileLayerKey  = "tile_layer"
 	PuzzleKey     = "puzzle"
 

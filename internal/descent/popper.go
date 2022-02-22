@@ -574,7 +574,6 @@ func (p *Popper) Create(pos pixel.Vec) {
 }
 
 func (p *Popper) Delete() {
-	p.Health.Delete()
 	myecs.Manager.DisposeEntity(p.Entity)
 }
 

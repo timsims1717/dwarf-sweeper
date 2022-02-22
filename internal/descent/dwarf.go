@@ -743,7 +743,6 @@ func (d *Dwarf) Update(in *input.Input) {
 }
 
 func (d *Dwarf) Delete() {
-	d.Health.Delete()
 	myecs.Manager.DisposeEntity(d.Entity)
 }
 

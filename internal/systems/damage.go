@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/timing"
@@ -87,11 +88,11 @@ func DamageSystem() {
 		hp, okH := result.Components[myecs.Health].(*data.Health)
 		hpB, okB := result.Components[myecs.Health].(*data.SimpleHealth)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
-		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
+		trans, okT := result.Components[myecs.Transform].(*transform.Transform)
 		dmg, okD := result.Components[myecs.Damage].(*data.Damage)
-		if okH && okP && okD && okT && tran.ID != dmg.SourceID {
+		if okH && okP && okD && okT && trans.ID != dmg.SourceID {
 			if !hp.Inv {
-				dist := camera.Cam.Pos.Sub(tran.Pos)
+				dist := camera.Cam.Pos.Sub(trans.Pos)
 				if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 					immune := data.Immunity{}
 					for t, immunity := range hp.Immune {
@@ -133,7 +134,7 @@ func DamageSystem() {
 							phys.CancelMovement()
 							var dir pixel.Vec
 							if dmg.Angle == nil {
-								d := tran.Pos.Sub(dmg.Source)
+								d := trans.Pos.Sub(dmg.Source)
 								d.Y += 1.
 								dir = util.Normalize(d)
 							} else {
@@ -148,21 +149,31 @@ func DamageSystem() {
 						}
 						if dmg.Dazed > 0.0 && hp.Curr > 0 && !immune.Dazed {
 							hp.Dazed = true
+							dazeTime := dmg.Dazed
 							if hp.DazedTime > 0. {
-								hp.DazedTimer = timing.New(hp.DazedTime)
-							} else {
-								hp.DazedTimer = timing.New(dmg.Dazed)
+								dazeTime = hp.DazedTime
 							}
-							if hp.DazedVFX != nil {
-								hp.DazedVFX.Animation.Done = true
-								hp.DazedVFX = nil
+							hp.DazedTimer = timing.New(dazeTime)
+							if hp.DazedEntity != nil {
+								hp.DazedEntity.AddComponent(myecs.Temp, timing.New(hp.DazedTime))
+							} else {
+								dazeTran := transform.New()
+								dazeTran.Offset.Y += world.TileSize * 0.5 + 1.
+								anim := particles.DazedAnimation()
+								hp.DazedEntity = myecs.Manager.NewEntity()
+								hp.DazedEntity.AddComponent(myecs.Temp, timing.New(dazeTime)).
+									AddComponent(myecs.Transform, dazeTran).
+									AddComponent(myecs.Parent, trans).
+									AddComponent(myecs.Animation, anim).
+									AddComponent(myecs.Drawable, anim).
+									AddComponent(myecs.Batch, constants.ParticleKey)
 							}
 						}
 					}
 				}
 			}
 		} else if okB && okD && okP && okT {
-			dist := camera.Cam.Pos.Sub(tran.Pos)
+			dist := camera.Cam.Pos.Sub(trans.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				immune := data.Immunity{}
 				for t, immunity := range hpB.Immune {
@@ -185,7 +196,7 @@ func DamageSystem() {
 					phys.CancelMovement()
 					var dir pixel.Vec
 					if dmg.Angle == nil {
-						d := tran.Pos.Sub(dmg.Source)
+						d := trans.Pos.Sub(dmg.Source)
 						d.Y += 1.
 						dir = util.Normalize(d)
 					} else {

@@ -9,7 +9,6 @@ import (
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/states"
-	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
@@ -55,8 +54,6 @@ func run() {
 	debug.Initialize()
 	credits.Initialize()
 
-	vfx.Initialize()
-
 	splash, err := img.LoadImage("assets/img/splash.png")
 	if err != nil {
 		panic(err)
@@ -69,61 +66,7 @@ func run() {
 	}
 	states.MenuState.Title = pixel.NewSprite(title, title.Bounds())
 
-	bgSheet, err := img.LoadSpriteSheet("assets/img/the-dark-bg.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.CaveBGKey, bgSheet, true, false)
-	tileEntitySheet, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true, true)
-	bigEntitySheet, err := img.LoadSpriteSheet("assets/img/big-entities.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.BigEntityKey, bigEntitySheet, true, true)
-	entitySheet, err := img.LoadSpriteSheet("assets/img/entities.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.EntityKey, entitySheet, true, true)
-	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.DwarfKey, dwarfSheet, true, true)
-	caveSheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.CaveKey, caveSheet, true, false)
-	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.ParticleKey, partSheet, true, true)
-	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.ExpKey, expSheet, true, true)
-	fogSheet, err := img.LoadSpriteSheet("assets/img/fog.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.FogKey, fogSheet, true, false)
-	puzzleSheet, err := img.LoadSpriteSheet("assets/img/puzzles.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.PuzzleKey, puzzleSheet, false, true)
-	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.MenuSprites, menuSheet, false, true)
+	load.Sprites()
 
 	menus.Initialize()
 	states.InitializeMenus(win)

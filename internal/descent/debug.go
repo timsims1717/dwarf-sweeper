@@ -24,7 +24,7 @@ func Debug(in *input.Input) {
 				debug.AddText(fmt.Sprintf("tile has a bomb"))
 			}
 			for i, spr := range d.Hovered.Sprites {
-				debug.AddText(fmt.Sprintf("tile sprite %d: '%s'", i, spr.SprKey))
+				debug.AddText(fmt.Sprintf("tile sprite %d: '%s'", i, spr.K))
 			}
 			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.SmartStr))
 			debug.AddText(fmt.Sprintf("tile fg smart str: '%s'", d.Hovered.FogSmartStr))

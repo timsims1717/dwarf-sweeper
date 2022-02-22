@@ -58,11 +58,10 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 						tile.Type = cave.BlockType(ty)
 						tile.NeverChange = true
 						tile.ClearSprites()
-						tile.AddSprite(s, pixel.IM, true)
+						tile.AddSprite(s, pixel.IM, tile.Biome, true)
 					}
 					tile.Bomb = false
 					tile.IsChanged = true
-					tile.Entity = nil
 				}
 			}
 		}
@@ -78,7 +77,6 @@ func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int,
 						tile.NeverChange = true
 						tile.Bomb = false
 						tile.IsChanged = true
-						tile.Entity = nil
 					}
 				}
 			}
@@ -118,10 +116,9 @@ func Door(c *cave.Cave, door world.Coords, exit bool) {
 				tile.Type = cave.BlockType(ty)
 				tile.NeverChange = true
 				tile.ClearSprites()
-				tile.AddSprite(s, pixel.IM, true)
+				tile.AddSprite(s, pixel.IM, tile.Biome, true)
 				tile.Bomb = false
 				tile.IsChanged = true
-				tile.Entity = nil
 			}
 		}
 	}

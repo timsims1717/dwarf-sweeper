@@ -42,10 +42,6 @@ type DwarfMenu struct {
 
 func New(key string, cam *camera.Camera) *DwarfMenu {
 	tran := transform.New()
-	tran.Anchor = transform.Anchor{
-		H: transform.Center,
-		V: transform.Center,
-	}
 	hint := NewHintBox("", cam)
 	hint.Box.SetEntry(Left)
 	AT := transform.New()

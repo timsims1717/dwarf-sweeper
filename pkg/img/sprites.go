@@ -121,8 +121,10 @@ func (b *Batcher) Draw(target pixel.Target) {
 }
 
 type Sprite struct {
+	K string
 	S *pixel.Sprite
 	M pixel.Matrix
+	B *Batcher
 }
 
 type SpriteSheet struct {

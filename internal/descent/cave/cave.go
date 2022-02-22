@@ -18,8 +18,9 @@ type Cave struct {
 	FillChunk   func(chunk *Chunk)
 	Pivot       pixel.Vec
 	UpdateBatch bool
-	hasUpdated  bool
 	Type        CaveType
+	Biome       string
+	Biomes      []string
 
 	Left   int
 	Right  int
@@ -42,7 +43,6 @@ type Cave struct {
 	BombPMax float64
 	GemRate  float64
 
-	Biome      string
 	BGBatch    *pixel.Batch
 	Background *pixel.Sprite
 	BGTC       *transform.Transform
@@ -71,22 +71,13 @@ func NewCave(biome string, caveType CaveType) *Cave {
 		bgSpr = pixel.NewSprite(bg, bg.Bounds())
 		bgBatch = pixel.NewBatch(&pixel.TrianglesData{}, bg)
 	}
-	bgSheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s-bg.json", biome))
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.CaveBGKey, bgSheet, true, false)
-	sheet, err := img.LoadSpriteSheet(fmt.Sprintf("assets/img/the-%s.json", biome))
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.CaveKey, sheet, true, false)
 
 	return &Cave{
 		Chunks:      make(map[world.Coords]*Chunk),
 		Type:        caveType,
 		UpdateBatch: true,
 		Biome:       biome,
+		Biomes:      []string{biome},
 		Background:  bgSpr,
 		BGBatch:     bgBatch,
 		BGTC:        transform.New(),
@@ -132,8 +123,11 @@ func (c *Cave) Update() {
 
 	if c.UpdateBatch {
 		c.UpdateAllTileSprites()
-		c.hasUpdated = true
-		c.UpdateBatch = false
+		for _, biome := range c.Biomes {
+			img.Batchers[fmt.Sprintf(constants.CaveBGFMT, biome)].Clear()
+			img.Batchers[biome].Clear()
+		}
+		img.Batchers[constants.FogKey].Clear()
 	}
 
 	if c.Background != nil {
@@ -187,14 +181,11 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		c.Background.Draw(c.BGBatch, c.BGTDR.Mat)
 		c.BGBatch.Draw(win)
 	}
-	if c.hasUpdated {
-		img.Batchers[constants.CaveBGKey].Clear()
-		img.Batchers[constants.CaveKey].Clear()
-		img.Batchers[constants.FogKey].Clear()
+	if c.UpdateBatch {
 		for _, chunk := range c.Chunks {
 			chunk.Draw()
 		}
-		c.hasUpdated = false
+		c.UpdateBatch = false
 	}
 }
 

@@ -24,10 +24,6 @@ type PopUp struct {
 
 func NewPopUp(raw string) *PopUp {
 	tran := transform.New()
-	tran.Anchor = transform.Anchor{
-		H: transform.Center,
-		V: transform.Center,
-	}
 	tex := typeface.New(nil, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.2, constants.ActualHintSize, 120., 0.)
 	tex.SetColor(DefaultColor)
 	tex.SetText(raw)

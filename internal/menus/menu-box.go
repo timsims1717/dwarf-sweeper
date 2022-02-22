@@ -157,6 +157,7 @@ func (mb *MenuBox) CloseInstant() {
 	mb.opened = false
 	mb.StepV = 4.
 	mb.StepH = 4.
+	mb.Update()
 }
 
 func (mb *MenuBox) SetSize(r pixel.Rect) {

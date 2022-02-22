@@ -34,10 +34,10 @@ func GnomeMineLayer(c *cave.Cave, includeL, includeR world.Coords) []*cave.Tile 
 			} else if pillarX%6 == curr.X%6 {
 				ToEmpty(main1, true, true, true)
 				main1.ClearSprites()
-				main1.AddSprite("pillar", pixel.IM, true)
+				main1.AddSprite("pillar", pixel.IM, c.Biome, true)
 				ToEmpty(main2, true, true, true)
 				main2.ClearSprites()
-				main2.AddSprite("pillar_top", pixel.IM, true)
+				main2.AddSprite("pillar_top", pixel.IM, c.Biome, true)
 			} else {
 				ToEmpty(main1, true, false, true)
 				ToEmpty(main2, true, false, true)

@@ -4,12 +4,10 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/vfx"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
-	"github.com/faiface/pixel"
 	"math"
 )
 
@@ -21,19 +19,13 @@ func HealthSystem() {
 			dist := camera.Cam.Pos.Sub(tran.Pos)
 			if math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance {
 				if hp.Dazed {
-					if hp.DazedTimer.UpdateDone() {
+					if hp.DazedTimer != nil && hp.DazedTimer.UpdateDone() {
 						hp.Dazed = false
-					} else {
-						if hp.DazedVFX != nil {
-							hp.DazedVFX.Matrix = pixel.IM.Moved(tran.APos).Moved(pixel.V(0., 9.))
-						} else if hp.DazedVFX == nil {
-							hp.DazedVFX = vfx.CreateDazed(tran.APos.Add(pixel.V(0., 9.)))
-						}
 					}
 				}
-				if !hp.Dazed && hp.DazedVFX != nil {
-					hp.DazedVFX.Animation.Done = true
-					hp.DazedVFX = nil
+				if !hp.Dazed && hp.DazedEntity != nil {
+					myecs.Manager.DisposeEntity(hp.DazedEntity)
+					hp.DazedEntity = nil
 				}
 				hp.TempInvTimer.Update()
 				if hp.Curr < 1 {

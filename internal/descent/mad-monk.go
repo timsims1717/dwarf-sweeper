@@ -133,6 +133,5 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 }
 
 func (m *MadMonk) Delete() {
-	m.Health.Delete()
 	myecs.Manager.DisposeEntity(m.Entity)
 }

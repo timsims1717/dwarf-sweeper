@@ -285,6 +285,5 @@ func (s *Slug) Create(pos pixel.Vec) {
 }
 
 func (s *Slug) Delete() {
-	s.Health.Delete()
 	myecs.Manager.DisposeEntity(s.Entity)
 }
