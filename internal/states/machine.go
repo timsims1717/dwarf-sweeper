@@ -1,7 +1,6 @@
 package states
 
 import (
-	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
@@ -10,6 +9,7 @@ import (
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/state"
+	"dwarf-sweeper/pkg/timing"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
 )
@@ -44,6 +44,7 @@ var (
 	currState   = "unknown"
 	nextState   = "menu_state"
 	loading     = false
+	loadingDone = false
 	done        = make(chan struct{})
 
 	debugPause     = false
@@ -107,12 +108,12 @@ var (
 func Update(win *pixelgl.Window) {
 	debugInput.Update(win)
 	menuInput.Update(win)
-	data.GameInput.Update(win)
 	updateState()
 	if loading {
 		select{
 		case <-done:
 			loading = false
+			loadingDone = true
 		default:
 			LoadingState.Update(win)
 		}
@@ -133,8 +134,10 @@ func Update(win *pixelgl.Window) {
 				fmt.Println("DEBUG TEXT OFF")
 			}
 		}
-		if debugInput.Get("debugInv").JustPressed() && descent.Descent.GetPlayer() != nil {
-			descent.Descent.GetPlayer().Health.Inv = !descent.Descent.GetPlayer().Health.Inv
+		if debugInput.Get("debugInv").JustPressed() {
+			for _, d := range descent.Descent.Dwarves {
+				d.Health.Inv = !d.Health.Inv
+			}
 		}
 		if debugInput.Get("debugMenu").JustPressed() && MenuClosed() {
 			debugInput.Get("debugMenu").Consume()
@@ -159,15 +162,21 @@ func Update(win *pixelgl.Window) {
 				camera.Cam.ZoomIn(-1.)
 			}
 		}
-		if debugInput.Get("freeCamUp").Pressed() && descent.Descent.FreeCam {
-			camera.Cam.Up()
-		} else if debugInput.Get("freeCamDown").Pressed() && descent.Descent.FreeCam {
-			camera.Cam.Down()
-		}
-		if debugInput.Get("freeCamRight").Pressed() && descent.Descent.FreeCam {
-			camera.Cam.Right()
-		} else if debugInput.Get("freeCamLeft").Pressed() && descent.Descent.FreeCam {
-			camera.Cam.Left()
+		if descent.Descent.FreeCam && len(descent.Descent.Dwarves) > 0 {
+			if debugInput.Get("freeCamUp").Pressed() {
+				//camera.Cam.Up()
+				descent.Descent.Dwarves[0].Player.CamPos.Y += 100. * timing.DT
+			} else if debugInput.Get("freeCamDown").Pressed() && descent.Descent.FreeCam {
+				//camera.Cam.Down()
+				descent.Descent.Dwarves[0].Player.CamPos.Y -= 100. * timing.DT
+			}
+			if debugInput.Get("freeCamRight").Pressed() && descent.Descent.FreeCam {
+				//camera.Cam.Right()
+				descent.Descent.Dwarves[0].Player.CamPos.X += 100. * timing.DT
+			} else if debugInput.Get("freeCamLeft").Pressed() && descent.Descent.FreeCam {
+				//camera.Cam.Left()
+				descent.Descent.Dwarves[0].Player.CamPos.X -= 100. * timing.DT
+			}
 		}
 		frame := false
 		if debugInput.Get("debugPause").JustPressed() {
@@ -195,10 +204,12 @@ func Draw(win *pixelgl.Window) {
 	img.ClearBatches()
 	if loading {
 		LoadingState.Draw(win)
-	} else {
+	} else if !loadingDone {
 		if cState, ok := States[currState]; ok {
 			cState.Draw(win)
 		}
+	} else {
+		loadingDone = false
 	}
 }
 
@@ -213,6 +224,7 @@ func updateState() {
 		if cState, ok := States[nextState]; ok {
 			go cState.Load(done)
 			loading = true
+			loadingDone = false
 		}
 		currState = nextState
 		switchState = false

@@ -41,29 +41,6 @@ func NewCollider(hitbox pixel.Rect, groundOnly, canPass bool) *Collider {
 	}
 }
 
-type Collectible struct {
-	OnCollect   func(pos pixel.Vec) bool
-	Sprite      *pixel.Sprite
-	Collected   bool
-	AutoCollect bool
-	Timer       *timing.FrameTimer
-}
-
-type Interact struct {
-	OnInteract func(pos pixel.Vec) bool
-	Distance   float64
-	Interacted bool
-	Remove     bool
-}
-
-func NewInteract(fn func(pos pixel.Vec) bool, dist float64, remove bool) *Interact {
-	return &Interact{
-		OnInteract: fn,
-		Distance:   dist,
-		Remove:     remove,
-	}
-}
-
 type TimerFunc struct {
 	Timer *timing.FrameTimer
 	Func  func() bool

@@ -21,6 +21,8 @@ type CaveBuilder struct {
 	Title      string        `json:"title"`
 	Desc       string        `json:"desc"`
 	Tracks     []string      `json:"tracks"`
+	Width      int           `json:"width"`
+	Height     int           `json:"height"`
 	Type       cave.CaveType `json:"type"`
 	Base       Base          `json:"base"`
 	Structures []Structure   `json:"structures"`
@@ -134,6 +136,8 @@ func (cb *CaveBuilder) Copy() CaveBuilder {
 		Title:      cb.Title,
 		Desc:       cb.Desc,
 		Tracks:     cb.Tracks,
+		Width:      cb.Width,
+		Height:     cb.Height,
 		Type:       cb.Type,
 		Base:       cb.Base,
 		Structures: cb.Structures,

@@ -2,6 +2,7 @@ package constants
 
 import (
 	"github.com/faiface/pixel"
+	"image/color"
 )
 
 const (
@@ -40,7 +41,7 @@ const (
 	MacDir   = "/Library/Application Support/DwarfSweeper"
 
 	// Descent Constants
-	ChunkSize = 32
+	ChunkSize = 16
 	ChunkArea = ChunkSize * ChunkSize
 
 	BaseGem  = 20
@@ -83,7 +84,8 @@ var (
 	ActualHintSize  = BaseHintSize * (10 / TypeFaceSize)
 	ActualOneSize   = 10 / TypeFaceSize
 
-	// Input
-	AimDedicated = true
-	DigOnRelease = true
+	// Menus
+	DefaultColor  color.RGBA
+	HoverColor    color.RGBA
+	DisabledColor color.RGBA
 )

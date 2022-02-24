@@ -100,7 +100,7 @@ func (gnome *GnomeBoss) Update() bool {
 		}
 		if gnome.State != GBCharge && gnome.State != GBSearching && gnome.State != GBWaiting {
 			ownCoords := Descent.GetCave().GetTile(gnome.Transform.Pos).RCoords
-			playerCoords := Descent.GetPlayerTile().RCoords
+			playerCoords := Descent.GetClosestPlayerTile(gnome.Transform.Pos).RCoords
 			if ownCoords.X > playerCoords.X {
 				gnome.faceLeft = true
 			} else if ownCoords.X < playerCoords.X {
@@ -399,7 +399,7 @@ func (gnome *GnomeBoss) Emerge(findCoords bool) {
 }
 
 func EmergeCoords() (pixel.Vec, bool) {
-	x := Descent.GetPlayerTile().RCoords.X
+	x := Descent.GetRandomPlayerTile().RCoords.X
 	y := Descent.CoordsMap["current_layer"].Y
 	pCos := world.Coords{
 		X: x,

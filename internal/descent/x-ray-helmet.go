@@ -13,18 +13,18 @@ import (
 
 var XRaySec = 16.
 
-func StartXRayVision() {
+func StartXRayVision(d *Dwarf) {
 	myecs.Manager.NewEntity().
-		AddComponent(myecs.Transform, Descent.Player.Transform).
+		AddComponent(myecs.Transform, d.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
 		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
-			n := Descent.GetPlayerTile().SubCoords.Neighbors()
+			n := Descent.Cave.GetTile(d.Transform.Pos).SubCoords.Neighbors()
 			a := world.Combine(n, n[0].Neighbors())
 			a = world.Combine(a, n[2].Neighbors())
 			a = world.Combine(a, n[4].Neighbors())
 			a = world.Combine(a, n[6].Neighbors())
 			for _, c := range a {
-				tile := Descent.GetPlayerTile().Chunk.Get(c)
+				tile := Descent.Cave.GetTileInt(c.X, c.Y)
 				if tile != nil && tile.Breakable() && tile.Solid() && tile.XRay != "" {
 					myecs.Manager.NewEntity().
 						AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite(tile.XRay)).
@@ -42,7 +42,7 @@ func StartXRayVision() {
 	t1.Offset = pixel.V(-world.TileSize, world.TileSize)
 	myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t1).
-		AddComponent(myecs.Parent, Descent.Player.Transform).
+		AddComponent(myecs.Parent, d.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
 		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
@@ -51,7 +51,7 @@ func StartXRayVision() {
 	t2.Flip = true
 	myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t2).
-		AddComponent(myecs.Parent, Descent.Player.Transform).
+		AddComponent(myecs.Parent, d.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
 		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
@@ -61,7 +61,7 @@ func StartXRayVision() {
 	t3.Flop = true
 	myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t3).
-		AddComponent(myecs.Parent, Descent.Player.Transform).
+		AddComponent(myecs.Parent, d.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
 		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)
@@ -70,7 +70,7 @@ func StartXRayVision() {
 	t4.Flop = true
 	myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, t4).
-		AddComponent(myecs.Parent, Descent.Player.Transform).
+		AddComponent(myecs.Parent, d.Transform).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
 		AddComponent(myecs.Drawable, ring).
 		AddComponent(myecs.Batch, constants.ParticleKey)

@@ -31,7 +31,7 @@ func CheckAssign(win *pixelgl.Window, in *Input, key string) bool {
 			in.Buttons[key].Buttons = append(in.Buttons[key].Buttons, buttons[0])
 			assigned = true
 		} else {
-			axes := GetAllAxisGamepad(win, in.Joystick)
+			axes := GetAllAxisGamepad(win, in)
 			if len(axes) > 0 {
 				in.Buttons[key].Axis = axes[0].Axis
 				if axes[0].Dir > 0. {

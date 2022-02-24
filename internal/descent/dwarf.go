@@ -3,12 +3,11 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/reanimator"
@@ -41,7 +40,6 @@ var (
 	ShovelKnockback = 8.
 	ShovelDazed     = 2.
 	ShovelDamage    = 0
-	GemRate         = 1.
 )
 
 type DwarfStats struct {
@@ -51,7 +49,6 @@ type DwarfStats struct {
 	ShovelKnockback float64
 	ShovelDazed     float64
 	ShovelDamage    int
-	GemRate         float64
 }
 
 func DefaultStats() DwarfStats {
@@ -62,12 +59,12 @@ func DefaultStats() DwarfStats {
 		ShovelKnockback: ShovelKnockback,
 		ShovelDazed:     ShovelDazed,
 		ShovelDamage:    ShovelDamage,
-		GemRate:         GemRate,
 	}
 }
 
 type Dwarf struct {
 	DwarfStats
+	Player     *player.Player
 	Physics    *physics.Physics
 	Transform  *transform.Transform
 	Collider   *data.Collider
@@ -117,9 +114,8 @@ type Dwarf struct {
 	Bubble *Bubble
 }
 
-func NewDwarf(start pixel.Vec) *Dwarf {
+func NewDwarf(p *player.Player) *Dwarf {
 	tran := transform.New()
-	tran.Pos = start
 	d := &Dwarf{
 		DwarfStats: DefaultStats(),
 		Physics:    physics.New(),
@@ -131,6 +127,7 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			DazedTime:  10.,
 			Immune:     data.ShovelImmunity,
 		},
+		Player: p,
 	}
 	batcher := img.Batchers[constants.DwarfKey]
 	climbAnim := batcher.GetAnimation("climb")
@@ -213,8 +210,8 @@ func NewDwarf(start pixel.Vec) *Dwarf {
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				if d.digTile != nil && d.digTile.Solid() {
 					if d.digTile.Diggable() {
-						player.CaveBlocksDug++
-						d.digTile.Destroy(true)
+						p.Stats.CaveBlocksDug++
+						d.digTile.Destroy(d.Player, true)
 					} // todo: add rebound here
 					d.digTile = nil
 				} else {
@@ -365,7 +362,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 	}
 	if !d.Health.Dazed && !d.Health.Dead && in != nil {
-		if constants.AimDedicated {
+		if in.AimDedicated {
 			if in.Mode != input.KeyboardMouse &&
 				(in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. ||
 					in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.) {
@@ -374,16 +371,16 @@ func (d *Dwarf) Update(in *input.Input) {
 				xA := math.Abs(x)
 				yA := math.Abs(y)
 				diff := math.Abs(x - y)
-				if xA > input.Deadzone ||
-					(yA > input.Deadzone && diff < angleDiff) {
+				if xA > in.Deadzone ||
+					(yA > in.Deadzone && diff < angleDiff) {
 					if x > 0. {
 						x = world.TileSize
 					} else {
 						x = -world.TileSize
 					}
 				}
-				if yA > input.Deadzone ||
-					(xA > input.Deadzone && diff < angleDiff) {
+				if yA > in.Deadzone ||
+					(xA > in.Deadzone && diff < angleDiff) {
 					if y > 0. {
 						y = -world.TileSize
 					} else {
@@ -393,7 +390,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.relative = pixel.V(x, y)
 				d.isRelative = true
 			} else if in.Mode != input.Gamepad {
-				d.Hovered = Descent.GetCave().GetTile(in.World)
+				d.Hovered = Descent.GetCave().GetTile(d.Player.CamPos.Sub(d.Player.CanvasPos.Sub(in.World)))
 				d.facingTimer = nil
 				d.isRelative = false
 			}
@@ -430,8 +427,8 @@ func (d *Dwarf) Update(in *input.Input) {
 		if d.Hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
 			d.SelectLegal = math.Abs(d.Transform.Pos.X-d.Hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.Hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			facing := pixel.ZV
-			if (in.Get("dig").JustPressed() && !constants.DigOnRelease) || (in.Get("dig").JustReleased() && constants.DigOnRelease) {
-				if in.Mode != input.Gamepad && constants.AimDedicated {
+			if (in.Get("dig").JustPressed() && !in.DigOnRelease) || (in.Get("dig").JustReleased() && in.DigOnRelease) {
+				if in.Mode != input.Gamepad && in.AimDedicated {
 					angle := d.Transform.Pos.Sub(in.World).Angle()
 					if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
 						facing.X = 1
@@ -484,7 +481,7 @@ func (d *Dwarf) Update(in *input.Input) {
 						f: facing,
 					})
 				}
-			} else if ((in.Get("flag").JustPressed() && !constants.DigOnRelease) || (in.Get("flag").JustReleased() && constants.DigOnRelease)) && d.Hovered.Solid() && d.SelectLegal {
+			} else if ((in.Get("flag").JustPressed() && !in.DigOnRelease) || (in.Get("flag").JustReleased() && in.DigOnRelease)) && d.Hovered.Solid() && d.SelectLegal {
 				d.tileQueue = append(d.tileQueue, struct {
 					a int
 					t *cave.Tile
@@ -520,7 +517,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if next.a == 1 && next.t.Solid() && digLegal {
 				d.flagging = true
 				d.distFell = 0.
-				FlagTile(next.t)
+				d.FlagTile(next.t)
 			} else {
 				var x, y float64
 				if d.facing.Y < 0 {
@@ -546,8 +543,8 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.digTile = nil
 			}
 		}
-		d.digHold = constants.DigOnRelease && in.Get("dig").Pressed() && !d.flagHold
-		d.flagHold = constants.DigOnRelease && in.Get("flag").Pressed() && !d.digHold
+		d.digHold = in.DigOnRelease && in.Get("dig").Pressed() && !d.flagHold
+		d.flagHold = in.DigOnRelease && in.Get("flag").Pressed() && !d.digHold
 		if d.digHold || d.flagHold {
 			if d.climbing {
 				d.Physics.CancelMovement()
@@ -671,10 +668,10 @@ func (d *Dwarf) Update(in *input.Input) {
 					if math.Abs(d.Physics.Velocity.X) < 20.0 {
 						if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 							d.distFell = 0.
-							camera.Cam.Up()
+							//camera.Cam.Up()
 						} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
 							d.distFell = 0.
-							camera.Cam.Down()
+							//camera.Cam.Down()
 						}
 						d.walking = false
 						d.climbing = false
@@ -719,11 +716,14 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 			}
 			if in.Get("prev").JustPressed() {
-				player.PrevItem()
+				in.Get("prev").Consume()
+				d.Player.Inventory.PrevItem()
 			} else if in.Get("next").JustPressed() {
-				player.NextItem()
+				in.Get("next").Consume()
+				d.Player.Inventory.NextItem()
 			} else if in.Get("use").JustPressed() {
-				player.UseEquipped()
+				in.Get("use").Consume()
+				d.Player.Inventory.UseEquipped(d.Transform.Pos)
 			}
 		}
 	}
@@ -746,14 +746,11 @@ func (d *Dwarf) Delete() {
 	myecs.Manager.DisposeEntity(d.Entity)
 }
 
-func FlagTile(tile *cave.Tile) {
+func (d *Dwarf) FlagTile(tile *cave.Tile) {
 	if tile != nil && tile.Solid() && !tile.Destroyed && tile.Breakable() {
 		if !tile.Flagged {
 			tile.Flagged = true
-			f := &Flag{
-				Tile: tile,
-			}
-			f.Create(pixel.ZV)
+			CreateFlag(d.Player, tile)
 		} else {
 			tile.Flagged = false
 		}

@@ -34,7 +34,7 @@ func (s *puzzleState) Load(done chan struct{}) {
 func (s *puzzleState) Update(win *pixelgl.Window) {
 	if s.minePuzzle != nil {
 		reanimator.Update()
-		s.minePuzzle.Update(data.GameInput)
+		s.minePuzzle.Update(data.GameInputP1)
 		if s.minePuzzle.Solved() {
 			s.minePuzzle.Close()
 		}

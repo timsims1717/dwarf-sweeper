@@ -2,7 +2,6 @@ package states
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
@@ -25,7 +24,7 @@ func (s *loadingState) Load() {
 	}
 	s.Mine = pixel.NewSprite(mine, mine.Bounds())
 	s.LoadText = typeface.New(camera.Cam, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1., constants.ActualMenuSize, 0., 0.)
-	s.LoadText.SetColor(menus.DefaultColor)
+	s.LoadText.SetColor(constants.DefaultColor)
 	s.LoadText.SetText("loading...")
 	s.LoadText.Transform.Pos = pixel.V(s.LoadText.Text.BoundsOf("...").W()*s.LoadText.RelativeSize, -15.)
 	s.Trans = transform.New()

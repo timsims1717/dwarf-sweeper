@@ -2,19 +2,42 @@ package menus
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
+	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	"golang.org/x/image/colornames"
+	"image/color"
 	"math"
 )
 
 const (
 	MaxLines = 10
 )
+
+var (
+	arrow *pixel.Sprite
+)
+
+
+func Initialize() {
+	constants.DefaultColor = color.RGBA{
+		R: 74,
+		G: 84,
+		B: 98,
+		A: 255,
+	}
+	constants.HoverColor = colornames.Mediumblue
+	constants.DisabledColor = colornames.Darkgray
+	DefaultDist = world.TileSize * 4.
+	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
+}
 
 type DwarfMenu struct {
 	Key       string
@@ -27,7 +50,7 @@ type DwarfMenu struct {
 	TLines    int
 	HideArrow bool
 
-	Box  *MenuBox
+	Box  *menubox.MenuBox
 	Hint *HintBox
 	Tran *transform.Transform
 	Cam  *camera.Camera
@@ -43,13 +66,13 @@ type DwarfMenu struct {
 func New(key string, cam *camera.Camera) *DwarfMenu {
 	tran := transform.New()
 	hint := NewHintBox("", cam)
-	hint.Box.SetEntry(Left)
+	hint.Box.SetEntry(menubox.Left)
 	AT := transform.New()
 	return &DwarfMenu{
 		Key:     key,
 		ItemMap: map[string]*Item{},
 		Items:   []*Item{},
-		Box:     NewBox(cam, 1.4),
+		Box:     menubox.NewBox(cam, 1.4),
 		Hint:    hint,
 		Tran:    tran,
 		Cam:     cam,
@@ -111,11 +134,11 @@ func (m *DwarfMenu) Open() {
 }
 
 func (m *DwarfMenu) IsOpen() bool {
-	return m.Box.opened
+	return m.Box.IsOpen()
 }
 
 func (m *DwarfMenu) IsClosed() bool {
-	return m.Box.closed
+	return m.Box.IsClosed()
 }
 
 func (m *DwarfMenu) Close() {
@@ -133,13 +156,13 @@ func (m *DwarfMenu) CloseInstant() {
 }
 
 func (m *DwarfMenu) Update(in *input.Input) {
-	if m.Box.opened && in != nil {
+	if m.Box.IsOpen() && in != nil {
 		m.UpdateView(in)
 	}
 	m.UpdateSize()
 	m.Box.Update()
 	m.UpdateTransforms()
-	if m.Box.opened && in != nil {
+	if m.Box.IsOpen() && in != nil {
 		m.UpdateItems(in)
 	}
 }
@@ -447,7 +470,7 @@ func (m *DwarfMenu) GetNextHoverVert(dir, curr int, right bool, in *input.Input)
 
 func (m *DwarfMenu) Draw(target pixel.Target) {
 	m.Box.Draw(target)
-	if !m.Box.closing && m.Box.opened {
+	if m.Box.IsOpen() {
 		for _, item := range m.Items {
 			item.Draw(target)
 			if item.Hovered && !item.Ignore && !item.noShowT && !item.NoDraw && !m.HideArrow {

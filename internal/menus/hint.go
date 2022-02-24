@@ -2,6 +2,7 @@ package menus
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
@@ -14,7 +15,7 @@ const (
 
 type HintBox struct {
 	Text *typeface.Text
-	Box  *MenuBox
+	Box  *menubox.MenuBox
 
 	Tran     *transform.Transform
 	Display  bool
@@ -24,12 +25,12 @@ type HintBox struct {
 func NewHintBox(raw string, cam *camera.Camera) *HintBox {
 	tran := transform.New()
 	tex := typeface.New(cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.2, constants.ActualHintSize, DefaultMax, 0.)
-	tex.SetColor(DefaultColor)
+	tex.SetColor(constants.DefaultColor)
 	tex.SetText(raw)
-	box := NewBox(nil, 1.0)
+	box := menubox.NewBox(nil, 1.0)
 	box.Cam = cam
 	box.SetSize(pixel.R(0., 0., tex.Width, tex.Height))
-	box.SetEntry(Left)
+	box.SetEntry(menubox.Left)
 	return &HintBox{
 		Text:     tex,
 		Box:      box,

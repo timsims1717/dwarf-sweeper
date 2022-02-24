@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/load"
+	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/states"
@@ -69,6 +70,7 @@ func run() {
 	load.Sprites()
 
 	menus.Initialize()
+	menubox.Initialize()
 	states.InitializeMenus(win)
 	states.LoadingState.Load()
 

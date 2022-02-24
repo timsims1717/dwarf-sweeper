@@ -7,6 +7,8 @@
     "tracks": [
       "prairie"
     ],
+    "width": 6,
+    "height": 6,
     "type": "Normal",
     "base": "Blob",
     "structures": [
@@ -56,6 +58,8 @@
     "tracks": [
       "turbo"
     ],
+    "width": 6,
+    "height": 6,
     "type": "Normal",
     "base": "Blob",
     "structures": [

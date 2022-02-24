@@ -1,9 +1,9 @@
 package states
 
 import (
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
-	player2 "dwarf-sweeper/internal/descent/player"
-	"dwarf-sweeper/internal/player"
+	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -32,16 +32,20 @@ func (s *scoreState) Unload() {
 }
 
 func (s *scoreState) Load(done chan struct{}) {
-	player2.AddStats()
+	for _, d := range descent.Descent.GetPlayers() {
+		d.Player.Stats.AddStats()
+	}
+	player.OverallStats.AddStats()
+	p := descent.Descent.GetPlayers()[0].Player
 	score := 0
-	score += player2.BlocksDug * 2
-	score += player2.GemsFound
-	score += player2.BombsFlagged * 10
-	score -= player2.WrongFlags * 5
-	PostMenu.ItemMap["blocks_s"].SetText(fmt.Sprintf("%d x  2", player2.BlocksDug))
-	PostMenu.ItemMap["gem_count_s"].SetText(fmt.Sprintf("%d x  1", player2.GemsFound))
-	PostMenu.ItemMap["bombs_flagged_s"].SetText(fmt.Sprintf("%d x 10", player2.BombsFlagged))
-	PostMenu.ItemMap["wrong_flags_s"].SetText(fmt.Sprintf("%d x -5", player2.WrongFlags))
+	score += p.Stats.BlocksDug * 2
+	score += p.Stats.GemsFound
+	score += p.Stats.BombsFlagged * 10
+	score -= p.Stats.WrongFlags * 5
+	PostMenu.ItemMap["blocks_s"].SetText(fmt.Sprintf("%d x  2", p.Stats.BlocksDug))
+	PostMenu.ItemMap["gem_count_s"].SetText(fmt.Sprintf("%d x  1", p.Stats.GemsFound))
+	PostMenu.ItemMap["bombs_flagged_s"].SetText(fmt.Sprintf("%d x 10", p.Stats.BombsFlagged))
+	PostMenu.ItemMap["wrong_flags_s"].SetText(fmt.Sprintf("%d x -5", p.Stats.WrongFlags))
 	PostMenu.ItemMap["total_score_s"].SetText(fmt.Sprintf("%d", score))
 	s.ScoreTimer = timing.New(5.)
 	OpenMenu(PostMenu)
@@ -53,7 +57,7 @@ func (s *scoreState) Update(win *pixelgl.Window) {
 	reanimator.Update()
 	systems.VFXSystem()
 	descent.Update()
-	player.UpdateHUD()
+	hud.UpdateHUD()
 	UpdateMenus(win)
 	if MenuClosed() {
 		SwitchState(MenuStateKey)
@@ -65,7 +69,7 @@ func (s *scoreState) Draw(win *pixelgl.Window) {
 	//descent.Descent.GetPlayer().Draw(win, data.GameInput)
 	systems.DrawSystem()
 	img.DrawBatches(win)
-	player.DrawHUD(win)
+	hud.DrawHUD(win)
 	s.ScoreTimer.Update()
 	since := s.ScoreTimer.Elapsed()
 	if since > BlocksDugTimer {

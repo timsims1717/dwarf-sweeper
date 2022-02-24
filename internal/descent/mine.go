@@ -3,7 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/descent/player"
+	player2 "dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/pkg/camera"
@@ -30,12 +30,11 @@ func CreateMine(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran).
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					player.CaveBombsLeft--
-					player.CaveBlownUpBombs++
+					player2.CaveBombsLeft--
 					tile := Descent.GetCave().GetTile(trans.Pos)
 					for _, n := range tile.SubCoords.Neighbors() {
 						t := tile.Chunk.Get(n)
-						t.Destroy(false)
+						t.Destroy(nil, false)
 					}
 					myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
 						SourceID:       trans.ID,

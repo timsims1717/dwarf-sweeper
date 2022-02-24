@@ -98,7 +98,7 @@ func (s *menuState) Update(win *pixelgl.Window) {
 		pressed, mode := menuInput.AnyJustPressed(true)
 		if MenuClosed() && pressed {
 			OpenMenu(MainMenu)
-			data.GameInput.Mode = mode
+			data.GameInputP1.Mode = mode
 		}
 	}
 	//debug.AddText(fmt.Sprintf("Input TLines: %d", InputMenu.TLines))

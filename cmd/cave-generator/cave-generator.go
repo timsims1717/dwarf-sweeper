@@ -6,6 +6,8 @@ import (
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate"
 	"dwarf-sweeper/internal/descent/generate/builder"
+	"dwarf-sweeper/internal/load"
+	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
@@ -43,54 +45,15 @@ func run() {
 
 	mainFont, err := typeface.LoadTTF("assets/FR73PixD.ttf", constants.TypeFaceSize)
 	typeface.Atlases["main"] = text.NewAtlas(mainFont, text.ASCII)
+	typeface.Atlases["basic"] = typeface.BasicAtlas
 
 	debug.Initialize()
 
-	bgSheet, err := img.LoadSpriteSheet("assets/img/the-dark-bg.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.CaveBGKey, bgSheet, true, false)
-
-	tileEntitySheet, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true, true)
-
-	bigEntitySheet, err := img.LoadSpriteSheet("assets/img/big-entities.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.BigEntityKey, bigEntitySheet, true, true)
-
-	entitySheet, err := img.LoadSpriteSheet("assets/img/entities.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.EntityKey, entitySheet, true, true)
-
-	caveSheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.CaveKey, caveSheet, true, false)
-
-	fogSheet, err := img.LoadSpriteSheet("assets/img/fog.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.FogKey, fogSheet, true, false)
-
-	menuSheet, err := img.LoadSpriteSheet("assets/img/menu.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.MenuSprites, menuSheet, false, true)
+	load.Sprites()
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
 
-	menus.Initialize()
+	menubox.Initialize()
 	initMenu(win)
 	CaveMenu.Open()
 	menuStack = append(menuStack, CaveMenu)
@@ -152,7 +115,7 @@ func run() {
 			theCave.LoadAll = true
 		} else if theCave != nil {
 			theCave.UpdateBatch = true
-			theCave.Pivot = camera.Cam.Pos
+			theCave.Pivots = []pixel.Vec{camera.Cam.Pos}
 			theCave.Update()
 		}
 		camera.Cam.Update(win)

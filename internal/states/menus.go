@@ -59,12 +59,12 @@ func UpdateMenus(win *pixelgl.Window) {
 				}
 			} else if me.Key == "keybinding" && me.IsOpen() {
 				if menuInput.Get("inputClear").JustPressed() {
-					input.ClearInput(data.GameInput, KeyString)
+					input.ClearInput(data.GameInputP1, KeyString)
 					menuInput.Get("inputClear").Consume()
 					me.Close()
 				} else {
-					if input.CheckAssign(win, data.GameInput, KeyString) {
-						data.GameInput.Buttons[KeyString].Consume()
+					if input.CheckAssign(win, data.GameInputP1, KeyString) {
+						data.GameInputP1.Buttons[KeyString].Consume()
 						me.Close()
 					}
 				}

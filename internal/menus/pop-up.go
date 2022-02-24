@@ -2,6 +2,8 @@ package menus
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
 	"github.com/faiface/pixel"
@@ -15,21 +17,23 @@ type PopUp struct {
 	Raw  string
 	Text *typeface.Text
 	Dist float64
-	Box  *MenuBox
+	Box  *menubox.MenuBox
 
 	Tran     *transform.Transform
 	Display  bool
 	MaxWidth float64
+
+	Player *player.Player
 }
 
 func NewPopUp(raw string) *PopUp {
 	tran := transform.New()
 	tex := typeface.New(nil, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.2, constants.ActualHintSize, 120., 0.)
-	tex.SetColor(DefaultColor)
+	tex.SetColor(constants.DefaultColor)
 	tex.SetText(raw)
-	box := NewBox(nil, 1.0)
+	box := menubox.NewBox(nil, 1.0)
 	box.SetSize(pixel.R(0., 0., tex.Width, tex.Height))
-	box.SetEntry(Bottom)
+	box.SetEntry(menubox.Bottom)
 	return &PopUp{
 		Raw:      raw,
 		Text:     tex,
@@ -53,6 +57,8 @@ func (p *PopUp) Update() {
 	} else {
 		if p.Box.IsOpen() {
 			p.Box.Close()
+		} else if p.Box.IsClosed() {
+			p.Player = nil
 		}
 	}
 	p.Tran.Pos.Y += Offset + p.Text.Height*0.5

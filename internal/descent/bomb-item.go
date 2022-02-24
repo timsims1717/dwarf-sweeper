@@ -3,7 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/descent/player"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
@@ -18,22 +18,18 @@ import (
 func CreateBombItem(pos pixel.Vec) {
 	e := myecs.Manager.NewEntity()
 	spr := img.Batchers[constants.EntityKey].Sprites["bomb_item"]
-	i := &data.Interact{
-		OnInteract: func(pos pixel.Vec) bool {
-			return player.AddToInventory(&player.InvItem{
-				Name:   "bomb",
-				Sprite: spr,
-				OnUse: func() {
-					tile := Descent.GetPlayerTile()
-					CreateBomb(tile.Transform.Pos)
-				},
-				Count: 3,
-				Limit: 3,
-			})
-		},
-		Distance:   spr.Frame().W() * 0.5,
-		Remove:     true,
-	}
+	i := NewInteract(func(pos pixel.Vec, d *Dwarf) bool {
+		return d.Player.Inventory.AddItem(&player.InvItem{
+			Name:   "bomb",
+			Sprite: spr,
+			OnUse: func(pos pixel.Vec) {
+				tile := Descent.Cave.GetTile(pos)
+				CreateBomb(tile.Transform.Pos)
+			},
+			Count: 3,
+			Limit: 3,
+		})
+	}, spr.Frame().W() * 0.5, true)
 	popUp := menus.NewPopUp("{symbol:interact}: pick up")
 	popUp.Dist = (spr.Frame().W() + world.TileSize) * 0.5
 	phys, trans := util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 5., 2., random.Effects)

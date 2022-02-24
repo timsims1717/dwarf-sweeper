@@ -3,9 +3,9 @@ package generate
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/structures"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
@@ -105,7 +105,7 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 			tile := c.GetTileInt(curr.X, curr.Y)
 			structures.ToBlock(tile, cave.BlockCollapse, true, true)
 			tile.Bomb = list[b]
-			tile.DestroyTrigger = func(tile *cave.Tile) {
+			tile.DestroyTrigger = func(p *player.Player, tile *cave.Tile) {
 				if !begun {
 					structures.StartMinesweeper(c, tile)
 					begun = true

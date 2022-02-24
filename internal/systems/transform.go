@@ -1,6 +1,8 @@
 package systems
 
 import (
+	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/transform"
 	"github.com/faiface/pixel"
@@ -28,6 +30,9 @@ func TransformSystem() {
 				tran.Mat = tran.Mat.Rotated(pixel.ZV, math.Pi*tran.Rot)
 				tran.Mat = tran.Mat.Moved(tran.APos.Scaled(tran.UIZoom))
 				tran.Mat = tran.Mat.Moved(tran.UIPos)
+
+				dist := descent.Descent.GetClosestPlayer(tran.Pos).Transform.Pos.Sub(tran.Pos)
+				tran.Load = math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance
 			}
 		}
 	}

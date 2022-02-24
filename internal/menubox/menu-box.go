@@ -1,4 +1,4 @@
-package menus
+package menubox
 
 import (
 	"dwarf-sweeper/internal/constants"
@@ -6,10 +6,7 @@ import (
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
-	"golang.org/x/image/colornames"
-	"image/color"
 )
 
 type EntryDir int
@@ -27,15 +24,10 @@ const (
 )
 
 var (
-	DefaultColor  color.RGBA
-	HoverColor    color.RGBA
-	DisabledColor color.RGBA
-
 	corner *pixel.Sprite
 	sideV  *pixel.Sprite
 	sideH  *pixel.Sprite
 	inner  *pixel.Sprite
-	arrow  *pixel.Sprite
 	entry  *pixel.Sprite
 )
 
@@ -44,17 +36,7 @@ func Initialize() {
 	sideV = img.Batchers[constants.MenuSprites].Sprites["menu_side_v"]
 	sideH = img.Batchers[constants.MenuSprites].Sprites["menu_side_h"]
 	inner = img.Batchers[constants.MenuSprites].Sprites["menu_inner"]
-	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
 	entry = img.Batchers[constants.MenuSprites].Sprites["menu_side_entry"]
-	DefaultColor = color.RGBA{
-		R: 74,
-		G: 84,
-		B: 98,
-		A: 255,
-	}
-	HoverColor = colornames.Mediumblue
-	DisabledColor = colornames.Darkgray
-	DefaultDist = world.TileSize * 4.
 }
 
 type MenuBox struct {

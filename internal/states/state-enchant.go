@@ -1,9 +1,9 @@
 package states
 
 import (
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
-	player2 "dwarf-sweeper/internal/descent/player"
-	"dwarf-sweeper/internal/player"
+	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -28,14 +28,17 @@ func (s *enchantState) Load(done chan struct{}) {
 		OpenMenu(EnchantMenu)
 		sfx.MusicPlayer.PlayMusic("pause")
 	}
-	player2.AddStats()
+	for _, d := range descent.Descent.GetPlayers() {
+		d.Player.Stats.AddStats()
+	}
+	player.OverallStats.AddStats()
 	done <- struct{}{}
 }
 
 func (s *enchantState) Update(win *pixelgl.Window) {
 	reanimator.Update()
 	descent.Update()
-	player.UpdateHUD()
+	hud.UpdateHUD()
 	UpdateMenus(win)
 	if MenuClosed() {
 		ClearEnchantMenu()
@@ -47,7 +50,7 @@ func (s *enchantState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	systems.DrawSystem()
 	img.DrawBatches(win)
-	player.DrawHUD(win)
+	hud.DrawHUD(win)
 	for _, m := range menuStack {
 		m.Draw(win)
 	}

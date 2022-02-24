@@ -1,14 +1,18 @@
 package structures
 
 import (
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/random"
 )
 
-func BasicDestroy(t *cave.Tile) {
-	gemRate := t.Chunk.Cave.GemRate*t.GemRate*descent.Descent.Player.GemRate
+func BasicDestroy(p *player.Player, t *cave.Tile) {
+	pGemRate := 1.
+	if p != nil {
+		pGemRate = p.Attr.GemRate
+	}
+	gemRate := t.Chunk.Cave.GemRate*t.GemRate*pGemRate
 	if t.Bomb {
 		descent.CreateBomb(t.Transform.Pos)
 	} else if random.CaveGen.Float64() < gemRate {
@@ -72,7 +76,7 @@ func StartMinesweeper(c *cave.Cave, t *cave.Tile) {
 	}
 }
 
-func MineDestroy(t *cave.Tile) {
+func MineDestroy(_ *player.Player, t *cave.Tile) {
 	descent.CreateMine(t.Transform.Pos)
 }
 

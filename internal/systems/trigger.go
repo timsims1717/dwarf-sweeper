@@ -16,15 +16,16 @@ func TriggerSystem() {
 		coll, okC := result.Components[myecs.Collision].(*data.Collider)
 		fn, okF := result.Components[myecs.Trigger].(*data.FrameFunc)
 		if okT && okC && okF {
-			if descent.Descent.Player != nil {
+			for _, d := range descent.Descent.GetPlayers() {
 				hb := coll.Hitbox.Moved(tran.Pos).Moved(pixel.V(coll.Hitbox.W()*-0.5, coll.Hitbox.H()*-0.5))
 				if coll.Debug {
 					debug.AddRect(colornames.Red, tran.Pos, coll.Hitbox, 0.5)
 				}
-				if hb.Contains(descent.Descent.Player.Transform.Pos) {
+				if hb.Contains(d.Transform.Pos) {
 					if fn.Func() {
 						result.Entity.RemoveComponent(myecs.Trigger)
 					}
+					break
 				}
 			}
 		}

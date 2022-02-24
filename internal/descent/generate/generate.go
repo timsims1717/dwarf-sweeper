@@ -3,11 +3,11 @@ package generate
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/descent/generate/structures/boss"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/pathfinding"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/noise"
@@ -29,8 +29,8 @@ func NewAsyncCave(build *builder.CaveBuilder, level int, signal chan bool) *cave
 	}
 	c := cave.NewCave(build.Biome, build.Type)
 	left := 0
-	right := 2
-	bottom := 2
+	right := util.Max(build.Width - 1, 2)
+	bottom := util.Max(build.Height - 1, 2)
 	c.SetSize(left, right, bottom)
 	c.BombPMin, c.BombPMax = BombLevel(level)
 	structures.CreateChunks(c, cave.BlockBlast)
@@ -50,8 +50,8 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 	}
 	c := cave.NewCave(build.Biome, build.Type)
 	left := 0
-	right := 2
-	bottom := 2
+	right := util.Max(build.Width - 1, 2)
+	bottom := util.Max(build.Height - 1, 2)
 	c.SetSize(left, right, bottom)
 	c.BombPMin, c.BombPMax = BombLevel(level)
 	structures.CreateChunks(c, cave.BlockBlast)

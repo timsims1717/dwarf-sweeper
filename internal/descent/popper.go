@@ -76,19 +76,20 @@ func (p *Popper) Update() {
 	}
 	if relaventTile != nil && !relaventTile.Solid() {
 		p.Health.Dazed = true
-		p.Health.DazedTimer = timing.New(Descent.Player.ShovelDazed)
+		p.Health.DazedTimer = timing.New(3.)
 	}
 	if !p.Health.Dazed && !p.Health.Dead {
+		d := Descent.GetClosestPlayer(p.Transform.Pos)
 		action := p.action
 		var distance float64
 		if p.action == Wait || p.action == Seek {
-			distance = util.Magnitude(Descent.GetPlayer().Transform.Pos.Sub(p.Transform.Pos))
+			distance = util.Magnitude(d.Transform.Pos.Sub(p.Transform.Pos))
 		} else {
-			distance = util.Magnitude(Descent.GetPlayer().Transform.Pos.Sub(p.rootPos))
+			distance = util.Magnitude(d.Transform.Pos.Sub(p.rootPos))
 		}
 		tarDist := 0.
 		if p.target != nil {
-			tarDist = util.Magnitude(Descent.GetPlayer().Transform.Pos.Sub(p.target.Transform.Pos))
+			tarDist = util.Magnitude(d.Transform.Pos.Sub(p.target.Transform.Pos))
 		}
 		wait := distance > world.TileSize*seekDist
 		run := distance < world.TileSize*runDist
@@ -119,7 +120,7 @@ func (p *Popper) Update() {
 						}
 						// if the dwarf is unreachable or out of range, try again
 						Descent.Cave.PathRule = cave.MakePathRule(target.RCoords, cave.EmptyTypes, false, false, true, true)
-						_, dist, found := astar.Path(target, Descent.GetPlayerTile())
+						_, dist, found := astar.Path(target, Descent.Cave.GetTile(d.Transform.Pos))
 						if !found || dist > seekDist || dist < runDist {
 							tries++
 							continue
@@ -192,7 +193,7 @@ func (p *Popper) Update() {
 							if n.Y == curr.Y || n.X == curr.X {
 								t := Descent.Cave.GetTileInt(n.X, n.Y)
 								Descent.Cave.PathRule = cave.MakePathRule(t.RCoords, cave.EmptyTypes, false, false, true, true)
-								_, _, found := astar.Path(t, Descent.GetPlayerTile())
+								_, _, found := astar.Path(t, Descent.Cave.GetTile(d.Transform.Pos))
 								if found && !t.Solid() {
 									empty = t
 									break
@@ -289,7 +290,7 @@ func (p *Popper) Update() {
 				action = Unpop
 			} else {
 				shoot := true
-				pPos := Descent.GetPlayer().Transform.Pos
+				pPos := d.Transform.Pos
 				ray := pPos.Sub(p.poppedPos)
 				ray.Y += math.Abs(ray.X) * 0.2
 				norm := util.Normalize(ray)
@@ -327,7 +328,7 @@ func (p *Popper) Update() {
 				}
 			}
 		case Fire:
-			pPos := Descent.GetPlayer().Transform.Pos
+			pPos := d.Transform.Pos
 			ray := pPos.Sub(p.poppedPos)
 			ray.Y += math.Abs(ray.X) * 0.2
 			norm := util.Normalize(ray)

@@ -1,14 +1,21 @@
-package enchants
+package descent
 
 import (
-	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 )
 
-func PickEnchantments(enchants []string) []*data.Enchantment {
-	var result []*data.Enchantment
+type Enchantment struct {
+	OnGain  func(*Dwarf)
+	OnLose  func(*Dwarf)
+	Key     string
+	Title   string
+	Desc    string
+	Require string
+}
+
+func PickEnchantments(enchants []string) []*Enchantment {
+	var result []*Enchantment
 	var have []string
 	list := Enchantments
 	for _, i := range enchants {
@@ -37,20 +44,20 @@ outer:
 	return result
 }
 
-func AddEnchantment(e1 *data.Enchantment) {
-	for _, in := range descent.Descent.GetPlayer().Enchants {
+func AddEnchantment(e1 *Enchantment, d *Dwarf) {
+	for _, in := range d.Enchants {
 		if in == e1.Key {
 			return
 		}
 	}
-	e1.OnGain()
-	descent.Descent.GetPlayer().Enchants = append(descent.Descent.GetPlayer().Enchants, e1.Key)
+	e1.OnGain(d)
+	d.Enchants = append(d.Enchants, e1.Key)
 	return
 }
 
-func RemoveEnchantment(e1 *data.Enchantment) {
+func RemoveEnchantment(e1 *Enchantment, d *Dwarf) {
 	index := -1
-	for j, in := range descent.Descent.GetPlayer().Enchants {
+	for j, in := range d.Enchants {
 		if in == e1.Key {
 			index = j
 		}
@@ -58,11 +65,11 @@ func RemoveEnchantment(e1 *data.Enchantment) {
 	if index == -1 {
 		return
 	}
-	e1.OnLose()
-	if len(descent.Descent.GetPlayer().Enchants) > 1 {
-		descent.Descent.GetPlayer().Enchants = append(descent.Descent.GetPlayer().Enchants[:index], descent.Descent.GetPlayer().Enchants[index+1:]...)
+	e1.OnLose(d)
+	if len(d.Enchants) > 1 {
+		d.Enchants = append(d.Enchants[:index], d.Enchants[index+1:]...)
 	} else {
-		descent.Descent.GetPlayer().Enchants = []string{}
+		d.Enchants = []string{}
 	}
 	return
 }

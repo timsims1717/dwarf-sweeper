@@ -27,6 +27,7 @@ type Transform struct {
 	ID   uuid.UUID
 	Hide bool
 	Dead bool
+	Load bool
 
 	Pos     pixel.Vec
 	Rect    pixel.Rect

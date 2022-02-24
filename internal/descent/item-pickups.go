@@ -3,7 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/descent/player"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
@@ -17,12 +17,12 @@ import (
 
 func CreateBeerItem(pos pixel.Vec) {
 	spr := img.Batchers[constants.EntityKey].Sprites["beer"]
-	fn := func(pos pixel.Vec) bool {
-		return player.AddToInventory(&player.InvItem{
+	fn := func(pos pixel.Vec, d *Dwarf) bool {
+		return d.Player.Inventory.AddItem(&player.InvItem{
 			Name:   "beer",
 			Sprite: spr,
-			OnUse: func() {
-				Descent.Player.Entity.AddComponent(myecs.Healing, &data.Heal{
+			OnUse: func(_ pixel.Vec) {
+				d.Entity.AddComponent(myecs.Healing, &data.Heal{
 					TmpAmount: 2,
 				})
 			},
@@ -36,15 +36,17 @@ func CreateBeerItem(pos pixel.Vec) {
 
 func CreateBubbleItem(pos pixel.Vec) {
 	spr := img.Batchers[constants.EntityKey].Sprites["bubble_item"]
-	fn := func(pos pixel.Vec) bool {
-		return player.AddToInventory(&player.InvItem{
+	fn := func(pos pixel.Vec, d *Dwarf) bool {
+		return d.Player.Inventory.AddItem(&player.InvItem{
 			Name:   "bubble",
 			Sprite: spr,
-			OnUse: func() {
-				if Descent.Player.Bubble != nil {
-					Descent.Player.Bubble.Pop()
+			OnUse: func(_ pixel.Vec) {
+				if d.Bubble != nil {
+					d.Bubble.Pop()
 				}
-				bubble := &Bubble{}
+				bubble := &Bubble{
+					Dwarf: d,
+				}
 				bubble.Create(pixel.Vec{})
 			},
 			Count: 1,
@@ -58,12 +60,12 @@ func CreateBubbleItem(pos pixel.Vec) {
 
 func CreateXRayItem(pos pixel.Vec) {
 	spr := img.Batchers[constants.EntityKey].Sprites["x-ray-helmet"]
-	fn := func(_ pixel.Vec) bool {
-		return player.AddToInventory(&player.InvItem{
+	fn := func(_ pixel.Vec, d *Dwarf) bool {
+		return d.Player.Inventory.AddItem(&player.InvItem{
 			Name:   "xray",
 			Sprite: spr,
-			OnUse: func() {
-				StartXRayVision()
+			OnUse: func(_ pixel.Vec) {
+				StartXRayVision(d)
 			},
 			Count: 1,
 			Limit: 1,
@@ -74,13 +76,9 @@ func CreateXRayItem(pos pixel.Vec) {
 }
 
 
-func CreateItemPickUp(pos pixel.Vec, fn func(pos pixel.Vec) bool, spr *pixel.Sprite) {
+func CreateItemPickUp(pos pixel.Vec, fn func(pixel.Vec, *Dwarf) bool, spr *pixel.Sprite) {
 	e := myecs.Manager.NewEntity()
-	i := &data.Interact{
-		OnInteract: fn,
-		Distance:   spr.Frame().W(),
-		Remove:     true,
-	}
+	i := NewInteract(fn, spr.Frame().W(), true)
 	popUp := menus.NewPopUp("{symbol:interact}:pick up")
 	popUp.Dist = spr.Frame().W()
 	phys, trans := util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)

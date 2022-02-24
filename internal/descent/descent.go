@@ -1,15 +1,14 @@
 package descent
 
 import (
+	player2 "dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/puzzles"
-	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/input"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 )
@@ -30,19 +29,19 @@ type descent struct {
 	CurrDepth  int
 	Depth      int
 	Difficulty int
-	Player     *Dwarf
 	Start      bool
 	Type       cave.CaveType
 	ExitPop    *menus.PopUp
 	canExit    bool
 	Builder    *builder.CaveBuilder
 
+	Dwarves []*Dwarf
+
 	FreeCam      bool
 	DisableInput bool
 	CoordsMap    map[string]world.Coords
 
 	Builders [][]builder.CaveBuilder
-	Puzzle   puzzles.Puzzle
 	Timer    *timing.FrameTimer
 }
 
@@ -61,13 +60,17 @@ func New() {
 func Update() {
 	if Descent != nil && Descent.Cave != nil {
 		Descent.Timer.Update()
-		Descent.Cave.Pivot = Descent.GetPlayer().Transform.Pos
-		if !Descent.FreeCam {
-			camera.Cam.StayWithin(Descent.Cave.Pivot, world.TileSize*1.5)
+		Descent.Cave.Pivots = []pixel.Vec{}
+		for _, d := range Descent.Dwarves {
+			Descent.Cave.Pivots = append(Descent.Cave.Pivots, d.Transform.Pos)
 		}
 		if Descent.Cave.Type == cave.Infinite {
-			p := cave.WorldToChunk(Descent.Cave.Pivot)
-			all := append([]world.Coords{p}, p.Neighbors()...)
+			var all []world.Coords
+			for _, pivot := range Descent.Cave.Pivots {
+				p := cave.WorldToChunk(pivot)
+				all = append(all, p)
+				all = append(all, p.Neighbors()...)
+			}
 			for _, i := range all {
 				if _, ok := Descent.Cave.Chunks[i]; !ok {
 					Descent.Cave.Chunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
@@ -80,7 +83,7 @@ func Update() {
 		Descent.Cave.Update()
 		switch Descent.Type {
 		case cave.Minesweeper:
-			Descent.canExit = player.CaveBombsMarked == player.CaveBombsLeft && player.CaveWrongMarks < 1
+			Descent.canExit = player2.OverallStats.CaveBombsFlagged == player2.CaveBombsLeft && player2.OverallStats.CaveWrongFlags < 1
 			Descent.ExitPop.SetText("Flag all the remaining bombs to exit.")
 		default:
 			Descent.canExit = true
@@ -91,44 +94,16 @@ func Update() {
 	}
 }
 
-func UpdatePlayer(in *input.Input) {
-	if Descent.Player != nil {
-		if Descent.DisableInput {
-			Descent.Player.Update(nil)
-		} else {
-			Descent.Player.Update(in)
-		}
+func UpdatePlayers() {
+	for _, d := range Descent.Dwarves {
+		UpdatePlayer(d)
 	}
 }
 
-// return true if the puzzle is still open
-func UpdatePuzzle(in *input.Input) bool {
-	if Descent.Puzzle != nil {
-		if Descent.Puzzle.IsClosed() {
-			if Descent.Puzzle.Solved() {
-				Descent.Puzzle.OnSolve()
-				Descent.Puzzle = nil
-			}
-			Descent.Puzzle = nil
-			return false
-		} else {
-			Descent.Puzzle.Update(in)
-			if Descent.Puzzle.Solved() && Descent.Puzzle.IsOpen() {
-				Descent.Puzzle.Close()
-			}
-			return true
-		}
+func UpdateViews() {
+	for i, d := range Descent.Dwarves {
+		UpdateView(d, i, len(Descent.Dwarves))
 	}
-	return false
-}
-
-func StartPuzzle(puzz puzzles.Puzzle) bool {
-	if Descent.Puzzle != nil {
-		return false
-	}
-	Descent.Puzzle = puzz
-	Descent.Puzzle.Open()
-	return true
 }
 
 func (d *descent) CanExit() bool {
@@ -155,16 +130,44 @@ func (d *descent) SetExitPopup() {
 		AddComponent(myecs.Temp, myecs.ClearFlag(false))
 }
 
-func (d *descent) GetPlayer() *Dwarf {
-	return d.Player
+func (d *descent) GetPlayers() []*Dwarf {
+	return d.Dwarves
 }
 
-func (d *descent) SetPlayer(dwarf *Dwarf) {
-	d.Player = dwarf
+func (d *descent) GetClosestPlayer(pos pixel.Vec) *Dwarf {
+	dist := -1.
+	var pick *Dwarf
+	for _, p := range d.GetPlayers() {
+		newDist := util.Magnitude(p.Transform.Pos.Sub(pos))
+		if dist < 0. || newDist < dist {
+			dist = newDist
+			pick = p
+		}
+	}
+	return pick
 }
 
-func (d *descent) GetPlayerTile() *cave.Tile {
-	return d.Cave.GetTile(d.Player.Transform.Pos)
+func (d *descent) GetClosestPlayerTile(pos pixel.Vec) *cave.Tile {
+	dwarf := d.GetClosestPlayer(pos)
+	if dwarf != nil {
+		return d.Cave.GetTile(dwarf.Transform.Pos)
+	}
+	return nil
+}
+
+func (d *descent) GetRandomPlayer() *Dwarf {
+	if len(d.Dwarves) > 0 {
+		return d.Dwarves[random.Effects.Intn(len(d.Dwarves))]
+	}
+	return nil
+}
+
+func (d *descent) GetRandomPlayerTile() *cave.Tile {
+	dwarf := d.GetRandomPlayer()
+	if dwarf != nil {
+		return d.Cave.GetTile(dwarf.Transform.Pos)
+	}
+	return nil
 }
 
 func (d *descent) GetTile(pos pixel.Vec) *cave.Tile {
@@ -185,12 +188,13 @@ func IncreaseLevelInf() {
 
 func Clear() {
 	if Descent != nil {
-		if Descent.Player != nil {
-			Descent.Player.Delete()
+		for _, d := range Descent.Dwarves {
+			d.Delete()
+			if d.Player.Puzzle != nil {
+				d.Player.Puzzle.Close()
+				d.Player.Puzzle = nil
+			}
 		}
-		if Descent.Puzzle != nil {
-			Descent.Puzzle.Close()
-			Descent.Puzzle = nil
-		}
+		Descent.Dwarves = []*Dwarf{}
 	}
 }

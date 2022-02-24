@@ -3,7 +3,6 @@ package states
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
-	"dwarf-sweeper/internal/enchants"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/sfx"
@@ -65,8 +64,9 @@ func ClearEnchantMenu() {
 }
 
 func FillEnchantMenu() bool {
+	d := descent.Descent.GetPlayers()[0]
 	ClearEnchantMenu()
-	choices := enchants.PickEnchantments(descent.Descent.Player.Enchants)
+	choices := descent.PickEnchantments(d.Enchants)
 	if len(choices) == 0 {
 		return false
 	}
@@ -74,7 +74,7 @@ func FillEnchantMenu() bool {
 	option1 := EnchantMenu.InsertItem("option1", e1.Title, 1, false)
 	option1.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-		enchants.AddEnchantment(e1)
+		descent.AddEnchantment(e1, d)
 		EnchantMenu.CloseInstant()
 		ClearEnchantMenu()
 		SwitchState(DescentStateKey)
@@ -85,7 +85,7 @@ func FillEnchantMenu() bool {
 		option2 := EnchantMenu.InsertItem("option2", e2.Title, 2, false)
 		option2.SetClickFn(func() {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
-			enchants.AddEnchantment(e2)
+			descent.AddEnchantment(e2, d)
 			EnchantMenu.CloseInstant()
 			ClearEnchantMenu()
 			SwitchState(DescentStateKey)
@@ -97,7 +97,7 @@ func FillEnchantMenu() bool {
 		option3 := EnchantMenu.InsertItem("option3", e3.Title, 3, false)
 		option3.SetClickFn(func() {
 			sfx.SoundPlayer.PlaySound("click", 2.0)
-			enchants.AddEnchantment(e3)
+			descent.AddEnchantment(e3, d)
 			EnchantMenu.CloseInstant()
 			ClearEnchantMenu()
 			SwitchState(DescentStateKey)

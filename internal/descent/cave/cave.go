@@ -16,7 +16,7 @@ import (
 type Cave struct {
 	Chunks      map[world.Coords]*Chunk
 	FillChunk   func(chunk *Chunk)
-	Pivot       pixel.Vec
+	Pivots      []pixel.Vec
 	UpdateBatch bool
 	Type        CaveType
 	Biome       string
@@ -109,8 +109,12 @@ func (c *Cave) SetSize(left, right, bottom int) {
 }
 
 func (c *Cave) Update() {
-	p := WorldToChunk(c.Pivot)
-	all := append([]world.Coords{p}, p.Neighbors()...)
+	var all []world.Coords
+	for _, pivot := range c.Pivots {
+		p := WorldToChunk(pivot)
+		all = append(all, p)
+		all = append(all, p.Neighbors()...)
+	}
 	for i, chunk := range c.Chunks {
 		dis := world.CoordsIn(i, all)
 		if dis && !chunk.Display {
@@ -205,8 +209,12 @@ func (c *Cave) CurrentBoundaries() (pixel.Vec, pixel.Vec) {
 	if c.Type != Infinite {
 		return c.bl, c.tr
 	}
-	p := WorldToChunk(c.Pivot)
-	all := append([]world.Coords{p}, p.Neighbors()...)
+	var all []world.Coords
+	for _, pivot := range c.Pivots {
+		p := WorldToChunk(pivot)
+		all = append(all, p)
+		all = append(all, p.Neighbors()...)
+	}
 	x1 := 10000000.
 	y1 := 10000000.
 	x2 := -10000000.

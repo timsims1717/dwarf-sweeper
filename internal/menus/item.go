@@ -37,7 +37,7 @@ func NewItem(key, raw string, right bool) *Item {
 		align = typeface.Right
 	}
 	tex := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Align(align), typeface.Bottom), 1.5, constants.ActualMenuSize, 0., 0.)
-	tex.SetColor(DefaultColor)
+	tex.SetColor(constants.DefaultColor)
 	tex.SetText(raw)
 	return &Item{
 		Key:   key,
@@ -51,21 +51,21 @@ func (i *Item) Update() {
 	if i.Disabled && !i.disabled {
 		i.disabled = true
 		i.hovered = false
-		i.Text.SetColor(DisabledColor)
+		i.Text.SetColor(constants.DisabledColor)
 		i.Text.SetSize(constants.ActualMenuSize)
 	} else if !i.Disabled && i.disabled {
 		i.disabled = false
-		i.Text.SetColor(DefaultColor)
+		i.Text.SetColor(constants.DefaultColor)
 		i.Text.SetSize(constants.ActualMenuSize)
 	}
 	if !i.disabled {
 		if i.Hovered && !i.hovered {
 			i.hovered = true
-			i.Text.SetColor(HoverColor)
+			i.Text.SetColor(constants.HoverColor)
 			i.Text.SetSize(constants.ActualHoverSize)
 		} else if !i.Hovered && i.hovered {
 			i.hovered = false
-			i.Text.SetColor(DefaultColor)
+			i.Text.SetColor(constants.DefaultColor)
 			i.Text.SetSize(constants.ActualMenuSize)
 		}
 	}

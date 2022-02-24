@@ -2,7 +2,7 @@ package puzzles
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
@@ -30,7 +30,7 @@ type MinePuzzle struct {
 	Board *minesweeper.Board
 	Hover world.Coords
 
-	Box        *menus.MenuBox
+	Box        *menubox.MenuBox
 	InfoText   *typeface.Text
 	InfoSyms   []pixel.Vec
 	CountText  *text.Text
@@ -52,12 +52,12 @@ func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
 	mp.SizeW = util.Min(size, 9)
 	mp.SizeH = util.Min(size, 6)
 	mp.InfoText = typeface.New(camera.Cam,"main", typeface.NewAlign(typeface.Left, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
-	mp.InfoText.SetColor(menus.DefaultColor)
+	mp.InfoText.SetColor(constants.DefaultColor)
 	mp.InfoText.SetText("{symbol:flag}:mark a bomb tile\n{symbol:dig}:mark a safe tile")
 	mp.CountText = text.New(pixel.ZV, typeface.Atlases["main"])
 	mp.CountText.LineHeight *= 1.2
-	mp.CountText.Color = menus.DefaultColor
-	mp.Box = menus.NewBox(cam, 1.4)
+	mp.CountText.Color = constants.DefaultColor
+	mp.Box = menubox.NewBox(cam, 1.4)
 	mp.Box.SetSize(pixel.R(0., 0., float64(mp.SizeW) * (world.TileSize + 2.) * scalar, float64(mp.SizeH) * (world.TileSize + 2.) * scalar + mp.InfoText.Height))
 	mp.InfoText.SetPos(pixel.V(mp.Box.Rect.W() * -0.5 + 5., mp.Box.Rect.H() * 0.5 - 15.))
 	mp.CountTrans = transform.New()

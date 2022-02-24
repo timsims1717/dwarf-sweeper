@@ -27,8 +27,8 @@ func addChest(tile *cave.Tile) {
 		AddComponent(myecs.Batch, constants.TileEntityKey).
 		AddComponent(myecs.PopUp, popUp).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false)).
-		AddComponent(myecs.Interact, data.NewInteract(
-			func(pos pixel.Vec) bool {
+		AddComponent(myecs.Interact, descent.NewInteract(
+			func(pos pixel.Vec, _ *descent.Dwarf) bool {
 				switch random.CaveGen.Intn(5) {
 				case 0:
 					descent.CreateBombItem(pos)
@@ -78,10 +78,10 @@ func addBigBomb(blTile *cave.Tile, level int) {
 			descent.CreateGem(pos)
 		}
 	}
-	interact := data.NewInteract(
-		func(pos pixel.Vec) bool {
+	interact := descent.NewInteract(
+		func(pos pixel.Vec, d *descent.Dwarf) bool {
 			if puzz.IsClosed() {
-				descent.StartPuzzle(puzz)
+				d.Player.StartPuzzle(puzz)
 			}
 			return true
 		}, world.TileSize * 1.5, false)

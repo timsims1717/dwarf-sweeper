@@ -462,64 +462,64 @@ type AxisReturn struct {
 	Dir  float64
 }
 
-func GetAllAxisGamepad(win *pixelgl.Window, js pixelgl.Joystick) []AxisReturn {
+func GetAllAxisGamepad(win *pixelgl.Window, in *Input) []AxisReturn {
 	var result []AxisReturn
-	if win.JoystickPresent(js) {
-		if win.JoystickAxis(js, pixelgl.AxisLeftX) > Deadzone {
+	if win.JoystickPresent(in.Joystick) {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisLeftX) > in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisLeftX,
 				Dir:  1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisLeftY) > Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisLeftY) > in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisLeftY,
 				Dir:  1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisRightX) > Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisRightX) > in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisRightX,
 				Dir:  1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisRightY) > Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisRightY) > in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisRightY,
 				Dir:  1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisLeftTrigger) > Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisLeftTrigger) > in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisLeftTrigger,
 				Dir:  1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisRightTrigger) > Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisRightTrigger) > in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisRightTrigger,
 				Dir:  1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisLeftX) < -Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisLeftX) < -in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisLeftX,
 				Dir:  -1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisLeftY) < -Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisLeftY) < -in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisLeftY,
 				Dir:  -1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisRightX) < -Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisRightX) < -in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisRightX,
 				Dir:  -1.,
 			})
 		}
-		if win.JoystickAxis(js, pixelgl.AxisRightY) < -Deadzone {
+		if win.JoystickAxis(in.Joystick, pixelgl.AxisRightY) < -in.Deadzone {
 			result = append(result, AxisReturn{
 				Axis: pixelgl.AxisRightY,
 				Dir:  -1.,

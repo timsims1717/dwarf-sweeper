@@ -7,7 +7,10 @@ import (
 type config struct {
 	Audio    audio    `toml:"audio"`
 	Graphics graphics `toml:"graphics"`
-	Inputs   inputs   `toml:"inputs"`
+	InputP1  inputs   `toml:"inputP1"`
+	InputP2  inputs   `toml:"inputP2"`
+	InputP3  inputs   `toml:"inputP3"`
+	InputP4  inputs   `toml:"inputP4"`
 }
 
 type audio struct {

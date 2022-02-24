@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	mmSpeed   = 40.
-	mmAcc     = 5.
-	mmAtkWait = 2.
+	mmSpeed     = 40.
+	mmAcc       = 5.
+	mmAtkWait   = 2.
+	mmKnockback = 8.
 )
 
 var (
@@ -42,9 +43,10 @@ func (m *MadMonk) Update() {
 		m.AtkTimer.Update()
 		if m.Physics.Grounded && !m.Attack {
 			ownCoords := Descent.GetCave().GetTile(m.Transform.Pos).RCoords
-			playerCoords := Descent.GetPlayerTile().RCoords
+			dwarf := Descent.GetClosestPlayer(m.Transform.Pos)
+			playerPos := dwarf.Transform.Pos
+			playerCoords := Descent.GetTile(playerPos).RCoords
 			ownPos := m.Transform.Pos
-			playerPos := Descent.GetPlayer().Transform.Pos
 			if math.Abs(ownPos.X-playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y && m.AtkTimer.Done() {
 				m.Attack = true
 				m.faceLeft = ownCoords.X > playerCoords.X
@@ -84,23 +86,22 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("mm_attack", img.Batchers[constants.EntityKey].Animations["mm_attack"].S, reanimator.Tran).
 			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
 				m.AtkTimer = timing.New(mmAtkWait)
-				ownCoords := Descent.GetCave().GetTile(m.Transform.Pos).RCoords
-				playerCoords := Descent.GetPlayerTile().RCoords
-				ownPos := m.Transform.Pos
-				playerPos := Descent.GetPlayer().Transform.Pos
-				if math.Abs(ownPos.X-playerPos.X) <= world.TileSize && ownCoords.Y == playerCoords.Y {
-					angle := mmAngle
-					if m.faceLeft {
-						angle = pixel.V(-1., 1.).Angle()
-					}
-					Descent.GetPlayer().Entity.AddComponent(myecs.Damage, &data.Damage{
-						Amount:    1,
-						Dazed:     1.,
-						Knockback: 8.,
-						Angle:     &angle,
-						Source:    m.Transform.Pos,
-					})
+				atkPos := m.Transform.Pos
+				if m.faceLeft {
+					atkPos.X -= world.TileSize * 0.5
+				} else {
+					atkPos.X += world.TileSize * 0.5
 				}
+				myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+					SourceID:  m.Transform.ID,
+					Center:    atkPos,
+					Radius:    world.TileSize,
+					Amount:    1,
+					Dazed:     3.,
+					Angle:     &mmAngle,
+					Knockback: mmKnockback,
+					Type:      data.Enemy,
+				})
 			}).
 			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
 				m.Attack = false

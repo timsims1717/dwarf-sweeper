@@ -20,6 +20,7 @@ const (
 var BubbleSec = 12.
 
 type Bubble struct {
+	Dwarf *Dwarf
 	Physics    *physics.Physics
 	Transform  *transform.Transform
 	Reanimator *reanimator.Tree
@@ -41,8 +42,8 @@ func (b *Bubble) Create(_ pixel.Vec) {
 	b.Physics = physics.New()
 	b.Physics.Gravity = 50.
 	b.Physics.Friction = 200.
-	Descent.Player.Entity.AddComponent(myecs.Physics, b.Physics)
-	Descent.Player.Bubble = b
+	b.Dwarf.Entity.AddComponent(myecs.Physics, b.Physics)
+	b.Dwarf.Bubble = b
 	b.created = true
 	vibe := img.Batchers[constants.ParticleKey].GetAnimation("bubble_vibe")
 	b.Reanimator = reanimator.New(reanimator.NewSwitch().
@@ -69,7 +70,7 @@ func (b *Bubble) Create(_ pixel.Vec) {
 	b.entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Entity, b).
 		AddComponent(myecs.Transform, b.Transform).
-		AddComponent(myecs.Parent, Descent.Player.Transform).
+		AddComponent(myecs.Parent, b.Dwarf.Transform).
 		AddComponent(myecs.Animation, b.Reanimator).
 		AddComponent(myecs.Drawable, b.Reanimator).
 		AddComponent(myecs.Batch, constants.ParticleKey)
@@ -85,8 +86,8 @@ func (b *Bubble) Delete() {
 func (b *Bubble) Pop() {
 	b.popped = true
 	b.entity.RemoveComponent(myecs.Parent)
-	b.Transform.Pos = Descent.Player.Transform.Pos
-	Descent.Player.Physics.Velocity = b.Physics.Velocity
-	Descent.Player.Entity.AddComponent(myecs.Physics, Descent.Player.Physics)
-	Descent.Player.Bubble = nil
+	b.Transform.Pos = b.Dwarf.Transform.Pos
+	b.Dwarf.Physics.Velocity = b.Physics.Velocity
+	b.Dwarf.Entity.AddComponent(myecs.Physics, b.Dwarf.Physics)
+	b.Dwarf.Bubble = nil
 }

@@ -11,9 +11,11 @@ import (
 )
 
 func Debug(in *input.Input) {
-	d := Descent.GetPlayer()
+	d := Descent.GetPlayers()[1]
 	if debug.Text {
 		debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(in.World.X), int(in.World.Y)))
+		debug.AddText(fmt.Sprintf("canvas pos: (%d,%d)", int(d.Player.CanvasPos.X), int(d.Player.CanvasPos.Y)))
+		debug.AddText(fmt.Sprintf("cam pos: (%d,%d)", int(d.Player.CamPos.X), int(d.Player.CamPos.Y)))
 		if d.Hovered != nil {
 			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.Hovered.Chunk.Coords.X, d.Hovered.Chunk.Coords.Y))
 			debug.AddText(fmt.Sprintf("tile coords: (%d,%d)", d.Hovered.RCoords.X, d.Hovered.RCoords.Y))

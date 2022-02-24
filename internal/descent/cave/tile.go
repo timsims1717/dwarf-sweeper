@@ -3,6 +3,7 @@ package cave
 import (
 	"bytes"
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
@@ -83,6 +84,7 @@ type Tile struct {
 	revealT    *timing.FrameTimer
 	revealing  bool
 	destroying bool
+	destroyer  *player.Player
 	reload     bool
 	Flagged    bool
 	Exit       bool
@@ -96,7 +98,7 @@ type Tile struct {
 	Group       int
 	Perlin      float64
 
-	DestroyTrigger func(*Tile)
+	DestroyTrigger func(*player.Player, *Tile)
 	GemRate        float64
 }
 
@@ -169,9 +171,10 @@ func (tile *Tile) Draw() {
 	}
 }
 
-func (tile *Tile) Destroy(playSound bool) {
+func (tile *Tile) Destroy(p *player.Player, playSound bool) {
 	if tile != nil && !tile.Destroyed && !tile.destroying && tile.Breakable() {
 		tile.destroying = true
+		tile.destroyer = p
 		if playSound {
 			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
 		}
@@ -182,6 +185,7 @@ func (tile *Tile) DestroySpecial(playSound, allowWalls, ignoreTrigger bool) {
 	if tile != nil && !tile.Destroyed && !tile.destroying && (tile.Breakable() || allowWalls) {
 		if ignoreTrigger {
 			tile.DestroyTrigger = nil
+			tile.destroyer = nil
 		}
 		tile.destroying = true
 		if playSound {
@@ -193,7 +197,7 @@ func (tile *Tile) DestroySpecial(playSound, allowWalls, ignoreTrigger bool) {
 func (tile *Tile) destroy() {
 	if tile != nil && !tile.Destroyed {
 		if tile.DestroyTrigger != nil {
-			tile.DestroyTrigger(tile)
+			tile.DestroyTrigger(tile.destroyer, tile)
 		}
 		wasSolid := tile.Solid()
 		tile.Chunk.Cave.UpdateBatch = true

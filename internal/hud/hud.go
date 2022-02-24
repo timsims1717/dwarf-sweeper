@@ -1,10 +1,10 @@
-package player
+package hud
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -12,7 +12,6 @@ import (
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
-	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -23,13 +22,17 @@ import (
 )
 
 var (
+	tmpAnim *reanimator.Anim
+)
+
+var (
 	heartSpr        *pixel.Sprite
 	//tmpHeartSpr     *pixel.Sprite
 	heartEmptySpr   *pixel.Sprite
-	fullHP          bool
+	//fullHP          bool
 	heartTimer      *timing.FrameTimer
 	tmpAnimation    *reanimator.Tree
-	heartTransforms []*transform.Transform
+	//heartTransforms []*transform.Transform
 
 	lastGem       int
 	gemSpr        *pixel.Sprite
@@ -56,20 +59,21 @@ var (
 )
 
 func InitHUD() {
-	heartTransforms = []*transform.Transform{}
-	for i := 0; i < descent.Descent.Player.Health.Max; i++ {
-		tran := transform.New()
-		tran.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
-		heartTransforms = append(heartTransforms, tran)
-	}
+	dwarf := descent.Descent.GetPlayers()[0]
+	//heartTransforms = []*transform.Transform{}
+	//for i := 0; i < dwarf.Health.Max; i++ {
+	//	tran := transform.New()
+	//	tran.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
+	//	heartTransforms = append(heartTransforms, tran)
+	//}
 	heartSpr = img.Batchers[constants.MenuSprites].GetSprite("heart_full")
 	//tmpHeartSpr = img.Batchers[constants.MenuSprites].GetSprite("heart_temp_1")
 	heartEmptySpr = img.Batchers[constants.MenuSprites].GetSprite("heart_empty")
 
-	gemTransform = transform.New()
-	gemTransform.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
-	gemNumberText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
-	gemNumberText.SetColor(hudTextColor)
+	//gemTransform = transform.New()
+	//gemTransform.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
+	//gemNumberText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
+	//gemNumberText.SetColor(hudTextColor)
 	gemSpr = img.Batchers[constants.EntityKey].GetSprite("gem_diamond")
 
 	timerText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Right, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
@@ -93,10 +97,10 @@ func InitHUD() {
 		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers[constants.MenuSprites].Animations["heart_temp_3"].S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers[constants.MenuSprites].Animations["heart_temp_4"].S, reanimator.Hold)).
 		SetChooseFn(func() int {
-			if descent.Descent.Player.Health.TempHPTimer == nil {
+			if dwarf.Health.TempHPTimer == nil {
 				return 0
 			}
-			perc := descent.Descent.Player.Health.TempHPTimer.Perc()
+			perc := dwarf.Health.TempHPTimer.Perc()
 			if perc < 0.25 {
 				return 0
 			} else if perc < 0.5 {
@@ -111,50 +115,51 @@ func InitHUD() {
 }
 
 func UpdateHUD() {
-	hudDistXL := world.TileSize*-(math.Floor(constants.ActualW*0.5/world.TileSize) - 0.5)
+	dwarf := descent.Descent.GetPlayers()[0]
+	//hudDistXL := world.TileSize*-(math.Floor(constants.ActualW*0.5/world.TileSize) - 0.5)
 	hudDistXR := world.TileSize*(math.Floor(constants.ActualW*0.5/world.TileSize) - 0.5)
 	hudDistY := world.TileSize*(math.Floor(constants.BaseH*0.5/world.TileSize))
 	currY := 0.
 
-	hp := descent.Descent.Player.Health
-	thp := util.Max(hp.Curr + hp.TempHP, hp.Max)
-	if len(heartTransforms) != thp {
-		heartTransforms = []*transform.Transform{}
-		for i := 0; i < thp; i++ {
-			tran := transform.New()
-			tran.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
-			tran.Pos = pixel.V(hudDistXL+heartSpr.Frame().W()*0.5 + float64(i) * heartSpr.Frame().W(), hudDistY - heartSpr.Frame().H()*0.5)
-			heartTransforms = append(heartTransforms, tran)
-		}
-	} else {
-		for i, ht := range heartTransforms {
-			ht.Pos = pixel.V(hudDistXL+heartSpr.Frame().W()*0.5 + float64(i) * heartSpr.Frame().W(), hudDistY - heartSpr.Frame().H()*0.5)
-		}
-	}
-	wasFull := fullHP
-	fullHP = hp.Curr == hp.Max && hp.TempHP == 0
-	if (fullHP && !wasFull) || heartTimer == nil {
-		heartTimer = timing.New(3.)
-	}
-	heartTimer.Update()
+	//hp := dwarf.Health
+	//thp := util.Max(hp.Curr + hp.TempHP, hp.Max)
+	//if len(heartTransforms) != thp {
+	//	heartTransforms = []*transform.Transform{}
+	//	for i := 0; i < thp; i++ {
+	//		tran := transform.New()
+	//		tran.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
+	//		tran.Pos = pixel.V(hudDistXL+heartSpr.Frame().W()*0.5 + float64(i) * heartSpr.Frame().W(), hudDistY - heartSpr.Frame().H()*0.5)
+	//		heartTransforms = append(heartTransforms, tran)
+	//	}
+	//} else {
+	//	for i, ht := range heartTransforms {
+	//		ht.Pos = pixel.V(hudDistXL+heartSpr.Frame().W()*0.5 + float64(i) * heartSpr.Frame().W(), hudDistY - heartSpr.Frame().H()*0.5)
+	//	}
+	//}
+	//wasFull := fullHP
+	//fullHP = hp.Curr == hp.Max && hp.TempHP == 0
+	//if (fullHP && !wasFull) || heartTimer == nil {
+	//	heartTimer = timing.New(3.)
+	//}
+	//heartTimer.Update()
 	currY = world.TileSize * 1.25
 
-	gemTransform.Pos = pixel.V(hudDistXL+gemSpr.Frame().W()*0.5, hudDistY - currY - gemSpr.Frame().H()*0.5)
-	gemNumberText.Transform.Pos = gemTransform.Pos
-	gemNumberText.Transform.Pos.X += gemSpr.Frame().W()*0.5 + 4.
-	if player.CaveGemsFound != lastGem {
-		lastGem = player.CaveGemsFound
-		gemNumberText.SetText(fmt.Sprintf("x%d", lastGem))
-		gemTimer = timing.New(3.0)
-	} else if lastGem == 0 && gemTimer == nil {
-		gemTimer = timing.New(0.0)
-	}
-	gemTimer.Update()
+	//gemTransform.Pos = pixel.V(hudDistXL+gemSpr.Frame().W()*0.5, hudDistY - currY - gemSpr.Frame().H()*0.5)
+	//gemNumberText.Transform.Pos = gemTransform.Pos
+	//gemNumberText.Transform.Pos.X += gemSpr.Frame().W()*0.5 + 4.
+	//if dwarf.Player.Stats.CaveGemsFound != lastGem {
+	//	lastGem = dwarf.Player.Stats.CaveGemsFound
+	//	gemNumberText.SetText(fmt.Sprintf("x%d", lastGem))
+	//	gemTimer = timing.New(3.0)
+	//} else if lastGem == 0 && gemTimer == nil {
+	//	gemTimer = timing.New(0.0)
+	//}
+	//gemTimer.Update()
 
 	itemTransform.Pos = pixel.V(hudDistXR-itemBoxSpr.Frame().W()*0.5, hudDistY - itemBoxSpr.Frame().H()*0.5)
 	itemCountText.SetPos(pixel.V(hudDistXR, hudDistY - itemBoxSpr.Frame().H()))
-	if len(player.Inventory) > 0 && player.InvIndex < len(player.Inventory) && player.Inventory[player.InvIndex].Count > 1 {
-		itemCountText.SetText(strconv.Itoa(player.Inventory[player.InvIndex].Count))
+	if len(dwarf.Player.Inventory.Items) > 0 && dwarf.Player.Inventory.Index < len(dwarf.Player.Inventory.Items) && dwarf.Player.Inventory.Items[dwarf.Player.Inventory.Index].Count > 1 {
+		itemCountText.SetText(strconv.Itoa(dwarf.Player.Inventory.Items[dwarf.Player.Inventory.Index].Count))
 	} else {
 		itemCountText.SetText("")
 	}
@@ -176,9 +181,9 @@ func UpdateHUD() {
 
 	currY = world.TileSize * 1.5
 	if descent.Descent.Type == cave.Minesweeper {
-		num := player.CaveBombsLeft - (player.CaveWrongMarks + player.CaveBombsMarked)
+		num := player.CaveBombsLeft - (player.OverallStats.CaveWrongFlags + player.OverallStats.CaveBombsFlagged)
 		if num == 0 {
-			if player.CaveWrongMarks > 0 {
+			if player.OverallStats.CaveWrongFlags > 0 {
 				bombCountText.SetColor(color.RGBA{
 					R: 180,
 					G: 32,
@@ -204,35 +209,28 @@ func UpdateHUD() {
 }
 
 func DrawHUD(win *pixelgl.Window) {
-	d := descent.Descent.GetPlayer()
-	if d.Hovered != nil && !d.Health.Dazed {
-		if d.Hovered.Solid() && d.SelectLegal {
-			img.Batchers[constants.ParticleKey].GetSprite("target").Draw(win, d.Hovered.Transform.Mat)
-		} else {
-			img.Batchers[constants.ParticleKey].GetSprite("target_blank").Draw(win, d.Hovered.Transform.Mat)
-		}
-	}
-	for _, tran := range heartTransforms {
-		tran.UIPos = camera.Cam.APos
-		tran.UIZoom = camera.Cam.GetZoomScale()
-		tran.Update()
-	}
-	hp := descent.Descent.Player.Health
-	if !fullHP || !heartTimer.Done() {
-		i := 0
-		for i < hp.Curr && i < len(heartTransforms) {
-			heartSpr.Draw(win, heartTransforms[i].Mat)
-			i++
-		}
-		for i < hp.TempHP+hp.Curr && i < len(heartTransforms) {
-			tmpAnimation.Draw(win, heartTransforms[i].Mat)
-			i++
-		}
-		for i < len(heartTransforms) {
-			heartEmptySpr.Draw(win, heartTransforms[i].Mat)
-			i++
-		}
-	}
+	d := descent.Descent.GetPlayers()[0]
+	//for _, tran := range heartTransforms {
+	//	tran.UIPos = camera.Cam.APos
+	//	tran.UIZoom = camera.Cam.GetZoomScale()
+	//	tran.Update()
+	//}
+	//hp := d.Health
+	//if !fullHP || !heartTimer.Done() {
+	//	i := 0
+	//	for i < hp.Curr && i < len(heartTransforms) {
+	//		heartSpr.Draw(win, heartTransforms[i].Mat)
+	//		i++
+	//	}
+	//	for i < hp.TempHP+hp.Curr && i < len(heartTransforms) {
+	//		tmpAnimation.Draw(win, heartTransforms[i].Mat)
+	//		i++
+	//	}
+	//	for i < len(heartTransforms) {
+	//		heartEmptySpr.Draw(win, heartTransforms[i].Mat)
+	//		i++
+	//	}
+	//}
 
 	if !gemTimer.Done() {
 		gemTransform.UIPos = camera.Cam.APos
@@ -250,8 +248,8 @@ func DrawHUD(win *pixelgl.Window) {
 	itemTransform.UIZoom = camera.Cam.GetZoomScale()
 	itemTransform.Update()
 	itemBoxSpr.Draw(win, itemTransform.Mat)
-	if len(player.Inventory) > 0 && player.InvIndex < len(player.Inventory) {
-		item := player.Inventory[player.InvIndex]
+	if len(d.Player.Inventory.Items) > 0 && d.Player.Inventory.Index < len(d.Player.Inventory.Items) {
+		item := d.Player.Inventory.Items[d.Player.Inventory.Index]
 		item.Sprite.Draw(win, itemTransform.Mat)
 		if item.Timer != nil {
 			i := 1

@@ -31,6 +31,7 @@ var (
 	Collision = Manager.NewComponent()
 	Collect   = Manager.NewComponent()
 	Interact  = Manager.NewComponent()
+	Player    = Manager.NewComponent()
 
 	Health  = Manager.NewComponent()
 	Healing = Manager.NewComponent()

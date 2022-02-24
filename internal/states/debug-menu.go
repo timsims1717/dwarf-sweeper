@@ -2,9 +2,9 @@ package states
 
 import (
 	"dwarf-sweeper/internal/constants"
+	player2 "dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate/builder"
-	"dwarf-sweeper/internal/descent/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
@@ -12,6 +12,7 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
+	"github.com/faiface/pixel"
 )
 
 func InitDebugMenu() {
@@ -73,13 +74,13 @@ func InitDebugMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	giveBombs.SetClickFn(func() {
-		if descent.Descent.Player != nil {
-			player.AddToInventory(&player.InvItem{
+		if len(descent.Descent.GetPlayers()) > 0 {
+			descent.Descent.GetPlayers()[0].Player.Inventory.AddItem(&player2.InvItem{
 				Name:   "bomb",
 				Sprite: img.Batchers[constants.EntityKey].Sprites["bomb_item"],
-				OnUse: func() {
-					tile := descent.Descent.GetPlayerTile()
-					descent.CreateBomb(tile.Transform.Pos)
+				OnUse: func(pos pixel.Vec) {
+					tPos := descent.Descent.Cave.GetTile(pos).Transform.Pos
+					descent.CreateBomb(tPos)
 				},
 				Count: 3,
 				Limit: 3,
@@ -106,7 +107,7 @@ func InitDebugMenu() {
 		if descent.Descent.Cave != nil && descent.Descent.Cave.ExitC != world.Origin {
 			exitT := descent.Descent.Cave.GetTileInt(descent.Descent.Cave.ExitC.X, descent.Descent.Cave.ExitC.Y)
 			if exitT != nil && exitT.Exit {
-				descent.Descent.Player.Transform.Pos = exitT.Transform.Pos
+				descent.Descent.GetPlayers()[0].Transform.Pos = exitT.Transform.Pos
 				DebugMenu.Close()
 				sfx.SoundPlayer.PlaySound("click", 2.0)
 			}

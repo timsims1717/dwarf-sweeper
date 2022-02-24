@@ -6,8 +6,6 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var Deadzone = 0.25
-
 type Mode int
 
 const (
@@ -40,8 +38,13 @@ type Input struct {
 	Buttons  map[string]*ButtonSet
 	Joystick pixelgl.Joystick
 	StickD   bool
+	Deadzone float64
 	Mode     Mode
 	joyConn  bool
+
+	// custom stuff
+	AimDedicated bool
+	DigOnRelease bool
 }
 
 func (i *Input) Update(win *pixelgl.Window) {
@@ -58,7 +61,7 @@ func (i *Input) Update(win *pixelgl.Window) {
 			for _, set := range i.Axes {
 				f := win.JoystickAxis(i.Joystick, set.A)
 				set.R = f
-				if f > Deadzone || f < -Deadzone {
+				if f > i.Deadzone || f < -i.Deadzone {
 					set.F = f
 				} else {
 					set.F = 0.
@@ -79,17 +82,17 @@ func (i *Input) Update(win *pixelgl.Window) {
 							modePressed = Gamepad
 						}
 						if i.StickD {
-							if g == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -Deadzone {
+							if g == pixelgl.ButtonDpadLeft && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) < -i.Deadzone {
 								nowPressed = true
 								modePressed = Gamepad
-							} else if g == pixelgl.ButtonDpadRight && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) > Deadzone {
+							} else if g == pixelgl.ButtonDpadRight && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftX) > i.Deadzone {
 								nowPressed = true
 								modePressed = Gamepad
 							}
-							if g == pixelgl.ButtonDpadUp && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) < -Deadzone {
+							if g == pixelgl.ButtonDpadUp && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) < -i.Deadzone {
 								nowPressed = true
 								modePressed = Gamepad
-							} else if g == pixelgl.ButtonDpadDown && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) > Deadzone {
+							} else if g == pixelgl.ButtonDpadDown && win.JoystickAxis(i.Joystick, pixelgl.AxisLeftY) > i.Deadzone {
 								nowPressed = true
 								modePressed = Gamepad
 							}
@@ -97,8 +100,8 @@ func (i *Input) Update(win *pixelgl.Window) {
 					}
 				}
 				if set.AxisV != 0 &&
-					((win.JoystickAxis(i.Joystick, set.Axis) > Deadzone && set.AxisV > 0) ||
-						(win.JoystickAxis(i.Joystick, set.Axis) < -Deadzone && set.AxisV < 0)) {
+					((win.JoystickAxis(i.Joystick, set.Axis) > i.Deadzone && set.AxisV > 0) ||
+						(win.JoystickAxis(i.Joystick, set.Axis) < -i.Deadzone && set.AxisV < 0)) {
 					nowPressed = true
 					modePressed = Gamepad
 				}

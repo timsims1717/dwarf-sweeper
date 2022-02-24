@@ -16,6 +16,7 @@ import (
 )
 
 func InitInputMenu(win *pixelgl.Window) {
+	in := data.GameInputP1
 	InputMenu = menus.New("input", camera.Cam)
 	InputMenu.Title = true
 	InputMenu.SetCloseFn(config.SaveAsync)
@@ -27,7 +28,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	digOn := InputMenu.AddItem("dig_on", "Dig On", false)
 	digOnR := InputMenu.AddItem("dig_on_r", "", true)
 	deadzone := InputMenu.AddItem("deadzone", "Deadzone", false)
-	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", input.Deadzone), true)
+	deadzoneR := InputMenu.AddItem("deadzone_r", fmt.Sprintf("%f", in.Deadzone), true)
 	leftStickA := InputMenu.AddItem("left_stick_a", "Move with", false)
 	leftStickR := InputMenu.AddItem("left_stick_r", "Yes", true)
 	leftStickB := InputMenu.AddItem("left_stick_b", " Left Stick", false)
@@ -56,9 +57,9 @@ func InitInputMenu(win *pixelgl.Window) {
 	back := InputMenu.AddItem("back", "Back", false)
 
 	aimModeUpdate := func() {
-		if constants.AimDedicated {
+		if in.AimDedicated {
 			aimModeR.SetText("Dedicated")
-			if data.GameInput.Mode == input.KeyboardMouse {
+			if in.Mode == input.KeyboardMouse {
 				aimMode.Hint = "Use the mouse to aim for digging, flagging, and attacking."
 			} else {
 				aimMode.Hint = "Use the right stick to aim for digging, flagging, and attacking."
@@ -70,13 +71,13 @@ func InitInputMenu(win *pixelgl.Window) {
 	}
 	aimModeUpdate()
 	deviceUpdate := func() {
-		km := data.GameInput.Mode == input.KeyboardMouse
+		km := in.Mode == input.KeyboardMouse
 		if km {
 			device.Hint = ""
 			deviceR.SetText("KB&Mouse")
 		} else {
-			device.Hint = win.JoystickName(data.GameInput.Joystick)
-			deviceR.SetText(fmt.Sprintf("Gamepad %d", data.GameInput.Joystick+1))
+			device.Hint = win.JoystickName(in.Joystick)
+			deviceR.SetText(fmt.Sprintf("Gamepad %d", in.Joystick+1))
 		}
 		leftStickA.Ignore = km
 		leftStickB.Ignore = km
@@ -86,7 +87,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	}
 	deviceUpdate()
 	digOnUpdate := func() {
-		if constants.DigOnRelease {
+		if in.DigOnRelease {
 			digOnR.SetText("On Release")
 			digOn.Hint = "Digging, Flagging, and Attacking happen when you release the button."
 		} else {
@@ -98,27 +99,27 @@ func InitInputMenu(win *pixelgl.Window) {
 
 	inputTitle.NoHover = true
 	deviceSwitch := func(prev bool) {
-		km := data.GameInput.Mode == input.KeyboardMouse
+		km := in.Mode == input.KeyboardMouse
 		var js int
 		if prev {
 			if km {
 				js = input.PrevGamepad(win, -1)
 			} else {
-				js = input.PrevGamepad(win, int(data.GameInput.Joystick))
+				js = input.PrevGamepad(win, int(in.Joystick))
 			}
 		} else {
 			if km {
 				js = input.NextGamepad(win, -1)
 			} else {
-				js = input.NextGamepad(win, int(data.GameInput.Joystick))
+				js = input.NextGamepad(win, int(in.Joystick))
 			}
 		}
 		if js != -1 {
-			data.GameInput.Joystick = pixelgl.Joystick(js)
-			data.GameInput.Mode = input.Gamepad
+			in.Joystick = pixelgl.Joystick(js)
+			in.Mode = input.Gamepad
 		} else {
-			data.GameInput.Joystick = pixelgl.JoystickLast
-			data.GameInput.Mode = input.KeyboardMouse
+			in.Joystick = pixelgl.JoystickLast
+			in.Mode = input.KeyboardMouse
 		}
 		UpdateKeybindings()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -136,7 +137,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	device.SetLeftFn(lfn1)
 	deviceR.NoHover = true
 	rfn2 := func() {
-		constants.AimDedicated = !constants.AimDedicated
+		in.AimDedicated = !in.AimDedicated
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		aimModeUpdate()
 	}
@@ -145,7 +146,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	aimMode.SetLeftFn(rfn2)
 	aimModeR.NoHover = true
 	fn3 := func() {
-		constants.DigOnRelease = !constants.DigOnRelease
+		in.DigOnRelease = !in.DigOnRelease
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		digOnUpdate()
 	}
@@ -154,27 +155,27 @@ func InitInputMenu(win *pixelgl.Window) {
 	digOn.SetLeftFn(fn3)
 	digOnR.NoHover = true
 	deadzone.SetRightFn(func() {
-		n := input.Deadzone + 0.05
+		n := in.Deadzone + 0.05
 		if n > 0.5 {
 			n = 0.5
 		}
-		input.Deadzone = n
+		in.Deadzone = n
 		deadzoneR.SetText(fmt.Sprintf("%f", n))
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	deadzone.SetLeftFn(func() {
-		n := input.Deadzone - 0.05
+		n := in.Deadzone - 0.05
 		if n < 0.05 {
 			n = 0.05
 		}
-		input.Deadzone = n
+		in.Deadzone = n
 		deadzoneR.SetText(fmt.Sprintf("%f", n))
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	deadzoneR.NoHover = true
 	rfn3 := func() {
-		data.GameInput.StickD = !data.GameInput.StickD
-		if data.GameInput.StickD {
+		in.StickD = !in.StickD
+		if in.StickD {
 			leftStickR.SetText("Yes")
 		} else {
 			leftStickR.SetText("No")
@@ -192,7 +193,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	})
 	leftStickB.NoHover = true
 	leftStickR.NoHover = true
-	if data.GameInput.StickD {
+	if in.StickD {
 		leftStickR.SetText("Yes")
 	} else {
 		leftStickR.SetText("No")
@@ -269,11 +270,12 @@ func UpdateKeybindings() {
 
 func UpdateKeybinding(key string) {
 	r := InputMenu.ItemMap[fmt.Sprintf("%s_r", key)]
-	in := data.GameInput.Buttons[key]
+	in := data.GameInputP1
+	bs := in.Buttons[key]
 	builder := strings.Builder{}
 	first := true
-	if data.GameInput.Mode != input.Gamepad {
-		for _, k := range in.Keys {
+	if in.Mode != input.Gamepad {
+		for _, k := range bs.Keys {
 			if first {
 				first = false
 				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(k.String()), 1.)
@@ -282,7 +284,7 @@ func UpdateKeybinding(key string) {
 			}
 			builder.WriteString(fmt.Sprintf("{symbol:%s}", k.String()))
 		}
-		if in.Scroll > 0 {
+		if bs.Scroll > 0 {
 			if first {
 				first = false
 				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite("MouseScrollUp"), 1.)
@@ -290,7 +292,7 @@ func UpdateKeybinding(key string) {
 				builder.WriteString(" ")
 			}
 			builder.WriteString("{symbol:MouseScrollUp}")
-		} else if in.Scroll < 0 {
+		} else if bs.Scroll < 0 {
 			if first {
 				first = false
 				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite("MouseScrollDown"), 1.)
@@ -300,8 +302,8 @@ func UpdateKeybinding(key string) {
 			builder.WriteString("{symbol:MouseScrollDown}")
 		}
 	}
-	if data.GameInput.Mode != input.KeyboardMouse {
-		for _, b := range in.Buttons {
+	if in.Mode != input.KeyboardMouse {
+		for _, b := range bs.Buttons {
 			if first {
 				first = false
 				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(input.GamepadString(b)), 1.)
@@ -310,14 +312,14 @@ func UpdateKeybinding(key string) {
 			}
 			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.GamepadString(b)))
 		}
-		if in.AxisV != 0 {
+		if bs.AxisV != 0 {
 			if first {
 				first = false
-				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(input.AxisDirString(in.Axis, in.AxisV > 0)), 1.)
+				typeface.RegisterSymbol(key, img.Batchers[constants.MenuSprites].GetSprite(input.AxisDirString(bs.Axis, bs.AxisV > 0)), 1.)
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.AxisDirString(in.Axis, in.AxisV > 0)))
+			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.AxisDirString(bs.Axis, bs.AxisV > 0)))
 		}
 	}
 	r.SetText(builder.String())
