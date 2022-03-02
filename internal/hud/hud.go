@@ -27,6 +27,7 @@ var (
 	itemBoxSpr    *pixel.Sprite
 
 	timerText *typeface.Text
+	ShowTimer bool
 
 	bombSpr       *pixel.Sprite
 	bombTransform *transform.Transform
@@ -112,13 +113,25 @@ func UpdateHUD() {
 	imd.Color = constants.BGColor
 	switch len(descent.Descent.Dwarves) {
 	case 2:
-		imd.Push(pixel.V(0., constants.BaseH*0.5), pixel.V(0., constants.BaseH*-0.5))
-		imd.Line(1.0)
+		if constants.SplitScreenV {
+			imd.Push(pixel.V(0., constants.BaseH*0.5), pixel.V(0., constants.BaseH*-0.5))
+			imd.Line(1.0)
+		} else {
+			imd.Push(pixel.V(constants.ActualW*-0.5, 0.), pixel.V(constants.ActualW*0.5, 0.))
+			imd.Line(1.0)
+		}
 	case 3:
-		imd.Push(pixel.V(0., constants.BaseH*0.5), pixel.V(0., constants.BaseH*-0.5))
-		imd.Line(1.0)
-		imd.Push(pixel.V(0., 0.), pixel.V(constants.ActualW*0.5, 0.))
-		imd.Line(1.0)
+		if constants.SplitScreenV {
+			imd.Push(pixel.V(0., constants.BaseH*0.5), pixel.V(0., constants.BaseH*-0.5))
+			imd.Line(1.0)
+			imd.Push(pixel.V(0., 0.), pixel.V(constants.ActualW*0.5, 0.))
+			imd.Line(1.0)
+		} else {
+			imd.Push(pixel.V(constants.ActualW*-0.5, 0.), pixel.V(constants.ActualW*0.5, 0.))
+			imd.Line(1.0)
+			imd.Push(pixel.V(0., 0.), pixel.V(0., constants.BaseH*-0.5))
+			imd.Line(1.0)
+		}
 	case 4:
 		imd.Push(pixel.V(0., constants.BaseH*0.5), pixel.V(0., constants.BaseH*-0.5))
 		imd.Line(1.0)
@@ -130,8 +143,10 @@ func UpdateHUD() {
 func DrawHUD(win *pixelgl.Window) {
 	imd.Draw(win)
 
-	timerText.Update()
-	timerText.Draw(win)
+	if ShowTimer {
+		timerText.Update()
+		timerText.Draw(win)
+	}
 
 	if descent.Descent.Type == cave.Minesweeper {
 		bombTransform.UIPos = camera.Cam.APos

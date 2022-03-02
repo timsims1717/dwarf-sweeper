@@ -11,6 +11,7 @@ var (
 	MainMenu       *menus.DwarfMenu
 	StartMenu      *menus.DwarfMenu
 	AudioMenu      *menus.DwarfMenu
+	GameplayMenu   *menus.DwarfMenu
 	GraphicsMenu   *menus.DwarfMenu
 	InputMenu      *menus.DwarfMenu
 	KeybindingMenu *menus.DwarfMenu
@@ -30,6 +31,7 @@ func InitializeMenus(win *pixelgl.Window) {
 	InitOptionsMenu()
 	// todo: accessibility
 	InitAudioMenu()
+	InitGameplayMenu()
 	InitGraphicsMenu()
 	InitInputMenu(win)
 	InitKeybindingMenu()

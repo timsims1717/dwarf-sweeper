@@ -8,7 +8,7 @@ import (
 const (
 	Title   = "DwarfSweeper"
 	Release = 0
-	Version = 2
+	Version = 3
 	Build   = 20220221
 	BaseW   = 320.
 	BaseH   = 240.
@@ -56,10 +56,10 @@ var (
 	ConfigFile string
 
 	// Graphics
-	FullScreen       = false
-	VSync            = true
-	ChangeScreenSize = false
-	Resolutions      = []pixel.Vec{
+	FullScreen   = false
+	VSync        = true
+	ChangeScreen = false
+	Resolutions  = []pixel.Vec{
 		pixel.V(800, 600),
 		pixel.V(1280, 960),
 		pixel.V(1600, 900),
@@ -80,6 +80,9 @@ var (
 		A: 255,
 	}
 
+	// Audio
+	MuteOnUnfocused = false
+
 	// Accessibility
 	BaseMenuSize    = 1.4
 	BaseHoverSize   = 1.45
@@ -89,6 +92,10 @@ var (
 	ActualHoverSize = BaseHoverSize * (10 / TypeFaceSize)
 	ActualHintSize  = BaseHintSize * (10 / TypeFaceSize)
 	ActualOneSize   = 10 / TypeFaceSize
+
+	// Gameplay
+	ScreenShake = true
+	SplitScreenV = true
 
 	// Menus
 	DefaultColor  color.RGBA

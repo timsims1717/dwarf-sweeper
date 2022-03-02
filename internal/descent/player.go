@@ -40,13 +40,24 @@ func UpdateView(d *Dwarf, i, l int) {
 		canvasWidth = wH
 		canvasHeight = hH
 	} else if l == 2 {
-		canvasWidth = wQ
-		canvasHeight = hH
-	} else {
-		canvasWidth = wQ
-		if l == 3 && i == 0 {
+		if constants.SplitScreenV {
+			canvasWidth = wQ
 			canvasHeight = hH
 		} else {
+			canvasWidth = wH
+			canvasHeight = hQ
+		}
+	} else {
+		if l == 3 && i == 0 {
+			if constants.SplitScreenV {
+				canvasWidth = wQ
+				canvasHeight = hH
+			} else {
+				canvasWidth = wH
+				canvasHeight = hQ
+			}
+		} else {
+			canvasWidth = wQ
 			canvasHeight = hQ
 		}
 	}
@@ -111,22 +122,45 @@ func UpdateView(d *Dwarf, i, l int) {
 		y = 0.
 		x = 0.
 	} else if l == 2 {
-		y = 0.
-		if i == 0 {
-			x = -wQ
+		if constants.SplitScreenV {
+			y = 0.
+			if i == 0 {
+				x = -wQ
+			} else {
+				x = wQ
+			}
 		} else {
-			x = wQ
+			x = 0.
+			if i == 0 {
+				y = hQ
+			} else {
+				x = -hQ
+			}
 		}
 	} else if l == 3 {
-		if i == 0 {
-			y = 0.
-			x = -wQ
+		if constants.SplitScreenV {
+			if i == 0 {
+				y = 0.
+				x = -wQ
+			} else {
+				x = wQ
+				if i == 1 {
+					y = hQ
+				} else {
+					y = -hQ
+				}
+			}
 		} else {
-			x = wQ
-			if i == 1 {
+			if i == 0 {
+				x = 0.
 				y = hQ
 			} else {
 				y = -hQ
+				if i == 1 {
+					x = -wQ
+				} else {
+					x = wQ
+				}
 			}
 		}
 	} else if l == 4 {

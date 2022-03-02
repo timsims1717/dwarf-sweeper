@@ -6,6 +6,7 @@ import (
 
 type config struct {
 	Audio    audio    `toml:"audio"`
+	Gameplay gameplay `toml:"gameplay"`
 	Graphics graphics `toml:"graphics"`
 	InputP1  inputs   `toml:"inputP1"`
 	InputP2  inputs   `toml:"inputP2"`
@@ -14,14 +15,21 @@ type config struct {
 }
 
 type audio struct {
-	SoundVolume int `toml:"sound_volume"`
-	MusicVolume int `toml:"music_volume"`
+	SoundVolume int  `toml:"sound_volume"`
+	MusicVolume int  `toml:"music_volume"`
+	MuteUnfocus bool `toml:"mute_on_unfocus"`
 }
 
 type graphics struct {
 	VSync bool `toml:"vsync"`
 	FullS bool `toml:"fullscreen"`
 	ResIn int  `toml:"resolution"`
+}
+
+type gameplay struct {
+	ShowTimer    bool `toml:"show_timer"`
+	ScreenShake  bool `toml:"screen_shake"`
+	SplitScreenV bool `toml:"split_screen_v"`
 }
 
 type inputs struct {

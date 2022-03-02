@@ -2,6 +2,7 @@ package config
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/pkg/sfx"
 	"errors"
 	"fmt"
@@ -62,11 +63,17 @@ func CreateConfig() {
 		Audio: audio{
 			SoundVolume: 75,
 			MusicVolume: 75,
+			MuteUnfocus: false,
 		},
 		Graphics: graphics{
 			VSync: true,
 			FullS: false,
 			ResIn: 2,
+		},
+		Gameplay: gameplay{
+			ShowTimer:    true,
+			ScreenShake:  true,
+			SplitScreenV: true,
 		},
 		InputP1:  DefaultInput,
 		InputP2:  DefaultInput,
@@ -94,6 +101,10 @@ func LoadConfig() {
 	}
 	sfx.SetSoundVolume(conf.Audio.SoundVolume)
 	sfx.SetMusicVolume(conf.Audio.MusicVolume)
+	constants.MuteOnUnfocused = conf.Audio.MuteUnfocus
+	hud.ShowTimer = conf.Gameplay.ShowTimer
+	constants.ScreenShake = conf.Gameplay.ScreenShake
+	constants.SplitScreenV = conf.Gameplay.SplitScreenV
 	constants.VSync = conf.Graphics.VSync
 	constants.FullScreen = conf.Graphics.FullS
 	constants.ResIndex = conf.Graphics.ResIn
@@ -115,6 +126,10 @@ func SaveConfig() {
 	var conf config
 	conf.Audio.SoundVolume = sfx.GetSoundVolume()
 	conf.Audio.MusicVolume = sfx.GetMusicVolume()
+	conf.Audio.MuteUnfocus = constants.MuteOnUnfocused
+	conf.Gameplay.ShowTimer = hud.ShowTimer
+	conf.Gameplay.ScreenShake = constants.ScreenShake
+	conf.Gameplay.SplitScreenV = constants.SplitScreenV
 	conf.Graphics.VSync = constants.VSync
 	conf.Graphics.FullS = constants.FullScreen
 	conf.Graphics.ResIn = constants.ResIndex

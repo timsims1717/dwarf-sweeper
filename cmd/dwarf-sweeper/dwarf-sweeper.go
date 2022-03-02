@@ -8,6 +8,7 @@ import (
 	"dwarf-sweeper/internal/load"
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/options"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/states"
 	"dwarf-sweeper/pkg/camera"
@@ -32,7 +33,7 @@ func run() {
 		Invisible: true,
 	}
 	if constants.FullScreen {
-		constants.ChangeScreenSize = true
+		constants.ChangeScreen = true
 	}
 	win, err := pixelgl.NewWindow(conf)
 	if err != nil {
@@ -90,54 +91,10 @@ func run() {
 
 		states.Draw(win)
 		debug.Draw(win)
+
 		sfx.MusicPlayer.Update()
 		win.Update()
-		win.SetVSync(constants.VSync)
-		if constants.ChangeScreenSize {
-			constants.ChangeScreenSize = false
-			pos := win.GetPos()
-			pos.X += win.Bounds().W() * 0.5
-			pos.Y += win.Bounds().H() * 0.5
-			var picked *pixelgl.Monitor
-			if len(pixelgl.Monitors()) > 1 {
-				for _, m := range pixelgl.Monitors() {
-					x, y := m.Position()
-					w, h := m.Size()
-					if pos.X >= x && pos.X <= x+w && pos.Y >= y && pos.Y <= y+h {
-						picked = m
-						break
-					}
-				}
-				if picked == nil {
-					pos = win.GetPos()
-					for _, m := range pixelgl.Monitors() {
-						x, y := m.Position()
-						w, h := m.Size()
-						if pos.X >= x && pos.X <= x+w && pos.Y >= y && pos.Y <= y+h {
-							picked = m
-							break
-						}
-					}
-				}
-			}
-			if picked == nil {
-				picked = pixelgl.PrimaryMonitor()
-			}
-			if constants.FullScreen {
-				win.SetMonitor(picked)
-			} else {
-				win.SetMonitor(nil)
-			}
-			res := constants.Resolutions[constants.ResIndex]
-			win.SetBounds(pixel.R(0., 0., res.X, res.Y))
-			camera.Cam.SetSize(res.X, res.Y)
-			newRatio := res.X / res.Y
-			if constants.FullScreen {
-				x, y := picked.Size()
-				newRatio = x / y
-			}
-			constants.ActualW = constants.BaseH * newRatio
-		}
+		options.Update(win)
 	}
 }
 

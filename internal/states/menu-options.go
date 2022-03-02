@@ -3,6 +3,7 @@ package states
 import (
 	"dwarf-sweeper/internal/config"
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
@@ -16,6 +17,7 @@ func InitOptionsMenu() {
 	OptionsMenu.Title = true
 	optionsTitle := OptionsMenu.AddItem("title", "Options", false)
 	audioOptions := OptionsMenu.AddItem("audio", "Audio", false)
+	gameplayOptions := OptionsMenu.AddItem("gameplay", "Gameplay", false)
 	graphicsOptions := OptionsMenu.AddItem("graphics", "Graphics", false)
 	inputOptions := OptionsMenu.AddItem("input", "Input", false)
 	back := OptionsMenu.AddItem("back", "Back", false)
@@ -23,6 +25,10 @@ func InitOptionsMenu() {
 	optionsTitle.NoHover = true
 	audioOptions.SetClickFn(func() {
 		OpenMenu(AudioMenu)
+	})
+	gameplayOptions.SetClickFn(func() {
+		OpenMenu(GameplayMenu)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
 	graphicsOptions.SetClickFn(func() {
 		OpenMenu(GraphicsMenu)
@@ -47,6 +53,8 @@ func InitAudioMenu() {
 	soundVolumeR := AudioMenu.AddItem("s_volume_r", strconv.Itoa(sfx.GetSoundVolume()), true)
 	musicVolume := AudioMenu.AddItem("m_volume", "Music Volume", false)
 	musicVolumeR := AudioMenu.AddItem("m_volume_r", strconv.Itoa(sfx.GetMusicVolume()), true)
+	muteOnUnfocus := AudioMenu.AddItem("mute_focus", "Mute On Unfocus", false)
+	muteOnUnfocusR := AudioMenu.AddItem("mute_focus_r", "No", true)
 	back := AudioMenu.AddItem("back", "Back", false)
 
 	audioTitle.NoHover = true
@@ -86,10 +94,93 @@ func InitAudioMenu() {
 		musicVolumeR.SetText(strconv.Itoa(n))
 	})
 	musicVolumeR.NoHover = true
+	muteFn := func() {
+		constants.MuteOnUnfocused = !constants.MuteOnUnfocused
+		if constants.MuteOnUnfocused {
+			muteOnUnfocusR.SetText("Yes")
+		} else {
+			muteOnUnfocusR.SetText("No")
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	muteOnUnfocus.SetRightFn(muteFn)
+	muteOnUnfocus.SetLeftFn(muteFn)
+	muteOnUnfocus.SetClickFn(muteFn)
+	if constants.MuteOnUnfocused {
+		muteOnUnfocusR.SetText("Yes")
+	} else {
+		muteOnUnfocusR.SetText("No")
+	}
+	muteOnUnfocusR.NoHover = true
 	back.SetClickFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		AudioMenu.Close()
 	})
+}
+
+func InitGameplayMenu() {
+	GameplayMenu = menus.New("gameplay", camera.Cam)
+	GameplayMenu.Title = true
+	GameplayMenu.SetCloseFn(config.SaveAsync)
+	gameplayTitle := GameplayMenu.AddItem("title", "Gameplay Options", false)
+	showDescentTimer := GameplayMenu.AddItem("showTimer", "Show Timer", false)
+	showDescentTimerR := GameplayMenu.AddItem("showTimer_r", "No", true)
+	screenShake := GameplayMenu.AddItem("screenShake", "Screen Shake", false)
+	screenShakeR := GameplayMenu.AddItem("screenShake_r", "No", true)
+	splitScreen := GameplayMenu.AddItem("splitScreen", "Split Screen", false)
+	splitScreenR := GameplayMenu.AddItem("splitScreen_r", "Horiz.", true)
+
+	gameplayTitle.NoHover = true
+	showFn := func() {
+		hud.ShowTimer = !hud.ShowTimer
+		if hud.ShowTimer {
+			showDescentTimerR.SetText("Yes")
+		} else {
+			showDescentTimerR.SetText("No")
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	showDescentTimer.SetClickFn(showFn)
+	showDescentTimer.SetRightFn(showFn)
+	showDescentTimer.SetLeftFn(showFn)
+	if hud.ShowTimer {
+		showDescentTimerR.SetText("Yes")
+	}
+	showDescentTimerR.NoHover = true
+
+	shakeFn := func() {
+		constants.ScreenShake = !constants.ScreenShake
+		if constants.ScreenShake {
+			screenShakeR.SetText("Yes")
+		} else {
+			screenShakeR.SetText("No")
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	screenShake.SetClickFn(shakeFn)
+	screenShake.SetRightFn(shakeFn)
+	screenShake.SetLeftFn(shakeFn)
+	if constants.ScreenShake {
+		screenShakeR.SetText("Yes")
+	}
+	screenShakeR.NoHover = true
+
+	splitFn := func() {
+		constants.SplitScreenV = !constants.SplitScreenV
+		if constants.SplitScreenV {
+			splitScreenR.SetText("Vert.")
+		} else {
+			splitScreenR.SetText("Horiz.")
+		}
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	}
+	splitScreen.SetClickFn(splitFn)
+	splitScreen.SetRightFn(splitFn)
+	splitScreen.SetLeftFn(splitFn)
+	if constants.SplitScreenV {
+		splitScreenR.SetText("Vert.")
+	}
+	splitScreenR.NoHover = true
 }
 
 func InitGraphicsMenu() {
@@ -102,11 +193,11 @@ func InitGraphicsMenu() {
 	fullscreen := GraphicsMenu.AddItem("fullscreen", "Fullscreen", false)
 	fullscreenR := GraphicsMenu.AddItem("fullscreen_r", "Off", true)
 	resolution := GraphicsMenu.AddItem("resolution", "Resolution", false)
-		resolutionR := GraphicsMenu.AddItem("resolution_r", constants.ResStrings[constants.ResIndex], true)
+	resolutionR := GraphicsMenu.AddItem("resolution_r", constants.ResStrings[constants.ResIndex], true)
 	back := GraphicsMenu.AddItem("back", "Back", false)
 
 	graphicsTitle.NoHover = true
-	vsync.SetClickFn(func() {
+	vFn := func() {
 		constants.VSync = !constants.VSync
 		if constants.VSync {
 			vsyncR.SetText("On")
@@ -114,7 +205,10 @@ func InitGraphicsMenu() {
 			vsyncR.SetText("Off")
 		}
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-	})
+	}
+	vsync.SetClickFn(vFn)
+	vsync.SetRightFn(vFn)
+	vsync.SetLeftFn(vFn)
 	if constants.VSync {
 		vsyncR.SetText("On")
 	}
@@ -122,21 +216,24 @@ func InitGraphicsMenu() {
 		fullscreenR.SetText("On")
 	}
 	vsyncR.NoHover = true
-	fullscreen.SetClickFn(func() {
+	fsFn := func() {
 		constants.FullScreen = !constants.FullScreen
 		if constants.FullScreen {
 			fullscreenR.SetText("On")
 		} else {
 			fullscreenR.SetText("Off")
 		}
-		constants.ChangeScreenSize = true
+		constants.ChangeScreen = true
 		sfx.SoundPlayer.PlaySound("click", 2.0)
-	})
+	}
+	fullscreen.SetClickFn(fsFn)
+	fullscreen.SetRightFn(fsFn)
+	fullscreen.SetLeftFn(fsFn)
 	fullscreenR.NoHover = true
 	fn := func() {
 		constants.ResIndex += 1
 		constants.ResIndex %= len(constants.Resolutions)
-		constants.ChangeScreenSize = true
+		constants.ChangeScreen = true
 		resolutionR.SetText(constants.ResStrings[constants.ResIndex])
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	}
@@ -145,7 +242,7 @@ func InitGraphicsMenu() {
 	resolution.SetLeftFn(func() {
 		constants.ResIndex += len(constants.Resolutions) - 1
 		constants.ResIndex %= len(constants.Resolutions)
-		constants.ChangeScreenSize = true
+		constants.ChangeScreen = true
 		resolutionR.SetText(constants.ResStrings[constants.ResIndex])
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
