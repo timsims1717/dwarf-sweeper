@@ -73,6 +73,12 @@ var (
 	}
 	ResIndex = 2
 	ActualW  = 320.
+	BGColor  = color.RGBA{
+		R: 6,
+		G: 6,
+		B: 8,
+		A: 255,
+	}
 
 	// Accessibility
 	BaseMenuSize    = 1.4

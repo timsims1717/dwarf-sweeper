@@ -64,6 +64,7 @@ func loadInput(conf *config) {
 	data.GameInputP1.Buttons["interact"] = conf.InputP1.Interact
 	data.GameInputP1.Buttons["prev"] = conf.InputP1.Prev
 	data.GameInputP1.Buttons["next"] = conf.InputP1.Next
+	data.GameInputP1.Key = "p1"
 
 	if conf.InputP2.Gamepad < 0 {
 		data.GameInputP2.Mode = input.KeyboardMouse
@@ -86,6 +87,7 @@ func loadInput(conf *config) {
 	data.GameInputP2.Buttons["interact"] = conf.InputP2.Interact
 	data.GameInputP2.Buttons["prev"] = conf.InputP2.Prev
 	data.GameInputP2.Buttons["next"] = conf.InputP2.Next
+	data.GameInputP2.Key = "p2"
 
 	if conf.InputP3.Gamepad < 0 {
 		data.GameInputP3.Mode = input.KeyboardMouse
@@ -108,6 +110,7 @@ func loadInput(conf *config) {
 	data.GameInputP3.Buttons["interact"] = conf.InputP3.Interact
 	data.GameInputP3.Buttons["prev"] = conf.InputP3.Prev
 	data.GameInputP3.Buttons["next"] = conf.InputP3.Next
+	data.GameInputP3.Key = "p3"
 
 	if conf.InputP4.Gamepad < 0 {
 		data.GameInputP4.Mode = input.KeyboardMouse
@@ -130,6 +133,7 @@ func loadInput(conf *config) {
 	data.GameInputP4.Buttons["interact"] = conf.InputP4.Interact
 	data.GameInputP4.Buttons["prev"] = conf.InputP4.Prev
 	data.GameInputP4.Buttons["next"] = conf.InputP4.Next
+	data.GameInputP4.Key = "p4"
 }
 
 func saveInput(conf *config) {
@@ -153,6 +157,7 @@ func saveInput(conf *config) {
 	conf.InputP1.Interact = data.GameInputP1.Buttons["interact"]
 	conf.InputP1.Prev = data.GameInputP1.Buttons["prev"]
 	conf.InputP1.Next = data.GameInputP1.Buttons["next"]
+	conf.InputP1.Key = "p1"
 
 	if data.GameInputP2.Mode == input.KeyboardMouse {
 		conf.InputP2.Gamepad = -1
@@ -174,7 +179,7 @@ func saveInput(conf *config) {
 	conf.InputP2.Interact = data.GameInputP2.Buttons["interact"]
 	conf.InputP2.Prev = data.GameInputP2.Buttons["prev"]
 	conf.InputP2.Next = data.GameInputP2.Buttons["next"]
-
+	conf.InputP2.Key = "p2"
 
 	if data.GameInputP3.Mode == input.KeyboardMouse {
 		conf.InputP3.Gamepad = -1
@@ -196,7 +201,7 @@ func saveInput(conf *config) {
 	conf.InputP3.Interact = data.GameInputP3.Buttons["interact"]
 	conf.InputP3.Prev = data.GameInputP3.Buttons["prev"]
 	conf.InputP3.Next = data.GameInputP3.Buttons["next"]
-
+	conf.InputP3.Key = "p3"
 
 	if data.GameInputP4.Mode == input.KeyboardMouse {
 		conf.InputP4.Gamepad = -1
@@ -218,4 +223,5 @@ func saveInput(conf *config) {
 	conf.InputP4.Interact = data.GameInputP4.Buttons["interact"]
 	conf.InputP4.Prev = data.GameInputP4.Buttons["prev"]
 	conf.InputP4.Next = data.GameInputP4.Buttons["next"]
+	conf.InputP4.Key = "p4"
 }

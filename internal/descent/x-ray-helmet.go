@@ -15,10 +15,10 @@ var XRaySec = 16.
 
 func StartXRayVision(d *Dwarf) {
 	myecs.Manager.NewEntity().
-		AddComponent(myecs.Transform, d.Transform).
+		AddComponent(myecs.Transform, transform.New()).
 		AddComponent(myecs.Temp, timing.New(XRaySec)).
 		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
-			n := Descent.Cave.GetTile(d.Transform.Pos).SubCoords.Neighbors()
+			n := Descent.Cave.GetTile(d.Transform.Pos).RCoords.Neighbors()
 			a := world.Combine(n, n[0].Neighbors())
 			a = world.Combine(a, n[2].Neighbors())
 			a = world.Combine(a, n[4].Neighbors())

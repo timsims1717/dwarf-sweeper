@@ -19,7 +19,7 @@ import (
 )
 
 func addChest(tile *cave.Tile) {
-	popUp := menus.NewPopUp("{symbol:interact}:open")
+	popUp := menus.NewPopUp("{symbol:player-interact}:open")
 	popUp.Dist = world.TileSize
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, tile.Transform).
@@ -55,7 +55,7 @@ func addChest(tile *cave.Tile) {
 func addBigBomb(blTile *cave.Tile, level int) {
 	fmt.Printf("Bomb added here: (%d,%d)\n", blTile.RCoords.X, blTile.RCoords.Y)
 	e := myecs.Manager.NewEntity()
-	popUp := menus.NewPopUp("{symbol:interact}:disarm")
+	popUp := menus.NewPopUp("{symbol:player-interact}:disarm")
 	popUp.Dist = world.TileSize * 1.5
 	pos := blTile.Transform.Pos
 	pos.X += world.TileSize * 0.5

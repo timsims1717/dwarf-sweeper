@@ -15,7 +15,10 @@ func PopUpSystem() {
 		pop, okP := result.Components[myecs.PopUp].(*menus.PopUp)
 		if okT && okP {
 			pop.Tran.Pos = tran.Pos
-			pop.Display = false
+			pop.Display1 = false
+			pop.Display2 = false
+			pop.Display3 = false
+			pop.Display4 = false
 		}
 	}
 	for _, d := range descent.Descent.GetPlayers() {
@@ -35,13 +38,25 @@ func PopUpSystem() {
 			}
 		}
 		if toDisplay != nil {
-			toDisplay.Display = true
-			toDisplay.Player = d.Player
-		}
-		for _, result := range myecs.Manager.Query(myecs.HasPopUp) {
-			if pop, ok := result.Components[myecs.PopUp].(*menus.PopUp); ok {
-				pop.Update()
+			switch d.Player.Code {
+			case "p1":
+				toDisplay.Display1 = true
+				toDisplay.Player1 = d.Player
+			case "p2":
+				toDisplay.Display2 = true
+				toDisplay.Player2 = d.Player
+			case "p3":
+				toDisplay.Display3 = true
+				toDisplay.Player3 = d.Player
+			case "p4":
+				toDisplay.Display4 = true
+				toDisplay.Player4 = d.Player
 			}
+		}
+	}
+	for _, result := range myecs.Manager.Query(myecs.HasPopUp) {
+		if pop, ok := result.Components[myecs.PopUp].(*menus.PopUp); ok {
+			pop.Update()
 		}
 	}
 }
@@ -49,9 +64,7 @@ func PopUpSystem() {
 func PopUpDraw() {
 	for _, result := range myecs.Manager.Query(myecs.HasPopUp) {
 		if pop, ok := result.Components[myecs.PopUp].(*menus.PopUp); ok {
-			if pop.Player != nil {
-				pop.Draw(pop.Player.Canvas)
-			}
+			pop.Draw()
 		}
 	}
 }

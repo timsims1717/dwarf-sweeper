@@ -414,7 +414,11 @@ func (m *DwarfMenu) GetNextHover(dir, curr int, in *input.Input) {
 		m.setHover(-1)
 	}
 	if dir == 0 || dir == 1 {
-		m.GetNextHoverVert(dir, curr, m.Items[curr].Right, in)
+		r := false
+		if curr != -1 {
+			r = m.Items[curr].Right
+		}
+		m.GetNextHoverVert(dir, curr, r, in)
 	} else {
 		m.GetNextHoverHor(dir, curr, in)
 	}

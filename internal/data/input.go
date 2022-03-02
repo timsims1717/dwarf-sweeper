@@ -7,6 +7,7 @@ import (
 
 var (
 	GameInputP1 = &input.Input{
+		Key:  "p1",
 		Axes: map[string]*input.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
@@ -20,6 +21,7 @@ var (
 		},
 	}
 	GameInputP2 = &input.Input{
+		Key:  "p2",
 		Axes: map[string]*input.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
@@ -33,6 +35,7 @@ var (
 		},
 	}
 	GameInputP3 = &input.Input{
+		Key:  "p3",
 		Axes: map[string]*input.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
@@ -46,6 +49,7 @@ var (
 		},
 	}
 	GameInputP4 = &input.Input{
+		Key:  "p4",
 		Axes: map[string]*input.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
@@ -58,4 +62,5 @@ var (
 			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
 	}
+	CurrInput = GameInputP1
 )

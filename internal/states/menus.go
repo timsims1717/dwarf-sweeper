@@ -20,6 +20,7 @@ var (
 	PostMenu       *menus.DwarfMenu
 	DebugMenu      *menus.DwarfMenu
 	KeyString      string
+	NumPlayers     = 1
 	focused        bool
 )
 
@@ -36,7 +37,11 @@ func InitializeMenus(win *pixelgl.Window) {
 	InitEnchantMenu()
 	InitPostGameMenu()
 	InitDebugMenu()
-	UpdateKeybindings()
+	UpdateKeybindings(data.CurrInput)
+	RegisterPlayerSymbols(data.GameInputP1.Key, data.GameInputP1)
+	RegisterPlayerSymbols(data.GameInputP2.Key, data.GameInputP2)
+	RegisterPlayerSymbols(data.GameInputP3.Key, data.GameInputP3)
+	RegisterPlayerSymbols(data.GameInputP4.Key, data.GameInputP4)
 }
 
 func UpdateMenus(win *pixelgl.Window) {
@@ -59,12 +64,12 @@ func UpdateMenus(win *pixelgl.Window) {
 				}
 			} else if me.Key == "keybinding" && me.IsOpen() {
 				if menuInput.Get("inputClear").JustPressed() {
-					input.ClearInput(data.GameInputP1, KeyString)
+					input.ClearInput(data.CurrInput, KeyString)
 					menuInput.Get("inputClear").Consume()
 					me.Close()
 				} else {
-					if input.CheckAssign(win, data.GameInputP1, KeyString) {
-						data.GameInputP1.Buttons[KeyString].Consume()
+					if input.CheckAssign(win, data.CurrInput, KeyString) {
+						data.CurrInput.Buttons[KeyString].Consume()
 						me.Close()
 					}
 				}

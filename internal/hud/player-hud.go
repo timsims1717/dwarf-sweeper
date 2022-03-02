@@ -3,7 +3,10 @@ package hud
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/img"
+	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
@@ -12,6 +15,7 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"math"
+	"strconv"
 )
 
 var (
@@ -25,12 +29,16 @@ type HUD struct {
 	DisplayHP bool
 	HPTimer   *timing.FrameTimer
 	HPTrans   []*transform.Transform
+	TempAnim  *reanimator.Tree
 
 	LastGem    int
 	DisplayGem bool
 	GemTimer   *timing.FrameTimer
 	GemTrans   *transform.Transform
 	GemText    *typeface.Text
+
+	ItemTrans *transform.Transform
+	ItemText  *typeface.Text
 }
 
 func New(dwarf *descent.Dwarf) *HUD {
@@ -40,22 +48,54 @@ func New(dwarf *descent.Dwarf) *HUD {
 		trans.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
 		hpTrans = append(hpTrans, trans)
 	}
+
 	gemTrans := transform.New()
 	gemTrans.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
 	gemText := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
 	gemText.SetColor(hudTextColor)
+
+	itemTrans := transform.New()
+	itemTrans.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
+	itemText := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
+	itemText.SetColor(hudTextColor)
+
+	anim := reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_1", img.Batchers[constants.MenuSprites].Animations["heart_temp_1"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_2", img.Batchers[constants.MenuSprites].Animations["heart_temp_2"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_3", img.Batchers[constants.MenuSprites].Animations["heart_temp_3"].S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("heart_temp_4", img.Batchers[constants.MenuSprites].Animations["heart_temp_4"].S, reanimator.Hold)).
+		SetChooseFn(func() int {
+			if dwarf.Health.TempHPTimer == nil {
+				return 0
+			}
+			perc := dwarf.Health.TempHPTimer.Perc()
+			if perc < 0.25 {
+				return 0
+			} else if perc < 0.5 {
+				return 1
+			} else if perc < 0.75 {
+				return 2
+			} else {
+				return 3
+			}
+		}), "heart_temp_1")
+	myecs.Manager.NewEntity().AddComponent(myecs.Animation, anim)
+
 	return &HUD{
 		Dwarf:     dwarf,
 		DisplayHP: true,
 		HPTrans:   hpTrans,
+		TempAnim:  anim,
 		GemTrans:  gemTrans,
 		GemText:   gemText,
+		ItemTrans: itemTrans,
+		ItemText:  itemText,
 	}
 }
 
 func (hud *HUD) Update() {
 	hudDistXL := math.Floor((hud.Dwarf.Player.CanvasPos.X - world.TileSize*(math.Floor(hud.Dwarf.Player.Canvas.Bounds().W()*0.5/world.TileSize) - 0.5)) * camera.Cam.Zoom)
-	//hudDistXR := world.TileSize*(math.Floor(hud.Dwarf.Player.Canvas.Bounds().W()*0.5/world.TileSize) - 0.5)
+	hudDistXR := math.Floor((hud.Dwarf.Player.CanvasPos.X + world.TileSize*(math.Floor(hud.Dwarf.Player.Canvas.Bounds().W()*0.5/world.TileSize) - 0.5)) * camera.Cam.Zoom)
 	hudDistY := math.Floor((hud.Dwarf.Player.CanvasPos.Y + world.TileSize*(math.Floor(hud.Dwarf.Player.Canvas.Bounds().H()*0.5/world.TileSize))) * camera.Cam.Zoom)
 	currY := 0.
 
@@ -96,6 +136,15 @@ func (hud *HUD) Update() {
 		hud.GemTimer = timing.New(0.0)
 	}
 	hud.GemTimer.Update()
+
+	hud.ItemTrans.Pos = pixel.V(hudDistXR-itemBoxSpr.Frame().W()*0.5, hudDistY - itemBoxSpr.Frame().H()*0.5)
+	hud.ItemText.SetPos(pixel.V(hudDistXR, hudDistY - itemBoxSpr.Frame().H()))
+	inv := hud.Dwarf.Player.Inventory
+	if len(inv.Items) > 0 && inv.Index < len(inv.Items) {
+		hud.ItemText.SetText(strconv.Itoa(inv.Items[inv.Index].Count))
+	} else {
+		hud.ItemText.SetText("")
+	}
 }
 
 func (hud *HUD) Draw(target pixel.Target) {
@@ -113,7 +162,7 @@ func (hud *HUD) Draw(target pixel.Target) {
 			i++
 		}
 		for i < hp.TempHP+hp.Curr && i < len(hud.HPTrans) {
-			tmpAnimation.Draw(target, hud.HPTrans[i].Mat)
+			hud.TempAnim.Draw(target, hud.HPTrans[i].Mat)
 			i++
 		}
 		for i < len(hud.HPTrans) {
@@ -130,4 +179,24 @@ func (hud *HUD) Draw(target pixel.Target) {
 		gemSpr.Draw(target, hud.GemTrans.Mat)
 		hud.GemText.Draw(target)
 	}
+
+	hud.ItemTrans.UIPos = camera.Cam.APos
+	hud.ItemTrans.UIZoom = camera.Cam.GetZoomScale()
+	hud.ItemTrans.Update()
+	hud.ItemText.Update()
+	itemBoxSpr.Draw(target, hud.ItemTrans.Mat)
+	inv := hud.Dwarf.Player.Inventory
+	if len(inv.Items) > 0 && inv.Index < len(inv.Items) {
+		item := inv.Items[inv.Index]
+		item.Sprite.Draw(target, hud.ItemTrans.Mat)
+		if item.Timer != nil {
+			i := 1
+			for float64(i)/16. < item.Timer.Perc() {
+				i++
+			}
+			img.Batchers[constants.MenuSprites].Sprites[fmt.Sprintf("item_timer_%d", i)].Draw(target, hud.ItemTrans.Mat)
+		}
+	}
+	hud.ItemText.Update()
+	hud.ItemText.Draw(target)
 }

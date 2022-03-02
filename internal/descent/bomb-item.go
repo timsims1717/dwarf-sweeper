@@ -30,7 +30,7 @@ func CreateBombItem(pos pixel.Vec) {
 			Limit: 3,
 		})
 	}, spr.Frame().W() * 0.5, true)
-	popUp := menus.NewPopUp("{symbol:interact}: pick up")
+	popUp := menus.NewPopUp("{symbol:player-interact}:pick up")
 	popUp.Dist = (spr.Frame().W() + world.TileSize) * 0.5
 	phys, trans := util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 5., 2., random.Effects)
 	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)

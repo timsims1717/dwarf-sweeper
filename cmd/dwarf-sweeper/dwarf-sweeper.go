@@ -19,7 +19,6 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/faiface/pixel/text"
-	"image/color"
 )
 
 func run() {
@@ -87,12 +86,7 @@ func run() {
 		debug.Clear()
 		states.Update(win)
 
-		win.Clear(color.RGBA{
-			R: 6,
-			G: 6,
-			B: 8,
-			A: 255,
-		})
+		win.Clear(constants.BGColor)
 
 		states.Draw(win)
 		debug.Draw(win)

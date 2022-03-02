@@ -79,7 +79,7 @@ func CreateXRayItem(pos pixel.Vec) {
 func CreateItemPickUp(pos pixel.Vec, fn func(pixel.Vec, *Dwarf) bool, spr *pixel.Sprite) {
 	e := myecs.Manager.NewEntity()
 	i := NewInteract(fn, spr.Frame().W(), true)
-	popUp := menus.NewPopUp("{symbol:interact}:pick up")
+	popUp := menus.NewPopUp("{symbol:player-interact}:pick up")
 	popUp.Dist = spr.Frame().W()
 	phys, trans := util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)
 	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)

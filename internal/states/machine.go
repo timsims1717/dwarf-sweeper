@@ -144,7 +144,9 @@ func Update(win *pixelgl.Window) {
 			OpenMenu(DebugMenu)
 		}
 		if debugInput.Get("debugTest").JustPressed() {
-			descent.CreateXRayItem(debugInput.World)
+			if len(descent.Descent.GetPlayers()) > 0 {
+				descent.CreateXRayItem(descent.Descent.GetPlayers()[0].Transform.Pos)
+			}
 		}
 		if debugInput.Get("debugSP").JustPressed() {
 			if currState == MenuStateKey {

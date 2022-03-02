@@ -108,9 +108,6 @@ func NewTile(x, y int, coords world.Coords, bomb bool, chunk *Chunk) *Tile {
 	tran.Pos = pixel.V(float64(x+coords.X*constants.ChunkSize)*world.TileSize, -(float64(y+coords.Y*constants.ChunkSize) * world.TileSize))
 	rCoords := world.Coords{X: x + coords.X*constants.ChunkSize, Y: y + coords.Y*constants.ChunkSize}
 	p := noise.BlockType(rCoords)
-	//e := myecs.Manager.NewEntity()
-	//e.AddComponent(myecs.Transform, tran).
-	//	AddComponent(myecs.Batch, constants.FogKey)
 	return &Tile{
 		Type:      BlockCollapse,
 		SubCoords: world.Coords{X: x, Y: y},

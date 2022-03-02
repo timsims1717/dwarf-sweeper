@@ -68,10 +68,10 @@ func CreateConfig() {
 			FullS: false,
 			ResIn: 2,
 		},
-		InputP1: DefaultInput,
-		InputP2: DefaultInput,
-		InputP3: DefaultInput,
-		InputP4: DefaultInput,
+		InputP1:  DefaultInput,
+		InputP2:  DefaultInput,
+		InputP3:  DefaultInput,
+		InputP4:  DefaultInput,
 	}
 	encode := toml.NewEncoder(file)
 	err = encode.Encode(conf)
@@ -107,10 +107,10 @@ func SaveAsync() {
 
 func SaveConfig() {
 	mu.Lock()
-	file, err := os.OpenFile(constants.ConfigFile, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	os.Remove(constants.ConfigFile)
+	file, err := os.Create(constants.ConfigFile)
 	if err != nil {
-		fmt.Printf("couldn't open configuration file: %s\n", err)
-		return
+		panic(err)
 	}
 	var conf config
 	conf.Audio.SoundVolume = sfx.GetSoundVolume()

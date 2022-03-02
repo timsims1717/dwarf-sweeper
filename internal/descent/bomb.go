@@ -7,7 +7,6 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -71,7 +70,7 @@ func CreateBomb(pos pixel.Vec) {
 					})
 					particles.CreateSmallExplosion(trans.Pos)
 					sfx.SoundPlayer.PlaySound("blast1", 0.0)
-					camera.Cam.Shake(0.5, 10.)
+					//camera.Cam.Shake(0.5, 10.)
 					myecs.Manager.DisposeEntity(e)
 					return false
 				}))

@@ -44,7 +44,11 @@ func UpdateView(d *Dwarf, i, l int) {
 		canvasHeight = hH
 	} else {
 		canvasWidth = wQ
-		canvasHeight = hQ
+		if l == 3 && i == 0 {
+			canvasHeight = hH
+		} else {
+			canvasHeight = hQ
+		}
 	}
 	if !Descent.FreeCam {
 		d.Player.CamPos = d.Transform.Pos
@@ -122,7 +126,7 @@ func UpdateView(d *Dwarf, i, l int) {
 			if i == 1 {
 				y = hQ
 			} else {
-				x = -hQ
+				y = -hQ
 			}
 		}
 	} else if l == 4 {

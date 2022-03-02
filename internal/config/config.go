@@ -25,6 +25,7 @@ type graphics struct {
 }
 
 type inputs struct {
+	Key          string           `toml:"name"`
 	Gamepad      int              `toml:"gamepad"`
 	AimDedicated bool             `toml:"aim_mode"`
 	DigOnRelease bool             `toml:"dig_on"`

@@ -32,10 +32,11 @@ var (
 
 type descentState struct {
 	*state.AbstractState
-	numPlayers int
-	gameOver   bool
-	deathTimer *timing.FrameTimer
-	start      bool
+	numPlayers  int
+	gameOver    bool
+	deathTimer  *timing.FrameTimer
+	start       bool
+	PausePlayer *player.Player
 }
 
 func (s *descentState) Unload() {
@@ -152,8 +153,6 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 		d.Player.Canvas.Clear(color.RGBA{})
 		img.DrawBatches(d.Player.Canvas)
 	}
-
-	//img.DrawBatches(win)
 
 	systems.PopUpDraw()
 	for _, d := range descent.Descent.Dwarves {
@@ -284,5 +283,6 @@ func (s *descentState) SetupPlayers() {
 		d := descent.NewDwarf(p)
 		descent.Descent.Dwarves = append(descent.Descent.Dwarves, d)
 		hud.HUDs = append(hud.HUDs, hud.New(d))
+		RegisterPlayerSymbols(in.Key, in)
 	}
 }

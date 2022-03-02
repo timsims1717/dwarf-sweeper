@@ -428,37 +428,20 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.SelectLegal = math.Abs(d.Transform.Pos.X-d.Hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.Hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			facing := pixel.ZV
 			if (in.Get("dig").JustPressed() && !in.DigOnRelease) || (in.Get("dig").JustReleased() && in.DigOnRelease) {
-				if in.Mode != input.Gamepad && in.AimDedicated {
-					angle := d.Transform.Pos.Sub(in.World).Angle()
-					if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
-						facing.X = 1
-					} else if angle < math.Pi*(3./8.) && angle > math.Pi*-(3./8.) {
-						facing.X = -1
-					} else {
-						facing.X = 0
-					}
-					if angle > math.Pi/8. && angle < math.Pi*(7./8.) {
-						facing.Y = -1
-					} else if angle < math.Pi/-8. && angle > math.Pi*-(7./8.) {
-						facing.Y = 1
-					} else {
-						facing.Y = 0
-					}
-				} else if d.isRelative {
-					if d.relative.X < 0 {
-						facing.X = -1
-					} else if d.relative.X > 0 {
-						facing.X = 1
-					} else {
-						facing.X = 0
-					}
-					if d.relative.Y < 0 {
-						facing.Y = -1
-					} else if d.relative.Y > 0 {
-						facing.Y = 1
-					} else {
-						facing.Y = 0
-					}
+				angle := d.Transform.Pos.Sub(d.Hovered.Transform.Pos).Angle()
+				if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
+					facing.X = 1
+				} else if angle < math.Pi*(3./8.) && angle > math.Pi*-(3./8.) {
+					facing.X = -1
+				} else {
+					facing.X = 0
+				}
+				if angle > math.Pi/8. && angle < math.Pi*(7./8.) {
+					facing.Y = -1
+				} else if angle < math.Pi/-8. && angle > math.Pi*-(7./8.) {
+					facing.Y = 1
+				} else {
+					facing.Y = 0
 				}
 				if d.Hovered.Solid() && d.SelectLegal {
 					d.tileQueue = append(d.tileQueue, struct {

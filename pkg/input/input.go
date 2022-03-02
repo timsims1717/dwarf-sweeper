@@ -28,6 +28,7 @@ func (m Mode) String() string {
 }
 
 type Input struct {
+	Key        string
 	Cursor     pixel.Vec
 	World      pixel.Vec
 	MouseMoved bool
@@ -235,7 +236,7 @@ type AxisSet struct {
 }
 
 type ButtonSet struct {
-	Button   Button
+	Button   Button                  `toml:"-"`
 	Keys     []pixelgl.Button        `toml:"keys"`
 	Scroll   int                     `toml:"scroll"`
 	Buttons  []pixelgl.GamepadButton `toml:"buttons"`

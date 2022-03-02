@@ -43,6 +43,8 @@ func InitStartMenu() {
 	StartMenu.Title = true
 	normal := StartMenu.AddItem("normal", "Normal Descent", false)
 	//infinite := StartMenu.AddItem("infinite", "Infinite Cave")
+	numPlayers := StartMenu.AddItem("numPlayers", "# of Players", false)
+	numPlayersR := StartMenu.AddItem("numPlayers-r", strconv.Itoa(NumPlayers), true)
 	difficulty := StartMenu.AddItem("difficulty", "Difficulty", false)
 	difficultyR := StartMenu.AddItem("difficulty-r", strconv.Itoa(descent.Difficulty), true)
 	back := StartMenu.AddItem("back", "Back", false)
@@ -52,7 +54,7 @@ func InitStartMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Descent.Type = cave.Normal
 		DescentState.start = true
-		DescentState.numPlayers = 2
+		DescentState.numPlayers = NumPlayers
 		SwitchState(DescentStateKey)
 	})
 	normal.Hint = "Start a new run through a variety of caves!"
@@ -63,6 +65,23 @@ func InitStartMenu() {
 	//	SwitchState(4)
 	//})
 	//infinite.Hint = "Survive in a cave that never ends!"
+	numPlayers.SetRightFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		NumPlayers++
+		if NumPlayers > 4 {
+			NumPlayers = 4
+		}
+		numPlayersR.SetText(strconv.Itoa(NumPlayers))
+	})
+	numPlayers.SetLeftFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		NumPlayers--
+		if NumPlayers < 1 {
+			NumPlayers = 1
+		}
+		numPlayersR.SetText(strconv.Itoa(NumPlayers))
+	})
+	numPlayersR.NoHover = true
 	difficulty.SetRightFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Difficulty++
