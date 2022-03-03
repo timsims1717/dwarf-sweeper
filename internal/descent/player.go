@@ -3,6 +3,8 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
 	"math"
 )
@@ -36,61 +38,63 @@ func UpdateView(d *Dwarf, i, l int) {
 	hH := constants.BaseH*0.5*camera.Cam.GetZoomScale()
 	hQ := constants.BaseH*0.25*camera.Cam.GetZoomScale()
 	var canvasWidth, canvasHeight float64
+	var distX, distY float64
 	if l == 1 {
 		canvasWidth = wH
 		canvasHeight = hH
+		distX = 3.
+		distY = 2.
 	} else if l == 2 {
 		if constants.SplitScreenV {
 			canvasWidth = wQ
 			canvasHeight = hH
+			distX = 2.
+			distY = 2.
 		} else {
 			canvasWidth = wH
 			canvasHeight = hQ
+			distX = 3.
+			distY = 1.
 		}
 	} else {
 		if l == 3 && i == 0 {
 			if constants.SplitScreenV {
 				canvasWidth = wQ
 				canvasHeight = hH
+				distX = 2.
+				distY = 2.
 			} else {
 				canvasWidth = wH
 				canvasHeight = hQ
+				distX = 3.
+				distY = 1.
 			}
 		} else {
 			canvasWidth = wQ
 			canvasHeight = hQ
+			distX = 2.
+			distY = 1.
 		}
 	}
 	if !Descent.FreeCam {
-		d.Player.CamPos = d.Transform.Pos
-		//dPos := d.Transform.Pos
-		//if d.Physics.IsMovingX() {
-		//	d.Player.CamTar.X = d.Physics.Velocity.X / d.Speed * world.TileSize * 4.
-		//}
-		//if d.Physics.IsMovingY() {
-		//	d.Player.CamTar.Y = d.Physics.Velocity.Y / d.Speed * world.TileSize * 4.
-		//} else if d.Player.Input.Get("up").Pressed() && !d.Player.Input.Get("down").Pressed() {
-		//	d.Player.CamTar.Y = world.TileSize * 4.
-		//} else if !d.Player.Input.Get("up").Pressed() && d.Player.Input.Get("down").Pressed() {
-		//	d.Player.CamTar.Y = world.TileSize * -4.
-		//} else {
-		//	d.Player.CamTar.Y = 0.
-		//}
-		//d.Player.CamPos.X = 10. * timing.DT * (dPos.X - d.Player.CamTar.X)
-		//d.Player.CamPos.Y = 10. * timing.DT * (dPos.Y - d.Player.CamTar.Y)
+		//d.Player.CamPos = d.Transform.Pos
+		d.Player.CamPos.X += timing.DT * d.Player.CamVel.X
+		d.Player.CamPos.Y += timing.DT * d.Player.CamVel.Y
 
 		// make sure it still stays with the Dwarf
-		//dist := world.TileSize * 5.
-		//if d.Player.CamPos.X >= dPos.X +dist {
-		//	d.Player.CamPos.X = dPos.X + dist
-		//} else if d.Player.CamPos.X <= dPos.X-dist {
-		//	d.Player.CamPos.X = dPos.X - dist
-		//}
-		//if d.Player.CamPos.Y >= dPos.Y +dist {
-		//	d.Player.CamPos.Y = dPos.Y + dist
-		//} else if d.Player.CamPos.Y <= dPos.Y-dist {
-		//	d.Player.CamPos.Y = dPos.Y - dist
-		//}
+		distX *= world.TileSize
+		distY *= world.TileSize
+		dPos := d.Transform.Pos
+		if d.Player.CamPos.X >= dPos.X + distX {
+			d.Player.CamPos.X = dPos.X + distX
+		} else if d.Player.CamPos.X <= dPos.X - distX {
+			d.Player.CamPos.X = dPos.X - distX
+		}
+		if d.Player.CamPos.Y >= dPos.Y + distY {
+			d.Player.CamPos.Y = dPos.Y + distY
+		} else if d.Player.CamPos.Y <= dPos.Y - distY {
+			d.Player.CamPos.Y = dPos.Y - distY
+		}
 		//bl, tr := Descent.GetCave().CurrentBoundaries()
 		//ratio := camera.Cam.Height / constants.BaseH
 		//bl.X += camera.Cam.Width * 0.5 / ratio * camera.Cam.GetZoomScale()

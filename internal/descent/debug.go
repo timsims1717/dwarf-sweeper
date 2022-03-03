@@ -17,6 +17,9 @@ func Debug(in *input.Input) {
 		for i, p := range Descent.GetPlayers() {
 			debug.AddText(fmt.Sprintf("P%d canvas pos: (%d,%d)", i+1, int(p.Player.CanvasPos.X), int(p.Player.CanvasPos.Y)))
 			debug.AddText(fmt.Sprintf("P%d cam pos: (%d,%d)", i+1, int(p.Player.CamPos.X), int(p.Player.CamPos.Y)))
+			debug.AddText(fmt.Sprintf("P%d cam target: (%d,%d)", i+1, int(p.Player.CamTar.X), int(p.Player.CamTar.Y)))
+			debug.AddText(fmt.Sprintf("P%d cam vel: (%d,%d)", i+1, int(p.Player.CamVel.X), int(p.Player.CamVel.Y)))
+			debug.AddText(fmt.Sprintf("P%d cam rel X: %d", i+1, int(p.Player.RelX)))
 		}
 		if d.Hovered != nil {
 			debug.AddText(fmt.Sprintf("chunk coords: (%d,%d)", d.Hovered.Chunk.Coords.X, d.Hovered.Chunk.Coords.Y))

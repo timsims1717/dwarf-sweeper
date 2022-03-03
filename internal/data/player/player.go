@@ -12,9 +12,11 @@ type Player struct {
 	Attr      Attributes
 	Stats     Stats
 	Canvas    *pixelgl.Canvas
-	CamPos    pixel.Vec
 	CanvasPos pixel.Vec
+	CamPos    pixel.Vec
+	RelX      float64
 	CamTar    pixel.Vec
+	CamVel    pixel.Vec
 	Input     *input.Input
 	Inventory *Inventory
 	Puzzle    puzzles.Puzzle

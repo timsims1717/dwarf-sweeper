@@ -251,8 +251,7 @@ func (s *descentState) Descend() {
 		} else {
 			pos.X += world.TileSize * float64((i+1)/2)
 		}
-		d.Transform.Pos = pos
-		d.Player.CamPos = pos
+		d.SetStart(pos)
 	}
 }
 

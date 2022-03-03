@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
@@ -144,8 +145,11 @@ func Update(win *pixelgl.Window) {
 			OpenMenu(DebugMenu)
 		}
 		if debugInput.Get("debugTest").JustPressed() {
+			//if len(descent.Descent.GetPlayers()) > 0 {
+			//	descent.CreateXRayItem(descent.Descent.GetPlayers()[0].Transform.Pos)
+			//}
 			if len(descent.Descent.GetPlayers()) > 0 {
-				descent.CreateXRayItem(descent.Descent.GetPlayers()[0].Transform.Pos)
+				particles.CreateRandomStaticParticles(1, 1, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, descent.Descent.GetPlayers()[0].Transform.Pos, 10.0, 15.0, 0.5)
 			}
 		}
 		if debugInput.Get("debugSP").JustPressed() {

@@ -40,6 +40,7 @@ var (
 	ShovelKnockback = 8.
 	ShovelDazed     = 2.
 	ShovelDamage    = 0
+	AirDigs         = 2
 )
 
 type DwarfStats struct {
@@ -49,6 +50,7 @@ type DwarfStats struct {
 	ShovelKnockback float64
 	ShovelDazed     float64
 	ShovelDamage    int
+	AirDigs         int
 }
 
 func DefaultStats() DwarfStats {
@@ -59,6 +61,7 @@ func DefaultStats() DwarfStats {
 		ShovelKnockback: ShovelKnockback,
 		ShovelDazed:     ShovelDazed,
 		ShovelDamage:    ShovelDamage,
+		AirDigs:         AirDigs,
 	}
 }
 
@@ -104,7 +107,7 @@ type Dwarf struct {
 	attacking bool
 	flagging  bool
 	climbing  bool
-	airDig    bool
+	airDig    int
 	digHold   bool
 	flagHold  bool
 
@@ -128,6 +131,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 			Immune:     data.ShovelImmunity,
 		},
 		Player: p,
+		relative: pixel.V(world.TileSize, 0.),
 	}
 	batcher := img.Batchers[constants.DwarfKey]
 	climbAnim := batcher.GetAnimation("climb")
@@ -327,10 +331,21 @@ func NewDwarf(p *player.Player) *Dwarf {
 	return d
 }
 
+func (d *Dwarf) SetStart(pos pixel.Vec) {
+	d.Transform.Pos = pos
+	d.Player.CamPos = pos
+	hPos := pos
+	hPos.X += world.TileSize
+	d.Hovered = Descent.Cave.GetTile(hPos)
+	d.isRelative = true
+}
+
 func (d *Dwarf) Update(in *input.Input) {
+	cameraMoveX := false
+	cameraMoveY := false
 	d.angleTimer.Update()
 	if d.Physics.Grounded || d.climbing || d.Bubble != nil {
-		d.airDig = false
+		d.airDig = 0
 	}
 	if d.Health.Dazed || d.Health.Dead {
 		if d.Bubble != nil {
@@ -424,10 +439,13 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.Hovered = Descent.GetCave().GetTile(p)
 			d.facingTimer = timing.New(FacingSec)
 		}
-		if d.Hovered != nil && !d.airDig && len(d.tileQueue) < 3 {
+		if d.Hovered != nil && d.airDig < d.AirDigs && len(d.tileQueue) < 3 {
 			d.SelectLegal = math.Abs(d.Transform.Pos.X-d.Hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.Hovered.Transform.Pos.Y) < world.TileSize*DigRange
 			facing := pixel.ZV
 			if (in.Get("dig").JustPressed() && !in.DigOnRelease) || (in.Get("dig").JustReleased() && in.DigOnRelease) {
+				if !d.Physics.Grounded && d.airDig < d.AirDigs && d.Bubble == nil {
+					d.airDig++
+				}
 				angle := d.Transform.Pos.Sub(d.Hovered.Transform.Pos).Angle()
 				if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
 					facing.X = 1
@@ -465,6 +483,9 @@ func (d *Dwarf) Update(in *input.Input) {
 					})
 				}
 			} else if ((in.Get("flag").JustPressed() && !in.DigOnRelease) || (in.Get("flag").JustReleased() && in.DigOnRelease)) && d.Hovered.Solid() && d.SelectLegal {
+				if !d.Physics.Grounded && d.airDig < d.AirDigs && d.Bubble == nil {
+					d.airDig++
+				}
 				d.tileQueue = append(d.tileQueue, struct {
 					a int
 					t *cave.Tile
@@ -543,22 +564,35 @@ func (d *Dwarf) Update(in *input.Input) {
 			}
 		} else {
 			if d.digging || d.attacking || d.flagging {
-				if !d.Physics.Grounded && !d.airDig && d.Bubble == nil {
-					d.airDig = true
-				}
 				d.Physics.CancelMovement()
 			} else if d.Bubble != nil {
 				if in.Get("left").Pressed() && !in.Get("right").Pressed() {
 					d.faceLeft = true
 					d.Bubble.Physics.SetVelX(-BubbleVel, BubbleAcc)
+					if !d.Physics.LeftBound {
+						d.Player.CamVel.X = math.Max(d.Player.CamVel.X-10., -100.)
+						cameraMoveX = true
+					}
 				} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
 					d.faceLeft = false
 					d.Bubble.Physics.SetVelX(BubbleVel, BubbleAcc)
+					if !d.Physics.RightBound {
+						d.Player.CamVel.X = math.Min(d.Player.CamVel.X+10., 100.)
+						cameraMoveX = true
+					}
 				}
 				if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 					d.Bubble.Physics.SetVelY(BubbleVel, BubbleAcc)
+					if !d.Physics.TopBound {
+						d.Player.CamVel.Y = math.Min(d.Player.CamVel.Y+10., 100.)
+						cameraMoveY = true
+					}
 				} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
 					d.Bubble.Physics.SetVelY(-BubbleVel, BubbleAcc)
+					if !d.Physics.BottomBound {
+						d.Player.CamVel.Y = math.Max(d.Player.CamVel.Y-10., -100.)
+						cameraMoveY = true
+					}
 				}
 				d.walking = false
 				d.jumping = false
@@ -582,12 +616,20 @@ func (d *Dwarf) Update(in *input.Input) {
 					} else {
 						d.Physics.SetVelX(-d.Speed, AirAcceleration)
 					}
+					if !d.Physics.LeftBound {
+						d.Player.CamVel.X = math.Max(d.Player.CamVel.X-10., -100.)
+						cameraMoveX = true
+					}
 				case 2:
 					if d.Physics.Grounded {
 						d.faceLeft = false
 						d.Physics.SetVelX(d.Speed, GroundAcceleration)
 					} else {
 						d.Physics.SetVelX(d.Speed, AirAcceleration)
+					}
+					if !d.Physics.RightBound {
+						d.Player.CamVel.X = math.Min(d.Player.CamVel.X+10., 100.)
+						cameraMoveX = true
 					}
 				}
 				// Ground test, considered on the ground for jumping purposes until half a tile out
@@ -651,10 +693,12 @@ func (d *Dwarf) Update(in *input.Input) {
 					if math.Abs(d.Physics.Velocity.X) < 20.0 {
 						if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 							d.distFell = 0.
-							//camera.Cam.Up()
+							d.Player.CamVel.Y = math.Min(d.Player.CamVel.Y + 10., 100.)
+							cameraMoveY = true
 						} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
 							d.distFell = 0.
-							//camera.Cam.Down()
+							d.Player.CamVel.Y = math.Max(d.Player.CamVel.Y - 10., -100.)
+							cameraMoveY = true
 						}
 						d.walking = false
 						d.climbing = false
@@ -721,6 +765,32 @@ func (d *Dwarf) Update(in *input.Input) {
 		d.faceLeft = true
 	} else if d.facing.X > 0 && (d.digHold || d.flagHold || d.digging || d.flagging || d.attacking) {
 		d.faceLeft = false
+	}
+	if !cameraMoveX {
+		if d.Player.CamVel.X > 0. {
+			d.Player.CamVel.X -= 10.
+			if d.Player.CamVel.X < 0. {
+				d.Player.CamVel.X = 0.
+			}
+		} else if d.Player.CamVel.X < 0. {
+			d.Player.CamVel.X += 10.
+			if d.Player.CamVel.X > 0. {
+				d.Player.CamVel.X = 0.
+			}
+		}
+	}
+	if !cameraMoveY {
+		if d.Player.CamVel.Y > 0. {
+			d.Player.CamVel.Y -= 10.
+			if d.Player.CamVel.Y < 0. {
+				d.Player.CamVel.Y = 0.
+			}
+		} else if d.Player.CamVel.Y < 0. {
+			d.Player.CamVel.Y += 10.
+			if d.Player.CamVel.Y > 0. {
+				d.Player.CamVel.Y = 0.
+			}
+		}
 	}
 	d.Transform.Flip = d.faceLeft
 }
