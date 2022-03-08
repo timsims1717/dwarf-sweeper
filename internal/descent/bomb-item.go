@@ -51,6 +51,7 @@ func CreateBombItem(pos pixel.Vec) {
 		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
 			if hp.Dead {
 				CreateBomb(trans.Pos)
+				myecs.Manager.DisposeEntity(e)
 			}
 			return false
 		}))

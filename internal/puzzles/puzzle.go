@@ -10,10 +10,14 @@ type Puzzle interface {
 	Create(*camera.Camera, int)
 	IsOpen() bool
 	IsClosed() bool
-	Open()
+	Open(string)
 	Close()
 	Update(*input.Input)
 	Draw(pixel.Target)
 	Solved() bool
+	Failed() bool
 	OnSolve()
+	OnFail()
+	SetOnSolve(func())
+	SetOnFail(func())
 }

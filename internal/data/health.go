@@ -18,16 +18,16 @@ type Health struct {
 	Dead bool // convenience boolean (set if curr == 0)
 	Inv  bool // invulnerability override (debugging, etc)
 	// entity can have temporary hit points
-	TempHP      int                // the current amount of temp HP
-	TempHPTimer *timing.FrameTimer // the timer
+	TempHP      int           // the current amount of temp HP
+	TempHPTimer *timing.Timer // the timer
 	// entity can be dazed by attacks
-	Dazed       bool               // convenience boolean
-	DazedTime   float64            // how long will the entity be dazed? If 0., use the dazed value of the attack
-	DazedTimer  *timing.FrameTimer // the timer
-	DazedEntity *ecs.Entity        // the vfx entity
+	Dazed       bool          // convenience boolean
+	DazedTime   float64       // how long will the entity be dazed? If 0., use the dazed value of the attack
+	DazedTimer  *timing.Timer // the timer
+	DazedEntity *ecs.Entity   // the vfx entity
 	// entity can be invulnerable after receiving damage
-	TempInvTimer *timing.FrameTimer // the timer
-	TempInvSec   float64            // how long (0. would mean no invulnerable frames)
+	TempInvTimer *timing.Timer // the timer
+	TempInvSec   float64       // how long (0. would mean no invulnerable frames)
 	// entity can be immune to different types of damage
 	Immune map[DamageType]Immunity // which damage types is the entity immune to?
 }

@@ -12,8 +12,8 @@ type VFX struct {
 }
 
 type Blink struct {
-	Timer      *timing.FrameTimer
-	BlinkTimer *timing.FrameTimer
+	Timer      *timing.Timer
+	BlinkTimer *timing.Timer
 	Blink      bool
 }
 

@@ -300,6 +300,16 @@
    "y": 64
   },
   {
+   "key": "bomb_high_yield",
+   "x": 0,
+   "y": 80
+  },
+  {
+   "key": "bomb_high_yield_burst",
+   "x": 16,
+   "y": 80
+  },
+  {
    "key": "gem_diamond",
    "x": 1,
    "y": 51,

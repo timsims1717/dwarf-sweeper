@@ -21,6 +21,7 @@ type Cave struct {
 	Type        CaveType
 	Biome       string
 	Biomes      []string
+	Level       int
 
 	Left   int
 	Right  int

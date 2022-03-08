@@ -81,7 +81,7 @@ type Tile struct {
 	XRay       string
 	Bomb       bool
 	Destroyed  bool
-	revealT    *timing.FrameTimer
+	revealT    *timing.Timer
 	revealing  bool
 	destroying bool
 	destroyer  *player.Player
@@ -199,6 +199,7 @@ func (tile *Tile) destroy() {
 		wasSolid := tile.Solid()
 		tile.Chunk.Cave.UpdateBatch = true
 		tile.destroying = false
+		wasType := tile.Type
 		tile.Type = Empty
 		ns := tile.SubCoords.Neighbors()
 		c := 0
@@ -215,8 +216,10 @@ func (tile *Tile) destroy() {
 			tile.Destroyed = true
 		} else if c == 0 {
 			tile.Destroyed = true
-			for _, n := range ns {
-				tile.Chunk.Get(n).ToReveal()
+			if wasType == BlockCollapse {
+				for _, n := range ns {
+					tile.Chunk.Get(n).ToReveal()
+				}
 			}
 		}
 		if wasSolid {
@@ -236,6 +239,7 @@ func (tile *Tile) Reveal(instant bool) {
 	if tile != nil && !tile.Bomb && tile.Solid() && tile.Breakable() && tile.Type == BlockCollapse {
 		tile.Chunk.Cave.UpdateBatch = true
 		tile.revealing = false
+		wasType := tile.Type
 		tile.Type = Empty
 		ns := tile.SubCoords.Neighbors()
 		c := 0
@@ -250,10 +254,12 @@ func (tile *Tile) Reveal(instant bool) {
 		if c == 0 {
 			tile.Destroyed = true
 			for _, n := range ns {
-				if instant {
-					tile.Chunk.Get(n).Reveal(true)
-				} else {
-					tile.Chunk.Get(n).ToReveal()
+				if wasType == BlockCollapse {
+					if instant {
+						tile.Chunk.Get(n).Reveal(true)
+					} else {
+						tile.Chunk.Get(n).ToReveal()
+					}
 				}
 			}
 		}

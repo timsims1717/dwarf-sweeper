@@ -7,11 +7,11 @@ func BombLevel(level int) (float64, float64) {
 		bombPMin += 0.02
 		bombPMax += 0.02
 	}
-	if bombPMin > 0.3 {
-		bombPMin = 0.3
+	if bombPMin > 0.2 {
+		bombPMin = 0.2
 	}
-	if bombPMax > 0.4 {
-		bombPMax = 0.4
+	if bombPMax > 0.3 {
+		bombPMax = 0.3
 	}
 	return bombPMin, bombPMax
 }

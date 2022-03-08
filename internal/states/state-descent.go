@@ -34,7 +34,7 @@ type descentState struct {
 	*state.AbstractState
 	numPlayers  int
 	gameOver    bool
-	deathTimer  *timing.FrameTimer
+	deathTimer  *timing.Timer
 	start       bool
 	PausePlayer *player.Player
 }
@@ -52,6 +52,7 @@ func (s *descentState) Load(done chan struct{}) {
 	}
 	s.deathTimer = nil
 	systems.ClearSystem()
+	sfx.SoundPlayer.KillAll()
 	systems.DeleteAllEntities()
 
 	s.Descend()
@@ -236,7 +237,7 @@ func (s *descentState) Descend() {
 		descent.Descent.CurrDepth++
 	}
 	descent.Descent.Builder = &descent.Descent.Builders[descent.Descent.CurrDepth][0]
-	descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, descent.Descent.CurrDepth*descent.Descent.Difficulty))
+	descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, (descent.Descent.CurrDepth+1)*descent.Descent.Difficulty))
 	if len(descent.Descent.Builder.Tracks) > 0 {
 		sfx.MusicPlayer.ChooseNextTrack(constants.GameMusic, descent.Descent.Builder.Tracks)
 	} else {

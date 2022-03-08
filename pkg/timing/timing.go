@@ -37,21 +37,21 @@ func Update() {
 	}
 }
 
-type FrameTimer struct {
+type Timer struct {
 	start   time.Time
 	sec     float64
 	elapsed float64
 }
 
-func New(sec float64) *FrameTimer {
-	return &FrameTimer{
+func New(sec float64) *Timer {
+	return &Timer{
 		start:   time.Now(),
 		sec:     sec,
 		elapsed: 0.,
 	}
 }
 
-func (f *FrameTimer) UpdateDone() bool {
+func (f *Timer) UpdateDone() bool {
 	if f == nil {
 		return true
 	}
@@ -59,32 +59,32 @@ func (f *FrameTimer) UpdateDone() bool {
 	return f.Done()
 }
 
-func (f *FrameTimer) Update() {
+func (f *Timer) Update() {
 	if f == nil {
 		return
 	}
 	f.elapsed += DT
 }
 
-func (f *FrameTimer) Done() bool {
+func (f *Timer) Done() bool {
 	if f == nil {
 		return true
 	}
 	return f.elapsed >= f.sec
 }
 
-func (f *FrameTimer) Elapsed() float64 {
+func (f *Timer) Elapsed() float64 {
 	if f == nil {
 		return 0.
 	}
 	return f.elapsed
 }
 
-func (f *FrameTimer) Sec() float64 {
+func (f *Timer) Sec() float64 {
 	return f.sec
 }
 
-func (f *FrameTimer) Perc() float64 {
+func (f *Timer) Perc() float64 {
 	if f == nil {
 		return 1.
 	}
@@ -94,7 +94,7 @@ func (f *FrameTimer) Perc() float64 {
 	return math.Min(f.elapsed/f.sec, 1.)
 }
 
-func (f *FrameTimer) Reset() {
+func (f *Timer) Reset() {
 	f.start = time.Now()
 	f.elapsed = 0.
 }

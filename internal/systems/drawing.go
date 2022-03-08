@@ -25,7 +25,9 @@ func DrawSystem() {
 		bkey, okB := result.Components[myecs.Batch].(string)
 		if okT && okB && tran.Load {
 			if batcher, ok := img.Batchers[bkey]; ok {
-				if spr, okS := draw.(*pixel.Sprite); okS {
+				if sprStr, okSS := draw.(string); okSS {
+					batcher.DrawSpriteColor(sprStr, tran.Mat, tran.Mask)
+				} else if spr, okS := draw.(*pixel.Sprite); okS {
 					spr.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)
 				} else if anim, okA := draw.(*reanimator.Tree); okA {
 					anim.DrawColorMask(batcher.Batch(), tran.Mat, tran.Mask)

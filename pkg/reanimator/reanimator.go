@@ -244,3 +244,13 @@ func (anim *Anim) SetTrigger(i int, fn func(*Anim, string, int)) *Anim {
 	anim.Triggers[i] = fn
 	return anim
 }
+
+func (anim *Anim) Copy() *Anim {
+	return &Anim{
+		Key:      anim.Key,
+		S:        anim.S,
+		Step:     anim.Step,
+		Finish:   anim.Finish,
+		Triggers: anim.Triggers,
+	}
+}

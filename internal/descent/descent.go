@@ -1,7 +1,7 @@
 package descent
 
 import (
-	player2 "dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
@@ -42,7 +42,7 @@ type descent struct {
 	CoordsMap    map[string]world.Coords
 
 	Builders [][]builder.CaveBuilder
-	Timer    *timing.FrameTimer
+	Timer    *timing.Timer
 }
 
 func New() {
@@ -83,7 +83,7 @@ func Update() {
 		Descent.Cave.Update()
 		switch Descent.Type {
 		case cave.Minesweeper:
-			Descent.canExit = player2.OverallStats.CaveBombsFlagged == player2.CaveBombsLeft && player2.OverallStats.CaveWrongFlags < 1
+			Descent.canExit = (player.OverallStats.CaveBombsFlagged == player.CaveBombsLeft && player.OverallStats.CaveWrongFlags < 1) || Descent.GetPlayers()[0].Health.Inv
 			Descent.ExitPop.SetText("Flag all the remaining bombs to exit.")
 		default:
 			Descent.canExit = true

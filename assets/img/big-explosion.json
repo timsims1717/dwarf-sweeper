@@ -1,0 +1,44 @@
+{
+ "img": "big-explosion.png",
+ "height": 80,
+ "width": 80,
+ "singleRow": true,
+ "sprites": [
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  }
+ ]
+}

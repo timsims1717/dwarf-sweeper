@@ -28,13 +28,14 @@ func NewAsyncCave(build *builder.CaveBuilder, level int, signal chan bool) *cave
 		build.Biome = biome
 	}
 	c := cave.NewCave(build.Biome, build.Type)
+	c.Level = level
 	left := 0
 	right := util.Max(build.Width - 1, 2)
 	bottom := util.Max(build.Height - 1, 2)
 	c.SetSize(left, right, bottom)
 	c.BombPMin, c.BombPMax = BombLevel(level)
 	structures.CreateChunks(c, cave.BlockBlast)
-	go newCave(build, c, level, signal)
+	go newCave(build, c, signal)
 	return c
 }
 
@@ -49,20 +50,21 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 		build.Biome = biome
 	}
 	c := cave.NewCave(build.Biome, build.Type)
+	c.Level = level
 	left := 0
 	right := util.Max(build.Width - 1, 2)
 	bottom := util.Max(build.Height - 1, 2)
 	c.SetSize(left, right, bottom)
 	c.BombPMin, c.BombPMax = BombLevel(level)
 	structures.CreateChunks(c, cave.BlockBlast)
-	newCave(build, c, level, nil)
+	newCave(build, c, nil)
 	return c
 }
 
-func newCave(build *builder.CaveBuilder, c *cave.Cave, level int, signal chan bool) {
+func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 	switch build.Base {
 	case builder.Roomy:
-		RoomyCave(c, level, signal)
+		RoomyCave(c, c.Level, signal)
 	case builder.Blob:
 		BlobCave(c, signal)
 		// entrance (will be moved outside base later)
@@ -99,13 +101,13 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, level int, signal chan bo
 			}
 		}
 	case builder.Maze:
-		RoomyCave(c, level, signal)
+		RoomyCave(c, c.Level, signal)
 	case builder.Custom:
 		switch build.Key {
 		case "gnomeBoss":
-			boss.GnomeBoss(c, level)
+			boss.GnomeBoss(c, c.Level)
 		case "minesweeper":
-			MinesweeperCave(c, level)
+			MinesweeperCave(c, c.Level)
 		}
 	}
 	for _, s := range build.Structures {
@@ -155,7 +157,7 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, level int, signal chan bo
 					structures.Stairs(c, tile.RCoords, random.CaveGen.Intn(2) == 0, random.CaveGen.Intn(2) == 0, 0, 0)
 				case "bigBomb":
 					fmt.Printf("Bomb should be here: (%d,%d)\n", tile.RCoords.X, tile.RCoords.Y)
-					structures.BombRoom(c, 4, 7, 7, 11, 3, level, tile.RCoords)
+					structures.BombRoom(c, 4, 7, 7, 11, 3, c.Level, tile.RCoords)
 				}
 				if signal != nil {
 					signal <- false

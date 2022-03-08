@@ -27,13 +27,13 @@ type HUD struct {
 
 	MaxHP     int
 	DisplayHP bool
-	HPTimer   *timing.FrameTimer
+	HPTimer   *timing.Timer
 	HPTrans   []*transform.Transform
 	TempAnim  *reanimator.Tree
 
 	LastGem    int
 	DisplayGem bool
-	GemTimer   *timing.FrameTimer
+	GemTimer   *timing.Timer
 	GemTrans   *transform.Transform
 	GemText    *typeface.Text
 

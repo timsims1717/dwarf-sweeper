@@ -14,11 +14,13 @@ func UpdatePlayer(d *Dwarf) {
 		if d.Player.Puzzle.IsClosed() {
 			if d.Player.Puzzle.Solved() {
 				d.Player.Puzzle.OnSolve()
+			} else if d.Player.Puzzle.Failed() {
+				d.Player.Puzzle.OnFail()
 			}
 			d.Player.Puzzle = nil
 		} else {
 			d.Player.Puzzle.Update(d.Player.Input)
-			if d.Player.Puzzle.Solved() && d.Player.Puzzle.IsOpen() {
+			if d.Player.Puzzle.IsOpen() && (d.Player.Puzzle.Solved() || d.Player.Puzzle.Failed()) {
 				d.Player.Puzzle.Close()
 			}
 		}

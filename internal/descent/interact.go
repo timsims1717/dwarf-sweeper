@@ -25,5 +25,5 @@ type Collectible struct {
 	Sprite      *pixel.Sprite
 	Collected   bool
 	AutoCollect bool
-	Timer       *timing.FrameTimer
+	Timer       *timing.Timer
 }

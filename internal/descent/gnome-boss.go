@@ -64,8 +64,8 @@ type GnomeBoss struct {
 	Charge   bool
 	faceLeft bool
 
-	emergeTimer *timing.FrameTimer
-	sfxTimer    *timing.FrameTimer
+	emergeTimer *timing.Timer
+	sfxTimer    *timing.Timer
 	currLayer   int
 	onDamageFn  func()
 	onFleeFn    func()

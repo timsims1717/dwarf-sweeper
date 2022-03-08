@@ -25,6 +25,11 @@ func Sprites() {
 		panic(err)
 	}
 	img.AddBatcher(constants.TileEntityKey, tileEntitySheet, true, true)
+	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.DwarfKey, dwarfSheet, true, true)
 	bigEntitySheet, err := img.LoadSpriteSheet("assets/img/big-entities.json")
 	if err != nil {
 		panic(err)
@@ -35,11 +40,6 @@ func Sprites() {
 		panic(err)
 	}
 	img.AddBatcher(constants.EntityKey, entitySheet, true, true)
-	dwarfSheet, err := img.LoadSpriteSheet("assets/img/dwarf.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(constants.DwarfKey, dwarfSheet, true, true)
 
 	// Cave Foregrounds
 	darkSheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
@@ -59,6 +59,16 @@ func Sprites() {
 		panic(err)
 	}
 	img.AddBatcher(constants.ParticleKey, partSheet, true, true)
+	hugeExpSheet, err := img.LoadSpriteSheet("assets/img/huge-explosion.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.HugeExpKey, hugeExpSheet, true, true)
+	bigExpSheet, err := img.LoadSpriteSheet("assets/img/big-explosion.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(constants.BigExpKey, bigExpSheet, true, true)
 	expSheet, err := img.LoadSpriteSheet("assets/img/explosion.json")
 	if err != nil {
 		panic(err)

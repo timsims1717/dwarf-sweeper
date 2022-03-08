@@ -78,9 +78,9 @@ type Dwarf struct {
 	faceLeft   bool
 
 	SelectLegal bool
-	selectTimer *timing.FrameTimer
-	angleTimer  *timing.FrameTimer
-	facingTimer *timing.FrameTimer
+	selectTimer *timing.Timer
+	angleTimer  *timing.Timer
+	facingTimer *timing.Timer
 
 	facing      pixel.Vec
 	Hovered     *cave.Tile
@@ -98,7 +98,7 @@ type Dwarf struct {
 	jumping    bool
 	jumpOrigY  float64
 	jumpTarget float64
-	jumpTimer  *timing.FrameTimer
+	jumpTimer  *timing.Timer
 	toJump     bool
 	jumpEnd    bool
 	distFell   float64

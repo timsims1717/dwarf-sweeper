@@ -6,6 +6,7 @@ import (
 	"golang.org/x/image/colornames"
 	"image/color"
 	"math"
+	"math/rand"
 )
 
 type Alignment int
@@ -44,6 +45,10 @@ type Transform struct {
 
 	UIPos  pixel.Vec
 	UIZoom float64
+
+	Shaking bool
+	ShakeI  int
+	ShakeE  int
 }
 
 func New() *Transform {
@@ -62,6 +67,25 @@ func (t *Transform) Update() {
 	t.APos = t.Pos
 	t.APos.X += t.Offset.X
 	t.APos.Y += t.Offset.Y
+	if t.Shaking {
+		switch t.ShakeI {
+		case 0,1,7:
+			t.APos.Y += 1.
+		case 3,4,5:
+			t.APos.Y -= 1.
+		}
+		switch t.ShakeI {
+		case 1,2,3:
+			t.APos.X += 1.
+		case 5,6,7:
+			t.APos.X -= 1.
+		}
+		t.ShakeI++
+		t.ShakeI %= 8
+		if t.ShakeI == t.ShakeE {
+			t.Shaking = false
+		}
+	}
 	t.APos.X = math.Round(t.APos.X)
 	t.APos.Y = math.Round(t.APos.Y)
 	t.Mat = pixel.IM
@@ -76,4 +100,10 @@ func (t *Transform) Update() {
 	t.Mat = t.Mat.Rotated(pixel.ZV, math.Pi*t.Rot)
 	t.Mat = t.Mat.Moved(t.APos.Scaled(t.UIZoom))
 	t.Mat = t.Mat.Moved(t.UIPos)
+}
+
+func (t *Transform) Shake(rando *rand.Rand) {
+	t.Shaking = true
+	t.ShakeI = rando.Intn(8)
+	t.ShakeE = (t.ShakeI + 7) % 8
 }

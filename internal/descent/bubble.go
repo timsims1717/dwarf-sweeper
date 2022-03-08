@@ -27,7 +27,7 @@ type Bubble struct {
 	entity     *ecs.Entity
 	popped     bool
 	created    bool
-	Timer      *timing.FrameTimer
+	Timer      *timing.Timer
 }
 
 func (b *Bubble) Update() {

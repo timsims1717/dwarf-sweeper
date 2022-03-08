@@ -16,6 +16,25 @@ func TransformSystem() {
 				myecs.Manager.DisposeEntity(result)
 			} else {
 				tran.APos = tran.Pos.Add(tran.Offset)
+				if tran.Shaking {
+					switch tran.ShakeI {
+					case 0,1,7:
+						tran.APos.Y += 1.
+					case 3,4,5:
+						tran.APos.Y -= 1.
+					}
+					switch tran.ShakeI {
+					case 1,2,3:
+						tran.APos.X += 1.
+					case 5,6,7:
+						tran.APos.X -= 1.
+					}
+					tran.ShakeI++
+					tran.ShakeI %= 8
+					if tran.ShakeI == tran.ShakeE {
+						tran.Shaking = false
+					}
+				}
 				tran.APos.X = math.Round(tran.APos.X)
 				tran.APos.Y = math.Round(tran.APos.Y)
 				tran.Mat = pixel.IM

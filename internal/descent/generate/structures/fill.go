@@ -14,7 +14,12 @@ func BasicDestroy(p *player.Player, t *cave.Tile) {
 	}
 	gemRate := t.Chunk.Cave.GemRate*t.GemRate*pGemRate
 	if t.Bomb {
-		descent.CreateBomb(t.Transform.Pos)
+		hy := (descent.Descent.Cave.Level - 2) / 6 * 2
+		if random.Effects.Intn(100) < hy {
+			descent.CreateHighYieldBomb(t.Transform.Pos)
+		} else {
+			descent.CreateBomb(t.Transform.Pos)
+		}
 	} else if random.CaveGen.Float64() < gemRate {
 		descent.CreateGem(t.Transform.Pos)
 	}

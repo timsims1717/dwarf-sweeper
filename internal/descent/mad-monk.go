@@ -35,7 +35,7 @@ type MadMonk struct {
 	Health     *data.Health
 	faceLeft   bool
 	Attack     bool
-	AtkTimer   *timing.FrameTimer
+	AtkTimer   *timing.Timer
 }
 
 func (m *MadMonk) Update() {

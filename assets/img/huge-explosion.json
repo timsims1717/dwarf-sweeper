@@ -1,0 +1,96 @@
+{
+ "img": "huge-explosion.png",
+ "height": 256,
+ "width": 256,
+ "singleRow": true,
+ "sprites": [
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  },
+  {
+   "key": "explosion",
+   "anim": true
+  }
+ ]
+}

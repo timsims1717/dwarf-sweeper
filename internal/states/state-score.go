@@ -24,7 +24,7 @@ var (
 
 type scoreState struct {
 	*state.AbstractState
-	ScoreTimer *timing.FrameTimer
+	ScoreTimer *timing.Timer
 }
 
 func (s *scoreState) Unload() {

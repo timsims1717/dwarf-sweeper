@@ -276,6 +276,142 @@
       "y": 32,
       "h": 32,
       "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 128,
+      "y": 32,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 160,
+      "y": 32,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 192,
+      "y": 32,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 224,
+      "y": 32,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 0,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 32,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 64,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 96,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 128,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 160,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 192,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 224,
+      "y": 64,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 0,
+      "y": 96,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 32,
+      "y": 96,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 64,
+      "y": 96,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 96,
+      "y": 96,
+      "h": 32,
+      "w": 32
+    },
+    {
+      "key": "big_bomb_ignite",
+      "anim": true,
+      "x": 128,
+      "y": 96,
+      "h": 32,
+      "w": 32
     }
   ]
 }

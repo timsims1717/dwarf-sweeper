@@ -36,6 +36,7 @@ func DrawBatches(target pixel.Target) {
 }
 
 type Batcher struct {
+	Key        string
 	Index      int
 	Sprites    map[string]*pixel.Sprite
 	Animations map[string]*Animation
@@ -50,13 +51,14 @@ func AddBatcher(key string, sheet *SpriteSheet, autoDraw, autoClear bool) {
 		Batchers[key].AutoDraw = autoDraw
 		Batchers[key].AutoClear = autoClear
 	} else {
-		Batchers[key] = NewBatcher(sheet, autoDraw, autoClear)
+		Batchers[key] = NewBatcher(key, sheet, autoDraw, autoClear)
 		batchers = append(batchers, Batchers[key])
 	}
 }
 
-func NewBatcher(sheet *SpriteSheet, autoDraw, autoClear bool) *Batcher {
+func NewBatcher(key string, sheet *SpriteSheet, autoDraw, autoClear bool) *Batcher {
 	b := &Batcher{
+		Key:       key,
 		Index:     len(batchers),
 		AutoDraw:  autoDraw,
 		AutoClear: autoClear,
@@ -109,11 +111,19 @@ func (b *Batcher) Batch() *pixel.Batch {
 }
 
 func (b *Batcher) DrawSprite(key string, mat pixel.Matrix) {
-	b.Sprites[key].Draw(b.batch, mat)
+	if spr, ok := b.Sprites[key]; ok {
+		spr.Draw(b.batch, mat)
+	} else {
+		fmt.Printf("couldn't draw sprite '%s' with batch %s\n", key, b.Key)
+	}
 }
 
 func (b *Batcher) DrawSpriteColor(key string, mat pixel.Matrix, mask color.Color) {
-	b.Sprites[key].DrawColorMask(b.batch, mat, mask)
+	if spr, ok := b.Sprites[key]; ok {
+		spr.DrawColorMask(b.batch, mat, mask)
+	} else {
+		fmt.Printf("couldn't draw sprite '%s' with batch %s\n", key, b.Key)
+	}
 }
 
 func (b *Batcher) Draw(target pixel.Target) {

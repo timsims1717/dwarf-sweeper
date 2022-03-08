@@ -31,7 +31,7 @@ type menuState struct {
 	titleScale     float64
 	titleY         float64
 	pressAKey      *typeface.Text
-	pressAKeyTimer *timing.FrameTimer
+	pressAKeyTimer *timing.Timer
 }
 
 func (s *menuState) Unload() {
@@ -39,6 +39,7 @@ func (s *menuState) Unload() {
 }
 
 func (s *menuState) Load(done chan struct{}) {
+	sfx.SoundPlayer.KillAll()
 	descent.Descent.FreeCam = false
 	camera.Cam.SetZoom(4. / 3.)
 	s.pressAKey = typeface.New(camera.Cam, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1.0, constants.ActualMenuSize, 0., 0.)

@@ -18,7 +18,7 @@ type InvItem struct {
 	Limit  int
 	Using  bool
 	Sec    float64
-	Timer  *timing.FrameTimer
+	Timer  *timing.Timer
 }
 
 func (i *Inventory) Update() {

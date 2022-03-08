@@ -81,8 +81,8 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	player.CaveBombsLeft = chal.Mines
 	structures.CreateChunks(c, cave.Wall)
 	structures.Outline(c, pathS, outline(chal))
-	structures.Entrance(c, c.StartC, 5, 3, 0, false)
-	structures.Entrance(c, exitC, 5, 3, 0, true)
+	structures.Entrance(c, c.StartC, 5, 2, 0, false)
+	structures.Entrance(c, exitC, 5, 2, 0, true)
 	for x := c.StartC.X + 1; x < c.ExitC.X; x++ {
 		tile := c.GetTileInt(x, c.StartC.Y)
 		structures.ToBlock(tile, cave.BlockCollapse, false, true)

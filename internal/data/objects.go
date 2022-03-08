@@ -42,7 +42,7 @@ func NewCollider(hitbox pixel.Rect, groundOnly, canPass bool) *Collider {
 }
 
 type TimerFunc struct {
-	Timer *timing.FrameTimer
+	Timer *timing.Timer
 	Func  func() bool
 }
 

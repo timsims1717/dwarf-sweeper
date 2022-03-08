@@ -11,7 +11,7 @@ func TemporarySystem() {
 		temp := result.Components[myecs.Temp]
 		trans, okT := result.Components[myecs.Transform].(*transform.Transform)
 		if okT {
-			if timer, ok := temp.(*timing.FrameTimer); ok {
+			if timer, ok := temp.(*timing.Timer); ok {
 				if timer.UpdateDone() {
 					trans.Hide = true
 					trans.Dead = true

@@ -63,8 +63,8 @@ type Popper struct {
 	popFrame    int
 	rootPos     pixel.Vec
 	poppedPos   pixel.Vec
-	effectTimer *timing.FrameTimer
-	fireTimer   *timing.FrameTimer
+	effectTimer *timing.Timer
+	fireTimer   *timing.Timer
 }
 
 func (p *Popper) Update() {

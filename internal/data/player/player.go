@@ -37,6 +37,6 @@ func (p *Player) StartPuzzle(puzz puzzles.Puzzle) bool {
 		return false
 	}
 	p.Puzzle = puzz
-	p.Puzzle.Open()
+	p.Puzzle.Open(p.Code)
 	return true
 }

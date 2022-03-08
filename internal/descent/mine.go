@@ -27,12 +27,15 @@ func CreateMine(pos pixel.Vec) {
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran).
+			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+				sfx.SoundPlayer.PlaySound("doubleblast", 0.0)
+			}).
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
 					player2.CaveBombsLeft--
 					tile := Descent.GetCave().GetTile(trans.Pos)
-					for _, n := range tile.SubCoords.Neighbors() {
-						t := tile.Chunk.Get(n)
+					for _, n := range tile.RCoords.Neighbors() {
+						t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
 						t.Destroy(nil, false)
 					}
 					myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
@@ -45,7 +48,6 @@ func CreateMine(pos pixel.Vec) {
 						KnockbackDecay: true,
 					})
 					particles.CreateSmallExplosion(trans.Pos)
-					sfx.SoundPlayer.PlaySound("blast1", 0.0)
 					//camera.Cam.Shake(0.5, 10.)
 					myecs.Manager.DisposeEntity(e)
 					return false
@@ -71,7 +73,7 @@ func CreateMine(pos pixel.Vec) {
 
 //type Mine struct {
 //	Transform  *transform.Transform
-//	Timer      *timing.FrameTimer
+//	Timer      *timing.Timer
 //	Tile       *cave.Tile
 //	created    bool
 //	explode    bool
