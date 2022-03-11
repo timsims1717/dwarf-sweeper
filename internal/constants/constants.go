@@ -8,8 +8,8 @@ import (
 const (
 	Title   = "DwarfSweeper"
 	Release = 0
-	Version = 3
-	Build   = 20220221
+	Version = 4
+	Build   = 20220310
 	BaseW   = 320.
 	BaseH   = 240.
 
