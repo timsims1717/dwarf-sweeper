@@ -36,7 +36,7 @@ func NewItem(key, raw string, right bool) *Item {
 	if right {
 		align = typeface.Right
 	}
-	tex := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Align(align), typeface.Bottom), 1.5, constants.ActualMenuSize, 0., 0.)
+	tex := typeface.New(&camera.Cam.APos, "main", typeface.NewAlign(typeface.Align(align), typeface.Bottom), 1.5, constants.ActualMenuSize, 0., 0.)
 	tex.SetColor(constants.DefaultColor)
 	tex.SetText(raw)
 	return &Item{

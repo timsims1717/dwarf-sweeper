@@ -2,7 +2,6 @@ package menubox
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
@@ -19,8 +18,9 @@ const (
 )
 
 const (
-	VStep = 150.
-	HStep = 200.
+	VStep = 250.
+	HStep = 300.
+	stretch = 0.25
 )
 
 var (
@@ -54,9 +54,9 @@ type MenuBox struct {
 	EntryT   *transform.Transform
 	EntryDir EntryDir
 
-	Rect  pixel.Rect
-	Scale float64
-	Cam   *camera.Camera
+	Rect   pixel.Rect
+	Scale  float64
+	Parent *pixel.Vec
 
 	closed  bool
 	closing bool
@@ -65,7 +65,7 @@ type MenuBox struct {
 	StepH   float64
 }
 
-func NewBox(cam *camera.Camera, scale float64) *MenuBox {
+func NewBox(parent *pixel.Vec, scale float64) *MenuBox {
 	Center := transform.New()
 	CTUL := transform.New()
 	CTUR := transform.New()
@@ -93,7 +93,7 @@ func NewBox(cam *camera.Camera, scale float64) *MenuBox {
 		STD:    STD,
 		STL:    STL,
 		Rect:   pixel.R(0., 0., 4., 4.),
-		Cam:    cam,
+		Parent: parent,
 		Scale:  scale,
 		StepV:  4.,
 		StepH:  4.,
@@ -180,28 +180,28 @@ func (mb *MenuBox) Update() {
 			mb.closed = true
 		}
 	}
-	if mb.Cam != nil {
-		mb.CTUL.UIZoom = mb.Cam.GetZoomScale()
-		mb.CTUL.UIPos = mb.Cam.APos
-		mb.CTUR.UIZoom = mb.Cam.GetZoomScale()
-		mb.CTUR.UIPos = mb.Cam.APos
-		mb.CTDR.UIZoom = mb.Cam.GetZoomScale()
-		mb.CTDR.UIPos = mb.Cam.APos
-		mb.CTDL.UIZoom = mb.Cam.GetZoomScale()
-		mb.CTDL.UIPos = mb.Cam.APos
-		mb.STU.UIZoom = mb.Cam.GetZoomScale()
-		mb.STU.UIPos = mb.Cam.APos
-		mb.STR.UIZoom = mb.Cam.GetZoomScale()
-		mb.STR.UIPos = mb.Cam.APos
-		mb.STD.UIZoom = mb.Cam.GetZoomScale()
-		mb.STD.UIPos = mb.Cam.APos
-		mb.STL.UIZoom = mb.Cam.GetZoomScale()
-		mb.STL.UIPos = mb.Cam.APos
-		mb.Center.UIZoom = mb.Cam.GetZoomScale()
-		mb.Center.UIPos = mb.Cam.APos
+	if mb.Parent != nil {
+		//mb.CTUL.UIZoom = mb.Cam.GetZoomScale()
+		mb.CTUL.UIPos = *mb.Parent
+		//mb.CTUR.UIZoom = mb.Cam.GetZoomScale()
+		mb.CTUR.UIPos = *mb.Parent
+		//mb.CTDR.UIZoom = mb.Cam.GetZoomScale()
+		mb.CTDR.UIPos = *mb.Parent
+		//mb.CTDL.UIZoom = mb.Cam.GetZoomScale()
+		mb.CTDL.UIPos = *mb.Parent
+		//mb.STU.UIZoom = mb.Cam.GetZoomScale()
+		mb.STU.UIPos = *mb.Parent
+		//mb.STR.UIZoom = mb.Cam.GetZoomScale()
+		mb.STR.UIPos = *mb.Parent
+		//mb.STD.UIZoom = mb.Cam.GetZoomScale()
+		mb.STD.UIPos = *mb.Parent
+		//mb.STL.UIZoom = mb.Cam.GetZoomScale()
+		mb.STL.UIPos = *mb.Parent
+		//mb.Center.UIZoom = mb.Cam.GetZoomScale()
+		mb.Center.UIPos = *mb.Parent
 		if mb.EntryT != nil {
-			mb.EntryT.UIZoom = mb.Cam.GetZoomScale()
-			mb.EntryT.UIPos = mb.Cam.APos
+			//mb.EntryT.UIZoom = mb.Cam.GetZoomScale()
+			mb.EntryT.UIPos = *mb.Parent
 		}
 	}
 	mb.CTUL.Pos = pixel.V(mb.Pos.X-mb.StepH, mb.Pos.Y+mb.StepV)
@@ -217,19 +217,19 @@ func (mb *MenuBox) Update() {
 	mb.CTDL.Scalar = pixel.V(mb.Scale, mb.Scale)
 	mb.CTDL.Update()
 	mb.STU.Pos = pixel.V(mb.Pos.X, mb.Pos.Y+mb.StepV)
-	mb.STU.Scalar = pixel.V(mb.StepH*0.24, mb.Scale)
+	mb.STU.Scalar = pixel.V(mb.StepH*stretch, mb.Scale)
 	mb.STU.Update()
 	mb.STR.Pos = pixel.V(mb.Pos.X+mb.StepH, mb.Pos.Y)
-	mb.STR.Scalar = pixel.V(mb.Scale, mb.StepV*0.24)
+	mb.STR.Scalar = pixel.V(mb.Scale, mb.StepV*stretch)
 	mb.STR.Update()
 	mb.STD.Pos = pixel.V(mb.Pos.X, mb.Pos.Y-mb.StepV)
-	mb.STD.Scalar = pixel.V(mb.StepH*0.24, mb.Scale)
+	mb.STD.Scalar = pixel.V(mb.StepH*stretch, mb.Scale)
 	mb.STD.Update()
 	mb.STL.Pos = pixel.V(mb.Pos.X-mb.StepH, mb.Pos.Y)
-	mb.STL.Scalar = pixel.V(mb.Scale, mb.StepV*0.24)
+	mb.STL.Scalar = pixel.V(mb.Scale, mb.StepV*stretch)
 	mb.STL.Update()
 	mb.Center.Pos = mb.Pos
-	mb.Center.Scalar = pixel.V(mb.StepH*0.24, mb.StepV*0.24)
+	mb.Center.Scalar = pixel.V(mb.StepH*stretch, mb.StepV*stretch)
 	mb.Center.Update()
 	if mb.EntryT != nil {
 		switch mb.EntryDir {

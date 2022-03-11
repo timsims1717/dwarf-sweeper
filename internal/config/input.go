@@ -39,6 +39,8 @@ var (
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
 			Scroll:  1,
 		},
+		MinePuzzBomb: input.New(pixelgl.MouseButtonRight, pixelgl.ButtonA),
+		MinePuzzSafe: input.New(pixelgl.MouseButtonLeft, pixelgl.ButtonX),
 	}
 )
 
@@ -64,6 +66,8 @@ func loadInput(conf *config) {
 	data.GameInputP1.Buttons["interact"] = conf.InputP1.Interact
 	data.GameInputP1.Buttons["prev"] = conf.InputP1.Prev
 	data.GameInputP1.Buttons["next"] = conf.InputP1.Next
+	data.GameInputP1.Buttons["mine_puzz_bomb"] = conf.InputP1.MinePuzzBomb
+	data.GameInputP1.Buttons["mine_puzz_safe"] = conf.InputP1.MinePuzzSafe
 	data.GameInputP1.Key = "p1"
 
 	if conf.InputP2.Gamepad < 0 {
@@ -87,6 +91,8 @@ func loadInput(conf *config) {
 	data.GameInputP2.Buttons["interact"] = conf.InputP2.Interact
 	data.GameInputP2.Buttons["prev"] = conf.InputP2.Prev
 	data.GameInputP2.Buttons["next"] = conf.InputP2.Next
+	data.GameInputP2.Buttons["mine_puzz_bomb"] = conf.InputP2.MinePuzzBomb
+	data.GameInputP2.Buttons["mine_puzz_safe"] = conf.InputP2.MinePuzzSafe
 	data.GameInputP2.Key = "p2"
 
 	if conf.InputP3.Gamepad < 0 {
@@ -110,6 +116,8 @@ func loadInput(conf *config) {
 	data.GameInputP3.Buttons["interact"] = conf.InputP3.Interact
 	data.GameInputP3.Buttons["prev"] = conf.InputP3.Prev
 	data.GameInputP3.Buttons["next"] = conf.InputP3.Next
+	data.GameInputP3.Buttons["mine_puzz_bomb"] = conf.InputP3.MinePuzzBomb
+	data.GameInputP3.Buttons["mine_puzz_safe"] = conf.InputP3.MinePuzzSafe
 	data.GameInputP3.Key = "p3"
 
 	if conf.InputP4.Gamepad < 0 {
@@ -133,6 +141,8 @@ func loadInput(conf *config) {
 	data.GameInputP4.Buttons["interact"] = conf.InputP4.Interact
 	data.GameInputP4.Buttons["prev"] = conf.InputP4.Prev
 	data.GameInputP4.Buttons["next"] = conf.InputP4.Next
+	data.GameInputP4.Buttons["mine_puzz_bomb"] = conf.InputP4.MinePuzzBomb
+	data.GameInputP4.Buttons["mine_puzz_safe"] = conf.InputP4.MinePuzzSafe
 	data.GameInputP4.Key = "p4"
 }
 
@@ -157,6 +167,8 @@ func saveInput(conf *config) {
 	conf.InputP1.Interact = data.GameInputP1.Buttons["interact"]
 	conf.InputP1.Prev = data.GameInputP1.Buttons["prev"]
 	conf.InputP1.Next = data.GameInputP1.Buttons["next"]
+	conf.InputP1.MinePuzzBomb = data.GameInputP1.Buttons["mine_puzz_bomb"]
+	conf.InputP1.MinePuzzSafe = data.GameInputP1.Buttons["mine_puzz_safe"]
 	conf.InputP1.Key = "p1"
 
 	if data.GameInputP2.Mode == input.KeyboardMouse {
@@ -179,6 +191,8 @@ func saveInput(conf *config) {
 	conf.InputP2.Interact = data.GameInputP2.Buttons["interact"]
 	conf.InputP2.Prev = data.GameInputP2.Buttons["prev"]
 	conf.InputP2.Next = data.GameInputP2.Buttons["next"]
+	conf.InputP2.MinePuzzBomb = data.GameInputP2.Buttons["mine_puzz_bomb"]
+	conf.InputP2.MinePuzzSafe = data.GameInputP2.Buttons["mine_puzz_safe"]
 	conf.InputP2.Key = "p2"
 
 	if data.GameInputP3.Mode == input.KeyboardMouse {
@@ -201,6 +215,8 @@ func saveInput(conf *config) {
 	conf.InputP3.Interact = data.GameInputP3.Buttons["interact"]
 	conf.InputP3.Prev = data.GameInputP3.Buttons["prev"]
 	conf.InputP3.Next = data.GameInputP3.Buttons["next"]
+	conf.InputP3.MinePuzzBomb = data.GameInputP3.Buttons["mine_puzz_bomb"]
+	conf.InputP3.MinePuzzSafe = data.GameInputP3.Buttons["mine_puzz_safe"]
 	conf.InputP3.Key = "p3"
 
 	if data.GameInputP4.Mode == input.KeyboardMouse {
@@ -223,5 +239,7 @@ func saveInput(conf *config) {
 	conf.InputP4.Interact = data.GameInputP4.Buttons["interact"]
 	conf.InputP4.Prev = data.GameInputP4.Buttons["prev"]
 	conf.InputP4.Next = data.GameInputP4.Buttons["next"]
+	conf.InputP4.MinePuzzBomb = data.GameInputP4.Buttons["mine_puzz_bomb"]
+	conf.InputP4.MinePuzzSafe = data.GameInputP4.Buttons["mine_puzz_safe"]
 	conf.InputP4.Key = "p4"
 }

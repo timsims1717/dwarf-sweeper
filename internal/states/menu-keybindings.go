@@ -45,6 +45,8 @@ func UpdateKeybindings(in *input.Input) {
 	UpdateKeybinding("use", in)
 	UpdateKeybinding("prev", in)
 	UpdateKeybinding("next", in)
+	UpdateKeybinding("mine_puzz_bomb", in)
+	UpdateKeybinding("mine_puzz_safe", in)
 }
 
 func UpdateKeybinding(key string, in *input.Input) {
@@ -110,6 +112,8 @@ func RegisterPlayerSymbols(pCode string, in *input.Input) {
 	RegisterPlayerSymbol("use", pCode, in)
 	RegisterPlayerSymbol("prev", pCode, in)
 	RegisterPlayerSymbol("next", pCode, in)
+	RegisterPlayerSymbol("mine_puzz_bomb", pCode, in)
+	RegisterPlayerSymbol("mine_puzz_safe", pCode, in)
 }
 
 func RegisterPlayerSymbol(key, pCode string, in *input.Input) {

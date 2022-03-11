@@ -23,7 +23,8 @@ var (
 )
 
 type HUD struct {
-	Dwarf *descent.Dwarf
+	Dwarf   *descent.Dwarf
+	Refresh bool
 
 	MaxHP     int
 	DisplayHP bool
@@ -51,12 +52,12 @@ func New(dwarf *descent.Dwarf) *HUD {
 
 	gemTrans := transform.New()
 	gemTrans.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
-	gemText := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
+	gemText := typeface.New(&camera.Cam.APos, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
 	gemText.SetColor(hudTextColor)
 
 	itemTrans := transform.New()
 	itemTrans.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
-	itemText := typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
+	itemText := typeface.New(&camera.Cam.APos, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
 	itemText.SetColor(hudTextColor)
 
 	anim := reanimator.New(reanimator.NewSwitch().
@@ -118,7 +119,7 @@ func (hud *HUD) Update() {
 	displayHP := hud.DisplayHP
 	hud.DisplayHP = hud.MaxHP != hp.Max || hp.Curr != hp.Max || hp.TempHP != 0
 	hud.MaxHP = hp.Max
-	if displayHP != hud.DisplayHP || hud.HPTimer == nil {
+	if displayHP != hud.DisplayHP || hud.HPTimer == nil || hud.Refresh {
 		hud.HPTimer = timing.New(3.)
 	}
 	hud.HPTimer.Update()
@@ -128,7 +129,7 @@ func (hud *HUD) Update() {
 	gtp := hud.GemTrans.Pos
 	gtp.X += gemSpr.Frame().W()*0.5 + 4.
 	hud.GemText.SetPos(gtp)
-	if hud.Dwarf.Player.Stats.CaveGemsFound != hud.LastGem {
+	if hud.Dwarf.Player.Stats.CaveGemsFound != hud.LastGem || hud.Refresh {
 		hud.LastGem = hud.Dwarf.Player.Stats.CaveGemsFound
 		hud.GemText.SetText(fmt.Sprintf("x%d", hud.LastGem))
 		hud.GemTimer = timing.New(3.0)
@@ -145,6 +146,7 @@ func (hud *HUD) Update() {
 	} else {
 		hud.ItemText.SetText("")
 	}
+	hud.Refresh = false
 }
 
 func (hud *HUD) Draw(target pixel.Target) {

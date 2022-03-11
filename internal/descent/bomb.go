@@ -120,7 +120,7 @@ func CreateHighYieldBomb(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[constants.EntityKey].Animations["bomb_fuse"].S, reanimator.Loop)).
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran).
 			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
-				sfx.SoundPlayer.PlaySound("doubleblast", 0.0)
+				sfx.SoundPlayer.PlaySound("doubleblast", -1.0)
 				hy.AddComponent(myecs.Drawable, img.Batchers[constants.EntityKey].GetSprite("bomb_high_yield_burst"))
 			}).
 			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {

@@ -39,7 +39,7 @@ func run() {
 
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = constants.BaseH
-	camera.Cam.SetZoom(4. / 3.)
+	camera.Cam.SetZoom(1.)
 	camera.Cam.SetILock(true)
 	camera.Cam.SetSize(1600, 900)
 
@@ -101,7 +101,7 @@ func run() {
 				theCave = nil
 				CaveMenu.Open()
 				menuStack = append(menuStack, CaveMenu)
-				camera.Cam.SetZoom(4. / 3.)
+				camera.Cam.SetZoom(1.)
 				camera.Cam.Opt.ScrollSpeed = 40.
 				camera.Cam.SnapTo(pixel.ZV)
 			} else {
@@ -128,11 +128,11 @@ func run() {
 		})
 
 		// draw
-		img.ClearBatches()
+		img.Clear()
 		if theCave != nil {
 			theCave.Draw(win)
 		}
-		img.DrawBatches(win)
+		img.Draw(win)
 		for _, m := range menuStack {
 			m.Draw(win)
 		}

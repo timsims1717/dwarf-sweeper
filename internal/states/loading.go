@@ -23,7 +23,7 @@ func (s *loadingState) Load() {
 		panic(err)
 	}
 	s.Mine = pixel.NewSprite(mine, mine.Bounds())
-	s.LoadText = typeface.New(camera.Cam, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1., constants.ActualMenuSize, 0., 0.)
+	s.LoadText = typeface.New(&camera.Cam.APos, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1., constants.ActualMenuSize, 0., 0.)
 	s.LoadText.SetColor(constants.DefaultColor)
 	s.LoadText.SetText("loading...")
 	s.LoadText.Transform.Pos = pixel.V(s.LoadText.Text.BoundsOf("...").W()*s.LoadText.RelativeSize, -15.)

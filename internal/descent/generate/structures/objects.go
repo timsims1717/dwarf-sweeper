@@ -10,7 +10,6 @@ import (
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -56,7 +55,6 @@ func addChest(tile *cave.Tile) {
 }
 
 func addBigBomb(blTile *cave.Tile, level int) {
-	fmt.Printf("Bomb added here: (%d,%d)\n", blTile.RCoords.X, blTile.RCoords.Y)
 	e := myecs.Manager.NewEntity()
 	pe := myecs.Manager.NewEntity()
 	popUp := menus.NewPopUp("{symbol:player-interact}:disarm")
@@ -69,7 +67,7 @@ func addBigBomb(blTile *cave.Tile, level int) {
 	solved := false
 	failed := false
 	puzz := &puzzles.MinePuzzle{}
-	puzz.Create(camera.Cam, level)
+	puzz.Create(nil, level)
 	puzz.SetOnSolve(func() {
 		e.RemoveComponent(myecs.PopUp)
 		e.RemoveComponent(myecs.Interact)
@@ -90,11 +88,16 @@ func addBigBomb(blTile *cave.Tile, level int) {
 		e.RemoveComponent(myecs.Interact)
 		myecs.Manager.DisposeEntity(pe)
 		f := myecs.Manager.NewEntity()
-		f.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
-			failed = true
+		f.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
+			if puzz.Player != nil && !puzz.Player.Flags.BigBombFail {
+				puzz.Player.GiveMessage("Uh oh! Better run!", func() {
+					failed = true
+				})
+				puzz.Player.Flags.BigBombFail = true
+			}
 			myecs.Manager.DisposeEntity(f)
 			return true
-		}, 1.5))
+		}))
 	})
 	interact := descent.NewInteract(
 		func(pos pixel.Vec, d *descent.Dwarf) bool {
@@ -139,6 +142,10 @@ func addBigBomb(blTile *cave.Tile, level int) {
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Animation, anim).
 		AddComponent(myecs.Drawable, anim).
+		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
+			popUp.Hide = puzz.IsOpen()
+			return false
+		})).
 		AddComponent(myecs.Batch, constants.TileEntityKey).
 		AddComponent(myecs.PopUp, popUp).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false)).

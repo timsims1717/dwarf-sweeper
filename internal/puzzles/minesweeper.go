@@ -2,10 +2,10 @@ package puzzles
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/reanimator"
@@ -17,10 +17,10 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 const (
-	scalar = 1.8
 	timer  = 60.
 )
 
@@ -42,6 +42,7 @@ type MinePuzzle struct {
 	miss1Trans *transform.Transform
 	miss2Trans *transform.Transform
 	miss3Trans *transform.Transform
+	Player     *player.Player
 
 	CellTrans [][]*transform.Transform
 	solved    bool
@@ -56,33 +57,31 @@ type MinePuzzle struct {
 	ButtonCancelled bool
 }
 
-func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
+func (mp *MinePuzzle) Create(parent *pixel.Vec, level int) {
 	mp.solved = false
 	size := 5 + level / 4
 	mp.SizeW = util.Min(size, 9)
 	mp.SizeH = util.Min(size, 6)
-	mp.InfoText = typeface.New(camera.Cam,"main", typeface.NewAlign(typeface.Left, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
+	mp.InfoText = typeface.New(parent,"main", typeface.NewAlign(typeface.Left, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
 	mp.InfoText.SetColor(constants.DefaultColor)
 	mp.InfoText.SetText("{symbol:flag}:mark bomb\n{symbol:dig}:mark safe")
-	mp.TimerText = typeface.New(camera.Cam,"main", typeface.NewAlign(typeface.Right, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
+	mp.TimerText = typeface.New(parent,"main", typeface.NewAlign(typeface.Right, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
 	mp.TimerText.Color = constants.DefaultColor
 	mp.TimerText.SetText("\n")
-	mp.Box = menubox.NewBox(cam, 1.4)
-	mp.Box.SetSize(pixel.R(0., 0., float64(mp.SizeW) * (world.TileSize + 2.) * scalar, float64(mp.SizeH) * (world.TileSize + 2.) * scalar + mp.InfoText.Height))
+	mp.Box = menubox.NewBox(parent, 1.0)
+	w := math.Max(float64(mp.SizeW) * (world.TileSize + 2.), mp.InfoText.Width + 60.)
+	mp.Box.SetSize(pixel.R(0., 0., w, float64(mp.SizeH) * (world.TileSize + 2.) + mp.InfoText.Height))
 	mp.InfoText.SetPos(pixel.V(mp.Box.Rect.W() * -0.5 + 5., mp.Box.Rect.H() * 0.5 - 15.))
 	mp.TimerText.SetPos(pixel.V(mp.Box.Rect.W() * 0.5 - 5., mp.Box.Rect.H() * 0.5 - 15.))
 	mp.miss1Trans = transform.New()
-	mp.miss1Trans.Pos.X = mp.Box.Rect.W() * 0.5 - 5. - 4. * scalar
-	mp.miss1Trans.Pos.Y = mp.Box.Rect.H() * 0.5 - 15. + 2. * scalar
-	mp.miss1Trans.Scalar = pixel.V(scalar, scalar)
+	mp.miss1Trans.Pos.X = mp.Box.Rect.W() * 0.5 - 5. - 4.
+	mp.miss1Trans.Pos.Y = mp.Box.Rect.H() * 0.5 - 15. + 2.
 	mp.miss2Trans = transform.New()
-	mp.miss2Trans.Pos.X = mp.Box.Rect.W() * 0.5 - 5. - 13. * scalar
-	mp.miss2Trans.Pos.Y = mp.Box.Rect.H() * 0.5 - 15. + 2. * scalar
-	mp.miss2Trans.Scalar = pixel.V(scalar, scalar)
+	mp.miss2Trans.Pos.X = mp.Box.Rect.W() * 0.5 - 5. - 13.
+	mp.miss2Trans.Pos.Y = mp.Box.Rect.H() * 0.5 - 15. + 2.
 	mp.miss3Trans = transform.New()
-	mp.miss3Trans.Pos.X = mp.Box.Rect.W() * 0.5 - 5. - 21.5 * scalar
-	mp.miss3Trans.Pos.Y = mp.Box.Rect.H() * 0.5 - 15. + 2. * scalar
-	mp.miss3Trans.Scalar = pixel.V(scalar, scalar)
+	mp.miss3Trans.Pos.X = mp.Box.Rect.W() * 0.5 - 5. - 21.5
+	mp.miss3Trans.Pos.Y = mp.Box.Rect.H() * 0.5 - 15. + 2.
 	topPadding := mp.InfoText.Height * 0.5
 	var cts [][]*transform.Transform
 	for y := 0; y < mp.SizeH; y++ {
@@ -95,7 +94,7 @@ func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
 		} else {
 			multY = float64(y-midY)
 		}
-		yPos := multY*(world.TileSize*scalar+1)-topPadding
+		yPos := multY*(world.TileSize+1)-topPadding
 		for x := 0; x < mp.SizeW; x++ {
 			evenX := mp.SizeW % 2 == 0
 			midX := mp.SizeW / 2
@@ -106,8 +105,7 @@ func (mp *MinePuzzle) Create(cam *camera.Camera, level int) {
 				multX = float64(x-midX)
 			}
 			trans := transform.New()
-			trans.Pos = pixel.V(multX*(world.TileSize*scalar+1), yPos)
-			trans.Scalar = pixel.V(scalar, scalar)
+			trans.Pos = pixel.V(multX*(world.TileSize+1), yPos)
 			cts[y] = append(cts[y], trans)
 		}
 	}
@@ -123,8 +121,14 @@ func (mp *MinePuzzle) IsClosed() bool {
 	return mp.Box.IsClosed()
 }
 
-func (mp *MinePuzzle) Open(pCode string) {
-	mp.InfoText.SetText(fmt.Sprintf("{symbol:%s-flag}:mark bomb\n{symbol:%s-dig}:mark safe", pCode, pCode))
+func (mp *MinePuzzle) Open(p *player.Player, pCode string) {
+	if p != nil {
+		mp.Box.Parent = &p.CamPos
+		mp.InfoText.Parent = &p.CamPos
+		mp.TimerText.Parent = &p.CamPos
+		mp.Player = p
+	}
+	mp.InfoText.SetText(fmt.Sprintf("{symbol:%s-mine_puzz_bomb}:mark bomb\n{symbol:%s-mine_puzz_safe}:mark safe", pCode, pCode))
 	mp.FlagAnim = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag", img.Batchers[constants.PuzzleKey].GetAnimation(fmt.Sprintf("flag_hang_%s", pCode)).S, reanimator.Loop))
 	area := mp.SizeW * mp.SizeH
 	r := util.Min(mp.SizeW, mp.SizeH) - 1
@@ -143,6 +147,10 @@ func (mp *MinePuzzle) Close() {
 func (mp *MinePuzzle) Update(in *input.Input) {
 	mp.Box.Update()
 	if mp.Box.IsOpen() && !mp.start {
+		if mp.Player != nil && !mp.Player.Flags.MinePuzzSeen {
+			mp.Player.GiveMessage("Fill the empty tiles! {symbol:player-mine_puzz_bomb} for mines and {symbol:player-mine_puzz_safe} for safe tiles. Good luck!", nil)
+			mp.Player.Flags.MinePuzzSeen = true
+		}
 		mp.Timer = timing.New(timer)
 		mp.start = true
 	}
@@ -152,7 +160,7 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 		if timeLeft < 0. {
 			timeLeft = 0.
 		}
-		secs := int(timeLeft)
+		secs := int(math.Round(timeLeft))
 		min := secs / 60
 		sec := secs % 60
 		mp.TimerText.SetText(fmt.Sprintf("\n%02d:%02d", min, sec))
@@ -197,14 +205,14 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 		}
 		cell := mp.Board.Board[mp.Hover.Y][mp.Hover.X]
 		if !mp.ButtonCancelled {
-			mp.ButtonCancelled = in.Get("flag").Pressed() && in.Get("dig").Pressed()
+			mp.ButtonCancelled = in.Get("mine_puzz_bomb").Pressed() && in.Get("mine_puzz_safe").Pressed()
 			if !mp.ButtonCancelled {
-				mp.ButtonPressed = in.Get("flag").Pressed() || in.Get("dig").Pressed()
-				if in.Get("flag").JustReleased() && !cell.Rev && !cell.Ex {
-					in.Get("flag").Consume()
+				mp.ButtonPressed = in.Get("mine_puzz_bomb").Pressed() || in.Get("mine_puzz_safe").Pressed()
+				if in.Get("mine_puzz_bomb").JustReleased() && !cell.Rev && !cell.Ex {
+					in.Get("mine_puzz_bomb").Consume()
 					cell.Flag = !cell.Flag
-				} else if in.Get("dig").JustReleased() && !cell.Rev && !cell.Flag && !cell.Ex {
-					in.Get("dig").Consume()
+				} else if in.Get("mine_puzz_safe").JustReleased() && !cell.Rev && !cell.Flag && !cell.Ex {
+					in.Get("mine_puzz_safe").Consume()
 					if cell.Bomb {
 						cell.Rev = true
 						sfx.SoundPlayer.PlaySound("mpwrong", 1.)
@@ -216,7 +224,7 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 					}
 				}
 			}
-		} else if !in.Get("flag").Pressed() && !in.Get("dig").Pressed() {
+		} else if !in.Get("mine_puzz_bomb").Pressed() && !in.Get("mine_puzz_safe").Pressed() {
 			mp.ButtonCancelled = false
 			mp.ButtonPressed = false
 		}
@@ -235,20 +243,20 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 }
 
 func (mp *MinePuzzle) UpdateTransforms() {
-	if mp.Box.Cam != nil {
-		mp.miss1Trans.UIZoom = mp.Box.Cam.GetZoomScale()
-		mp.miss1Trans.UIPos = mp.Box.Cam.APos
+	if mp.Box.Parent != nil {
+		//mp.miss1Trans.UIZoom = mp.Box.Cam.GetZoomScale()
+		mp.miss1Trans.UIPos = *mp.Box.Parent
 		mp.miss1Trans.Update()
-		mp.miss2Trans.UIZoom = mp.Box.Cam.GetZoomScale()
-		mp.miss2Trans.UIPos = mp.Box.Cam.APos
+		//mp.miss2Trans.UIZoom = mp.Box.Cam.GetZoomScale()
+		mp.miss2Trans.UIPos = *mp.Box.Parent
 		mp.miss2Trans.Update()
-		mp.miss3Trans.UIZoom = mp.Box.Cam.GetZoomScale()
-		mp.miss3Trans.UIPos = mp.Box.Cam.APos
+		//mp.miss3Trans.UIZoom = mp.Box.Cam.GetZoomScale()
+		mp.miss3Trans.UIPos = *mp.Box.Parent
 		mp.miss3Trans.Update()
 		for _, row := range mp.CellTrans {
 			for _, ct := range row {
-				ct.UIZoom = mp.Box.Cam.GetZoomScale()
-				ct.UIPos = mp.Box.Cam.APos
+				//ct.UIZoom = mp.Box.Cam.GetZoomScale()
+				ct.UIPos = *mp.Box.Parent
 				ct.Update()
 			}
 		}

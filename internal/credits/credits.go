@@ -47,7 +47,7 @@ Thank you for playing!`
 
 func Initialize() {
 	overlay = imdraw.New(nil)
-	Credits = typeface.New(camera.Cam,"main", typeface.Alignment{ H: typeface.Center, V: typeface.Top }, 1.2, constants.ActualHintSize, 0., 0.)
+	Credits = typeface.New(&camera.Cam.APos,"main", typeface.Alignment{ H: typeface.Center, V: typeface.Top }, 1.2, constants.ActualHintSize, 0., 0.)
 	Credits.Color = color.RGBA{
 		R: 218,
 		G: 224,

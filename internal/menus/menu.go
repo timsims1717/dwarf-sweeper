@@ -12,8 +12,6 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"golang.org/x/image/colornames"
-	"image/color"
 	"math"
 )
 
@@ -27,14 +25,6 @@ var (
 
 
 func Initialize() {
-	constants.DefaultColor = color.RGBA{
-		R: 74,
-		G: 84,
-		B: 98,
-		A: 255,
-	}
-	constants.HoverColor = colornames.Mediumblue
-	constants.DisabledColor = colornames.Darkgray
 	DefaultDist = world.TileSize * 4.
 	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
 }
@@ -72,7 +62,7 @@ func New(key string, cam *camera.Camera) *DwarfMenu {
 		Key:     key,
 		ItemMap: map[string]*Item{},
 		Items:   []*Item{},
-		Box:     menubox.NewBox(cam, 1.4),
+		Box:     menubox.NewBox(&cam.APos, 1.0),
 		Hint:    hint,
 		Tran:    tran,
 		Cam:     cam,

@@ -1,18 +1,60 @@
 {
  "img": "dwarf.png",
- "height": 16,
- "width": 16,
+ "height": 20,
+ "width": 20,
  "singleRow": true,
  "sprites": [
   {
    "key": "idle",
-   "anim": true,
-   "frames": 2
+   "anim": true
   },
   {
    "key": "idle",
-   "anim": true,
-   "frames": 2
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "idle",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
+  },
+  {
+   "key": "run",
+   "anim": true
   },
   {
    "key": "run",

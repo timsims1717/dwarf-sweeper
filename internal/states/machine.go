@@ -5,7 +5,6 @@ import (
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
-	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
@@ -148,8 +147,11 @@ func Update(win *pixelgl.Window) {
 			//if len(descent.Descent.GetPlayers()) > 0 {
 			//	descent.CreateXRayItem(descent.Descent.GetPlayers()[0].Transform.Pos)
 			//}
+			//if len(descent.Descent.GetPlayers()) > 0 {
+			//	particles.CreateRandomStaticParticles(1, 1, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, descent.Descent.GetPlayers()[0].Transform.Pos, 10.0, 15.0, 0.5)
+			//}
 			if len(descent.Descent.GetPlayers()) > 0 {
-				particles.CreateRandomStaticParticles(1, 1, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, descent.Descent.GetPlayers()[0].Transform.Pos, 10.0, 15.0, 0.5)
+				descent.Descent.GetPlayers()[0].Player.GiveMessage("this is a test to see how well the message system works and I'm totally here for it", nil)
 			}
 		}
 		if debugInput.Get("debugSP").JustPressed() {
@@ -207,7 +209,7 @@ func Update(win *pixelgl.Window) {
 }
 
 func Draw(win *pixelgl.Window) {
-	img.ClearBatches()
+	img.Clear()
 	if loading {
 		LoadingState.Draw(win)
 	} else if !loadingDone {
@@ -223,6 +225,7 @@ func updateState() {
 	if !loading && (currState != nextState || switchState) {
 		// uninitialize
 		clearMenus()
+		img.FullClear()
 		if cState, ok := States[currState]; ok {
 			go cState.Unload()
 		}

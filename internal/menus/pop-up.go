@@ -29,6 +29,7 @@ type PopUp struct {
 	Tran     *transform.Transform
 	MaxWidth float64
 
+	Hide     bool
 	Display1 bool
 	Display2 bool
 	Display3 bool
@@ -94,7 +95,7 @@ func (p *PopUp) SetText(raw string) {
 }
 
 func (p *PopUp) Update() {
-	if p.Display1 {
+	if p.Display1 && !p.Hide {
 		if !p.Box1.IsOpen() {
 			p.Box1.Open()
 		}
@@ -110,7 +111,7 @@ func (p *PopUp) Update() {
 	p.Text1.SetPos(p.Tran.Pos)
 	p.Text1.Update()
 
-	if p.Display2 {
+	if p.Display2 && !p.Hide {
 		if !p.Box2.IsOpen() {
 			p.Box2.Open()
 		}
@@ -124,7 +125,7 @@ func (p *PopUp) Update() {
 	p.Text2.SetPos(p.Tran.Pos)
 	p.Text2.Update()
 
-	if p.Display3 {
+	if p.Display3 && !p.Hide {
 		if !p.Box3.IsOpen() {
 			p.Box3.Open()
 		}
@@ -138,7 +139,7 @@ func (p *PopUp) Update() {
 	p.Text3.SetPos(p.Tran.Pos)
 	p.Text3.Update()
 
-	if p.Display4 {
+	if p.Display4 && !p.Hide {
 		if !p.Box4.IsOpen() {
 			p.Box4.Open()
 		}
@@ -156,25 +157,25 @@ func (p *PopUp) Update() {
 func (p *PopUp) Draw() {
 	if !p.Box1.IsClosed() {
 		p.Box1.Draw(p.Player1.Canvas)
-		if !p.Box1.IsClosed() && p.Box1.IsOpen() {
+		if p.Box1.IsOpen() {
 			p.Text1.Draw(p.Player1.Canvas)
 		}
 	}
 	if !p.Box2.IsClosed() {
 		p.Box2.Draw(p.Player2.Canvas)
-		if !p.Box2.IsClosed() && p.Box2.IsOpen() {
+		if p.Box2.IsOpen() {
 			p.Text2.Draw(p.Player2.Canvas)
 		}
 	}
 	if !p.Box3.IsClosed() {
 		p.Box3.Draw(p.Player3.Canvas)
-		if !p.Box3.IsClosed() && p.Box3.IsOpen() {
+		if p.Box3.IsOpen() {
 			p.Text3.Draw(p.Player3.Canvas)
 		}
 	}
 	if !p.Box4.IsClosed() {
 		p.Box4.Draw(p.Player4.Canvas)
-		if !p.Box4.IsClosed() && p.Box4.IsOpen() {
+		if p.Box4.IsOpen() {
 			p.Text4.Draw(p.Player4.Canvas)
 		}
 	}

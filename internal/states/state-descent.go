@@ -152,7 +152,7 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 
 	for _, d := range descent.Descent.Dwarves {
 		d.Player.Canvas.Clear(color.RGBA{})
-		img.DrawBatches(d.Player.Canvas)
+		img.Draw(d.Player.Canvas)
 	}
 
 	systems.PopUpDraw()
@@ -164,6 +164,10 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 				img.Batchers[constants.ParticleKey].GetSprite("target_blank").Draw(d.Player.Canvas, d.Hovered.Transform.Mat)
 			}
 		}
+		if d.Player.Puzzle != nil {
+			d.Player.Puzzle.Draw(d.Player.Canvas)
+		}
+		d.Player.Message.Draw()
 		mat := pixel.IM
 		mat = mat.Moved(camPos).Moved(d.Player.CanvasPos)
 		d.Player.Canvas.Draw(win, mat)
@@ -172,17 +176,12 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 	for _, h := range hud.HUDs {
 		h.Draw(win)
 	}
-	for _, d := range descent.Descent.GetPlayers() {
-		if d.Player.Puzzle != nil {
-			d.Player.Puzzle.Draw(win)
-		}
-	}
 	hud.DrawHUD(win)
 	for _, m := range menuStack {
 		m.Draw(win)
 	}
-	debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
-	debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
+	//debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
+	//debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
 	debug.AddText(fmt.Sprintf("entity count: %d", myecs.Count))
 }
 
@@ -253,6 +252,9 @@ func (s *descentState) Descend() {
 			pos.X += world.TileSize * float64((i+1)/2)
 		}
 		d.SetStart(pos)
+	}
+	for _, h := range hud.HUDs {
+		h.Refresh = true
 	}
 }
 

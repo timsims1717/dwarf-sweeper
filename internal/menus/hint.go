@@ -24,11 +24,10 @@ type HintBox struct {
 
 func NewHintBox(raw string, cam *camera.Camera) *HintBox {
 	tran := transform.New()
-	tex := typeface.New(cam, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.2, constants.ActualHintSize, DefaultMax, 0.)
+	tex := typeface.New(&cam.APos, "main", typeface.NewAlign(typeface.Left, typeface.Center), 1.2, constants.ActualHintSize, DefaultMax, 0.)
 	tex.SetColor(constants.DefaultColor)
 	tex.SetText(raw)
-	box := menubox.NewBox(nil, 1.0)
-	box.Cam = cam
+	box := menubox.NewBox(&cam.APos, 1.0)
 	box.SetSize(pixel.R(0., 0., tex.Width, tex.Height))
 	box.SetEntry(menubox.Left)
 	return &HintBox{

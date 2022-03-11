@@ -1,7 +1,6 @@
 package typeface
 
 import (
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/transform"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -26,7 +25,7 @@ type Text struct {
 	MaxHeight float64
 	MaxLines  int
 
-	Cam          *camera.Camera
+	Parent       *pixel.Vec
 	RelativeSize float64
 	SymbolSize   float64
 	Transform    *transform.Transform
@@ -36,7 +35,7 @@ type Text struct {
 	fullHeight float64
 }
 
-func New(cam *camera.Camera, atlas string, align Alignment, lineHeight, relativeSize, maxWidth, maxHeight float64) *Text {
+func New(parent *pixel.Vec, atlas string, align Alignment, lineHeight, relativeSize, maxWidth, maxHeight float64) *Text {
 	tex := text.New(pixel.ZV, Atlases[atlas])
 	tex.LineHeight *= lineHeight
 	return &Text{
@@ -48,7 +47,7 @@ func New(cam *camera.Camera, atlas string, align Alignment, lineHeight, relative
 		MaxWidth:     maxWidth,
 		MaxHeight:    maxHeight,
 		MaxLines:     int(maxHeight / (tex.LineHeight * relativeSize)),
-		Cam:          cam,
+		Parent:       parent,
 		RelativeSize: relativeSize,
 		SymbolSize:   1.,
 		Transform:    transform.New(),
@@ -57,15 +56,15 @@ func New(cam *camera.Camera, atlas string, align Alignment, lineHeight, relative
 
 func (item *Text) Update() {
 	item.Transform.Scalar = pixel.V(item.RelativeSize, item.RelativeSize)
-	if item.Cam != nil {
-		item.Transform.UIZoom = item.Cam.GetZoomScale()
-		item.Transform.UIPos = item.Cam.APos
+	if item.Parent != nil {
+		//item.Transform.UIZoom = item.Parent.GetZoomScale()
+		item.Transform.UIPos = *item.Parent
 	}
 	item.Transform.Update()
 	for _, sym := range item.Symbols {
-		if item.Cam != nil {
-			sym.trans.UIZoom = item.Cam.GetZoomScale()
-			sym.trans.UIPos = item.Cam.APos
+		if item.Parent != nil {
+			//sym.trans.UIZoom = item.Parent.GetZoomScale()
+			sym.trans.UIPos = *item.Parent
 		}
 		sym.trans.Update()
 	}

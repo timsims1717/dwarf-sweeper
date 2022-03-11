@@ -86,8 +86,8 @@ var (
 	MuteOnUnfocused = false
 
 	// Accessibility
-	BaseMenuSize    = 1.4
-	BaseHoverSize   = 1.45
+	BaseMenuSize    = 1.0
+	BaseHoverSize   = 1.1
 	BaseHintSize    = 0.8
 	TypeFaceSize    = 200.
 	ActualMenuSize  = BaseMenuSize * (10 / TypeFaceSize)
@@ -100,7 +100,22 @@ var (
 	SplitScreenV = true
 
 	// Menus
-	DefaultColor  color.RGBA
-	HoverColor    color.RGBA
-	DisabledColor color.RGBA
+	DefaultColor = color.RGBA{
+		R: 74,
+		G: 84,
+		B: 98,
+		A: 255,
+	}
+	HoverColor = color.RGBA{
+		R: 20,
+		G: 52,
+		B: 100,
+		A: 255,
+	}
+	DisabledColor = color.RGBA{
+		R: 109,
+		G: 117,
+		B: 141,
+		A: 255,
+	}
 )

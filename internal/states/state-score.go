@@ -68,7 +68,7 @@ func (s *scoreState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	//descent.Descent.GetPlayer().Draw(win, data.GameInput)
 	systems.DrawSystem()
-	img.DrawBatches(win)
+	img.Draw(win)
 	hud.DrawHUD(win)
 	s.ScoreTimer.Update()
 	since := s.ScoreTimer.Elapsed()

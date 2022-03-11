@@ -19,7 +19,13 @@ var (
 	batchers []*Batcher
 )
 
-func ClearBatches() {
+func FullClear() {
+	for _, batcher := range batchers {
+		batcher.Clear()
+	}
+}
+
+func Clear() {
 	for _, batcher := range batchers {
 		if batcher.AutoClear {
 			batcher.Clear()
@@ -27,7 +33,7 @@ func ClearBatches() {
 	}
 }
 
-func DrawBatches(target pixel.Target) {
+func Draw(target pixel.Target) {
 	for _, batcher := range batchers {
 		if batcher.AutoDraw {
 			batcher.Draw(target)

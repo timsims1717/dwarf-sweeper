@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/pkg/transform"
 	"fmt"
 	"github.com/faiface/pixel"
+	"math"
 )
 
 const (
@@ -13,6 +14,10 @@ const (
 	DivMarker   = ':'
 	OpenItem    = "{"
 	CloseItem   = "}"
+)
+
+var (
+	RoundDot = false
 )
 
 func (item *Text) SetText(raw string) {
@@ -138,6 +143,7 @@ func (item *Text) updateText() {
 			if !inBrackets {
 				switch r {
 				case OpenMarker:
+					item.roundDot()
 					fmt.Fprintf(item.Text, "%s", line[b:i])
 					inBrackets = true
 				}
@@ -147,6 +153,7 @@ func (item *Text) updateText() {
 					switch mode {
 					case "symbol":
 						if sym, ok := theSymbols[buf.String()]; ok {
+							item.roundDot()
 							trans := transform.New()
 							trans.Scalar = pixel.V(item.SymbolSize, item.SymbolSize).Scaled(sym.sca)
 							trans.Pos = item.Transform.Pos
@@ -171,6 +178,14 @@ func (item *Text) updateText() {
 				}
 			}
 		}
+		item.roundDot()
 		fmt.Fprintf(item.Text, "%s\n", line[b:])
+	}
+}
+
+func (item *Text) roundDot() {
+	if RoundDot {
+		item.Text.Dot.X = math.Floor(item.Text.Dot.X)
+		item.Text.Dot.Y = math.Floor(item.Text.Dot.Y)
 	}
 }

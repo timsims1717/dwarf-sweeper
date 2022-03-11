@@ -50,6 +50,11 @@ func InitInputMenu(win *pixelgl.Window) {
 	prevR := InputMenu.AddItem("prev_r", "", true)
 	next := InputMenu.AddItem("next", "Next Item", false)
 	nextR := InputMenu.AddItem("next_r", "", true)
+	minePuzz := InputMenu.AddItem("mine_puzz", "Mine Puzzle:", false)
+	minePuzzBomb := InputMenu.AddItem("mine_puzz_bomb", " Bomb", false)
+	minePuzzBombR := InputMenu.AddItem("mine_puzz_bomb_r", "", true)
+	minePuzzSafe := InputMenu.AddItem("mine_puzz_safe", " Safe", false)
+	minePuzzSafeR := InputMenu.AddItem("mine_puzz_safe_r", "", true)
 	back := InputMenu.AddItem("back", "Back", false)
 
 	aimModeUpdate := func(in *input.Input) {
@@ -221,6 +226,12 @@ func InitInputMenu(win *pixelgl.Window) {
 	nextR.NoHover = true
 	prev.SetClickFn(keyFn(prev))
 	prevR.NoHover = true
+	minePuzz.NoHover = true
+	minePuzz.Disabled = true
+	minePuzzBomb.SetClickFn(keyFn(next))
+	minePuzzBombR.NoHover = true
+	minePuzzSafe.SetClickFn(keyFn(prev))
+	minePuzzSafeR.NoHover = true
 
 	setProfile := func(in *input.Input) {
 		data.CurrInput = in

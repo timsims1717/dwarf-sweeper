@@ -28,7 +28,7 @@ func CreateMine(pos pixel.Vec) {
 		AddAnimation(reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran).
 			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
-				sfx.SoundPlayer.PlaySound("doubleblast", 0.0)
+				sfx.SoundPlayer.PlaySound("doubleblast", -1.0)
 			}).
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {

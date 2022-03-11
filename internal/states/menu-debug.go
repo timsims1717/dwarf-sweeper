@@ -27,6 +27,7 @@ func InitDebugMenu() {
 	giveBombs := DebugMenu.AddItem("give-bombs", "Give Bombs", false)
 	fogToggle := DebugMenu.AddItem("fog-toggle", "Toggle Fog", false)
 	tpExit := DebugMenu.AddItem("tp-exit", "Teleport to Exit", false)
+	tpBomb := DebugMenu.AddItem("tp-bomb", "Teleport to Big Bomb", false)
 
 	debugTitle.NoHover = true
 	back.SetClickFn(func() {
@@ -39,7 +40,7 @@ func InitDebugMenu() {
 			fmt.Println("DEBUG FREE CAM ON")
 		} else {
 			fmt.Println("DEBUG FREE CAM OFF")
-			camera.Cam.SetZoom(4. / 3.)
+			camera.Cam.SetZoom(1.)
 		}
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -110,6 +111,18 @@ func InitDebugMenu() {
 				descent.Descent.GetPlayers()[0].Transform.Pos = exitT.Transform.Pos
 				DebugMenu.Close()
 				sfx.SoundPlayer.PlaySound("click", 2.0)
+			}
+		}
+	})
+	tpBomb.SetClickFn(func() {
+		if descent.Descent.Cave != nil {
+			if bc, ok := descent.Descent.CoordsMap["big-bomb"]; ok {
+				bT := descent.Descent.Cave.GetTileInt(bc.X, bc.Y)
+				if bT != nil {
+					descent.Descent.GetPlayers()[0].Transform.Pos = bT.Transform.Pos
+					DebugMenu.Close()
+					sfx.SoundPlayer.PlaySound("click", 2.0)
+				}
 			}
 		}
 	})

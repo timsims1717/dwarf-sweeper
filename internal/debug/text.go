@@ -19,7 +19,7 @@ var (
 func InitializeText() {
 	col := colornames.Aliceblue
 	col.A = 90
-	debugText = typeface.New(camera.Cam, "basic", typeface.NewAlign(typeface.Left, typeface.Top), 1.0, 0.5, 0., 0.)
+	debugText = typeface.New(&camera.Cam.APos, "basic", typeface.NewAlign(typeface.Left, typeface.Top), 1.0, 0.5, 0., 0.)
 }
 
 func DrawText(win *pixelgl.Window) {

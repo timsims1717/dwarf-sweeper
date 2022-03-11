@@ -2,6 +2,7 @@ package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
@@ -10,27 +11,41 @@ import (
 )
 
 func UpdatePlayer(d *Dwarf) {
-	if d.Player.Puzzle != nil {
-		if d.Player.Puzzle.IsClosed() {
-			if d.Player.Puzzle.Solved() {
-				d.Player.Puzzle.OnSolve()
-			} else if d.Player.Puzzle.Failed() {
-				d.Player.Puzzle.OnFail()
+	d.Player.Message.Update()
+	if d.Player.Message.Done {
+		if len(d.Player.Messages) > 0 {
+			m := d.Player.Messages[0]
+			if len(d.Player.Messages) > 1 {
+				d.Player.Messages = d.Player.Messages[1:]
+			} else {
+				d.Player.Messages = []*player.RawMessage{}
 			}
-			d.Player.Puzzle = nil
-		} else {
-			d.Player.Puzzle.Update(d.Player.Input)
-			if d.Player.Puzzle.IsOpen() && (d.Player.Puzzle.Solved() || d.Player.Puzzle.Failed()) {
-				d.Player.Puzzle.Close()
+			d.Player.Message.Text.SetText(m.Raw)
+			d.Player.Message.OnClose = m.OnClose
+			d.Player.Message.Done = false
+			d.Player.Message.Box.Open()
+		} else if d.Player.Puzzle != nil {
+			if d.Player.Puzzle.IsClosed() {
+				if d.Player.Puzzle.Solved() {
+					d.Player.Puzzle.OnSolve()
+				} else if d.Player.Puzzle.Failed() {
+					d.Player.Puzzle.OnFail()
+				}
+				d.Player.Puzzle = nil
+			} else {
+				d.Player.Puzzle.Update(d.Player.Input)
+				if d.Player.Puzzle.IsOpen() && (d.Player.Puzzle.Solved() || d.Player.Puzzle.Failed()) {
+					d.Player.Puzzle.Close()
+				}
 			}
-		}
-	} else {
-		if Descent.DisableInput {
-			d.Update(nil)
 		} else {
-			d.Update(d.Player.Input)
+			if Descent.DisableInput {
+				d.Update(nil)
+			} else {
+				d.Update(d.Player.Input)
+			}
+			d.Player.Inventory.Update()
 		}
-		d.Player.Inventory.Update()
 	}
 }
 

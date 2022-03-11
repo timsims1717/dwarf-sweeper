@@ -25,8 +25,8 @@ func (s *puzzleState) Load(done chan struct{}) {
 	reanimator.SetFrameRate(10)
 	reanimator.Reset()
 	s.minePuzzle = &puzzles.MinePuzzle{}
-	s.minePuzzle.Create(camera.Cam, s.puzLevel)
-	s.minePuzzle.Open("p1")
+	s.minePuzzle.Create(&camera.Cam.APos, s.puzLevel)
+	s.minePuzzle.Open(nil,"p1")
 	sfx.MusicPlayer.PlayMusic("pause")
 	done <- struct{}{}
 }
@@ -41,8 +41,8 @@ func (s *puzzleState) Update(win *pixelgl.Window) {
 		}
 		if s.minePuzzle.IsClosed() && s.minePuzzle.Solved() {
 			s.puzLevel++
-			s.minePuzzle.Create(camera.Cam, s.puzLevel)
-			s.minePuzzle.Open("p1")
+			s.minePuzzle.Create(&camera.Cam.APos, s.puzLevel)
+			s.minePuzzle.Open(nil,"p1")
 		}
 	}
 }

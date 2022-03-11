@@ -43,10 +43,11 @@ func run() {
 	mainFont, err := typeface.LoadTTF("assets/FR73PixD.ttf", constants.TypeFaceSize)
 	typeface.Atlases["main"] = text.NewAtlas(mainFont, text.ASCII)
 	typeface.Atlases["basic"] = typeface.BasicAtlas
+	typeface.RoundDot = true
 
 	camera.Cam = camera.New(true)
 	camera.Cam.Opt.WindowScale = constants.BaseH
-	camera.Cam.SetZoom(4. / 3.)
+	camera.Cam.SetZoom(1.)
 	camera.Cam.SetILock(true)
 	camera.Cam.SetSize(res.X, res.Y)
 	ratio := res.X/res.Y

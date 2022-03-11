@@ -1,16 +1,15 @@
-package puzzles
+package player
 
 import (
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/input"
 	"github.com/faiface/pixel"
 )
 
 type Puzzle interface {
-	Create(*camera.Camera, int)
+	Create(*pixel.Vec, int)
 	IsOpen() bool
 	IsClosed() bool
-	Open(string)
+	Open(*Player, string)
 	Close()
 	Update(*input.Input)
 	Draw(pixel.Target)

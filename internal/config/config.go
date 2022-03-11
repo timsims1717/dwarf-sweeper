@@ -50,4 +50,6 @@ type inputs struct {
 	Interact     *input.ButtonSet `toml:"interact"`
 	Prev         *input.ButtonSet `toml:"prev"`
 	Next         *input.ButtonSet `toml:"next"`
+	MinePuzzBomb *input.ButtonSet `toml:"mine_puzz_bomb"`
+	MinePuzzSafe *input.ButtonSet `toml:"mine_puzz_safe"`
 }

@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/descent/generate/structures"
@@ -156,7 +157,7 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 				case "stairs":
 					structures.Stairs(c, tile.RCoords, random.CaveGen.Intn(2) == 0, random.CaveGen.Intn(2) == 0, 0, 0)
 				case "bigBomb":
-					fmt.Printf("Bomb should be here: (%d,%d)\n", tile.RCoords.X, tile.RCoords.Y)
+					descent.Descent.CoordsMap["big-bomb"] = tile.RCoords
 					structures.BombRoom(c, 4, 7, 7, 11, 3, c.Level, tile.RCoords)
 				}
 				if signal != nil {

@@ -49,14 +49,14 @@ func InitHUD() {
 
 	gemSpr = img.Batchers[constants.EntityKey].GetSprite("gem_diamond")
 
-	timerText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
+	timerText = typeface.New(&camera.Cam.APos, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualHintSize, 0., 0.)
 	timerText.SetColor(hudTextColor)
 
 	itemBoxSpr = img.Batchers[constants.MenuSprites].GetSprite("item_box")
 
 	bombTransform = transform.New()
 	bombTransform.Scalar = pixel.V(camera.Cam.GetZoom(), camera.Cam.GetZoom())
-	bombCountText = typeface.New(camera.Cam, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
+	bombCountText = typeface.New(&camera.Cam.APos, "main", typeface.NewAlign(typeface.Center, typeface.Center), 1.0, constants.ActualOneSize, 0., 0.)
 	bombCountText.SetColor(hudTextColor)
 	bombSpr = img.Batchers[constants.EntityKey].GetSprite("mine_1")
 }

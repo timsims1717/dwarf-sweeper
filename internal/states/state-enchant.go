@@ -49,7 +49,7 @@ func (s *enchantState) Update(win *pixelgl.Window) {
 func (s *enchantState) Draw(win *pixelgl.Window) {
 	descent.Descent.GetCave().Draw(win)
 	systems.DrawSystem()
-	img.DrawBatches(win)
+	img.Draw(win)
 	hud.DrawHUD(win)
 	for _, m := range menuStack {
 		m.Draw(win)

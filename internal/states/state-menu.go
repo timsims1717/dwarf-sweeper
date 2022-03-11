@@ -41,8 +41,8 @@ func (s *menuState) Unload() {
 func (s *menuState) Load(done chan struct{}) {
 	sfx.SoundPlayer.KillAll()
 	descent.Descent.FreeCam = false
-	camera.Cam.SetZoom(4. / 3.)
-	s.pressAKey = typeface.New(camera.Cam, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1.0, constants.ActualMenuSize, 0., 0.)
+	camera.Cam.SetZoom(1.)
+	s.pressAKey = typeface.New(&camera.Cam.APos, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1.0, constants.ActualMenuSize, 0., 0.)
 	s.pressAKey.SetColor(colornames.Aliceblue)
 	s.pressAKey.SetText("press any key")
 	s.pressAKey.Transform.Pos = pixel.V(0., -75.)
