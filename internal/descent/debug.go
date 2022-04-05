@@ -1,7 +1,6 @@
 package descent
 
 import (
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/pkg/input"
 	"fmt"
@@ -33,6 +32,7 @@ func Debug(in *input.Input) {
 				debug.AddText(fmt.Sprintf("tile sprite %d: '%s'", i, spr.K))
 			}
 			debug.AddText(fmt.Sprintf("tile smart str: '%s'", d.Hovered.SmartStr))
+			debug.AddText(fmt.Sprintf("tile bg smart str: '%s'", d.Hovered.BGSmartStr))
 			debug.AddText(fmt.Sprintf("tile fog smart str: '%s'", d.Hovered.FogSmartStr))
 			debug.AddText(fmt.Sprintf("tile fog sprite: '%s'", d.Hovered.FogSpriteS))
 		}
@@ -40,6 +40,6 @@ func Debug(in *input.Input) {
 		debug.AddText(fmt.Sprintf("cave level: %d", Descent.Cave.Level))
 		debug.AddText(fmt.Sprintf("cave depth: %d", Descent.CurrDepth))
 		debug.AddText(fmt.Sprintf("descent depth: %d", Descent.Depth))
-		debug.AddText(fmt.Sprintf("bombs in cave: %d", player.CaveBombsLeft))
+		debug.AddText(fmt.Sprintf("bombs in cave: %d", Descent.GetCave().BombsLeft))
 	}
 }

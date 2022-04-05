@@ -6,6 +6,7 @@ import (
 	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/transform"
@@ -15,13 +16,11 @@ import (
 func CreateFlag(p *player.Player, tile *cave.Tile) {
 	correct := tile.Bomb
 	if correct {
-		player.OverallStats.CaveBombsFlagged++
-		player.OverallStats.CaveCorrectFlags++
-		p.Stats.CaveBombsFlagged++
-		p.Stats.CaveCorrectFlags++
+		profile.CurrentProfile.Stats.CorrectFlags++
+		p.Stats.CorrectFlags++
 	} else {
-		player.OverallStats.CaveWrongFlags++
-		p.Stats.CaveWrongFlags++
+		profile.CurrentProfile.Stats.WrongFlags++
+		p.Stats.WrongFlags++
 	}
 	e := myecs.Manager.NewEntity()
 	trans := transform.New()
@@ -32,20 +31,15 @@ func CreateFlag(p *player.Player, tile *cave.Tile) {
 			tile.Flagged = false
 			if tile.Solid() {
 				if correct {
-					player.OverallStats.CaveBombsFlagged--
-					player.OverallStats.CaveCorrectFlags--
-					p.Stats.CaveBombsFlagged--
-					p.Stats.CaveCorrectFlags--
+					profile.CurrentProfile.Stats.CorrectFlags--
+					p.Stats.CorrectFlags--
 				} else {
-					player.OverallStats.CaveWrongFlags--
-					p.Stats.CaveWrongFlags--
+					profile.CurrentProfile.Stats.WrongFlags--
+					p.Stats.WrongFlags--
 				}
 			} else if correct {
-				player.OverallStats.CaveBombsFlagged--
-				p.Stats.CaveBombsFlagged--
-			} else {
-				player.OverallStats.CaveWrongFlags--
-				p.Stats.CaveWrongFlags--
+				profile.CurrentProfile.Stats.CorrectFlags--
+				p.Stats.CorrectFlags--
 			}
 			myecs.Manager.DisposeEntity(e)
 		}
@@ -58,58 +52,3 @@ func CreateFlag(p *player.Player, tile *cave.Tile) {
 		AddComponent(myecs.Drawable, anim).
 		AddComponent(myecs.Batch, constants.ParticleKey)
 }
-
-//type Flag struct {
-//	Transform  *transform.Transform
-//	Tile       *cave.Tile
-//	created    bool
-//	Reanimator *reanimator.Tree
-//	entity     *ecs.Entity
-//	correct    bool
-//}
-//
-//func (f *Flag) Update() {
-//	if f.created {
-//		if !f.Tile.Solid() || f.Tile.Destroyed || !f.Tile.Flagged {
-//			f.Delete()
-//			// todo: particles?
-//		}
-//	}
-//}
-//
-//func (f *Flag) Create(_ pixel.Vec) {
-//	f.Transform = transform.New()
-//	f.Transform.Pos = f.Tile.Transform.Pos
-//	f.created = true
-//	f.correct = f.Tile.Bomb
-//	if f.correct {
-//		player2.CaveBombsMarked++
-//		player2.CaveCorrectMarks++
-//	} else {
-//		player2.CaveWrongMarks++
-//	}
-//	f.Reanimator = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.ParticleKey].Animations["flag_hang"].S, reanimator.Loop))
-//	f.entity = myecs.Manager.NewEntity().
-//		AddComponent(myecs.Entity, f).
-//		AddComponent(myecs.Transform, f.Transform).
-//		AddComponent(myecs.Animation, f.Reanimator).
-//		AddComponent(myecs.Drawable, f.Reanimator).
-//		AddComponent(myecs.Batch, constants.ParticleKey)
-//}
-//
-//func (f *Flag) Delete() {
-//	f.Tile.Flagged = false
-//	if f.Tile.Solid() {
-//		if f.correct {
-//			player2.CaveBombsMarked--
-//			player2.CaveCorrectMarks--
-//		} else {
-//			player2.CaveWrongMarks--
-//		}
-//	} else if f.correct {
-//		player2.CaveBombsMarked--
-//	} else {
-//		player2.CaveWrongMarks--
-//	}
-//	myecs.Manager.DisposeEntity(f.entity)
-//}

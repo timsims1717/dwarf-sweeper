@@ -129,8 +129,8 @@ func (hud *HUD) Update() {
 	gtp := hud.GemTrans.Pos
 	gtp.X += gemSpr.Frame().W()*0.5 + 4.
 	hud.GemText.SetPos(gtp)
-	if hud.Dwarf.Player.Stats.CaveGemsFound != hud.LastGem || hud.Refresh {
-		hud.LastGem = hud.Dwarf.Player.Stats.CaveGemsFound
+	if hud.Dwarf.Player.Gems != hud.LastGem || hud.Refresh {
+		hud.LastGem = hud.Dwarf.Player.Gems
 		hud.GemText.SetText(fmt.Sprintf("x%d", hud.LastGem))
 		hud.GemTimer = timing.New(3.0)
 	} else if hud.LastGem == 0 && hud.GemTimer == nil {

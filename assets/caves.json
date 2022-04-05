@@ -100,5 +100,107 @@
       "popper",
       "bat"
     ]
+  },
+  {
+    "key": "testBlob",
+    "title": "Moss Blobby",
+    "biome": "moss",
+    "desc": "",
+    "tracks": [
+      "honey"
+    ],
+    "width": 6,
+    "height": 6,
+    "type": "Normal",
+    "base": "Blob",
+    "structures": [
+      {
+        "key": "mineComplex",
+        "seed": "Room",
+        "minimum": 2,
+        "maximum": 4
+      },
+      {
+        "key": "bigBomb",
+        "seed": "Room",
+        "minimum": 1,
+        "maximum": 1,
+        "digDist": "Far"
+      },
+      {
+        "key": "noodleCave",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      },
+      {
+        "key": "treasure",
+        "seed": "Room",
+        "minimum": 8,
+        "maximum": 12
+      },
+      {
+        "key": "bombable",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      }
+    ],
+    "enemies": [
+      "slug",
+      "popper",
+      "bat"
+    ]
+  },
+  {
+    "key": "testBlob",
+    "title": "Crystal Blobby",
+    "biome": "crystal",
+    "desc": "",
+    "tracks": [
+      "voyage"
+    ],
+    "width": 6,
+    "height": 6,
+    "type": "Normal",
+    "base": "Blob",
+    "structures": [
+      {
+        "key": "mineComplex",
+        "seed": "Room",
+        "minimum": 2,
+        "maximum": 4
+      },
+      {
+        "key": "bigBomb",
+        "seed": "Room",
+        "minimum": 1,
+        "maximum": 1,
+        "digDist": "Far"
+      },
+      {
+        "key": "noodleCave",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      },
+      {
+        "key": "treasure",
+        "seed": "Room",
+        "minimum": 8,
+        "maximum": 12
+      },
+      {
+        "key": "bombable",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      }
+    ],
+    "enemies": [
+      "slug",
+      "popper",
+      "bat"
+    ]
   }
 ]

@@ -80,14 +80,18 @@ func (m *DwarfMenu) AddItem(key, raw string, right bool) *Item {
 	return item
 }
 
-func (m *DwarfMenu) InsertItem(key, raw string, i int, right bool) *Item {
+func (m *DwarfMenu) InsertItem(key, raw, after string, right bool) *Item {
 	if _, ok := m.ItemMap[key]; ok {
 		panic(fmt.Errorf("menu '%s' already has item '%s'", m.Key, key))
 	}
 	item := NewItem(key, raw, right)
 	m.ItemMap[key] = item
-	if i < 0 {
-		i = 0
+	i := 0
+	for j, itemAfter := range m.Items {
+		if itemAfter.Key == after {
+			i = j+1
+			break
+		}
 	}
 	if i >= len(m.Items) {
 		m.Items = append(m.Items, item)

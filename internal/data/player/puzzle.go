@@ -2,6 +2,7 @@ package player
 
 import (
 	"dwarf-sweeper/pkg/input"
+	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
 )
 
@@ -19,4 +20,5 @@ type Puzzle interface {
 	OnFail()
 	SetOnSolve(func())
 	SetOnFail(func())
+	SetTimer(*timing.Timer)
 }

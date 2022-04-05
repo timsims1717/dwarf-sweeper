@@ -11,7 +11,7 @@ type Player struct {
 	Code      string
 	Attr      Attributes
 	Stats     Stats
-	Flags     Flags
+	Gems      int
 	Canvas    *pixelgl.Canvas
 	CanvasPos pixel.Vec
 	CamPos    pixel.Vec

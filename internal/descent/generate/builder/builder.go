@@ -16,19 +16,18 @@ const (
 )
 
 type CaveBuilder struct {
-	Key        string        `json:"key"`
-	Biome      string        `json:"biome"`
-	Title      string        `json:"title"`
-	Desc       string        `json:"desc"`
-	Tracks     []string      `json:"tracks"`
-	Width      int           `json:"width"`
-	Height     int           `json:"height"`
-	Type       cave.CaveType `json:"type"`
-	Base       Base          `json:"base"`
-	Structures []Structure   `json:"structures"`
-	Enemies    []string      `json:"enemies"`
-	Exits      []string      `json:"exits"`
-	ExitI      []int         `json:"-"`
+	Key        string         `json:"key"`
+	Biome      string         `json:"biome"`
+	Title      string         `json:"title"`
+	Desc       string         `json:"desc"`
+	Tracks     []string       `json:"tracks"`
+	Width      int            `json:"width"`
+	Height     int            `json:"height"`
+	Type       cave.CaveType  `json:"type"`
+	Base       Base           `json:"base"`
+	DoorType   cave.BlockType `json:"doorType"`
+	Structures []Structure    `json:"structures"`
+	Enemies    []string       `json:"enemies"`
 }
 
 type DigDist int
@@ -38,12 +37,14 @@ const (
 	Close // should be within 1.5 chunks of entrance
 	Medium // should be between 1 chunk and the longest side length of the cave
 	Far // should be longest side length - 1 chunk or further
+	Farthest // should be longer than longest side length + 1
 )
 
 type Structure struct {
 	Key      string   `json:"key"`
 	Minimum  int      `json:"minimum"`
 	Maximum  int      `json:"maximum"`
+	Chance   float64  `json:"chance"`
 	MarginL  int      `json:"marginL"`
 	MarginR  int      `json:"marginR"`
 	MarginT  int      `json:"marginT"`
@@ -52,7 +53,7 @@ type Structure struct {
 	Enemies  []string `json:"enemies"`
 }
 
-func (s *Structure) Margins() {
+func (s *Structure) Defaults() {
 	if s.MarginL < 5 {
 		s.MarginL = 5
 	}
@@ -99,17 +100,19 @@ func (base *Base) UnmarshalJSON(b []byte) error {
 }
 
 var toDigDistString = map[DigDist]string{
-	Any:    "Any",
-	Close:  "Close",
-	Medium: "Medium",
-	Far:    "Far",
+	Any:      "Any",
+	Close:    "Close",
+	Medium:   "Medium",
+	Far:      "Far",
+	Farthest: "Farthest",
 }
 
 var toDigDistID = map[string]DigDist{
-	"Any":    Any,
-	"Close":  Close,
-	"Medium": Medium,
-	"Far":    Far,
+	"Any":      Any,
+	"Close":    Close,
+	"Medium":   Medium,
+	"Far":      Far,
+	"Farthest": Farthest,
 }
 
 func (digDist DigDist) MarshalJSON() ([]byte, error) {
@@ -140,8 +143,8 @@ func (cb *CaveBuilder) Copy() CaveBuilder {
 		Height:     cb.Height,
 		Type:       cb.Type,
 		Base:       cb.Base,
+		DoorType:   cb.DoorType,
 		Structures: cb.Structures,
-		Exits:      cb.Exits,
 	}
 	return newCB
 }

@@ -10,6 +10,7 @@ import (
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/pkg/camera"
@@ -19,6 +20,7 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/state"
 	"dwarf-sweeper/pkg/timing"
+	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -37,17 +39,21 @@ type descentState struct {
 	deathTimer  *timing.Timer
 	start       bool
 	PausePlayer *player.Player
+	CurrBiome   string
 }
 
 func (s *descentState) Unload() {
+	profile.CurrentProfile.Flags.CorrectFlags += profile.CurrentProfile.Stats.CorrectFlags
+	profile.CurrentProfile.Flags.WrongFlags += profile.CurrentProfile.Stats.WrongFlags
+	profile.CurrentProfile.Flags.BlocksDug += profile.CurrentProfile.Stats.BlocksDug
+	profile.CurrentProfile.Flags.BombsBlown += profile.CurrentProfile.Stats.BombsBlown
+	profile.CurrentProfile.Flags.BigBombsDisarmed += profile.CurrentProfile.Stats.BigBombsDisarmed
 	sfx.MusicPlayer.Pause(constants.GameMusic, true)
 	sfx.MusicPlayer.Stop("pause")
 }
 
 func (s *descentState) Load(done chan struct{}) {
 	if s.start {
-		s.start = false
-		s.Generate()
 		s.SetupPlayers()
 	}
 	s.deathTimer = nil
@@ -55,6 +61,7 @@ func (s *descentState) Load(done chan struct{}) {
 	sfx.SoundPlayer.KillAll()
 	systems.DeleteAllEntities()
 
+	s.Generate()
 	s.Descend()
 
 	reanimator.SetFrameRate(10)
@@ -91,15 +98,18 @@ func (s *descentState) Update(win *pixelgl.Window) {
 		systems.TriggerSystem()
 		systems.AnimationSystem()
 		descent.Update()
-		for _, d := range descent.Descent.GetPlayers() {
-			if d.Player.Input.Get("up").JustPressed() &&
-				descent.Descent.Cave.GetTile(d.Transform.Pos).IsExit() &&
-				descent.Descent.CanExit() {
-				if descent.Descent.CurrDepth >= descent.Descent.Depth-1 {
-					SwitchState(ScoreStateKey)
-				} else {
-					SwitchState(EnchantStateKey)
+		profile.CurrentProfile.UpdateQuests()
+		if descent.Descent.Exited {
+			if descent.Descent.CurrDepth >= descent.Descent.Depth-1 {
+				SwitchState(ScoreStateKey)
+			} else {
+				for _, d3 := range descent.Descent.GetPlayers() {
+					if d3.Health.Dead {
+						d3.Health.Dead = false
+						d3.Health.Curr = 1
+					}
 				}
+				SwitchState(DescentStateKey)
 			}
 		}
 	}
@@ -147,11 +157,12 @@ func (s *descentState) Update(win *pixelgl.Window) {
 
 func (s *descentState) Draw(win *pixelgl.Window) {
 	camPos = camera.Cam.APos
-	descent.Descent.GetCave().Draw(win)
+	descent.Descent.GetCave().Draw()
 	systems.DrawSystem()
 
 	for _, d := range descent.Descent.Dwarves {
 		d.Player.Canvas.Clear(color.RGBA{})
+		descent.Descent.GetCave().DrawBG(d.Player)
 		img.Draw(d.Player.Canvas)
 	}
 
@@ -190,53 +201,53 @@ func (s *descentState) SetAbstract(aState *state.AbstractState) {
 }
 
 func (s *descentState) Generate() {
-	descent.New()
-	for i := 0; i < descent.Descent.Depth; i++ {
+	descent.Descent.Exited = false
+	if !s.start {
+		descent.Descent.CurrDepth++
+	}
+	if descent.Descent.Builder == nil {
+		if !s.start && descent.Descent.ExitI > -1 && descent.Descent.ExitI < len(descent.Descent.Exits) {
+			s.CurrBiome = descent.Descent.NextBiome
+		}
 		var cb builder.CaveBuilder
-		if i == descent.Descent.Depth-1 {
-			caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/bosses.json"))
+		if descent.Descent.CurrDepth == descent.Descent.Depth-1 {
+			caveBuilders, err := builder.LoadBuilder(fmt.Sprintf("assets/caves/mine-bosses.json"))
 			if err != nil {
 				panic(err)
 			}
 			choice := random.Effects.Intn(len(caveBuilders))
 			cb = caveBuilders[choice].Copy()
-		} else if i%2 == 0 {
-			caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/caves.json"))
+		} else if (descent.Descent.CurrDepth+1)%3 == 0 {
+			caveBuilders, err := builder.LoadBuilder(fmt.Sprintf("assets/caves/%s-puzzles.json", s.CurrBiome))
 			if err != nil {
 				panic(err)
 			}
 			choice := random.Effects.Intn(len(caveBuilders))
 			cb = caveBuilders[choice].Copy()
 		} else {
-			caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/puzzles.json"))
+			caveBuilders, err := builder.LoadBuilder(fmt.Sprintf("assets/caves/%s-caves.json", s.CurrBiome))
 			if err != nil {
 				panic(err)
 			}
 			choice := random.Effects.Intn(len(caveBuilders))
 			cb = caveBuilders[choice].Copy()
 		}
-		descent.Descent.Builders = append(descent.Descent.Builders, []builder.CaveBuilder{cb})
+		descent.Descent.Builder = &cb
+	} else {
+		s.CurrBiome = descent.Descent.Builder.Biome
+	}
+	descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, (descent.Descent.CurrDepth+1)*descent.Descent.Difficulty))
+	if !util.ContainsStr(s.CurrBiome, profile.CurrentProfile.Flags.Discovered) {
+		profile.CurrentProfile.Flags.Discovered = append(profile.CurrentProfile.Flags.Discovered, s.CurrBiome)
 	}
 }
 
 func (s *descentState) Descend() {
-	if descent.Descent.Start {
+	profile.CurrentProfile.Stats = player.Stats{}
+	if s.start {
 		hud.InitHUD()
-		player.OverallStats.ResetStats()
-		player.CaveTotalBombs = 0
-		player.CaveBombsLeft = 0
-		descent.Descent.Start = false
-	} else {
-		player.OverallStats.ResetCaveStats()
-		player.CaveTotalBombs = 0
-		player.CaveBombsLeft = 0
-		for _, d := range descent.Descent.Dwarves {
-			d.Player.Stats.ResetCaveStats()
-		}
-		descent.Descent.CurrDepth++
+		s.start = false
 	}
-	descent.Descent.Builder = &descent.Descent.Builders[descent.Descent.CurrDepth][0]
-	descent.Descent.SetCave(generate.NewCave(descent.Descent.Builder, (descent.Descent.CurrDepth+1)*descent.Descent.Difficulty))
 	if len(descent.Descent.Builder.Tracks) > 0 {
 		sfx.MusicPlayer.ChooseNextTrack(constants.GameMusic, descent.Descent.Builder.Tracks)
 	} else {
@@ -256,6 +267,7 @@ func (s *descentState) Descend() {
 	for _, h := range hud.HUDs {
 		h.Refresh = true
 	}
+	descent.Descent.Builder = nil
 }
 
 func (s *descentState) SetupPlayers() {

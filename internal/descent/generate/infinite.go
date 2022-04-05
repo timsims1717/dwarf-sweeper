@@ -14,18 +14,18 @@ func NewInfiniteCave(biome string) *cave.Cave {
 	c.StartC = world.Coords{X: 16, Y: 9}
 	c.BombPMin = 0.2
 	c.BombPMax = 0.3
-	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, c, cave.BlockCollapse)
+	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, c, cave.Collapse)
 	structures.FillBasic(chunk0)
 
-	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, c, cave.BlockCollapse)
-	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, c, cave.BlockCollapse)
-	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, c, cave.BlockCollapse)
+	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, c, cave.Collapse)
+	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, c, cave.Collapse)
+	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, c, cave.Collapse)
 	structures.FillBasic(chunkr1)
 	structures.FillBasic(chunkr2)
 	structures.FillBasic(chunkr3)
 
-	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, c, cave.BlockCollapse)
-	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, c, cave.BlockCollapse)
+	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, c, cave.Collapse)
+	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, c, cave.Collapse)
 	structures.FillBasic(chunkl1)
 	structures.FillBasic(chunkl2)
 
@@ -35,6 +35,6 @@ func NewInfiniteCave(biome string) *cave.Cave {
 	c.Chunks[chunkr3.Coords] = chunkr3
 	c.Chunks[chunkl1.Coords] = chunkl1
 	c.Chunks[chunkl2.Coords] = chunkl2
-	structures.Entrance(c, world.Coords{X: 16, Y: 9}, 9, 5, 3, false)
+	structures.Entrance(c, world.Coords{X: 16, Y: 9}, 9, 5, 3, cave.Doorway)
 	return c
 }

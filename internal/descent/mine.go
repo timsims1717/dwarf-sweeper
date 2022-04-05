@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	player2 "dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/pkg/img"
@@ -32,7 +31,7 @@ func CreateMine(pos pixel.Vec) {
 			}).
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					player2.CaveBombsLeft--
+					Descent.Cave.BombsLeft--
 					tile := Descent.GetCave().GetTile(trans.Pos)
 					for _, n := range tile.RCoords.Neighbors() {
 						t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)

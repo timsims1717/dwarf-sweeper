@@ -68,14 +68,16 @@ func (s *musicSet) resume() {
 }
 
 func (s *musicSet) chooseTrack(keys []string) {
-	for _, k := range keys {
-		if k == s.curr {
-			return
+	if !s.stopped {
+		for _, k := range keys {
+			if k == s.curr {
+				return
+			}
 		}
 	}
+	s.stopped = false
 	s.next = keys[random.Intn(len(keys))]
 	s.playNext = true
-	s.stopped = false
 }
 
 func (s *musicSet) setTrack(key string) {

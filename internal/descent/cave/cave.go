@@ -2,15 +2,19 @@ package cave
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/pkg/camera"
+	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/pixelgl"
 	"math"
+)
+
+const (
+	Parallax = 1.
 )
 
 type Cave struct {
@@ -18,10 +22,13 @@ type Cave struct {
 	FillChunk   func(chunk *Chunk)
 	Pivots      []pixel.Vec
 	UpdateBatch bool
+	updateBatch bool
 	Type        CaveType
 	Biome       string
 	Biomes      []string
 	Level       int
+	TotalBombs  int
+	BombsLeft   int
 
 	Left   int
 	Right  int
@@ -31,7 +38,13 @@ type Cave struct {
 	bl     pixel.Vec
 	tr     pixel.Vec
 	StartC world.Coords
-	ExitC  world.Coords
+	DoorI  int
+	Exits  []struct{
+		Coords world.Coords
+		PopUp  *menus.PopUp
+		ExitI  int
+		Type   BlockType
+	}
 
 	Paths     []world.Coords
 	DeadEnds  []world.Coords
@@ -133,45 +146,59 @@ func (c *Cave) Update() {
 			img.Batchers[biome].Clear()
 		}
 		img.Batchers[constants.FogKey].Clear()
-	}
-
-	if c.Background != nil {
-		offset := camera.Cam.APos.Scaled(-0.5)
-		offset.X = util.FMod(offset.X, c.Background.Frame().W())
-		offset.Y = util.FMod(offset.Y, c.Background.Frame().H())
-		offset.X = offset.X + c.Background.Frame().W()*0.5
-		offset.Y = offset.Y - c.Background.Frame().H()*0.5
-		c.BGTC.Pos = offset
-		c.BGTUL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, c.Background.Frame().H()+offset.Y)
-		c.BGTU.Pos = pixel.V(offset.X, c.Background.Frame().H()+offset.Y)
-		c.BGTUR.Pos = pixel.V(c.Background.Frame().W()+offset.X, c.Background.Frame().H()+offset.Y)
-		c.BGTR.Pos = pixel.V(c.Background.Frame().W()+offset.X, offset.Y)
-		c.BGTL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, offset.Y)
-		c.BGTDL.Pos = pixel.V(-c.Background.Frame().W()+offset.X, -c.Background.Frame().H()+offset.Y)
-		c.BGTD.Pos = pixel.V(offset.X, -c.Background.Frame().H()+offset.Y)
-		c.BGTDR.Pos = pixel.V(c.Background.Frame().W()+offset.X, -c.Background.Frame().H()+offset.Y)
+		c.updateBatch = true
+		c.UpdateBatch = false
 	}
 }
 
-func (c *Cave) Draw(win *pixelgl.Window) {
+func (c *Cave) DrawBG(p *player.Player) {
 	if c.Background != nil && c.BGBatch != nil {
-		c.BGTC.UIPos = camera.Cam.APos
+		w := c.Background.Frame().W()
+		h := c.Background.Frame().H()
+		offset := p.CamPos
+		offset.X /= Parallax * 2.
+		offset.Y /= Parallax * 2.
+		offset.X = util.FMod(offset.X, w)
+		offset.Y = util.FMod(offset.Y, h)
+		if offset.X < 0. {
+			offset.X += w
+		}
+		if offset.Y < 0. {
+			offset.Y += h
+		}
+		offset.X *= -1.
+		offset.Y *= -1.
+		offset.X += w*0.5
+		offset.Y += h*0.5
+		offset.X = math.Round(offset.X)
+		offset.Y = math.Round(offset.Y)
+		c.BGTC.Pos = offset
+		c.BGTUL.Pos = pixel.V(offset.X-w, offset.Y+h)
+		c.BGTU.Pos = pixel.V(offset.X, offset.Y+h)
+		c.BGTUR.Pos = pixel.V(offset.X+w, offset.Y+h)
+		c.BGTL.Pos = pixel.V(offset.X-w, offset.Y)
+		c.BGTR.Pos = pixel.V(offset.X+w, offset.Y)
+		c.BGTDL.Pos = pixel.V(offset.X-w, offset.Y-h)
+		c.BGTD.Pos = pixel.V(offset.X, offset.Y-h)
+		c.BGTDR.Pos = pixel.V(offset.X+w, offset.Y-h)
+
+		c.BGTC.UIPos = p.CamPos
 		c.BGTC.Update()
-		c.BGTUL.UIPos = camera.Cam.APos
+		c.BGTUL.UIPos = p.CamPos
 		c.BGTUL.Update()
-		c.BGTU.UIPos = camera.Cam.APos
+		c.BGTU.UIPos = p.CamPos
 		c.BGTU.Update()
-		c.BGTUR.UIPos = camera.Cam.APos
+		c.BGTUR.UIPos = p.CamPos
 		c.BGTUR.Update()
-		c.BGTL.UIPos = camera.Cam.APos
+		c.BGTL.UIPos = p.CamPos
 		c.BGTL.Update()
-		c.BGTR.UIPos = camera.Cam.APos
+		c.BGTR.UIPos = p.CamPos
 		c.BGTR.Update()
-		c.BGTDL.UIPos = camera.Cam.APos
+		c.BGTDL.UIPos = p.CamPos
 		c.BGTDL.Update()
-		c.BGTD.UIPos = camera.Cam.APos
+		c.BGTD.UIPos = p.CamPos
 		c.BGTD.Update()
-		c.BGTDR.UIPos = camera.Cam.APos
+		c.BGTDR.UIPos = p.CamPos
 		c.BGTDR.Update()
 
 		c.BGBatch.Clear()
@@ -184,13 +211,16 @@ func (c *Cave) Draw(win *pixelgl.Window) {
 		c.Background.Draw(c.BGBatch, c.BGTDL.Mat)
 		c.Background.Draw(c.BGBatch, c.BGTD.Mat)
 		c.Background.Draw(c.BGBatch, c.BGTDR.Mat)
-		c.BGBatch.Draw(win)
+		c.BGBatch.Draw(p.Canvas)
 	}
-	if c.UpdateBatch {
+}
+
+func (c *Cave) Draw() {
+	if c.updateBatch {
 		for _, chunk := range c.Chunks {
 			chunk.Draw()
 		}
-		c.UpdateBatch = false
+		c.updateBatch = false
 	}
 }
 
@@ -276,7 +306,11 @@ func (c *Cave) GetStart() *Tile {
 }
 
 func (c *Cave) GetExit() *Tile {
-	return c.GetTileInt(c.ExitC.X, c.ExitC.Y)
+	if len(c.Exits) > 0 {
+		return c.GetTileInt(c.Exits[0].Coords.X, c.Exits[0].Coords.Y)
+	} else {
+		return nil
+	}
 }
 
 func (c *Cave) UpdateAllTileSprites() {
@@ -365,19 +399,21 @@ func (c *Cave) PrintCaveToTerminal() {
 						//	fmt.Print("p")
 					} else {
 						switch tile.Type {
-						case BlockCollapse, BlockDig:
+						case Collapse, Dig:
 							if tile.Bomb {
 								fmt.Print("ó")
 							} else {
 								fmt.Print("□")
 							}
-						case BlockBlast:
+						case Blast:
 							fmt.Print("▣")
 						case Wall:
 							fmt.Print("#")
-						case Deco:
-							fmt.Print("*")
-						case Empty:
+						case Doorway, Tunnel, SecretDoor, SecretOpen:
+							fmt.Print("=")
+						case Pillar, Growth:
+							fmt.Print("I")
+						case Empty, Blank:
 							fmt.Print(" ")
 						}
 					}

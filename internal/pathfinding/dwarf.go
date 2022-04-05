@@ -26,9 +26,9 @@ func DigNeighbors(tile *cave.Tile) []*cave.Tile {
 
 func DigCost(tile, to *cave.Tile) float64 {
 	w := 1.
-	if to.Type == cave.BlockCollapse {
+	if to.Type == cave.Collapse {
 		w++
-	} else if to.Type == cave.BlockDig {
+	} else if to.Type == cave.Dig {
 		w += 2.
 	}
 	if to.RCoords.X != tile.RCoords.X && to.RCoords.Y != tile.RCoords.Y {

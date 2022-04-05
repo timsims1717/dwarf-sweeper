@@ -7,7 +7,6 @@ import (
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
-	"github.com/faiface/pixel"
 )
 
 func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
@@ -25,6 +24,7 @@ func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
 		lastDown := 5
 		var downX []int
 		count := 0
+		bg := random.CaveGen.Intn(2) == 0
 		for count < layerWidth {
 			if currX > c.Left*constants.ChunkSize+4 &&
 				currX < (c.Right+1)*constants.ChunkSize-4 {
@@ -35,26 +35,25 @@ func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
 				below1 := c.GetTileInt(currX, currY+1)
 				below2 := c.GetTileInt(currX, currY+2)
 				if pillarX%6 == currX%6 && (above2.Solid() || layer == 1) {
-					ToEmpty(mainTile, false, true, false)
-					mainTile.ClearSprites()
-					mainTile.AddSprite("pillar", pixel.IM, c.Biome, true)
-					ToEmpty(above1, false, true, false)
-					above1.ClearSprites()
-					above1.AddSprite("pillar_top", pixel.IM, c.Biome, true)
+					mainTile.BG = bg
+					above1.BG = bg
+					bg = !bg
+					ToType(mainTile, cave.Pillar, false, false)
+					ToType(above1, cave.Pillar, false, false)
 				} else {
-					ToEmpty(mainTile, false, false, false)
-					ToEmpty(above1, false, false, false)
+					ToType(mainTile, cave.Empty, false, false)
+					ToType(above1, cave.Empty, false, false)
 					if !done && random.CaveGen.Intn(lastDown) > 5 {
-						ToEmpty(below1, false, false, true)
-						ToEmpty(below2, false, false, true)
+						ToType(below1, cave.Empty, false, true)
+						ToType(below2, cave.Empty, false, true)
 						lastDown = 0
 						downX = append(downX, currX)
 					}
 				}
-				ToBlock(above2, cave.Unknown, false, false)
-				ToBlock(above3, cave.Unknown, false, false)
-				ToBlock(below1, cave.Unknown, false, false)
-				ToBlock(below2, cave.Unknown, false, false)
+				ToBlock(above2, false, false)
+				ToBlock(above3, false, false)
+				ToBlock(below1, false, false)
+				ToBlock(below2, false, false)
 			} else {
 				break
 			}
@@ -91,6 +90,7 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 	currX -= offset
 	pillarX := currX + random.CaveGen.Intn(6)
 	count := 0
+	bg := random.CaveGen.Intn(2) == 0
 	for count < totalWidth {
 		if currX > c.Left*constants.ChunkSize+4 &&
 			currX < (c.Right+1)*constants.ChunkSize-4 {
@@ -101,24 +101,25 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 			below1 := c.GetTileInt(currX, include.Y+1)
 			below2 := c.GetTileInt(currX, include.Y+2)
 			if count < 2 || count > totalWidth-3 {
-				ToBlock(mainTile, cave.BlockDig, false, false)
-				ToBlock(above1, cave.BlockDig, false, false)
-				ToBlock(above2, cave.BlockDig, false, false)
-				ToBlock(below1, cave.BlockDig, false, false)
+				ToBlock(mainTile, false, false)
+				ToBlock(above1, false, false)
+				ToBlock(above2, false, false)
+				ToBlock(below1, false, false)
 			} else {
 				if pillarX%6 == currX%6 {
-					ToEmpty(mainTile, false, true, false)
-					mainTile.AddSprite("pillar", pixel.IM, c.Biome, true)
-					ToEmpty(above1, false, true, false)
-					above1.AddSprite("pillar_top", pixel.IM, c.Biome, true)
+					mainTile.BG = bg
+					above1.BG = bg
+					bg = !bg
+					ToType(mainTile, cave.Pillar, false,  false)
+					ToType(above1, cave.Pillar, false, false)
 				} else {
-					ToEmpty(mainTile, false, false, false)
-					ToEmpty(above1, false, false, false)
+					ToType(mainTile, cave.Empty, false, false)
+					ToType(above1, cave.Empty, false, false)
 				}
-				ToBlock(above2, cave.BlockDig, false, false)
-				ToBlock(above3, cave.BlockDig, false, false)
-				ToBlock(below1, cave.BlockDig, false, false)
-				ToBlock(below2, cave.BlockDig, false, false)
+				ToBlock(above2, false, false)
+				ToBlock(above3, false, false)
+				ToBlock(below1, false, false)
+				ToBlock(below2, false, false)
 			}
 		}
 		currX++
@@ -138,24 +139,23 @@ func Stairs(c *cave.Cave, include world.Coords, left, down bool, height, width i
 	curr := include
 	count := 0
 	turnC := 0
-	done := false
-	for count < h && !done {
+	for count < h {
 		if (turnC != w-1 && down) || (turnC == 1 && !down) {
 			stair := c.GetTileInt(curr.X, curr.Y+1)
 			below1 := c.GetTileInt(curr.X, curr.Y+2)
-			ToBlock(stair, cave.Wall, false, down)
-			ToBlock(below1, cave.Wall, false, down)
+			ToType(stair, cave.Wall, false, down)
+			ToType(below1, cave.Wall, false, down)
 		}
 		above1 := c.GetTileInt(curr.X, curr.Y)
 		above2 := c.GetTileInt(curr.X, curr.Y-1)
 		above3 := c.GetTileInt(curr.X, curr.Y-2)
 		above4 := c.GetTileInt(curr.X, curr.Y-3)
 		above5 := c.GetTileInt(curr.X, curr.Y-4)
-		ToEmpty(above1, true, false, true)
-		ToEmpty(above2, true, false, true)
-		ToEmpty(above3, true, false, true)
-		ToBlock(above4, cave.Wall, false, !down)
-		ToBlock(above5, cave.Wall, false, !down)
+		ToType(above1, cave.Empty, true,  true)
+		ToType(above2, cave.Empty, true,  true)
+		ToType(above3, cave.Empty, true,  true)
+		ToType(above4, cave.Wall, false, !down)
+		ToType(above5, cave.Wall, false, !down)
 		if turnC == w {
 			turnC = 0
 			left = !left

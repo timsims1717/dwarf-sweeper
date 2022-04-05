@@ -16,8 +16,8 @@ var (
 	InputMenu      *menus.DwarfMenu
 	KeybindingMenu *menus.DwarfMenu
 	PauseMenu      *menus.DwarfMenu
+	QuestMenu      *menus.DwarfMenu
 	OptionsMenu    *menus.DwarfMenu
-	EnchantMenu    *menus.DwarfMenu
 	PostMenu       *menus.DwarfMenu
 	DebugMenu      *menus.DwarfMenu
 	KeyString      string
@@ -36,7 +36,7 @@ func InitializeMenus(win *pixelgl.Window) {
 	InitInputMenu(win)
 	InitKeybindingMenu()
 	InitPauseMenu(win)
-	InitEnchantMenu()
+	InitQuestMenu()
 	InitPostGameMenu()
 	InitDebugMenu()
 	UpdateKeybindings(data.CurrInput)

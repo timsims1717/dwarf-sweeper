@@ -61,7 +61,7 @@ func SmartTileNum(list string, perlin float64) (string, pixel.Matrix) {
 		}
 		return "num_2", mat
 	default:
-		return "num_0", img.IM
+		return "", img.IM
 	}
 }
 
@@ -92,7 +92,7 @@ func SmartTileFade(list string) (string, pixel.Matrix) {
 		"01001100",
 		"11000100", "01000100":
 		return "cross_fade", img.Flop
-	case "10111011", "00111011", "10110011", "10111001",
+	case "10111011", "10111001",
 		"00011011",
 		"10110001", "00010011", "00011001",
 		"00110001", "10010001", "00010001":
@@ -131,7 +131,7 @@ func SmartTileFade(list string) (string, pixel.Matrix) {
 		"00011010", "00111000",
 		"10010010", "10110000",
 		"10010000", "00010000",
-		"00111100", "01111100", "01111000", "10111100", "01111010":
+		"00111100", "01111100", "01111000", "10111100", "01111010", "00111011":
 		return "outer_fade", img.FlipFlop
 	case "10101110", "00101110", "10001110", "10100110", "10101100",
 		"00001110", "00101100",
@@ -144,7 +144,7 @@ func SmartTileFade(list string) (string, pixel.Matrix) {
 		"10000011", "00001001",
 		"00100001", "00000001",
 		"11000011", "11000111", "10000111", "11001011", "10010011",
-		"10100111", "10011011":
+		"10100111", "10011011", "10110011":
 		return "outer_fade", img.IM
 	default:
 		return "", img.IM
@@ -165,11 +165,11 @@ func SmartTileSolid(t BlockType, list string, surrounded bool, perlin float64) (
 	}
 	s := "blank"
 	switch t {
-	case BlockCollapse:
+	case Collapse:
 		s = "block"
-	case BlockDig:
+	case Dig:
 		s = "blockb"
-	case BlockBlast:
+	case Blast:
 		s = "blockc"
 	case Wall:
 		s = "wall"

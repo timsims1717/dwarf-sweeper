@@ -1,0 +1,60 @@
+[
+  {
+    "key": "testBlob",
+    "title": "Dark Blobby",
+    "biome": "dark",
+    "desc": "",
+    "tracks": [
+      "turbo"
+    ],
+    "width": 6,
+    "height": 6,
+    "type": "Normal",
+    "base": "Blob",
+    "structures": [
+      {
+        "key": "secretExit",
+        "seed": "Room",
+        "minimum": 0,
+        "maximum": 1,
+        "digDist": "Farthest"
+      },
+      {
+        "key": "mineComplex",
+        "seed": "Room",
+        "minimum": 2,
+        "maximum": 4
+      },
+      {
+        "key": "bigBomb",
+        "seed": "Room",
+        "minimum": 1,
+        "maximum": 1,
+        "digDist": "Far"
+      },
+      {
+        "key": "noodleCave",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      },
+      {
+        "key": "treasure",
+        "seed": "Room",
+        "minimum": 8,
+        "maximum": 12
+      },
+      {
+        "key": "bombable",
+        "seed": "Room",
+        "minimum": 6,
+        "maximum": 10
+      }
+    ],
+    "enemies": [
+      "slug",
+      "popper",
+      "bat"
+    ]
+  }
+]

@@ -30,8 +30,8 @@ func UpdateTiles(tiles []*cave.Tile) {
 		if tile.Solid() && tile.Breakable() {
 			tile.DestroyTrigger = BasicDestroy
 			if tile.Bomb {
-				player.CaveTotalBombs++
-				player.CaveBombsLeft++
+				tile.Chunk.Cave.TotalBombs++
+				tile.Chunk.Cave.BombsLeft++
 				tile.XRay = "bomb"
 			}
 		}
@@ -50,8 +50,8 @@ func FillBasic(ch *cave.Chunk) {
 			if tile.Solid() && tile.Breakable() {
 				tile.DestroyTrigger = BasicDestroy
 				if tile.Bomb {
-					player.CaveTotalBombs++
-					player.CaveBombsLeft++
+					ch.Cave.TotalBombs++
+					ch.Cave.BombsLeft++
 					tile.XRay = "bomb"
 				} else if random.CaveGen.Intn(80) == 0 {
 					if ch.Cave.Biome == "mine" {
@@ -113,7 +113,7 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 func FillChunkWall(ch *cave.Chunk) {
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			ToBlock(tile, cave.Wall, false, false)
+			ToType(tile, cave.Wall, false, false)
 		}
 	}
 }

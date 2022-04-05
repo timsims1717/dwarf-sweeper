@@ -73,19 +73,18 @@ func MinesweeperCave(c *cave.Cave, level int) *cave.Cave {
 	c.StartC = world.Coords{X: 12, Y: h*constants.ChunkSize - 8}
 	exitC := c.StartC
 	exitC.X += chal.Width + 13
-	c.ExitC = exitC
 	pathS := c.StartC
 	pathS.X -= 2
 	pathS.Y += 1
-	player.CaveTotalBombs = chal.Mines
-	player.CaveBombsLeft = chal.Mines
+	c.TotalBombs = chal.Mines
+	c.BombsLeft = chal.Mines
 	structures.CreateChunks(c, cave.Wall)
 	structures.Outline(c, pathS, outline(chal))
-	structures.Entrance(c, c.StartC, 5, 2, 0, false)
-	structures.Entrance(c, exitC, 5, 2, 0, true)
-	for x := c.StartC.X + 1; x < c.ExitC.X; x++ {
+	structures.EntranceDoor(c, c.StartC, cave.Doorway)
+	structures.ExitDoor(c, exitC, 0, cave.Doorway)
+	for x := c.StartC.X + 1; x < exitC.X; x++ {
 		tile := c.GetTileInt(x, c.StartC.Y)
-		structures.ToBlock(tile, cave.BlockCollapse, false, true)
+		structures.ToType(tile, cave.Collapse, false, true)
 		tile.Bomb = false
 	}
 	c.MarkAsNotChanged()
@@ -103,7 +102,7 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	for i := 0; i < chal.Height; i++ {
 		for j := 0; j < chal.Width; j++ {
 			tile := c.GetTileInt(curr.X, curr.Y)
-			structures.ToBlock(tile, cave.BlockCollapse, true, true)
+			structures.ToType(tile, cave.Collapse, true, true)
 			tile.Bomb = list[b]
 			tile.DestroyTrigger = func(p *player.Player, tile *cave.Tile) {
 				if !begun {
@@ -122,7 +121,7 @@ func MineBlock(c *cave.Cave, chal Challenge) {
 	x = curr.X
 	for i := 0; i < chal.Height+1; i++ {
 		for j := 0; j < chal.Width+2; j++ {
-			structures.ToEmpty(c.GetTileInt(curr.X, curr.Y), true, true, true)
+			structures.ToType(c.GetTileInt(curr.X, curr.Y), cave.Blank, true, true)
 			curr.X++
 		}
 		curr.Y--

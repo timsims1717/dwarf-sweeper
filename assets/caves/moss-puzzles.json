@@ -1,0 +1,13 @@
+[
+  {
+    "key": "minesweeper",
+    "title": "Moss Minesweeper",
+    "biome": "moss",
+    "desc": "",
+    "tracks": [
+      "honey"
+    ],
+    "type": "Minesweeper",
+    "base": "Custom"
+  }
+]

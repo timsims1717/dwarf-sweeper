@@ -32,20 +32,21 @@ func (s *scoreState) Unload() {
 }
 
 func (s *scoreState) Load(done chan struct{}) {
+	scoreStats := player.Stats{}
+	allGems := 0
 	for _, d := range descent.Descent.GetPlayers() {
-		d.Player.Stats.AddStats()
+		scoreStats = player.AddStats(d.Player.Stats, scoreStats)
+		allGems += d.Player.Gems
 	}
-	player.OverallStats.AddStats()
-	p := descent.Descent.GetPlayers()[0].Player
 	score := 0
-	score += p.Stats.BlocksDug * 2
-	score += p.Stats.GemsFound
-	score += p.Stats.BombsFlagged * 10
-	score -= p.Stats.WrongFlags * 5
-	PostMenu.ItemMap["blocks_s"].SetText(fmt.Sprintf("%d x  2", p.Stats.BlocksDug))
-	PostMenu.ItemMap["gem_count_s"].SetText(fmt.Sprintf("%d x  1", p.Stats.GemsFound))
-	PostMenu.ItemMap["bombs_flagged_s"].SetText(fmt.Sprintf("%d x 10", p.Stats.BombsFlagged))
-	PostMenu.ItemMap["wrong_flags_s"].SetText(fmt.Sprintf("%d x -5", p.Stats.WrongFlags))
+	score += scoreStats.BlocksDug
+	score += allGems * 5
+	score += scoreStats.CorrectFlags * 10
+	score -= scoreStats.WrongFlags * 5
+	PostMenu.ItemMap["blocks_s"].SetText(fmt.Sprintf("%d x  1", scoreStats.BlocksDug))
+	PostMenu.ItemMap["gem_count_s"].SetText(fmt.Sprintf("%d x  5", allGems))
+	PostMenu.ItemMap["bombs_flagged_s"].SetText(fmt.Sprintf("%d x 10", scoreStats.CorrectFlags))
+	PostMenu.ItemMap["wrong_flags_s"].SetText(fmt.Sprintf("%d x -5", scoreStats.WrongFlags))
 	PostMenu.ItemMap["total_score_s"].SetText(fmt.Sprintf("%d", score))
 	s.ScoreTimer = timing.New(5.)
 	OpenMenu(PostMenu)
@@ -65,7 +66,7 @@ func (s *scoreState) Update(win *pixelgl.Window) {
 }
 
 func (s *scoreState) Draw(win *pixelgl.Window) {
-	descent.Descent.GetCave().Draw(win)
+	descent.Descent.GetCave().Draw()
 	//descent.Descent.GetPlayer().Draw(win, data.GameInput)
 	systems.DrawSystem()
 	img.Draw(win)

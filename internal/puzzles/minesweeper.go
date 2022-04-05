@@ -5,6 +5,7 @@ import (
 	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/minesweeper"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
@@ -18,10 +19,6 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"math"
-)
-
-const (
-	timer  = 60.
 )
 
 type MinePuzzle struct {
@@ -50,8 +47,7 @@ type MinePuzzle struct {
 	OnSolveFn func()
 	OnFailFn  func()
 
-	FlagAnim *reanimator.Tree
-	ExAnim   *reanimator.Tree
+	CheckAnim *reanimator.Tree
 
 	ButtonPressed   bool
 	ButtonCancelled bool
@@ -64,12 +60,12 @@ func (mp *MinePuzzle) Create(parent *pixel.Vec, level int) {
 	mp.SizeH = util.Min(size, 6)
 	mp.InfoText = typeface.New(parent,"main", typeface.NewAlign(typeface.Left, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
 	mp.InfoText.SetColor(constants.DefaultColor)
-	mp.InfoText.SetText("{symbol:flag}:mark bomb\n{symbol:dig}:mark safe")
+	mp.InfoText.SetText("{symbol:p1-puzz_leave} {symbol:leave} {symbol:p1-puzz_help} {symbol:help}\n{symbol:p1-mine_puzz_bomb} {symbol:mine} {symbol:p1-mine_puzz_safe} {symbol:check}")
 	mp.TimerText = typeface.New(parent,"main", typeface.NewAlign(typeface.Right, typeface.Center), 2.0, constants.ActualHintSize, 0., 0.)
 	mp.TimerText.Color = constants.DefaultColor
 	mp.TimerText.SetText("\n")
 	mp.Box = menubox.NewBox(parent, 1.0)
-	w := math.Max(float64(mp.SizeW) * (world.TileSize + 2.), mp.InfoText.Width + 60.)
+	w := math.Max(float64(mp.SizeW) * (world.TileSize + 2.), mp.InfoText.Width + 40.)
 	mp.Box.SetSize(pixel.R(0., 0., w, float64(mp.SizeH) * (world.TileSize + 2.) + mp.InfoText.Height))
 	mp.InfoText.SetPos(pixel.V(mp.Box.Rect.W() * -0.5 + 5., mp.Box.Rect.H() * 0.5 - 15.))
 	mp.TimerText.SetPos(pixel.V(mp.Box.Rect.W() * 0.5 - 5., mp.Box.Rect.H() * 0.5 - 15.))
@@ -110,7 +106,7 @@ func (mp *MinePuzzle) Create(parent *pixel.Vec, level int) {
 		}
 	}
 	mp.CellTrans = cts
-	mp.ExAnim = reanimator.NewSimple(reanimator.NewAnimFromSprites("ex", img.Batchers[constants.PuzzleKey].GetAnimation("green_x").S, reanimator.Loop))
+	mp.CheckAnim = reanimator.NewSimple(reanimator.NewAnimFromSprites("check", img.Batchers[constants.PuzzleKey].GetAnimation("check").S, reanimator.Loop))
 }
 
 func (mp *MinePuzzle) IsOpen() bool {
@@ -128,8 +124,7 @@ func (mp *MinePuzzle) Open(p *player.Player, pCode string) {
 		mp.TimerText.Parent = &p.CamPos
 		mp.Player = p
 	}
-	mp.InfoText.SetText(fmt.Sprintf("{symbol:%s-mine_puzz_bomb}:mark bomb\n{symbol:%s-mine_puzz_safe}:mark safe", pCode, pCode))
-	mp.FlagAnim = reanimator.NewSimple(reanimator.NewAnimFromSprites("flag", img.Batchers[constants.PuzzleKey].GetAnimation(fmt.Sprintf("flag_hang_%s", pCode)).S, reanimator.Loop))
+	mp.InfoText.SetText(fmt.Sprintf("{symbol:%s-puzz_leave} {symbol:leave} {symbol:%s-puzz_help} {symbol:help}\n{symbol:%s-mine_puzz_bomb} {symbol:mine} {symbol:%s-mine_puzz_safe} {symbol:check}", pCode, pCode, pCode, pCode))
 	area := mp.SizeW * mp.SizeH
 	r := util.Min(mp.SizeW, mp.SizeH) - 1
 	amt := area / util.Max(mp.SizeW, mp.SizeH) + random.Effects.Intn(r) - r / 2
@@ -147,16 +142,14 @@ func (mp *MinePuzzle) Close() {
 func (mp *MinePuzzle) Update(in *input.Input) {
 	mp.Box.Update()
 	if mp.Box.IsOpen() && !mp.start {
-		if mp.Player != nil && !mp.Player.Flags.MinePuzzSeen {
+		if mp.Player != nil && !profile.CurrentProfile.Flags.MinePuzzSeen {
 			mp.Player.GiveMessage("Fill the empty tiles! {symbol:player-mine_puzz_bomb} for mines and {symbol:player-mine_puzz_safe} for safe tiles. Good luck!", nil)
-			mp.Player.Flags.MinePuzzSeen = true
+			profile.CurrentProfile.Flags.MinePuzzSeen = true
 		}
-		mp.Timer = timing.New(timer)
 		mp.start = true
 	}
 	if mp.Timer != nil {
-		mp.Timer.Update()
-		timeLeft := timer - mp.Timer.Elapsed()
+		timeLeft := mp.Timer.Sec() - mp.Timer.Elapsed()
 		if timeLeft < 0. {
 			timeLeft = 0.
 		}
@@ -168,67 +161,74 @@ func (mp *MinePuzzle) Update(in *input.Input) {
 	mp.UpdateTransforms()
 	mp.InfoText.Update()
 	mp.TimerText.Update()
-	mp.FlagAnim.Update()
-	mp.ExAnim.Update()
+	mp.CheckAnim.Update()
 	if !mp.solved {
-		if in.MouseMoved {
-			for y, row := range mp.CellTrans {
-				for x, ct := range row {
-					if mp.Hover.X != x || mp.Hover.Y != y {
-						point := in.World
-						if util.PointInside(point, pixel.R(0., 0., 16., 16.), ct.Mat) {
-							mp.Hover.X = x
-							mp.Hover.Y = y
-							sfx.SoundPlayer.PlaySound("click", 2.0)
+		if in != nil {
+			if in.Get("puzz_leave").JustPressed() {
+				mp.Close()
+			} else if in.Get("puzz_help").JustPressed() {
+				mp.Player.GiveMessage("Fill the empty tiles! {symbol:player-mine_puzz_bomb} for mines and {symbol:player-mine_puzz_safe} for safe tiles. Good luck!", nil)
+			} else {
+				if in.MouseMoved {
+					for y, row := range mp.CellTrans {
+						for x, ct := range row {
+							if mp.Hover.X != x || mp.Hover.Y != y {
+								point := in.World
+								if util.PointInside(point, pixel.R(0., 0., 16., 16.), ct.Mat) {
+									mp.Hover.X = x
+									mp.Hover.Y = y
+									sfx.SoundPlayer.PlaySound("click", 2.0)
+								}
+							}
 						}
 					}
-				}
-			}
-		} else if !mp.ButtonPressed {
-			if in.Get("up").JustPressed() && mp.Hover.Y < mp.SizeH-1 {
-				in.Get("up").Consume()
-				mp.Hover.Y++
-				sfx.SoundPlayer.PlaySound("click", 2.0)
-			} else if in.Get("down").JustPressed() && mp.Hover.Y > 0 {
-				in.Get("down").Consume()
-				mp.Hover.Y--
-				sfx.SoundPlayer.PlaySound("click", 2.0)
-			} else if in.Get("left").JustPressed() && mp.Hover.X > 0 {
-				in.Get("left").Consume()
-				mp.Hover.X--
-				sfx.SoundPlayer.PlaySound("click", 2.0)
-			} else if in.Get("right").JustPressed() && mp.Hover.X < mp.SizeW-1 {
-				in.Get("right").Consume()
-				mp.Hover.X++
-				sfx.SoundPlayer.PlaySound("click", 2.0)
-			}
-		}
-		cell := mp.Board.Board[mp.Hover.Y][mp.Hover.X]
-		if !mp.ButtonCancelled {
-			mp.ButtonCancelled = in.Get("mine_puzz_bomb").Pressed() && in.Get("mine_puzz_safe").Pressed()
-			if !mp.ButtonCancelled {
-				mp.ButtonPressed = in.Get("mine_puzz_bomb").Pressed() || in.Get("mine_puzz_safe").Pressed()
-				if in.Get("mine_puzz_bomb").JustReleased() && !cell.Rev && !cell.Ex {
-					in.Get("mine_puzz_bomb").Consume()
-					cell.Flag = !cell.Flag
-				} else if in.Get("mine_puzz_safe").JustReleased() && !cell.Rev && !cell.Flag && !cell.Ex {
-					in.Get("mine_puzz_safe").Consume()
-					if cell.Bomb {
-						cell.Rev = true
-						sfx.SoundPlayer.PlaySound("mpwrong", 1.)
-						mp.CellTrans[mp.Hover.Y][mp.Hover.X].Shake(random.Effects)
-						mp.Misses++
-					} else {
-						cell.Ex = true
-						sfx.SoundPlayer.PlaySound("mpcorrect", 1.)
+				} else if !mp.ButtonPressed {
+					if in.Get("up").JustPressed() && mp.Hover.Y < mp.SizeH-1 {
+						in.Get("up").Consume()
+						mp.Hover.Y++
+						sfx.SoundPlayer.PlaySound("click", 2.0)
+					} else if in.Get("down").JustPressed() && mp.Hover.Y > 0 {
+						in.Get("down").Consume()
+						mp.Hover.Y--
+						sfx.SoundPlayer.PlaySound("click", 2.0)
+					} else if in.Get("left").JustPressed() && mp.Hover.X > 0 {
+						in.Get("left").Consume()
+						mp.Hover.X--
+						sfx.SoundPlayer.PlaySound("click", 2.0)
+					} else if in.Get("right").JustPressed() && mp.Hover.X < mp.SizeW-1 {
+						in.Get("right").Consume()
+						mp.Hover.X++
+						sfx.SoundPlayer.PlaySound("click", 2.0)
 					}
 				}
+				cell := mp.Board.Board[mp.Hover.Y][mp.Hover.X]
+				if !mp.ButtonCancelled {
+					mp.ButtonCancelled = in.Get("mine_puzz_bomb").Pressed() && in.Get("mine_puzz_safe").Pressed()
+					if !mp.ButtonCancelled {
+						mp.ButtonPressed = in.Get("mine_puzz_bomb").Pressed() || in.Get("mine_puzz_safe").Pressed()
+						if in.Get("mine_puzz_bomb").JustReleased() && !cell.Rev && !cell.Ex {
+							in.Get("mine_puzz_bomb").Consume()
+							cell.Flag = !cell.Flag
+						} else if in.Get("mine_puzz_safe").JustReleased() && !cell.Rev && !cell.Flag && !cell.Ex {
+							in.Get("mine_puzz_safe").Consume()
+							if cell.Bomb {
+								cell.Rev = true
+								sfx.SoundPlayer.PlaySound("mpwrong", 1.)
+								mp.CellTrans[mp.Hover.Y][mp.Hover.X].Shake(random.Effects)
+								mp.Misses++
+							} else {
+								cell.Ex = true
+								sfx.SoundPlayer.PlaySound("mpcorrect", 1.)
+							}
+						}
+					}
+				} else if !in.Get("mine_puzz_bomb").Pressed() && !in.Get("mine_puzz_safe").Pressed() {
+					mp.ButtonCancelled = false
+					mp.ButtonPressed = false
+				}
+				mp.Board.Board[mp.Hover.Y][mp.Hover.X] = cell
 			}
-		} else if !in.Get("mine_puzz_bomb").Pressed() && !in.Get("mine_puzz_safe").Pressed() {
-			mp.ButtonCancelled = false
-			mp.ButtonPressed = false
 		}
-		mp.Board.Board[mp.Hover.Y][mp.Hover.X] = cell
 		done := true
 		for _, row := range mp.Board.Board {
 			for _, c := range row {
@@ -286,7 +286,7 @@ func (mp *MinePuzzle) Draw(target pixel.Target) {
 				if cell.Rev {
 					if cell.Bomb {
 						img.Batchers[constants.PuzzleKey].GetSprite("background_error").Draw(target, ct.Mat)
-						img.Batchers[constants.EntityKey].GetSprite("mine_1").Draw(target, ct.Mat)
+						img.Batchers[constants.PuzzleKey].GetSprite("mine").Draw(target, ct.Mat)
 					} else {
 						img.Batchers[constants.PuzzleKey].GetSprite("background_num").Draw(target, ct.Mat)
 						var str string
@@ -314,7 +314,7 @@ func (mp *MinePuzzle) Draw(target pixel.Target) {
 					}
 				} else if cell.Ex {
 					img.Batchers[constants.PuzzleKey].GetSprite("background_empty").Draw(target, ct.Mat)
-					mp.ExAnim.Draw(target, ct.Mat)
+					mp.CheckAnim.Draw(target, ct.Mat)
 				} else {
 					if mp.ButtonPressed && !mp.ButtonCancelled && mp.Hover.X == x && mp.Hover.Y == y {
 						img.Batchers[constants.PuzzleKey].GetSprite("background_click").Draw(target, ct.Mat)
@@ -322,7 +322,7 @@ func (mp *MinePuzzle) Draw(target pixel.Target) {
 						img.Batchers[constants.PuzzleKey].GetSprite("background_empty").Draw(target, ct.Mat)
 					}
 					if cell.Flag {
-						mp.FlagAnim.Draw(target, ct.Mat)
+						img.Batchers[constants.PuzzleKey].GetSprite("mine").Draw(target, ct.Mat)
 					}
 				}
 			}
@@ -349,6 +349,10 @@ func (mp *MinePuzzle) OnFail() {
 	if mp.OnFailFn != nil {
 		mp.OnFailFn()
 	}
+}
+
+func (mp *MinePuzzle) SetTimer(t *timing.Timer) {
+	mp.Timer = t
 }
 
 func (mp *MinePuzzle) SetOnSolve(fn func()) {

@@ -40,6 +40,7 @@ func (s *menuState) Unload() {
 
 func (s *menuState) Load(done chan struct{}) {
 	sfx.SoundPlayer.KillAll()
+	sfx.MusicPlayer.StopAllMusic()
 	descent.Descent.FreeCam = false
 	camera.Cam.SetZoom(1.)
 	s.pressAKey = typeface.New(&camera.Cam.APos, "main", typeface.Alignment{ H: typeface.Center, V: typeface.Center }, 1.0, constants.ActualMenuSize, 0., 0.)

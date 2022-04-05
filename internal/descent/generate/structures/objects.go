@@ -8,16 +8,19 @@ import (
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/puzzles"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/google/uuid"
+	"math"
 )
 
 func addChest(tile *cave.Tile) {
@@ -66,6 +69,7 @@ func addBigBomb(blTile *cave.Tile, level int) {
 	trans.Pos = pos
 	solved := false
 	failed := false
+	var timer *timing.Timer
 	puzz := &puzzles.MinePuzzle{}
 	puzz.Create(nil, level)
 	puzz.SetOnSolve(func() {
@@ -83,30 +87,18 @@ func addBigBomb(blTile *cave.Tile, level int) {
 			descent.CreateGem(pos)
 		}
 	})
-	puzz.SetOnFail(func() {
-		e.RemoveComponent(myecs.PopUp)
-		e.RemoveComponent(myecs.Interact)
-		myecs.Manager.DisposeEntity(pe)
-		f := myecs.Manager.NewEntity()
-		f.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-			if puzz.Player != nil && !puzz.Player.Flags.BigBombFail {
-				puzz.Player.GiveMessage("Uh oh! Better run!", func() {
-					failed = true
-				})
-				puzz.Player.Flags.BigBombFail = true
-			}
-			myecs.Manager.DisposeEntity(f)
+	interact := descent.NewInteract(nil, world.TileSize * 1.5, false)
+	interact.OnInteract = func(pos pixel.Vec, d *descent.Dwarf) bool {
+		if !interact.Interacted || timer == nil {
+			timer = timing.New(60.)
+			puzz.SetTimer(timer)
+		}
+		if puzz.IsClosed() {
+			d.Player.StartPuzzle(puzz)
 			return true
-		}))
-	})
-	interact := descent.NewInteract(
-		func(pos pixel.Vec, d *descent.Dwarf) bool {
-			if puzz.IsClosed() {
-				d.Player.StartPuzzle(puzz)
-				return true
-			}
-			return false
-		}, world.TileSize * 1.5, false)
+		}
+		return false
+	}
 	var fuseSFX *uuid.UUID
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprite("big_bomb_idle", img.Batchers[constants.TileEntityKey].GetSprite("big_bomb_idle"), reanimator.Hold)).
@@ -143,7 +135,49 @@ func addBigBomb(blTile *cave.Tile, level int) {
 		AddComponent(myecs.Animation, anim).
 		AddComponent(myecs.Drawable, anim).
 		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
-			popUp.Hide = puzz.IsOpen()
+			if timer != nil && interact.Interacted {
+				timer.Update()
+			}
+			if timer != nil && timer.Done() {
+				e.RemoveComponent(myecs.PopUp)
+				e.RemoveComponent(myecs.Interact)
+				myecs.Manager.DisposeEntity(pe)
+				f := myecs.Manager.NewEntity()
+				f.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
+					if puzz.IsOpen() && puzz.Player != nil && !profile.CurrentProfile.Flags.BigBombFail {
+						puzz.Player.GiveMessage("Uh oh! Better run!", func() {
+							failed = true
+						})
+						profile.CurrentProfile.Flags.BigBombFail = true
+					} else {
+						failed = true
+					}
+					myecs.Manager.DisposeEntity(f)
+					return true
+				}))
+			} else {
+				if puzz.IsOpen() {
+					timeLeft := timer.Sec() - timer.Elapsed()
+					if timeLeft < 0. {
+						timeLeft = 0.
+					}
+					secs := int(math.Round(timeLeft))
+					min := secs / 60
+					sec := secs % 60
+					popUp.SetText(fmt.Sprintf("%02d:%02d", min, sec))
+				} else if interact.Interacted {
+					timeLeft := timer.Sec() - timer.Elapsed()
+					if timeLeft < 0. {
+						timeLeft = 0.
+					}
+					secs := int(math.Round(timeLeft))
+					min := secs / 60
+					sec := secs % 60
+					popUp.SetText(fmt.Sprintf("{symbol:player-interact}:disarm\n%02d:%02d", min, sec))
+				} else {
+					popUp.SetText("{symbol:player-interact}:disarm")
+				}
+			}
 			return false
 		})).
 		AddComponent(myecs.Batch, constants.TileEntityKey).

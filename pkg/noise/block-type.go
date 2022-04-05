@@ -16,11 +16,16 @@ var (
 	p *perlin.Perlin
 )
 
-func SeedBlockType(rando *rand.Rand) {
+func Seed(rando *rand.Rand) {
 	p = perlin.NewPerlin(alpha, beta, n, rando.Int63())
 }
 
-func BlockType(coords world.Coords) float64 {
+func Perlin2D(coords world.Coords) float64 {
 	r := p.Noise2D(float64(coords.X)/10, float64(coords.Y)/10)
+	return r
+}
+
+func Perlin1D(z int) float64 {
+	r := p.Noise1D(float64(z)/10)
 	return r
 }

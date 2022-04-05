@@ -53,6 +53,7 @@ func run() {
 
 	sfx.SoundPlayer.RegisterSound("assets/sound/click.wav", "click")
 
+	menus.Initialize()
 	menubox.Initialize()
 	initMenu(win)
 	CaveMenu.Open()
@@ -130,7 +131,7 @@ func run() {
 		// draw
 		img.Clear()
 		if theCave != nil {
-			theCave.Draw(win)
+			theCave.Draw()
 		}
 		img.Draw(win)
 		for _, m := range menuStack {

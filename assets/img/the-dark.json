@@ -267,6 +267,96 @@
    "key": "wall_13",
    "x": 192,
    "y": 0
+  },
+  {
+   "key": "pillar_top",
+   "x": 0,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid",
+   "x": 0,
+   "y": 128
+  },
+  {
+   "key": "pillar_bottom",
+   "x": 0,
+   "y": 112
+  },
+  {
+   "key": "pillar_top_br",
+   "x": 16,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid_br",
+   "x": 16,
+   "y": 128
+  },
+  {
+   "key": "pillar_bottom_br",
+   "x": 16,
+   "y": 112
+  },
+  {
+   "key": "pillar_mid_br_up",
+   "x": 32,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid_br_dwn",
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "pillar_single",
+   "x": 32,
+   "y": 112
+  },
+  {
+   "key": "growth_top",
+   "x": 48,
+   "y": 144
+  },
+  {
+   "key": "growth_mid",
+   "x": 48,
+   "y": 128
+  },
+  {
+   "key": "growth_bottom",
+   "x": 48,
+   "y": 112
+  },
+  {
+   "key": "growth_top_br",
+   "x": 64,
+   "y": 144
+  },
+  {
+   "key": "growth_mid_br",
+   "x": 64,
+   "y": 128
+  },
+  {
+   "key": "growth_bottom_br",
+   "x": 64,
+   "y": 112
+  },
+  {
+   "key": "growth_mid_br_up",
+   "x": 80,
+   "y": 144
+  },
+  {
+   "key": "growth_mid_br_dwn",
+   "x": 80,
+   "y": 128
+  },
+  {
+   "key": "growth_single",
+   "x": 80,
+   "y": 112
   }
  ]
 }

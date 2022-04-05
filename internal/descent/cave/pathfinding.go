@@ -48,34 +48,34 @@ func MakeAvoidPathRule(orig, avoid world.Coords, legalTypes map[BlockType]float6
 
 var (
 	AllTypes = map[BlockType]float64{
-		Deco:          1.,
-		Empty:         1.,
-		BlockCollapse: 1.,
-		BlockDig:      1.,
-		BlockBlast:    1.,
-		Wall:          1.,
+		Doorway:  1.,
+		Empty:    1.,
+		Collapse: 1.,
+		Dig:      1.,
+		Blast:    1.,
+		Wall:     1.,
 	}
 	AllButWallTypes = map[BlockType]float64{
-		Deco:          1.,
-		Empty:         1.,
-		BlockCollapse: 1.,
-		BlockDig:      1.,
-		BlockBlast:    1.,
+		Doorway:  1.,
+		Empty:    1.,
+		Collapse: 1.,
+		Dig:      1.,
+		Blast:    1.,
 	}
 	EmptyTypes = map[BlockType]float64{
-		Deco:  1.,
-		Empty: 1.,
+		Doorway: 1.,
+		Empty:   1.,
 	}
 	SolidTypes = map[BlockType]float64{
-		BlockCollapse: 1.,
-		BlockDig:      1.,
-		BlockBlast:    1.,
-		Wall:          1.,
+		Collapse: 1.,
+		Dig:      1.,
+		Blast:    1.,
+		Wall:     1.,
 	}
 	NonWallTypes = map[BlockType]float64{
-		BlockCollapse: 1.,
-		BlockDig:      1.,
-		BlockBlast:    1.,
+		Collapse: 1.,
+		Dig:      1.,
+		Blast:    1.,
 	}
 )
 

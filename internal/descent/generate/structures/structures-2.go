@@ -22,9 +22,9 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 		} else {
 			chance--
 			if empty {
-				ToEmpty(tile, false, false, false)
+				ToType(tile, cave.Empty, false, false)
 			} else {
-				ToBlock(tile, cave.Unknown, false, false)
+				ToBlock(tile, false, false)
 			}
 			// carve out a bit
 			BlockUp(tile, cave.Unknown)
@@ -105,9 +105,9 @@ func TreasureRoom(c *cave.Cave, min, max, tTotal int, include world.Coords) {
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					ToBlock(tile, cave.BlockDig, true, true)
+					ToType(tile, cave.Dig, true, true)
 				} else if !tile.NeverChange && !tile.IsChanged {
-					ToEmpty(tile, true, false, true)
+					ToType(tile, cave.Empty, true, true)
 					if y == tlY+h-2 && util.Contains(x, tC) {
 						addChest(tile)
 					}
@@ -126,9 +126,9 @@ func BombableNode(c *cave.Cave, radius int, variance float64, ignoreWalls bool, 
 			if tile != nil {
 				tPos := tile.Transform.Pos
 				dist := util.Magnitude(cPos.Sub(tPos))
-				if dist < fRad+random.CaveGen.Float64()*variance {
+				if dist < fRad+random.CaveGen.Float64()*variance*world.TileSize {
 					if !(tile.Type == cave.Wall && ignoreWalls) && !tile.Path {
-						ToBlock(tile, cave.BlockBlast, false, false)
+						ToType(tile, cave.Blast, false, false)
 					}
 				}
 			}
@@ -146,13 +146,13 @@ func Pocket(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center
 			if tile != nil {
 				tPos := tile.Transform.Pos
 				dist := util.Magnitude(cPos.Sub(tPos))
-				if dist < inRad+random.CaveGen.Float64()*variance && !tile.Bomb {
+				if dist < inRad+random.CaveGen.Float64()*variance*world.TileSize && !tile.Bomb {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						ToEmpty(tile, false, false, false)
+						ToType(tile, cave.Empty, false, false)
 					}
-				} else if dist < fRad+random.CaveGen.Float64()*variance {
+				} else if dist < fRad+random.CaveGen.Float64()*variance*world.TileSize {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						ToBlock(tile, cave.BlockCollapse, false, true)
+						ToType(tile, cave.Collapse, false, true)
 					}
 				}
 			}
@@ -173,18 +173,18 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 				if tile.RCoords == center || (y == center.Y && dist < world.TileSize*0.5+random.CaveGen.Float64()*variance && !tile.Bomb) {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
 						if tile.Path {
-							ToBlock(tile, cave.BlockDig, true, true)
+							ToType(tile, cave.Dig, true, true)
 						} else {
-							ToBlock(tile, cave.Wall, true, true)
+							ToType(tile, cave.Wall, true, true)
 						}
 					}
-				} else if dist < inRad+random.CaveGen.Float64()*variance && !tile.Bomb {
+				} else if dist < inRad+random.CaveGen.Float64()*variance*world.TileSize && !tile.Bomb {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						ToEmpty(tile, false, false, false)
+						ToType(tile, cave.Empty, false, false)
 					}
-				} else if dist < fRad+random.CaveGen.Float64()*variance {
+				} else if dist < fRad+random.CaveGen.Float64()*variance*world.TileSize {
 					if !(tile.Type == cave.Wall && ignoreWalls) {
-						ToBlock(tile, cave.BlockCollapse, false, false)
+						ToType(tile, cave.Collapse, false, false)
 					}
 				}
 			}
@@ -217,13 +217,13 @@ func BombRoom(c *cave.Cave, minH, maxH, minW, maxW, curve, level int, include wo
 				dx := util.Min(util.Abs(x-sX), util.Abs(x-(sX+width)))
 				dy := util.Abs(y - sY)
 				if !tile.NeverChange && !tile.IsChanged && !(dx+dy+random.CaveGen.Intn(2) < curve*maxW/8) {
-					ToEmpty(tile, true, false, true)
+					ToType(tile, cave.Empty, true, true)
 					if y == include.Y && x == include.X {
 						addBigBomb(tile, level)
 						t1 := c.GetTileInt(x, y+1)
 						t2 := c.GetTileInt(x+1, y+1)
-						ToBlock(t1, cave.Wall, true, true)
-						ToBlock(t2, cave.Wall, true, true)
+						ToType(t1, cave.Wall, true, true)
+						ToType(t2, cave.Wall, true, true)
 					}
 				}
 			}

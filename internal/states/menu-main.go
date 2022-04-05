@@ -54,6 +54,8 @@ func InitStartMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Descent.Type = cave.Normal
 		DescentState.start = true
+		DescentState.CurrBiome = "mine"
+		descent.New()
 		DescentState.numPlayers = NumPlayers
 		SwitchState(DescentStateKey)
 	})
