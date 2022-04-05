@@ -18,6 +18,16 @@ func Sprites() {
 		panic(err)
 	}
 	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "mine"), bgMineSheet, true, false)
+	bgMossSheet, err := img.LoadSpriteSheet("assets/img/the-moss-bg.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "moss"), bgMossSheet, true, false)
+	bgCrystalSheet, err := img.LoadSpriteSheet("assets/img/the-crystal-bg.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "crystal"), bgCrystalSheet, true, false)
 
 	// Entities
 	tileEntitySheet, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
@@ -52,6 +62,16 @@ func Sprites() {
 		panic(err)
 	}
 	img.AddBatcher("mine", mineSheet, true, false)
+	mossSheet, err := img.LoadSpriteSheet("assets/img/the-moss.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher("moss", mossSheet, true, false)
+	crystalSheet, err := img.LoadSpriteSheet("assets/img/the-crystal.json")
+	if err != nil {
+		panic(err)
+	}
+	img.AddBatcher("crystal", crystalSheet, true, false)
 
 	// Particles/VFX
 	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")

@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
@@ -59,7 +58,7 @@ func CreateBomb(pos pixel.Vec) {
 			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
 				sfx.SoundPlayer.KillSound(fuseSFX)
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					player.CaveBombsLeft--
+					Descent.GetCave().BombsLeft--
 					tile := Descent.GetCave().GetTile(trans.Pos)
 					for _, n := range tile.RCoords.Neighbors() {
 						t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
@@ -126,7 +125,7 @@ func CreateHighYieldBomb(pos pixel.Vec) {
 			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
 				sfx.SoundPlayer.KillSound(fuseSFX)
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					player.CaveBombsLeft--
+					Descent.GetCave().BombsLeft--
 					tile := Descent.GetCave().GetTile(trans.Pos)
 					for _, n := range tile.RCoords.Neighbors() {
 						t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)

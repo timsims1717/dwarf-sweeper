@@ -2,9 +2,9 @@ package hud
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
@@ -84,9 +84,9 @@ func UpdateHUD() {
 
 	currY = world.TileSize * 1.5
 	if descent.Descent.Type == cave.Minesweeper {
-		num := player.CaveBombsLeft - (player.OverallStats.CaveWrongFlags + player.OverallStats.CaveBombsFlagged)
-		if num == 0 {
-			if player.OverallStats.CaveWrongFlags > 0 {
+		num := descent.Descent.Cave.BombsLeft - (profile.CurrentProfile.Stats.WrongFlags + profile.CurrentProfile.Stats.CorrectFlags)
+		if num < 1 {
+			if profile.CurrentProfile.Stats.WrongFlags > 0 {
 				bombCountText.SetColor(color.RGBA{
 					R: 180,
 					G: 32,

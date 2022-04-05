@@ -1,11 +1,11 @@
 package descent
 
 import (
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/util"
@@ -15,13 +15,12 @@ import (
 
 var (
 	Difficulty = 1
-	Depth      = 6
+	Depth      = 9
 )
 
 var Descent = &descent{
 	Difficulty: 1,
 	CoordsMap:  make(map[string]world.Coords),
-	ExitPop:    nil,
 }
 
 type descent struct {
@@ -29,11 +28,14 @@ type descent struct {
 	CurrDepth  int
 	Depth      int
 	Difficulty int
-	Start      bool
 	Type       cave.CaveType
-	ExitPop    *menus.PopUp
 	canExit    bool
+	Exited     bool
+	ExitI      int
+	Exits      []string
+	NextBiome  string
 	Builder    *builder.CaveBuilder
+	BiomeOrder []string
 
 	Dwarves []*Dwarf
 
@@ -50,9 +52,7 @@ func New() {
 	Descent = &descent{
 		Difficulty: Difficulty,
 		Depth:      Depth,
-		Start:      true,
 		CoordsMap:  make(map[string]world.Coords),
-		ExitPop:    menus.NewPopUp(""),
 		Timer:      timing.New(0.),
 	}
 }
@@ -73,7 +73,7 @@ func Update() {
 			}
 			for _, i := range all {
 				if _, ok := Descent.Cave.Chunks[i]; !ok {
-					Descent.Cave.Chunks[i] = cave.NewChunk(i, Descent.Cave, cave.BlockCollapse)
+					Descent.Cave.Chunks[i] = cave.NewChunk(i, Descent.Cave, cave.Collapse)
 					Descent.Cave.FillChunk(Descent.Cave.Chunks[i])
 					Descent.Cave.UpdateBatch = true
 					IncreaseLevelInf()
@@ -81,15 +81,42 @@ func Update() {
 			}
 		}
 		Descent.Cave.Update()
+		exitM := "{symbol:player-interact}:Exit"
+		couldExit := Descent.canExit
 		switch Descent.Type {
 		case cave.Minesweeper:
-			Descent.canExit = (player.OverallStats.CaveBombsFlagged == player.CaveBombsLeft && player.OverallStats.CaveWrongFlags < 1) || Descent.GetPlayers()[0].Health.Inv
-			Descent.ExitPop.SetText("Flag all the remaining bombs to exit.")
+			Descent.canExit = (profile.CurrentProfile.Stats.CorrectFlags == Descent.Cave.BombsLeft && profile.CurrentProfile.Stats.WrongFlags < 1) || Descent.GetPlayers()[0].Health.Inv
+			if !Descent.canExit {
+				exitM = "Flag all the remaining mines to exit."
+			}
 		default:
 			Descent.canExit = true
 		}
-		if Descent.canExit {
-			Descent.ExitPop.SetText("{symbol:up}:Exit")
+		for i, exit := range Descent.Cave.Exits {
+			exitTile := Descent.Cave.GetTileInt(exit.Coords.X, exit.Coords.Y)
+			if exit.PopUp == nil {
+				exitI := exit.ExitI
+				Descent.Cave.Exits[i].PopUp = menus.NewPopUp(exitM)
+				Descent.Cave.Exits[i].Type = exitTile.Type
+				myecs.Manager.NewEntity().
+					AddComponent(myecs.PopUp, Descent.Cave.Exits[i].PopUp).
+					AddComponent(myecs.Interact, NewInteract(func(_ pixel.Vec, _ *Dwarf) bool {
+						if Descent.canExit && exitTile.IsExit() {
+							Descent.Exited = true
+							Descent.ExitI = exitI
+							Descent.NextBiome = exitTile.Biome
+							return true
+						}
+						return false
+					}, world.TileSize, true)).
+					AddComponent(myecs.Transform, exitTile.Transform).
+					AddComponent(myecs.Temp, myecs.ClearFlag(false))
+			} else if Descent.Cave.Exits[i].Type == cave.SecretDoor && exitTile.Type == cave.SecretDoor {
+				Descent.Cave.Exits[i].PopUp.SetText("A bomb will open this passage.")
+			} else if couldExit != Descent.canExit || Descent.Cave.Exits[i].Type != exitTile.Type {
+				Descent.Cave.Exits[i].PopUp.SetText(exitM)
+				Descent.Cave.Exits[i].Type = exitTile.Type
+			}
 		}
 	}
 }
@@ -119,15 +146,8 @@ func (d *descent) SetCave(cave *cave.Cave) {
 	d.Type = cave.Type
 	d.Cave.UpdateAllTileSprites()
 	d.Cave.UpdateBatch = true
-	d.SetExitPopup()
-}
-
-func (d *descent) SetExitPopup() {
-	d.ExitPop = menus.NewPopUp("")
-	myecs.Manager.NewEntity().
-		AddComponent(myecs.PopUp, d.ExitPop).
-		AddComponent(myecs.Transform, d.GetCave().GetExit().Transform).
-		AddComponent(myecs.Temp, myecs.ClearFlag(false))
+	d.Cave.Biomes = append(d.Cave.Biomes, d.Exits...)
+	d.BiomeOrder = append(d.BiomeOrder, d.Cave.Biome)
 }
 
 func (d *descent) GetPlayers() []*Dwarf {

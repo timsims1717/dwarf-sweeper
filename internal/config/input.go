@@ -3,6 +3,7 @@ package config
 import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/pkg/input"
+	"fmt"
 	"github.com/faiface/pixel/pixelgl"
 )
 
@@ -39,207 +40,172 @@ var (
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
 			Scroll:  1,
 		},
+		PuzzLeave:    input.New(pixelgl.KeyE, pixelgl.ButtonB),
+		PuzzHelp:     input.New(pixelgl.KeyQ, pixelgl.ButtonY),
 		MinePuzzBomb: input.New(pixelgl.MouseButtonRight, pixelgl.ButtonA),
 		MinePuzzSafe: input.New(pixelgl.MouseButtonLeft, pixelgl.ButtonX),
 	}
 )
 
+//goland:noinspection GoNilness
 func loadInput(conf *config) {
-	if conf.InputP1.Gamepad < 0 {
-		data.GameInputP1.Mode = input.KeyboardMouse
-	} else {
-		data.GameInputP1.Mode = input.Gamepad
-		data.GameInputP1.Joystick = pixelgl.Joystick(conf.InputP1.Gamepad)
+	for i := 0; i < 4; i++ {
+		var in *input.Input
+		var cf inputs
+		switch i {
+		case 0:
+			in = data.GameInputP1
+			cf = conf.InputP1
+		case 1:
+			in = data.GameInputP2
+			cf = conf.InputP2
+		case 2:
+			in = data.GameInputP3
+			cf = conf.InputP3
+		case 3:
+			in = data.GameInputP4
+			cf = conf.InputP4
+		}
+		if cf.Gamepad < 0 {
+			in.Mode = input.KeyboardMouse
+		} else {
+			in.Mode = input.Gamepad
+			in.Joystick = pixelgl.Joystick(cf.Gamepad)
+		}
+		in.AimDedicated = cf.AimDedicated
+		in.DigOnRelease = cf.DigOnRelease
+		in.StickD = cf.LeftStick
+		in.Deadzone = cf.Deadzone
+		if cf.Left != nil {
+			in.Buttons["left"] = cf.Left
+		} else {
+			in.Buttons["left"] = DefaultInput.Left
+		}
+		if cf.Right != nil {
+			in.Buttons["right"] = cf.Right
+		} else {
+			in.Buttons["right"] = DefaultInput.Right
+		}
+		if cf.Up != nil {
+			in.Buttons["up"] = cf.Up
+		} else {
+			in.Buttons["up"] = DefaultInput.Up
+		}
+		if cf.Down != nil {
+			in.Buttons["down"] = cf.Down
+		} else {
+			in.Buttons["down"] = DefaultInput.Down
+		}
+		if cf.Jump != nil {
+			in.Buttons["jump"] = cf.Jump
+		} else {
+			in.Buttons["jump"] = DefaultInput.Jump
+		}
+		if cf.Dig != nil {
+			in.Buttons["dig"] = cf.Dig
+		} else {
+			in.Buttons["dig"] = DefaultInput.Dig
+		}
+		if cf.Flag != nil {
+			in.Buttons["flag"] = cf.Flag
+		} else {
+			in.Buttons["flag"] = DefaultInput.Flag
+		}
+		if cf.Use != nil {
+			in.Buttons["use"] = cf.Use
+		} else {
+			in.Buttons["use"] = DefaultInput.Use
+		}
+		if cf.Interact != nil {
+			in.Buttons["interact"] = cf.Interact
+		} else {
+			in.Buttons["interact"] = DefaultInput.Interact
+		}
+		if cf.Prev != nil {
+			in.Buttons["prev"] = cf.Prev
+		} else {
+			in.Buttons["prev"] = DefaultInput.Prev
+		}
+		if cf.Next != nil {
+			in.Buttons["next"] = cf.Next
+		} else {
+			in.Buttons["next"] = DefaultInput.Next
+		}
+		if cf.PuzzLeave != nil {
+			in.Buttons["puzz_leave"] = cf.PuzzLeave
+		} else {
+			in.Buttons["puzz_leave"] = DefaultInput.PuzzLeave
+		}
+		if cf.PuzzHelp != nil {
+			in.Buttons["puzz_help"] = cf.PuzzHelp
+		} else {
+			in.Buttons["puzz_help"] = DefaultInput.PuzzHelp
+		}
+		if cf.MinePuzzBomb != nil {
+			in.Buttons["mine_puzz_bomb"] = cf.MinePuzzBomb
+		} else {
+			in.Buttons["mine_puzz_bomb"] = DefaultInput.MinePuzzBomb
+		}
+		if cf.MinePuzzSafe != nil {
+			in.Buttons["mine_puzz_safe"] = cf.MinePuzzSafe
+		} else {
+			in.Buttons["mine_puzz_safe"] = DefaultInput.MinePuzzSafe
+		}
+		in.Key = fmt.Sprintf("p%d", i+1)
 	}
-	data.GameInputP1.AimDedicated = conf.InputP1.AimDedicated
-	data.GameInputP1.DigOnRelease = conf.InputP1.DigOnRelease
-	data.GameInputP1.StickD = conf.InputP1.LeftStick
-	data.GameInputP1.Deadzone = conf.InputP1.Deadzone
-	data.GameInputP1.Buttons["left"] = conf.InputP1.Left
-	data.GameInputP1.Buttons["right"] = conf.InputP1.Right
-	data.GameInputP1.Buttons["up"] = conf.InputP1.Up
-	data.GameInputP1.Buttons["down"] = conf.InputP1.Down
-	data.GameInputP1.Buttons["jump"] = conf.InputP1.Jump
-	data.GameInputP1.Buttons["dig"] = conf.InputP1.Dig
-	data.GameInputP1.Buttons["flag"] = conf.InputP1.Flag
-	data.GameInputP1.Buttons["use"] = conf.InputP1.Use
-	data.GameInputP1.Buttons["interact"] = conf.InputP1.Interact
-	data.GameInputP1.Buttons["prev"] = conf.InputP1.Prev
-	data.GameInputP1.Buttons["next"] = conf.InputP1.Next
-	data.GameInputP1.Buttons["mine_puzz_bomb"] = conf.InputP1.MinePuzzBomb
-	data.GameInputP1.Buttons["mine_puzz_safe"] = conf.InputP1.MinePuzzSafe
-	data.GameInputP1.Key = "p1"
-
-	if conf.InputP2.Gamepad < 0 {
-		data.GameInputP2.Mode = input.KeyboardMouse
-	} else {
-		data.GameInputP2.Mode = input.Gamepad
-		data.GameInputP2.Joystick = pixelgl.Joystick(conf.InputP2.Gamepad)
-	}
-	data.GameInputP2.AimDedicated = conf.InputP2.AimDedicated
-	data.GameInputP2.DigOnRelease = conf.InputP2.DigOnRelease
-	data.GameInputP2.StickD = conf.InputP2.LeftStick
-	data.GameInputP2.Deadzone = conf.InputP2.Deadzone
-	data.GameInputP2.Buttons["left"] = conf.InputP2.Left
-	data.GameInputP2.Buttons["right"] = conf.InputP2.Right
-	data.GameInputP2.Buttons["up"] = conf.InputP2.Up
-	data.GameInputP2.Buttons["down"] = conf.InputP2.Down
-	data.GameInputP2.Buttons["jump"] = conf.InputP2.Jump
-	data.GameInputP2.Buttons["dig"] = conf.InputP2.Dig
-	data.GameInputP2.Buttons["flag"] = conf.InputP2.Flag
-	data.GameInputP2.Buttons["use"] = conf.InputP2.Use
-	data.GameInputP2.Buttons["interact"] = conf.InputP2.Interact
-	data.GameInputP2.Buttons["prev"] = conf.InputP2.Prev
-	data.GameInputP2.Buttons["next"] = conf.InputP2.Next
-	data.GameInputP2.Buttons["mine_puzz_bomb"] = conf.InputP2.MinePuzzBomb
-	data.GameInputP2.Buttons["mine_puzz_safe"] = conf.InputP2.MinePuzzSafe
-	data.GameInputP2.Key = "p2"
-
-	if conf.InputP3.Gamepad < 0 {
-		data.GameInputP3.Mode = input.KeyboardMouse
-	} else {
-		data.GameInputP3.Mode = input.Gamepad
-		data.GameInputP3.Joystick = pixelgl.Joystick(conf.InputP3.Gamepad)
-	}
-	data.GameInputP3.AimDedicated = conf.InputP3.AimDedicated
-	data.GameInputP3.DigOnRelease = conf.InputP3.DigOnRelease
-	data.GameInputP3.StickD = conf.InputP3.LeftStick
-	data.GameInputP3.Deadzone = conf.InputP3.Deadzone
-	data.GameInputP3.Buttons["left"] = conf.InputP3.Left
-	data.GameInputP3.Buttons["right"] = conf.InputP3.Right
-	data.GameInputP3.Buttons["up"] = conf.InputP3.Up
-	data.GameInputP3.Buttons["down"] = conf.InputP3.Down
-	data.GameInputP3.Buttons["jump"] = conf.InputP3.Jump
-	data.GameInputP3.Buttons["dig"] = conf.InputP3.Dig
-	data.GameInputP3.Buttons["flag"] = conf.InputP3.Flag
-	data.GameInputP3.Buttons["use"] = conf.InputP3.Use
-	data.GameInputP3.Buttons["interact"] = conf.InputP3.Interact
-	data.GameInputP3.Buttons["prev"] = conf.InputP3.Prev
-	data.GameInputP3.Buttons["next"] = conf.InputP3.Next
-	data.GameInputP3.Buttons["mine_puzz_bomb"] = conf.InputP3.MinePuzzBomb
-	data.GameInputP3.Buttons["mine_puzz_safe"] = conf.InputP3.MinePuzzSafe
-	data.GameInputP3.Key = "p3"
-
-	if conf.InputP4.Gamepad < 0 {
-		data.GameInputP4.Mode = input.KeyboardMouse
-	} else {
-		data.GameInputP4.Mode = input.Gamepad
-		data.GameInputP4.Joystick = pixelgl.Joystick(conf.InputP4.Gamepad)
-	}
-	data.GameInputP4.AimDedicated = conf.InputP4.AimDedicated
-	data.GameInputP4.DigOnRelease = conf.InputP4.DigOnRelease
-	data.GameInputP4.StickD = conf.InputP4.LeftStick
-	data.GameInputP4.Deadzone = conf.InputP4.Deadzone
-	data.GameInputP4.Buttons["left"] = conf.InputP4.Left
-	data.GameInputP4.Buttons["right"] = conf.InputP4.Right
-	data.GameInputP4.Buttons["up"] = conf.InputP4.Up
-	data.GameInputP4.Buttons["down"] = conf.InputP4.Down
-	data.GameInputP4.Buttons["jump"] = conf.InputP4.Jump
-	data.GameInputP4.Buttons["dig"] = conf.InputP4.Dig
-	data.GameInputP4.Buttons["flag"] = conf.InputP4.Flag
-	data.GameInputP4.Buttons["use"] = conf.InputP4.Use
-	data.GameInputP4.Buttons["interact"] = conf.InputP4.Interact
-	data.GameInputP4.Buttons["prev"] = conf.InputP4.Prev
-	data.GameInputP4.Buttons["next"] = conf.InputP4.Next
-	data.GameInputP4.Buttons["mine_puzz_bomb"] = conf.InputP4.MinePuzzBomb
-	data.GameInputP4.Buttons["mine_puzz_safe"] = conf.InputP4.MinePuzzSafe
-	data.GameInputP4.Key = "p4"
 }
 
+//goland:noinspection GoNilness
 func saveInput(conf *config) {
-	if data.GameInputP1.Mode == input.KeyboardMouse {
-		conf.InputP1.Gamepad = -1
-	} else {
-		conf.InputP1.Gamepad = int(data.GameInputP1.Joystick)
-	}
-	conf.InputP1.AimDedicated = data.GameInputP1.AimDedicated
-	conf.InputP1.DigOnRelease = data.GameInputP1.DigOnRelease
-	conf.InputP1.LeftStick = data.GameInputP1.StickD
-	conf.InputP1.Deadzone = data.GameInputP1.Deadzone
-	conf.InputP1.Left = data.GameInputP1.Buttons["left"]
-	conf.InputP1.Right = data.GameInputP1.Buttons["right"]
-	conf.InputP1.Up = data.GameInputP1.Buttons["up"]
-	conf.InputP1.Down = data.GameInputP1.Buttons["down"]
-	conf.InputP1.Jump = data.GameInputP1.Buttons["jump"]
-	conf.InputP1.Dig = data.GameInputP1.Buttons["dig"]
-	conf.InputP1.Flag = data.GameInputP1.Buttons["flag"]
-	conf.InputP1.Use = data.GameInputP1.Buttons["use"]
-	conf.InputP1.Interact = data.GameInputP1.Buttons["interact"]
-	conf.InputP1.Prev = data.GameInputP1.Buttons["prev"]
-	conf.InputP1.Next = data.GameInputP1.Buttons["next"]
-	conf.InputP1.MinePuzzBomb = data.GameInputP1.Buttons["mine_puzz_bomb"]
-	conf.InputP1.MinePuzzSafe = data.GameInputP1.Buttons["mine_puzz_safe"]
-	conf.InputP1.Key = "p1"
+	for i := 0; i < 4; i++ {
+		var in *input.Input
+		var cf inputs
+		switch i {
+		case 0:
+			in = data.GameInputP1
+		case 1:
+			in = data.GameInputP2
+		case 2:
+			in = data.GameInputP3
+		case 3:
+			in = data.GameInputP4
+		}
 
-	if data.GameInputP2.Mode == input.KeyboardMouse {
-		conf.InputP2.Gamepad = -1
-	} else {
-		conf.InputP2.Gamepad = int(data.GameInputP2.Joystick)
-	}
-	conf.InputP2.AimDedicated = data.GameInputP2.AimDedicated
-	conf.InputP2.DigOnRelease = data.GameInputP2.DigOnRelease
-	conf.InputP2.LeftStick = data.GameInputP2.StickD
-	conf.InputP2.Deadzone = data.GameInputP2.Deadzone
-	conf.InputP2.Left = data.GameInputP2.Buttons["left"]
-	conf.InputP2.Right = data.GameInputP2.Buttons["right"]
-	conf.InputP2.Up = data.GameInputP2.Buttons["up"]
-	conf.InputP2.Down = data.GameInputP2.Buttons["down"]
-	conf.InputP2.Jump = data.GameInputP2.Buttons["jump"]
-	conf.InputP2.Dig = data.GameInputP2.Buttons["dig"]
-	conf.InputP2.Flag = data.GameInputP2.Buttons["flag"]
-	conf.InputP2.Use = data.GameInputP2.Buttons["use"]
-	conf.InputP2.Interact = data.GameInputP2.Buttons["interact"]
-	conf.InputP2.Prev = data.GameInputP2.Buttons["prev"]
-	conf.InputP2.Next = data.GameInputP2.Buttons["next"]
-	conf.InputP2.MinePuzzBomb = data.GameInputP2.Buttons["mine_puzz_bomb"]
-	conf.InputP2.MinePuzzSafe = data.GameInputP2.Buttons["mine_puzz_safe"]
-	conf.InputP2.Key = "p2"
+		if in.Mode == input.KeyboardMouse {
+			cf.Gamepad = -1
+		} else {
+			cf.Gamepad = int(in.Joystick)
+		}
+		cf.AimDedicated = in.AimDedicated
+		cf.DigOnRelease = in.DigOnRelease
+		cf.LeftStick = in.StickD
+		cf.Deadzone = in.Deadzone
+		cf.Left = in.Buttons["left"]
+		cf.Right = in.Buttons["right"]
+		cf.Up = in.Buttons["up"]
+		cf.Down = in.Buttons["down"]
+		cf.Jump = in.Buttons["jump"]
+		cf.Dig = in.Buttons["dig"]
+		cf.Flag = in.Buttons["flag"]
+		cf.Use = in.Buttons["use"]
+		cf.Interact = in.Buttons["interact"]
+		cf.Prev = in.Buttons["prev"]
+		cf.Next = in.Buttons["next"]
+		cf.PuzzLeave = in.Buttons["puzz_leave"]
+		cf.PuzzHelp = in.Buttons["puzz_help"]
+		cf.MinePuzzBomb = in.Buttons["mine_puzz_bomb"]
+		cf.MinePuzzSafe = in.Buttons["mine_puzz_safe"]
+		cf.Key = fmt.Sprintf("p%d", i+1)
 
-	if data.GameInputP3.Mode == input.KeyboardMouse {
-		conf.InputP3.Gamepad = -1
-	} else {
-		conf.InputP3.Gamepad = int(data.GameInputP3.Joystick)
+		switch i {
+		case 0:
+			conf.InputP1 = cf
+		case 1:
+			conf.InputP2 = cf
+		case 2:
+			conf.InputP3 = cf
+		case 3:
+			conf.InputP4 = cf
+		}
 	}
-	conf.InputP3.AimDedicated = data.GameInputP3.AimDedicated
-	conf.InputP3.DigOnRelease = data.GameInputP3.DigOnRelease
-	conf.InputP3.LeftStick = data.GameInputP3.StickD
-	conf.InputP3.Deadzone = data.GameInputP3.Deadzone
-	conf.InputP3.Left = data.GameInputP3.Buttons["left"]
-	conf.InputP3.Right = data.GameInputP3.Buttons["right"]
-	conf.InputP3.Up = data.GameInputP3.Buttons["up"]
-	conf.InputP3.Down = data.GameInputP3.Buttons["down"]
-	conf.InputP3.Jump = data.GameInputP3.Buttons["jump"]
-	conf.InputP3.Dig = data.GameInputP3.Buttons["dig"]
-	conf.InputP3.Flag = data.GameInputP3.Buttons["flag"]
-	conf.InputP3.Use = data.GameInputP3.Buttons["use"]
-	conf.InputP3.Interact = data.GameInputP3.Buttons["interact"]
-	conf.InputP3.Prev = data.GameInputP3.Buttons["prev"]
-	conf.InputP3.Next = data.GameInputP3.Buttons["next"]
-	conf.InputP3.MinePuzzBomb = data.GameInputP3.Buttons["mine_puzz_bomb"]
-	conf.InputP3.MinePuzzSafe = data.GameInputP3.Buttons["mine_puzz_safe"]
-	conf.InputP3.Key = "p3"
-
-	if data.GameInputP4.Mode == input.KeyboardMouse {
-		conf.InputP4.Gamepad = -1
-	} else {
-		conf.InputP4.Gamepad = int(data.GameInputP4.Joystick)
-	}
-	conf.InputP4.AimDedicated = data.GameInputP4.AimDedicated
-	conf.InputP4.DigOnRelease = data.GameInputP4.DigOnRelease
-	conf.InputP4.LeftStick = data.GameInputP4.StickD
-	conf.InputP4.Deadzone = data.GameInputP4.Deadzone
-	conf.InputP4.Left = data.GameInputP4.Buttons["left"]
-	conf.InputP4.Right = data.GameInputP4.Buttons["right"]
-	conf.InputP4.Up = data.GameInputP4.Buttons["up"]
-	conf.InputP4.Down = data.GameInputP4.Buttons["down"]
-	conf.InputP4.Jump = data.GameInputP4.Buttons["jump"]
-	conf.InputP4.Dig = data.GameInputP4.Buttons["dig"]
-	conf.InputP4.Flag = data.GameInputP4.Buttons["flag"]
-	conf.InputP4.Use = data.GameInputP4.Buttons["use"]
-	conf.InputP4.Interact = data.GameInputP4.Buttons["interact"]
-	conf.InputP4.Prev = data.GameInputP4.Buttons["prev"]
-	conf.InputP4.Next = data.GameInputP4.Buttons["next"]
-	conf.InputP4.MinePuzzBomb = data.GameInputP4.Buttons["mine_puzz_bomb"]
-	conf.InputP4.MinePuzzSafe = data.GameInputP4.Buttons["mine_puzz_safe"]
-	conf.InputP4.Key = "p4"
 }

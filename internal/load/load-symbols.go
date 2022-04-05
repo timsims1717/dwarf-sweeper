@@ -183,6 +183,9 @@ func Symbols() {
 	typeface.RegisterSymbol("AxisLeftTrigger", img.Batchers[constants.MenuSprites].GetSprite("AxisLeftTrigger"), 1.)
 	typeface.RegisterSymbol("AxisRightTrigger", img.Batchers[constants.MenuSprites].GetSprite("AxisRightTrigger"), 1.)
 
-	// other
-
+	// puzzles
+	typeface.RegisterSymbol("check", img.Batchers[constants.PuzzleKey].GetAnimation("check").S[0], 1.)
+	typeface.RegisterSymbol("mine", img.Batchers[constants.PuzzleKey].GetSprite("mine"), 1.)
+	typeface.RegisterSymbol("leave", img.Batchers[constants.PuzzleKey].GetSprite("leave"), 1.)
+	typeface.RegisterSymbol("help", img.Batchers[constants.PuzzleKey].GetSprite("help"), 1.)
 }

@@ -1,0 +1,13 @@
+[
+  {
+    "key": "minesweeper",
+    "title": "Dark Minesweeper",
+    "biome": "dark",
+    "desc": "",
+    "tracks": [
+      "turbo"
+    ],
+    "type": "Minesweeper",
+    "base": "Custom"
+  }
+]

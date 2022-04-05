@@ -7,122 +7,7 @@ import (
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
-	"github.com/faiface/pixel"
 )
-
-func Entrance(c *cave.Cave, door world.Coords, width, height int, roofCurve int, exit bool) {
-	t := door.Y - height
-	b := door.Y + 1
-	l := door.X - width/2
-	r := door.X + width/2
-	for y := t; y <= b; y++ {
-		for x := l; x <= r; x++ {
-			tile := c.GetTileInt(x, y)
-			if tile != nil {
-				if !tile.NeverChange && !tile.IsChanged {
-					dx := util.Min(util.Abs(x-l), util.Abs(x-r))
-					dy := util.Abs(y - t)
-					curve := roofCurve
-					if (x == l || x == r || y == t || y == b) || dx+dy+random.CaveGen.Intn(2) < curve+width/8 {
-						if y == b && util.Abs(x-door.X) < 2 {
-							tile.Type = cave.Wall
-							tile.NeverChange = true
-						} else {
-							tile.Type = cave.BlockCollapse
-						}
-					} else {
-						ty := cave.Empty
-						s := ""
-						if x == door.X && y == door.Y {
-							ty = cave.Deco
-							s = "door"
-							if exit {
-								tile.Exit = true
-							}
-						} else if x == door.X-1 && y == door.Y {
-							ty = cave.Deco
-							s = "door_l"
-						} else if x == door.X+1 && y == door.Y {
-							ty = cave.Deco
-							s = "door_r"
-						} else if x == door.X && y == door.Y-1 {
-							ty = cave.Deco
-							s = "door_t"
-						} else if x == door.X-1 && y == door.Y-1 {
-							ty = cave.Deco
-							s = "door_tl"
-						} else if x == door.X+1 && y == door.Y-1 {
-							ty = cave.Deco
-							s = "door_tr"
-						}
-						tile.Type = cave.BlockType(ty)
-						tile.NeverChange = true
-						tile.ClearSprites()
-						tile.AddSprite(s, pixel.IM, tile.Biome, true)
-					}
-					tile.Bomb = false
-					tile.IsChanged = true
-				}
-			}
-		}
-	}
-	if exit {
-		_, h := c.Dimensions()
-		for y := door.Y + 2; y <= h; y++ {
-			for x := door.X - 1; x <= door.X+1; x++ {
-				tile := c.GetTileInt(x, y)
-				if tile != nil {
-					if !tile.NeverChange && !tile.IsChanged {
-						tile.Type = cave.Wall
-						tile.NeverChange = true
-						tile.Bomb = false
-						tile.IsChanged = true
-					}
-				}
-			}
-		}
-	}
-}
-
-func Door(c *cave.Cave, door world.Coords, exit bool) {
-	for y := door.Y - 1; y <= door.Y+1; y++ {
-		for x := door.X - 1; x <= door.X+1; x++ {
-			tile := c.GetTileInt(x, y)
-			if tile != nil {
-				ty := cave.Wall
-				s := ""
-				if x == door.X && y == door.Y {
-					ty = cave.Deco
-					s = "door"
-					if exit {
-						tile.Exit = true
-					}
-				} else if x == door.X-1 && y == door.Y {
-					ty = cave.Deco
-					s = "door_l"
-				} else if x == door.X+1 && y == door.Y {
-					ty = cave.Deco
-					s = "door_r"
-				} else if x == door.X && y == door.Y-1 {
-					ty = cave.Deco
-					s = "door_t"
-				} else if x == door.X-1 && y == door.Y-1 {
-					ty = cave.Deco
-					s = "door_tl"
-				} else if x == door.X+1 && y == door.Y-1 {
-					ty = cave.Deco
-					s = "door_tr"
-				}
-				tile.Type = cave.BlockType(ty)
-				tile.NeverChange = true
-				tile.ClearSprites()
-				tile.AddSprite(s, pixel.IM, tile.Biome, true)
-				tile.Bomb = false
-				tile.IsChanged = true
-			}
-		}
-	}
-}
 
 func RectRoom(c *cave.Cave, tl world.Coords, width, height, curve int, blockType cave.BlockType) {
 	for y := tl.Y; y < tl.Y+height; y++ {
@@ -135,9 +20,9 @@ func RectRoom(c *cave.Cave, tl world.Coords, width, height, curve int, blockType
 					if blockType != cave.Unknown {
 						tile.Type = blockType
 					} else if tile.Perlin < 0 {
-						tile.Type = cave.BlockCollapse
+						tile.Type = cave.Collapse
 					} else {
-						tile.Type = cave.BlockDig
+						tile.Type = cave.Dig
 					}
 					tile.IsChanged = true
 				}
@@ -167,9 +52,9 @@ func RandRectRoom(c *cave.Cave, min, max int, include world.Coords) ([]world.Coo
 			tile := c.GetTileInt(x, y)
 			if tile != nil {
 				if !tile.NeverChange && !tile.IsChanged && (x == tlX || x == tlX+w-1 || y == tlY || y == tlY+h-1) {
-					ToBlock(tile, cave.Wall, false, true)
+					ToType(tile, cave.Wall, false, true)
 				} else if !tile.NeverChange {
-					ToBlock(tile, cave.Unknown, false, true)
+					ToBlock(tile, false, true)
 					roomTiles = append(roomTiles, tile.RCoords)
 					if random.CaveGen.Intn(toMark) == 0 {
 						toMark += 12

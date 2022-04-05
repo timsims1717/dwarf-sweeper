@@ -89,14 +89,184 @@
    "y": 96
   },
   {
-   "key": "pillar",
+   "key": "tunnel_l",
    "x": 48,
    "y": 80
   },
   {
-   "key": "pillar_top",
+   "key": "tunnel",
+   "x": 64,
+   "y": 80
+  },
+  {
+   "key": "tunnel_r",
+   "x": 80,
+   "y": 80
+  },
+  {
+   "key": "tunnel_tl",
    "x": 48,
    "y": 96
+  },
+  {
+   "key": "tunnel_t",
+   "x": 64,
+   "y": 96
+  },
+  {
+   "key": "tunnel_tr",
+   "x": 80,
+   "y": 96
+  },
+  {
+   "key": "secret_l",
+   "x": 96,
+   "y": 80
+  },
+  {
+   "key": "secret",
+   "x": 112,
+   "y": 80
+  },
+  {
+   "key": "secret_r",
+   "x": 128,
+   "y": 80
+  },
+  {
+   "key": "secret_tl",
+   "x": 96,
+   "y": 96
+  },
+  {
+   "key": "secret_t",
+   "x": 112,
+   "y": 96
+  },
+  {
+   "key": "secret_tr",
+   "x": 128,
+   "y": 96
+  },
+  {
+   "key": "secret_open_l",
+   "x": 144,
+   "y": 80
+  },
+  {
+   "key": "secret_open",
+   "x": 160,
+   "y": 80
+  },
+  {
+   "key": "secret_open_r",
+   "x": 176,
+   "y": 80
+  },
+  {
+   "key": "secret_open_tl",
+   "x": 144,
+   "y": 96
+  },
+  {
+   "key": "secret_open_t",
+   "x": 160,
+   "y": 96
+  },
+  {
+   "key": "secret_open_tr",
+   "x": 176,
+   "y": 96
+  },
+  {
+   "key": "pillar_top",
+   "x": 0,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid",
+   "x": 0,
+   "y": 128
+  },
+  {
+   "key": "pillar_bottom",
+   "x": 0,
+   "y": 112
+  },
+  {
+   "key": "pillar_top_br",
+   "x": 16,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid_br",
+   "x": 16,
+   "y": 128
+  },
+  {
+   "key": "pillar_bottom_br",
+   "x": 16,
+   "y": 112
+  },
+  {
+   "key": "pillar_mid_br_up",
+   "x": 32,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid_br_dwn",
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "pillar_single",
+   "x": 32,
+   "y": 112
+  },
+  {
+   "key": "growth_top",
+   "x": 48,
+   "y": 144
+  },
+  {
+   "key": "growth_mid",
+   "x": 48,
+   "y": 128
+  },
+  {
+   "key": "growth_bottom",
+   "x": 48,
+   "y": 112
+  },
+  {
+   "key": "growth_top_br",
+   "x": 64,
+   "y": 144
+  },
+  {
+   "key": "growth_mid_br",
+   "x": 64,
+   "y": 128
+  },
+  {
+   "key": "growth_bottom_br",
+   "x": 64,
+   "y": 112
+  },
+  {
+   "key": "growth_mid_br_up",
+   "x": 80,
+   "y": 144
+  },
+  {
+   "key": "growth_mid_br_dwn",
+   "x": 80,
+   "y": 128
+  },
+  {
+   "key": "growth_single",
+   "x": 80,
+   "y": 112
   }
  ]
 }

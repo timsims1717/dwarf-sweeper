@@ -211,3 +211,10 @@ func (p *musicPlayer) PauseAllMusic() {
 		s.pause(true)
 	}
 }
+
+
+func (p *musicPlayer) StopAllMusic() {
+	for _, s := range p.sets {
+		s.stop()
+	}
+}

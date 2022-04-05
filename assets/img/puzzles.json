@@ -30,48 +30,15 @@
    "w": 16
   },
   {
-   "key": "green_x",
-   "anim": true,
-   "x": 64,
-   "y": 0,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "green_x",
-   "anim": true,
-   "x": 76,
-   "y": 0,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "green_x",
-   "anim": true,
-   "x": 88,
-   "y": 0,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "green_x",
-   "anim": true,
-   "x": 100,
-   "y": 0,
-   "h": 12,
-   "w": 12
-  },
-  {
    "key": "miss_box",
-   "x": 112,
+   "x": 64,
    "y": 0,
    "h": 8,
    "w": 8
   },
   {
    "key": "miss_x",
-   "anim": true,
-   "x": 120,
+   "x": 72,
    "y": 0,
    "h": 6,
    "w": 6
@@ -140,15 +107,16 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
+   "frames": 4,
    "x": 0,
    "y": 28,
    "h": 12,
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
    "x": 12,
    "y": 28,
@@ -156,7 +124,7 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
    "x": 24,
    "y": 28,
@@ -164,7 +132,7 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
    "x": 36,
    "y": 28,
@@ -172,7 +140,7 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
    "x": 48,
    "y": 28,
@@ -180,7 +148,7 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
    "x": 60,
    "y": 28,
@@ -188,7 +156,7 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
+   "key": "check",
    "anim": true,
    "x": 72,
    "y": 28,
@@ -196,202 +164,23 @@
    "w": 12
   },
   {
-   "key": "flag_hang_p1",
-   "anim": true,
-   "x": 84,
-   "y": 28,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p2",
-   "anim": true,
+   "key": "mine",
    "x": 0,
    "y": 40,
    "h": 12,
    "w": 12
   },
   {
-   "key": "flag_hang_p2",
-   "anim": true,
+   "key": "leave",
    "x": 12,
    "y": 40,
    "h": 12,
    "w": 12
   },
   {
-   "key": "flag_hang_p2",
-   "anim": true,
+   "key": "help",
    "x": 24,
    "y": 40,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p2",
-   "anim": true,
-   "x": 36,
-   "y": 40,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p2",
-   "anim": true,
-   "x": 48,
-   "y": 40,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p2",
-   "anim": true,
-   "x": 60,
-   "y": 40,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p2",
-   "anim": true,
-   "x": 72,
-   "y": 40,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p2",
-   "anim": true,
-   "x": 84,
-   "y": 40,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 0,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 12,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 24,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 36,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 48,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 60,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 72,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p3",
-   "anim": true,
-   "x": 84,
-   "y": 52,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 0,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 12,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 24,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 36,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 48,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 60,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 72,
-   "y": 64,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "flag_hang_p4",
-   "anim": true,
-   "x": 84,
-   "y": 64,
    "h": 12,
    "w": 12
   }

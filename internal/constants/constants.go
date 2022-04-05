@@ -9,7 +9,7 @@ const (
 	Title   = "DwarfSweeper"
 	Release = 0
 	Version = 4
-	Build   = 20220310
+	Build   = 20220405
 	BaseW   = 320.
 	BaseH   = 240.
 
@@ -45,9 +45,6 @@ const (
 	// Descent Constants
 	ChunkSize = 16
 	ChunkArea = ChunkSize * ChunkSize
-
-	BaseGem  = 20
-	BaseItem = 50
 )
 
 var (

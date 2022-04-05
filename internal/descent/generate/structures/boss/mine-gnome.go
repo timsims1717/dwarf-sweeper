@@ -33,7 +33,7 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	c.Chunks[chunkr3.Coords] = chunkr3
 	c.Chunks[chunkl1.Coords] = chunkl1
 	c.Chunks[chunkl2.Coords] = chunkl2
-	structures.Entrance(c, c.StartC, 9, 5, 3, false)
+	structures.Entrance(c, c.StartC, 9, 5, 3, cave.Doorway)
 	structures.Stairs(c, world.Coords{X: 11, Y: 10}, true, true, 12, 6)
 	structures.Stairs(c, world.Coords{X: 21, Y: 10}, false, true, 12, 6)
 	structures.GnomeMineLayer(c, world.Coords{X: 11, Y: 23}, world.Coords{X: 21, Y: 23})
@@ -89,9 +89,8 @@ func nextLayer(gnome *descent.GnomeBoss) {
 
 func revealExit(gnome *descent.GnomeBoss) {
 	c := descent.Descent.Cave
-	c.ExitC = c.GetTile(gnome.Transform.Pos).RCoords
-	structures.Door(c, c.ExitC, true)
-	descent.Descent.SetExitPopup()
+	exitC := c.GetTile(gnome.Transform.Pos).RCoords
+	structures.ExitDoor(c, exitC, 0, cave.SecretOpen)
 	c.UpdateBatch = true
 }
 

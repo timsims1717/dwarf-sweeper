@@ -4,9 +4,12 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/sfx"
+	"fmt"
 	"github.com/faiface/pixel/pixelgl"
+	"strings"
 )
 
 func InitPauseMenu(win *pixelgl.Window) {
@@ -18,6 +21,7 @@ func InitPauseMenu(win *pixelgl.Window) {
 	})
 	pauseTitle := PauseMenu.AddItem("title", "Paused", false)
 	resume := PauseMenu.AddItem("resume", "Resume", false)
+	quests := PauseMenu.AddItem("quests", "Quests", false)
 	options := PauseMenu.AddItem("options", "Options", false)
 	mainMenu := PauseMenu.AddItem("main_menu", "Abandon Run", false)
 	quit := PauseMenu.AddItem("quit", "Quit Game", false)
@@ -27,6 +31,11 @@ func InitPauseMenu(win *pixelgl.Window) {
 		PauseMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 	})
+	quests.SetClickFn(func() {
+		OpenMenu(QuestMenu)
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+	})
+	quests.Ignore = true
 	options.SetClickFn(func() {
 		OpenMenu(OptionsMenu)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -40,71 +49,14 @@ func InitPauseMenu(win *pixelgl.Window) {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		win.SetClosed(true)
 	})
-}
-
-func InitEnchantMenu() {
-	EnchantMenu = menus.New("enchant", camera.Cam)
-	EnchantMenu.Title = true
-	chooseTitle := EnchantMenu.AddItem("title", "Enchant!", false)
-	skip := EnchantMenu.AddItem("skip", "Skip", false)
-
-	chooseTitle.NoHover = true
-	skip.SetClickFn(func() {
-		sfx.SoundPlayer.PlaySound("click", 2.0)
-		EnchantMenu.CloseInstant()
-		ClearEnchantMenu()
-		SwitchState(DescentStateKey)
+	PauseMenu.SetOpenFn(func() {
+		quests.Ignore = true
+		for _, quest := range profile.CurrentProfile.Quests {
+			if !quest.Hidden || quest.Completed {
+				quests.Ignore = false
+			}
+		}
 	})
-}
-
-func ClearEnchantMenu() {
-	EnchantMenu.RemoveItem("option1")
-	EnchantMenu.RemoveItem("option2")
-	EnchantMenu.RemoveItem("option3")
-}
-
-func FillEnchantMenu() bool {
-	d := descent.Descent.GetPlayers()[0]
-	ClearEnchantMenu()
-	choices := descent.PickEnchantments(d.Enchants)
-	if len(choices) == 0 {
-		return false
-	}
-	e1 := choices[0]
-	option1 := EnchantMenu.InsertItem("option1", e1.Title, 1, false)
-	option1.SetClickFn(func() {
-		sfx.SoundPlayer.PlaySound("click", 2.0)
-		descent.AddEnchantment(e1, d)
-		EnchantMenu.CloseInstant()
-		ClearEnchantMenu()
-		SwitchState(DescentStateKey)
-	})
-	option1.Hint = e1.Desc
-	if len(choices) > 1 {
-		e2 := choices[1]
-		option2 := EnchantMenu.InsertItem("option2", e2.Title, 2, false)
-		option2.SetClickFn(func() {
-			sfx.SoundPlayer.PlaySound("click", 2.0)
-			descent.AddEnchantment(e2, d)
-			EnchantMenu.CloseInstant()
-			ClearEnchantMenu()
-			SwitchState(DescentStateKey)
-		})
-		option2.Hint = e2.Desc
-	}
-	if len(choices) > 2 {
-		e3 := choices[2]
-		option3 := EnchantMenu.InsertItem("option3", e3.Title, 3, false)
-		option3.SetClickFn(func() {
-			sfx.SoundPlayer.PlaySound("click", 2.0)
-			descent.AddEnchantment(e3, d)
-			EnchantMenu.CloseInstant()
-			ClearEnchantMenu()
-			SwitchState(DescentStateKey)
-		})
-		option3.Hint = e3.Desc
-	}
-	return true
 }
 
 func InitPostGameMenu() {
@@ -148,11 +100,56 @@ func InitPostGameMenu() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		DescentState.start = true
+		DescentState.CurrBiome = "mine"
+		descent.New()
 		SwitchState(DescentStateKey)
 	})
 	backToMenu.SetClickFn(func() {
 		PostMenu.CloseInstant()
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		SwitchState(MenuStateKey)
+	})
+}
+
+func InitQuestMenu() {
+	QuestMenu = menus.New("quest", camera.Cam)
+	QuestMenu.Title = true
+	questTitle := QuestMenu.AddItem("title", "Quests", false)
+	completed := QuestMenu.AddItem("completed", "Completed Quests:", false)
+	back := QuestMenu.AddItem("back", "Back", false)
+
+	questTitle.NoHover = true
+	completed.NoHover = true
+	completed.Disabled = true
+	back.SetClickFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		QuestMenu.Close()
+	})
+
+	updateQuests := func() {
+		for i := len(QuestMenu.Items)-1; i >= 0; i-- {
+			item := QuestMenu.Items[i]
+			if strings.Contains(item.Key, "quest") {
+				QuestMenu.RemoveItem(item.Key)
+			}
+		}
+		for _, quest := range profile.CurrentProfile.Quests {
+			if !quest.Completed && !quest.Hidden {
+				qi := QuestMenu.InsertItem(fmt.Sprintf("quest_%s", quest.Key), fmt.Sprintf(" %s", quest.Name), "title", false)
+				qi.Hint = quest.Desc
+			}
+		}
+		for _, quest := range profile.CurrentProfile.Quests {
+			if quest.Completed {
+				qci := QuestMenu.InsertItem(fmt.Sprintf("quest_c_%s", quest.Key), fmt.Sprintf(" %s", quest.Name), "completed", false)
+				qci.Hint = quest.Desc
+				completed.Ignore = false
+			}
+		}
+		QuestMenu.Hovered = 1
+	}
+
+	QuestMenu.SetOpenFn(func() {
+		updateQuests()
 	})
 }

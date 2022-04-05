@@ -50,10 +50,14 @@ func InitInputMenu(win *pixelgl.Window) {
 	prevR := InputMenu.AddItem("prev_r", "", true)
 	next := InputMenu.AddItem("next", "Next Item", false)
 	nextR := InputMenu.AddItem("next_r", "", true)
+	puzzLeave := InputMenu.AddItem("puzz_leave", "Leave Puzzle", false)
+	puzzLeaveR := InputMenu.AddItem("puzz_leave_r", "", true)
+	puzzHelp := InputMenu.AddItem("puzz_help", "Puzzle Help", false)
+	puzzHelpR := InputMenu.AddItem("puzz_help_r", "", true)
 	minePuzz := InputMenu.AddItem("mine_puzz", "Mine Puzzle:", false)
-	minePuzzBomb := InputMenu.AddItem("mine_puzz_bomb", " Bomb", false)
+	minePuzzBomb := InputMenu.AddItem("mine_puzz_bomb", " Mark Bomb", false)
 	minePuzzBombR := InputMenu.AddItem("mine_puzz_bomb_r", "", true)
-	minePuzzSafe := InputMenu.AddItem("mine_puzz_safe", " Safe", false)
+	minePuzzSafe := InputMenu.AddItem("mine_puzz_safe", " Mark Safe", false)
 	minePuzzSafeR := InputMenu.AddItem("mine_puzz_safe_r", "", true)
 	back := InputMenu.AddItem("back", "Back", false)
 
@@ -226,11 +230,15 @@ func InitInputMenu(win *pixelgl.Window) {
 	nextR.NoHover = true
 	prev.SetClickFn(keyFn(prev))
 	prevR.NoHover = true
+	puzzLeave.SetClickFn(keyFn(puzzLeave))
+	puzzLeaveR.NoHover = true
+	puzzHelp.SetClickFn(keyFn(puzzHelp))
+	puzzHelpR.NoHover = true
 	minePuzz.NoHover = true
 	minePuzz.Disabled = true
-	minePuzzBomb.SetClickFn(keyFn(next))
+	minePuzzBomb.SetClickFn(keyFn(minePuzzBomb))
 	minePuzzBombR.NoHover = true
-	minePuzzSafe.SetClickFn(keyFn(prev))
+	minePuzzSafe.SetClickFn(keyFn(minePuzzSafe))
 	minePuzzSafeR.NoHover = true
 
 	setProfile := func(in *input.Input) {

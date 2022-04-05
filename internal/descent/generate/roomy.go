@@ -9,11 +9,12 @@ import (
 	"dwarf-sweeper/pkg/world"
 )
 
-func RoomyCave(newCave *cave.Cave, level int, signal chan bool) {
-	left := -1
-	right := 1
-	bottom := 2
-	layers := makeLayers(left, right, bottom, 5, 7, 3)
+func RoomyCave(newCave *cave.Cave, signal chan bool) {
+	if signal != nil {
+		signal <- false
+	}
+
+	layers := makeLayers(newCave.Left, newCave.Right, newCave.Bottom, 5, 7, 3)
 	start := random.CaveGen.Intn(3) // 0 = left, 1 = mid, 2 = right
 	end := random.CaveGen.Intn(2)
 	if start == 0 {
@@ -23,30 +24,6 @@ func RoomyCave(newCave *cave.Cave, level int, signal chan bool) {
 	}
 	startT := layers[0][start]
 	exitT := layers[2][end]
-	newCave.SetSize(left, right, bottom)
-	newCave.StartC = startT
-	newCave.ExitC = exitT
-	newCave.BombPMin, newCave.BombPMax = BombLevel(level)
-	structures.CreateChunks(newCave, cave.BlockBlast)
-	if signal != nil {
-		signal <- false
-		if !<-signal {
-			return
-		}
-	}
-	// generate entrance (at y level 9, x between l + 10 and r - 10)
-	structures.Entrance(newCave, startT, 11, 5, 4, false)
-	box := startT
-	box.X -= 8
-	box.Y -= 9
-	structures.RectRoom(newCave, box, 17, 12,3, cave.Unknown)
-	// generate exit (between y level 4 and 10, x between l + 10 and r - 10)
-	structures.Entrance(newCave, exitT, 7, 3, 1, true)
-	box = exitT
-	box.X -= 5
-	box.Y -= 5
-	structures.RectRoom(newCave, box, 11, 8,3, cave.Unknown)
-	newCave.MarkAsNotChanged()
 	if signal != nil {
 		signal <- false
 		if !<-signal {

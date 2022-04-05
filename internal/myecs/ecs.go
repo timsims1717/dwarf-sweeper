@@ -42,12 +42,12 @@ var (
 	HasFunc   = ecs.BuildTag(Func)
 	HasUpdate = ecs.BuildTag(Update)
 
-	HasAnimation   = ecs.BuildTag(Animation, Transform)
-	IsDrawable     = ecs.BuildTag(Drawable, Transform, Batch)
-	IsEntity       = ecs.BuildTag(Entity, Transform)
-	HasPopUp       = ecs.BuildTag(PopUp, Transform)
-	HasVFX         = ecs.BuildTag(VFX, Transform)
-	HasTrigger     = ecs.BuildTag(Transform, Collision, Trigger)
+	HasAnimation = ecs.BuildTag(Animation, Transform)
+	IsDrawable   = ecs.BuildTag(Drawable, Transform, Batch)
+	IsEntity     = ecs.BuildTag(Entity, Transform)
+	HasPopUp     = ecs.BuildTag(PopUp, Transform)
+	HasVFX       = ecs.BuildTag(VFX, Transform)
+	HasTrigger   = ecs.BuildTag(Transform, Collision, Trigger)
 
 	HasTransform  = ecs.BuildTag(Transform)
 	HasParent     = ecs.BuildTag(Transform, Parent)

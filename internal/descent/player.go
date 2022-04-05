@@ -12,7 +12,8 @@ import (
 
 func UpdatePlayer(d *Dwarf) {
 	d.Player.Message.Update()
-	if d.Player.Message.Done {
+	msgDone := d.Player.Message.Done
+	if msgDone {
 		if len(d.Player.Messages) > 0 {
 			m := d.Player.Messages[0]
 			if len(d.Player.Messages) > 1 {
@@ -23,29 +24,35 @@ func UpdatePlayer(d *Dwarf) {
 			d.Player.Message.Text.SetText(m.Raw)
 			d.Player.Message.OnClose = m.OnClose
 			d.Player.Message.Done = false
+			msgDone = false
 			d.Player.Message.Box.Open()
-		} else if d.Player.Puzzle != nil {
-			if d.Player.Puzzle.IsClosed() {
-				if d.Player.Puzzle.Solved() {
-					d.Player.Puzzle.OnSolve()
-				} else if d.Player.Puzzle.Failed() {
-					d.Player.Puzzle.OnFail()
-				}
-				d.Player.Puzzle = nil
-			} else {
-				d.Player.Puzzle.Update(d.Player.Input)
-				if d.Player.Puzzle.IsOpen() && (d.Player.Puzzle.Solved() || d.Player.Puzzle.Failed()) {
-					d.Player.Puzzle.Close()
-				}
-			}
-		} else {
-			if Descent.DisableInput {
-				d.Update(nil)
-			} else {
-				d.Update(d.Player.Input)
-			}
-			d.Player.Inventory.Update()
 		}
+	}
+	if d.Player.Puzzle != nil {
+		if d.Player.Puzzle.IsClosed() {
+			if d.Player.Puzzle.Solved() {
+				d.Player.Puzzle.OnSolve()
+			} else if d.Player.Puzzle.Failed() {
+				d.Player.Puzzle.OnFail()
+			}
+			d.Player.Puzzle = nil
+		} else {
+			if msgDone {
+				d.Player.Puzzle.Update(d.Player.Input)
+			} else {
+				d.Player.Puzzle.Update(nil)
+			}
+			if d.Player.Puzzle.IsOpen() && (d.Player.Puzzle.Solved() || d.Player.Puzzle.Failed()) {
+				d.Player.Puzzle.Close()
+			}
+		}
+	} else {
+		if Descent.DisableInput || !msgDone {
+			d.Update(nil)
+		} else {
+			d.Update(d.Player.Input)
+		}
+		d.Player.Inventory.Update()
 	}
 }
 
@@ -112,26 +119,25 @@ func UpdateView(d *Dwarf, i, l int) {
 		} else if d.Player.CamPos.Y <= dPos.Y - distY {
 			d.Player.CamPos.Y = dPos.Y - distY
 		}
-		//bl, tr := Descent.GetCave().CurrentBoundaries()
-		//ratio := camera.Cam.Height / constants.BaseH
-		//bl.X += camera.Cam.Width * 0.5 / ratio * camera.Cam.GetZoomScale()
-		//bl.Y += constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
-		//tr.X -= camera.Cam.Width*0.5/ratio*camera.Cam.GetZoomScale() + world.TileSize
-		//tr.Y -= constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
-		//if bl.X <= tr.X {
-		//	if bl.X > d.Player.CamPos.X {
-		//		d.Player.CamPos.X = bl.X
-		//	} else if tr.X < d.Player.CamPos.X {
-		//		d.Player.CamPos.X = tr.X
-		//	}
-		//}
-		//if bl.Y <= tr.Y {
-		//	if bl.Y > d.Player.CamPos.Y {
-		//		d.Player.CamPos.Y = bl.Y
-		//	} else if tr.Y < d.Player.CamPos.Y {
-		//		d.Player.CamPos.Y = tr.Y
-		//	}
-		//}
+		bl, tr := Descent.GetCave().CurrentBoundaries()
+		bl.X += d.Player.Canvas.Bounds().W() * 0.5
+		bl.Y += d.Player.Canvas.Bounds().H() * 0.5
+		tr.X -= d.Player.Canvas.Bounds().W() * 0.5 + world.TileSize
+		tr.Y -= d.Player.Canvas.Bounds().H() * 0.5
+		if bl.X <= tr.X {
+			if bl.X > d.Player.CamPos.X {
+				d.Player.CamPos.X = bl.X
+			} else if tr.X < d.Player.CamPos.X {
+				d.Player.CamPos.X = tr.X
+			}
+		}
+		if bl.Y <= tr.Y {
+			if bl.Y > d.Player.CamPos.Y {
+				d.Player.CamPos.Y = bl.Y
+			} else if tr.Y < d.Player.CamPos.Y {
+				d.Player.CamPos.Y = tr.Y
+			}
+		}
 		d.Player.CamPos.X = math.Round(d.Player.CamPos.X)
 		d.Player.CamPos.Y = math.Round(d.Player.CamPos.Y)
 	}

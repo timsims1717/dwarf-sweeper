@@ -20,7 +20,7 @@ func Outline(c *cave.Cave, s world.Coords, fullPath []Path) {
 	curr := s
 	for _, path := range fullPath {
 		for i := 0; i < path.Count; i++ {
-			ToBlock(c.GetTileInt(curr.X, curr.Y), cave.Wall, true, true)
+			ToType(c.GetTileInt(curr.X, curr.Y), cave.Wall, true, true)
 			switch path.Dir {
 			case data.Left:
 				curr.X--

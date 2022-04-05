@@ -74,7 +74,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 			newCave.MapFn(func(tile *cave.Tile) {
 				if tile.Group == g {
 					tile.Group = 0
-					tile.Type = cave.BlockBlast
+					tile.Type = cave.Blast
 				}
 			})
 			delete(groups, g)
@@ -89,7 +89,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 	newCave.MapFn(func(tile *cave.Tile) {
 		if tile.Group == 0 && tile.Diggable() {
 			tile.Group = 0
-			tile.Type = cave.BlockBlast
+			tile.Type = cave.Blast
 		}
 	})
 	if signal != nil {
@@ -119,7 +119,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 						nt := newCave.GetTileInt(n.X, n.Y)
 						if nt != nil {
 							if !nt.Diggable() {
-								structures.ToBlock(nt, cave.Unknown, false, false)
+								structures.ToBlock(nt, false, false)
 							}
 							nt.Group = newGroup
 							groups[newGroup] = Group{
@@ -187,9 +187,9 @@ func CellAutoB678S345678(newCave *cave.Cave) {
 	newCave.MapFn(func(tile *cave.Tile) {
 		if !tile.NeverChange && tile.Change {
 			if !tile.Diggable() {
-				structures.ToBlock(tile, cave.Unknown, false, false)
+				structures.ToBlock(tile, false, false)
 			} else {
-				tile.Type = cave.BlockBlast
+				tile.Type = cave.Blast
 			}
 			tile.Change = false
 		}
@@ -220,7 +220,7 @@ func RandomizeTiles(newCave *cave.Cave) {
 			}
 			r := random.CaveGen.Intn(9)
 			if r < 5-w {
-				structures.ToBlock(tile, cave.Unknown, false, false)
+				structures.ToBlock(tile, false, false)
 			}
 		}
 	})

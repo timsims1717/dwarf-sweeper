@@ -18,23 +18,22 @@ const (
 	MenuStateKey    = "menu_state"
 	DescentStateKey = "descent_state"
 	ScoreStateKey   = "score_state"
-	EnchantStateKey = "enchant_state"
 	PuzzleStateKey  = "puzzle_state"
 	LoadingStateKey = "loading_state"
 )
 
 var (
 	MenuState    = &menuState{}
-	DescentState = &descentState{}
+	DescentState = &descentState{
+		//CurrBiome: "mine",
+	}
 	ScoreState   = &scoreState{}
-	EnchantState = &enchantState{}
 	PuzzleState  = &puzzleState{}
 	LoadingState = &loadingState{}
 	States       = map[string]*state.AbstractState{
 		MenuStateKey:    state.New(MenuState),
 		DescentStateKey: state.New(DescentState),
 		ScoreStateKey:   state.New(ScoreState),
-		EnchantStateKey: state.New(EnchantState),
 		PuzzleStateKey:  state.New(PuzzleState),
 	}
 )
