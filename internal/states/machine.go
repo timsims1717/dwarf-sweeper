@@ -149,9 +149,7 @@ func Update(win *pixelgl.Window) {
 			//if len(descent.Descent.GetPlayers()) > 0 {
 			//	particles.CreateRandomStaticParticles(1, 1, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, descent.Descent.GetPlayers()[0].Transform.Pos, 10.0, 15.0, 0.5)
 			//}
-			if len(descent.Descent.GetPlayers()) > 0 {
-				descent.Descent.GetPlayers()[0].Player.GiveMessage("this is a test to see how well the message system works and I'm totally here for it", nil)
-			}
+			menus.NotificationHandler.AddMessage("It's a message!")
 		}
 		if debugInput.Get("debugSP").JustPressed() {
 			if currState == MenuStateKey {

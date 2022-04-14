@@ -21,7 +21,7 @@ func PhysicsSystem() {
 			}
 			tran.Pos.X += timing.DT * phys.Velocity.X
 			tran.Pos.Y += timing.DT * phys.Velocity.Y
-			if !phys.GravityOff && !phys.YJustSet && !phys.BottomBound {
+			if !phys.GravityOff && !phys.YJustSet && !phys.BottomBound && !phys.Grounded {
 				if phys.Velocity.Y > -phys.Terminal {
 					phys.Velocity.Y -= phys.Gravity * timing.DT
 				}

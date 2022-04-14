@@ -17,7 +17,7 @@ func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
 	currY := include.Y
 	done := false
 	for !done {
-		if currY > (c.Right+1)*constants.ChunkSize-15 || random.CaveGen.Intn(layer) > layers {
+		if currY > (c.Bottom+1)*constants.ChunkSize-15 || random.CaveGen.Intn(layer) > layers {
 			done = true
 		}
 		pillarX := currX + random.CaveGen.Intn(6)

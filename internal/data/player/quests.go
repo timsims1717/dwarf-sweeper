@@ -1,8 +1,6 @@
 package player
 
-const (
-	timer = 8.
-)
+var Quests map[string]*Quest
 
 type Quest struct {
 	Key       string
@@ -12,17 +10,4 @@ type Quest struct {
 	OnFinish  func(*Profile)
 	Completed bool
 	Hidden    bool
-}
-
-func (p *Profile) UpdateQuests() {
-	for _, q := range p.Quests {
-		if !q.Completed && q.Check(p) {
-			q.Completed = true
-			q.Hidden = false
-			if q.OnFinish != nil {
-				q.OnFinish(p)
-			}
-			// add to notifications
-		}
-	}
 }

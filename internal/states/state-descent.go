@@ -8,6 +8,7 @@ import (
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate"
 	"dwarf-sweeper/internal/descent/generate/builder"
+	"dwarf-sweeper/internal/descent/quests"
 	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/profile"
@@ -54,6 +55,9 @@ func (s *descentState) Unload() {
 
 func (s *descentState) Load(done chan struct{}) {
 	if s.start {
+		profile.CurrentProfile = profile.DefaultProfile
+		profile.AddQuest(profile.CurrentProfile, quests.Flag5)
+		profile.AddQuest(profile.CurrentProfile, quests.DiscoverMoss)
 		s.SetupPlayers()
 	}
 	s.deathTimer = nil
@@ -98,7 +102,7 @@ func (s *descentState) Update(win *pixelgl.Window) {
 		systems.TriggerSystem()
 		systems.AnimationSystem()
 		descent.Update()
-		profile.CurrentProfile.UpdateQuests()
+		profile.UpdateQuests(profile.CurrentProfile)
 		if descent.Descent.Exited {
 			if descent.Descent.CurrDepth >= descent.Descent.Depth-1 {
 				SwitchState(ScoreStateKey)
@@ -175,6 +179,7 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 				img.Batchers[constants.ParticleKey].GetSprite("target_blank").Draw(d.Player.Canvas, d.Hovered.Transform.Mat)
 			}
 		}
+		debug.DrawLines(d.Player.Canvas)
 		if d.Player.Puzzle != nil {
 			d.Player.Puzzle.Draw(d.Player.Canvas)
 		}

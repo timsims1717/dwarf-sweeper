@@ -267,7 +267,7 @@ func (tile *Tile) UpdateDetails() {
 		t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
 		if t != nil {
 			if t.Solid() {
-				if t.Bomb && t.Breakable() {
+				if t.Bomb && t.IsNormal() {
 					c++
 				}
 				if t.Type == tile.Type && t.Biome == tile.Biome {
@@ -335,7 +335,7 @@ func (tile *Tile) UpdateDetails() {
 func (tile *Tile) UpdateSprites() {
 	tile.ClearSprites()
 	if tile.Type != Blank {
-		if tile.Solid() {
+		if tile.Solid() && !tile.IsDeco() {
 			// background
 			sprBG, matBG := SmartTileNum(tile.BGSmartStr, tile.Perlin)
 			if sprBG != "" {
@@ -392,17 +392,19 @@ func (tile *Tile) UpdateSprites() {
 				var s string
 				above := tile.Chunk.Cave.GetTileInt(tile.RCoords.X, tile.RCoords.Y-1)
 				below := tile.Chunk.Cave.GetTileInt(tile.RCoords.X, tile.RCoords.Y+1)
+				aboveS := above.Solid() && !above.IsDeco()
+				belowS := below.Solid() && !below.IsDeco()
 				aboveM := above.Type == tile.Type && above.Biome == tile.Biome
 				belowM := below.Type == tile.Type && below.Biome == tile.Biome
-				if above.Solid() && below.Solid() {
+				if aboveS && belowS {
 					s = "%s_single"
-				} else if above.Solid() && belowM {
+				} else if aboveS && belowM {
 					s = "%s_top"
-				} else if above.Solid() {
+				} else if aboveS {
 					s = "%s_top_br"
-				} else if below.Solid() && aboveM {
+				} else if belowS && aboveM {
 					s = "%s_bottom"
-				} else if below.Solid() {
+				} else if belowS {
 					s = "%s_bottom_br"
 				} else if aboveM && belowM {
 					s = "%s_mid"
@@ -451,6 +453,24 @@ func (tile *Tile) UpdateSprites() {
 				}
 				if s != "" {
 					tile.AddSprite(fmt.Sprintf(s, st), pixel.IM, tile.Biome, true)
+				}
+			} else if tile.Type == Bridge {
+				left := tile.Chunk.Cave.GetTileInt(tile.RCoords.X-1, tile.RCoords.Y)
+				right := tile.Chunk.Cave.GetTileInt(tile.RCoords.X+1, tile.RCoords.Y)
+				leftM := (left.Type == tile.Type && left.Biome == tile.Biome) || (left.Solid() && !left.IsDeco())
+				rightM := (right.Type == tile.Type && right.Biome == tile.Biome) || (right.Solid() && !right.IsDeco())
+				var s string
+				if leftM && rightM {
+					s = "%s"
+				} else if leftM {
+					s = "%s_br_right"
+				} else if rightM {
+					s = "%s_br_left"
+				} else {
+					s = "%s_br"
+				}
+				if s != "" {
+					tile.AddSprite(fmt.Sprintf(s, "bridge"), pixel.IM, tile.Biome, false)
 				}
 			}
 		}
@@ -523,6 +543,10 @@ func (tile *Tile) SetSprite(key string, mat pixel.Matrix, biome string, bg bool)
 	tile.Chunk.Cave.UpdateBatch = true
 }
 
+func (tile *Tile) IsNormal() bool {
+	return tile.Solid() && tile.Breakable() && !tile.IsDeco()
+}
+
 func (tile *Tile) IsExit() bool {
 	return tile != nil && tile.Exit && tile.Type != SecretDoor
 }
@@ -532,7 +556,7 @@ func (tile *Tile) Breakable() bool {
 }
 
 func (tile *Tile) Solid() bool {
-	return !(tile.IsDeco() || tile.Type == Empty || tile.Type == Blank)
+	return !(tile.IsDoor() || tile.Type == Pillar || tile.Type == Growth || tile.Type == Empty || tile.Type == Blank)
 }
 
 func (tile *Tile) Diggable() bool {
@@ -540,7 +564,7 @@ func (tile *Tile) Diggable() bool {
 }
 
 func (tile *Tile) IsDeco() bool {
-	return tile.IsDoor() || tile.Type == Pillar || tile.Type == Growth
+	return tile.IsDoor() || tile.Type == Pillar || tile.Type == Growth || tile.Type == Bridge
 }
 
 func (tile *Tile) IsDoor() bool {

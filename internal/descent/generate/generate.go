@@ -5,15 +5,14 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/boss"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/descent/generate/structures"
-	"dwarf-sweeper/internal/descent/generate/structures/boss"
 	"dwarf-sweeper/internal/pathfinding"
 	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/noise"
 	"dwarf-sweeper/pkg/util"
-	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/beefsack/go-astar"
 )
@@ -59,13 +58,17 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 }
 
 func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
+	fmt.Printf("Name: %s\n", build.Name)
+	fmt.Printf("Biome: %s\n", c.Biome)
 	switch build.Base {
 	case builder.Roomy:
 		RoomyCave(c, signal)
 	case builder.Blob:
 		BlobCave(c, signal)
 	case builder.Maze:
-		RoomyCave(c, signal)
+		MazeCave(c, signal)
+	case builder.Maze2:
+		TightMazeCave(c, signal)
 	case builder.Custom:
 		switch build.Key {
 		case "gnomeBoss":
@@ -76,7 +79,7 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 	}
 	if build.Base != builder.Custom {
 		// generate entrance with a start inside the largest group
-		tile := PickTile(c, 8, 8, 7, constants.ChunkSize * (c.Bottom+1) - 10)
+		tile := PickTile(c, 8, 8, 7, constants.ChunkSize * (c.Bottom+1) - 10, true)
 		startC := tile.RCoords
 		c.StartC = startC
 		structures.Entrance(c, startC, 11, 5, 4, cave.DoorType(build.DoorType))
@@ -92,7 +95,7 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 			}
 		}
 		// generate exit inside the largest group
-		tile = PickTile(c, 8, 8, constants.ChunkSize*(c.Bottom+1)-9, 5)
+		tile = PickTile(c, 8, 8, constants.ChunkSize*(c.Bottom+1)-9, 5, true)
 		exitC := tile.RCoords
 		structures.Exit(c, exitC, 7, 3, 1, 0, cave.DoorType(build.DoorType))
 		box = exitC
@@ -119,14 +122,18 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 			if s.Chance > 0. && random.CaveGen.Float64() > s.Chance {
 				continue
 			}
-			tile := PickTileDist(c, s.MarginL, s.MarginR, s.MarginT, s.MarginB, s.DigDist)
+			tile := PickTileDist(c, s.MarginL, s.MarginR, s.MarginT, s.MarginB, false, s.DigDist)
 			if tile != nil {
+				xDir := data.Left
+				if tile.RCoords.X < c.Left*constants.ChunkSize {
+					xDir = data.Right
+				} else if tile.RCoords.X > c.Right*constants.ChunkSize {
+					xDir = data.Left
+				} else if random.CaveGen.Intn(2) == 0 {
+					xDir = data.Right
+				}
 				switch s.Key {
 				case "secretExit":
-					secretExitChance := profile.CurrentProfile.SecretExit[c.Biome]
-					if secretExitChance == 0. || random.CaveGen.Float64() > secretExitChance {
-						continue
-					}
 					var biome string
 					tw := 0
 					for _, w := range profile.CurrentProfile.BiomeExits[c.Biome] {
@@ -143,10 +150,11 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 						}
 					}
 					structures.SecretExit(c, tile.RCoords, i+1, biome)
+					fmt.Printf("Secret Exit: (%d,%d)\n", tile.RCoords.X, tile.RCoords.Y)
 				case "pocket":
-					structures.Pocket(c, random.CaveGen.Intn(3)+2, world.TileSize*2., false, tile.RCoords)
+					structures.Pocket(c, random.CaveGen.Intn(4)+2, 1.5, false, tile.RCoords)
 				case "ring":
-					structures.Ring(c, random.CaveGen.Intn(5)+3, world.TileSize*3., false, tile.RCoords)
+					structures.Ring(c, random.CaveGen.Intn(5)+3, 3., false, tile.RCoords)
 				case "noodleCave":
 					dir := structures.RandomDirection()
 					for dir == data.Down {
@@ -162,24 +170,22 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 						structures.TreasureRoom(c, 5, 7, 1, tile.RCoords)
 					}
 				case "bombable":
-					structures.BombableNode(c, random.CaveGen.Intn(2)+1, world.TileSize*2., true, tile.RCoords)
+					structures.BombableNode(c, random.CaveGen.Intn(4)+2, 2., true, tile.RCoords)
 				case "mineLayer":
 					structures.MineLayer(c, tile.RCoords)
 				case "mineComplex":
-					dir := data.Left
-					if tile.RCoords.X < c.Left*constants.ChunkSize {
-						dir = data.Right
-					} else if tile.RCoords.X > c.Right*constants.ChunkSize {
-						dir = data.Left
-					} else if random.CaveGen.Intn(2) == 0 {
-						dir = data.Right
-					}
-					structures.MineComplex(c, tile.RCoords, data.Direction(dir))
+					structures.MineComplex(c, tile.RCoords, data.Direction(xDir))
 				case "stairs":
 					structures.Stairs(c, tile.RCoords, random.CaveGen.Intn(2) == 0, random.CaveGen.Intn(2) == 0, 0, 0)
 				case "bigBomb":
 					descent.Descent.CoordsMap["big-bomb"] = tile.RCoords
 					structures.BombRoom(c, 4, 7, 7, 11, 3, c.Level, tile.RCoords)
+				case "bridge":
+					structures.BridgeCavern(c, tile.RCoords, data.Direction(xDir))
+				case "cavern":
+					structures.Cavern(c, tile.RCoords, data.Direction(xDir))
+				case "smallCamp":
+					structures.SmallCamp(c, tile.RCoords, data.Direction(xDir))
 				}
 				c.MarkAsNotChanged()
 				if signal != nil {
@@ -204,7 +210,7 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 	}
 }
 
-func PickTileDist(c *cave.Cave, marginL, marginR, marginT, marginB int, digDist builder.DigDist) *cave.Tile {
+func PickTileDist(c *cave.Cave, marginL, marginR, marginT, marginB int, mainGroup bool, digDist builder.DigDist) *cave.Tile {
 	var tX, tY int
 	var tile *cave.Tile = nil
 	tryCount := 0
@@ -231,7 +237,7 @@ func PickTileDist(c *cave.Cave, marginL, marginR, marginT, marginB int, digDist 
 		tX = c.Left * constants.ChunkSize + marginL + random.CaveGen.Intn((c.Right-c.Left+1) * constants.ChunkSize - (marginR + marginL))
 		tY = marginT + random.CaveGen.Intn((c.Bottom+1) * constants.ChunkSize - (marginT + marginB))
 		tile = c.GetTileInt(tX, tY)
-		if tile != nil && tile.Type != cave.Wall && tile.Group == c.MainGroup && !tile.IsChanged && !tile.NeverChange {
+		if tile != nil && tile.Type != cave.Wall && (tile.Group == c.MainGroup || !mainGroup) && !tile.IsChanged && !tile.NeverChange {
 			cave.Origin = c.StartC
 			cave.NeighborsFn = pathfinding.DigNeighbors
 			cave.CostFn = pathfinding.DigCost
@@ -247,10 +253,12 @@ func PickTileDist(c *cave.Cave, marginL, marginR, marginT, marginB int, digDist 
 	}
 }
 
-func PickTile(c *cave.Cave, marginL, marginR, marginT, marginB int) *cave.Tile {
+func PickTile(c *cave.Cave, marginL, marginR, marginT, marginB int, mainGroup bool) *cave.Tile {
 	var tX, tY int
 	var tile *cave.Tile = nil
-	for tile == nil || tile.Type == cave.Wall || tile.Group != c.MainGroup || tile.IsChanged || tile.NeverChange {
+	for tile == nil || tile.Type == cave.Wall ||
+		(tile.Group != c.MainGroup && mainGroup) ||
+		tile.IsChanged || tile.NeverChange {
 		tX = c.Left*constants.ChunkSize + marginL + random.CaveGen.Intn((c.Right-c.Left+1) * constants.ChunkSize - (marginR + marginL))
 		tY = marginT + random.CaveGen.Intn((c.Bottom+1) * constants.ChunkSize - (marginT + marginB))
 		tile = c.GetTileInt(tX, tY)

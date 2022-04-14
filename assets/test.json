@@ -1,7 +1,7 @@
 [
   {
-    "key": "testBlob",
-    "title": "Mine Blobby",
+    "key": "testmaze",
+    "name": "Mine Maze",
     "biome": "mine",
     "desc": "",
     "tracks": [
@@ -10,37 +10,12 @@
     "width": 6,
     "height": 6,
     "type": "Normal",
-    "base": "Blob",
+    "base": "Maze",
     "structures": [
       {
-        "key": "mineComplex",
+        "key": "smallCamp",
         "seed": "Room",
-        "minimum": 2,
-        "maximum": 4
-      },
-      {
-        "key": "bigBomb",
-        "seed": "Room",
-        "minimum": 1,
-        "maximum": 1,
-        "digDist": "Far"
-      },
-      {
-        "key": "noodleCave",
-        "seed": "Room",
-        "minimum": 6,
-        "maximum": 10
-      },
-      {
-        "key": "treasure",
-        "seed": "Room",
-        "minimum": 8,
-        "maximum": 12
-      },
-      {
-        "key": "bombable",
-        "seed": "Room",
-        "minimum": 6,
+        "minimum": 10,
         "maximum": 10
       }
     ]

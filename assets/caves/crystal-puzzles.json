@@ -1,7 +1,7 @@
 [
   {
     "key": "minesweeper",
-    "title": "Crystal Minesweeper",
+    "name": "Crystal Minesweeper",
     "biome": "crystal",
     "desc": "",
     "tracks": [

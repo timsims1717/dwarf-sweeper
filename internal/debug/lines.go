@@ -3,7 +3,6 @@ package debug
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
-	"github.com/faiface/pixel/pixelgl"
 	"image/color"
 )
 
@@ -15,9 +14,10 @@ func InitializeLines() {
 	imd = imdraw.New(nil)
 }
 
-func DrawLines(win *pixelgl.Window) {
-	imd.Draw(win)
-	imd.Clear()
+func DrawLines(target pixel.Target) {
+	if Debug {
+		imd.Draw(target)
+	}
 }
 
 func AddLine(color color.RGBA, shape imdraw.EndShape, a, b pixel.Vec, thickness float64) {

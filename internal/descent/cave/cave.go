@@ -228,7 +228,15 @@ func (c *Cave) Dimensions() (int, int) {
 	if c.Type == Infinite {
 		return -1, -1
 	} else {
-		return (c.Right - c.Left + 1) * constants.ChunkSize, (c.Bottom + 1) * constants.ChunkSize
+		return c.Width, c.Height
+	}
+}
+
+func (c *Cave) CenterCoords() (int, int) {
+	if c.Type == Infinite {
+		return -1, -1
+	} else {
+		return c.Width / 2 - 1, c.Height / 2 - 1
 	}
 }
 
@@ -410,9 +418,11 @@ func (c *Cave) PrintCaveToTerminal() {
 						case Wall:
 							fmt.Print("#")
 						case Doorway, Tunnel, SecretDoor, SecretOpen:
-							fmt.Print("=")
+							fmt.Print("∩")
 						case Pillar, Growth:
 							fmt.Print("I")
+						case Bridge:
+							fmt.Print("_")
 						case Empty, Blank:
 							fmt.Print(" ")
 						}

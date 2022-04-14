@@ -2,11 +2,13 @@ package states
 
 import (
 	"dwarf-sweeper/internal/constants"
+	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/sfx"
+	"dwarf-sweeper/pkg/util"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
 	"strings"
@@ -51,8 +53,8 @@ func InitPauseMenu(win *pixelgl.Window) {
 	})
 	PauseMenu.SetOpenFn(func() {
 		quests.Ignore = true
-		for _, quest := range profile.CurrentProfile.Quests {
-			if !quest.Hidden || quest.Completed {
+		for _, key := range profile.CurrentProfile.Quests {
+			if util.ContainsStr(key, profile.CurrentProfile.QuestsComplete) || util.ContainsStr(key, profile.CurrentProfile.QuestsShown) {
 				quests.Ignore = false
 			}
 		}
@@ -133,16 +135,18 @@ func InitQuestMenu() {
 				QuestMenu.RemoveItem(item.Key)
 			}
 		}
-		for _, quest := range profile.CurrentProfile.Quests {
-			if !quest.Completed && !quest.Hidden {
-				qi := QuestMenu.InsertItem(fmt.Sprintf("quest_%s", quest.Key), fmt.Sprintf(" %s", quest.Name), "title", false)
-				qi.Hint = quest.Desc
+		for _, key := range profile.CurrentProfile.Quests {
+			if !util.ContainsStr(key, profile.CurrentProfile.QuestsComplete) && util.ContainsStr(key, profile.CurrentProfile.QuestsShown) {
+				q := player.Quests[key]
+				qi := QuestMenu.InsertItem(fmt.Sprintf("quest_%s", key), fmt.Sprintf(" %s", q.Name), "title", false)
+				qi.Hint = q.Desc
 			}
 		}
-		for _, quest := range profile.CurrentProfile.Quests {
-			if quest.Completed {
-				qci := QuestMenu.InsertItem(fmt.Sprintf("quest_c_%s", quest.Key), fmt.Sprintf(" %s", quest.Name), "completed", false)
-				qci.Hint = quest.Desc
+		for _, key := range profile.CurrentProfile.Quests {
+			if util.ContainsStr(key, profile.CurrentProfile.QuestsComplete) {
+				q := player.Quests[key]
+				qci := QuestMenu.InsertItem(fmt.Sprintf("quest_c_%s", key), fmt.Sprintf(" %s", q.Name), "completed", false)
+				qci.Hint = q.Desc
 				completed.Ignore = false
 			}
 		}

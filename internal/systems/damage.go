@@ -174,7 +174,7 @@ func DamageSystem() {
 				}
 			}
 			dmgAmt := dmg.Amount
-			if dmgAmt > 0 && !immune.DMG {
+			if (dmgAmt > 0 || (hpB.DigMe && dmg.Type == data.Shovel)) && !immune.DMG {
 				hpB.Dead = true
 			}
 			if dmg.Knockback > 0.0 && !immune.KB {

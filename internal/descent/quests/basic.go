@@ -2,6 +2,7 @@ package quests
 
 import (
 	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/profile"
 )
 
 var (
@@ -10,10 +11,10 @@ var (
 		Name: "Beginner Sweeper",
 		Desc: "Correctly flag 5 total bombs.",
 		Check: func(p *player.Profile) bool {
-			return p.Flags.CorrectFlags >= 5 || p.Stats.CorrectFlags >= 5
+			return p.Flags.CorrectFlags + p.Stats.CorrectFlags >= 5
 		},
 		OnFinish: func(p *player.Profile) {
-			p.AddQuest(Flag50)
+			profile.AddQuest(p, Flag50)
 		},
 		Hidden: false,
 	}
@@ -22,10 +23,10 @@ var (
 		Name: "Novice Sweeper",
 		Desc: "Correctly flag 50 total bombs.",
 		Check: func(p *player.Profile) bool {
-			return p.Flags.CorrectFlags >= 50
+			return p.Flags.CorrectFlags + p.Stats.CorrectFlags >= 50
 		},
 		OnFinish: func(p *player.Profile) {
-			p.AddQuest(Flag150)
+			profile.AddQuest(p, Flag150)
 		},
 		Hidden: false,
 	}
@@ -34,10 +35,10 @@ var (
 		Name: "Apprentice Sweeper",
 		Desc: "Correctly flag 150 total bombs.",
 		Check: func(p *player.Profile) bool {
-			return p.Flags.CorrectFlags >= 150
+			return p.Flags.CorrectFlags + p.Stats.CorrectFlags >= 150
 		},
 		OnFinish: func(p *player.Profile) {
-			p.AddQuest(Flag500)
+			profile.AddQuest(p, Flag500)
 		},
 		Hidden: false,
 	}
@@ -46,10 +47,10 @@ var (
 		Name: "Journeyman Sweeper",
 		Desc: "Correctly flag 500 total bombs.",
 		Check: func(p *player.Profile) bool {
-			return p.Flags.CorrectFlags >= 500
+			return p.Flags.CorrectFlags + p.Stats.CorrectFlags >= 500
 		},
 		OnFinish: func(p *player.Profile) {
-			p.AddQuest(Flag1000)
+			profile.AddQuest(p, Flag1000)
 		},
 		Hidden: false,
 	}
@@ -58,7 +59,7 @@ var (
 		Name: "Master Sweeper",
 		Desc: "Correctly flag 1000 total bombs.",
 		Check: func(p *player.Profile) bool {
-			return p.Flags.CorrectFlags >= 1000
+			return p.Flags.CorrectFlags + p.Stats.CorrectFlags >= 1000
 		},
 		OnFinish: func(p *player.Profile) {
 

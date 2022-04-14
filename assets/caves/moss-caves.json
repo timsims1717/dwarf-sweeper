@@ -1,7 +1,7 @@
 [
   {
     "key": "testBlob",
-    "title": "Moss Blobby",
+    "name": "Moss Blobby",
     "biome": "moss",
     "desc": "",
     "tracks": [

@@ -27,6 +27,8 @@ var (
 func Initialize() {
 	DefaultDist = world.TileSize * 4.
 	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
+	NotificationHandler = &notificationHandler{}
+	NotificationHandler.MenuBox = menubox.NewBox(&camera.Cam.APos, 1.)
 }
 
 type DwarfMenu struct {

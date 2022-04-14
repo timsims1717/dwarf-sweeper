@@ -4,15 +4,12 @@ import (
 	"dwarf-sweeper/internal/config"
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/credits"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/internal/descent/quests"
 	"dwarf-sweeper/internal/load"
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/options"
 	"dwarf-sweeper/internal/particles"
-	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/states"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -83,12 +80,6 @@ func run() {
 	load.Music()
 
 	particles.Initialize()
-
-	profile.CurrentProfile = profile.DefaultProfile
-	profile.CurrentProfile.Quests = []*player.Quest{
-		quests.Flag5,
-		quests.DiscoverMoss,
-	}
 
 	timing.Reset()
 	win.Show()

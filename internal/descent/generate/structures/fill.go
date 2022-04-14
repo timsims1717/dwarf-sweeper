@@ -27,7 +27,7 @@ func BasicDestroy(p *player.Player, t *cave.Tile) {
 
 func UpdateTiles(tiles []*cave.Tile) {
 	for _, tile := range tiles {
-		if tile.Solid() && tile.Breakable() {
+		if tile.Solid() && tile.Breakable() && !tile.IsDeco() {
 			tile.DestroyTrigger = BasicDestroy
 			if tile.Bomb {
 				tile.Chunk.Cave.TotalBombs++
@@ -47,7 +47,7 @@ func FillCave(c *cave.Cave) {
 func FillBasic(ch *cave.Chunk) {
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid() && tile.Breakable() {
+			if tile.IsNormal() {
 				tile.DestroyTrigger = BasicDestroy
 				if tile.Bomb {
 					ch.Cave.TotalBombs++
@@ -89,7 +89,7 @@ func FillMinesweeper(ch *cave.Chunk, t *cave.Tile, nb bool) bool {
 	needBomb := nb
 	for _, row := range ch.Rows {
 		for _, tile := range row {
-			if tile.Solid() && tile.Breakable() {
+			if tile.IsNormal() {
 				if t.RCoords != tile.RCoords {
 					if tile.Bomb {
 						tile.DestroyTrigger = MineDestroy

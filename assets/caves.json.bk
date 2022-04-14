@@ -1,7 +1,7 @@
 [
   {
     "key": "mineRoomy",
-    "title": "Mine Roomy",
+    "name": "Mine Roomy",
     "biome": "mine",
     "desc": "",
     "tracks": [
@@ -62,7 +62,7 @@
   },
   {
     "key": "darkRoomy",
-    "title": "Dark Roomy",
+    "name": "Dark Roomy",
     "biome": "dark",
     "desc": "",
     "tracks": [

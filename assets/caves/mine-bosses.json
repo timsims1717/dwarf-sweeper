@@ -2,7 +2,7 @@
   {
     "key": "gnomeBoss",
     "biome": "mine",
-    "title": "Gnome Boss",
+    "name": "Gnome Boss",
     "desc": "",
     "type": "Infinite",
     "base": "Custom"

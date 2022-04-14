@@ -168,7 +168,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 		AddAnimation(reanimator.NewAnimFromSprite("flag_hold", batcher.GetSprite("flag"), reanimator.Hold)). // flag hold
 		AddAnimation(reanimator.NewAnimFromSprites("dig", batcher.GetAnimation("dig").S, reanimator.Tran).
 			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
-				if d.digTile == nil || !d.digTile.Solid() {
+				if d.digTile == nil || !d.digTile.Solid() || d.digTile.IsDeco() {
 					trans := transform.New()
 					trans.Pos = d.attackPoint
 					trans.Flip = d.faceLeft
@@ -213,12 +213,12 @@ func NewDwarf(p *player.Player) *Dwarf {
 				}
 			}).
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
-				if d.digTile != nil && d.digTile.Solid() {
+				if d.digTile != nil && d.digTile.Solid() && !d.digTile.IsDeco() {
 					if d.digTile.Diggable() {
 						profile.CurrentProfile.Stats.BlocksDug++
 						d.Player.Stats.BlocksDug++
 						d.digTile.Destroy(d.Player, true)
-					} // todo: add rebound here
+					}
 					d.digTile = nil
 				} else {
 					sub := d.attackPoint.Sub(d.Transform.Pos)
@@ -249,7 +249,10 @@ func NewDwarf(p *player.Player) *Dwarf {
 		AddSubSwitch(reanimator.NewSwitch().
 			AddSubSwitch(reanimator.NewSwitch().
 				AddAnimation(reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop).
-					SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+					SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
+					}).
+					SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
 						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
 					})). // run
 				AddSubSwitch(reanimator.NewSwitch().
@@ -321,6 +324,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 	d.Collider = &data.Collider{
 		Hitbox:  pixel.R(0., 0., 16., 16.),
 		CanPass: true,
+		Debug:   true,
 	}
 	d.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
@@ -755,6 +759,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.Player.Inventory.UseEquipped(d.Transform.Pos)
 			}
 		}
+		d.Collider.Fallthrough = in.Get("down").Pressed() || d.climbing
 	}
 	if d.facingTimer != nil && d.facingTimer.UpdateDone() {
 		if d.faceLeft {

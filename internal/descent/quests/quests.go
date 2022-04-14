@@ -4,17 +4,15 @@ import (
 	"dwarf-sweeper/internal/data/player"
 )
 
-var Quests map[string]*player.Quest
-
 func init() {
-	Quests = make(map[string]*player.Quest)
-	Quests[Flag5.Key] = Flag5
-	Quests[Flag50.Key] = Flag50
-	Quests[Flag150.Key] = Flag150
-	Quests[Flag500.Key] = Flag500
-	Quests[Flag1000.Key] = Flag1000
-	Quests[DiscoverMoss.Key] = DiscoverMoss
-	Quests[DiscoverCrystal.Key] = DiscoverCrystal
-	Quests[CrystalToMine.Key] = CrystalToMine
-	Quests[DiscoverDark.Key] = DiscoverDark
+	player.Quests = make(map[string]*player.Quest)
+	player.Quests[Flag5.Key] = Flag5
+	player.Quests[Flag50.Key] = Flag50
+	player.Quests[Flag150.Key] = Flag150
+	player.Quests[Flag500.Key] = Flag500
+	player.Quests[Flag1000.Key] = Flag1000
+	player.Quests[DiscoverMoss.Key] = DiscoverMoss
+	player.Quests[DiscoverCrystal.Key] = DiscoverCrystal
+	player.Quests[CrystalToMine.Key] = CrystalToMine
+	player.Quests[DiscoverDark.Key] = DiscoverDark
 }

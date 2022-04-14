@@ -12,13 +12,15 @@ const (
 	Roomy = iota
 	Blob
 	Maze
+	Maze2
 	Custom
+	Empty
 )
 
 type CaveBuilder struct {
 	Key        string         `json:"key"`
 	Biome      string         `json:"biome"`
-	Title      string         `json:"title"`
+	Name       string         `json:"name"`
 	Desc       string         `json:"desc"`
 	Tracks     []string       `json:"tracks"`
 	Width      int            `json:"width"`
@@ -72,14 +74,18 @@ var toBaseString = map[Base]string{
 	Roomy:  "Roomy",
 	Blob:   "Blob",
 	Maze:   "Maze",
+	Maze2:  "Maze2",
 	Custom: "Custom",
+	Empty:  "Empty",
 }
 
 var toBaseID = map[string]Base{
 	"Roomy":  Roomy,
 	"Blob":   Blob,
 	"Maze":   Maze,
+	"Maze2":  Maze2,
 	"Custom": Custom,
+	"Empty":  Empty,
 }
 
 func (base Base) MarshalJSON() ([]byte, error) {
@@ -136,7 +142,7 @@ func (cb *CaveBuilder) Copy() CaveBuilder {
 	newCB := CaveBuilder{
 		Key:        cb.Key,
 		Biome:      cb.Biome,
-		Title:      cb.Title,
+		Name:       cb.Name,
 		Desc:       cb.Desc,
 		Tracks:     cb.Tracks,
 		Width:      cb.Width,

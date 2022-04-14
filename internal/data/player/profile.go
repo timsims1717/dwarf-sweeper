@@ -1,19 +1,13 @@
 package player
 
 type Profile struct {
-	Gems       int
-	Flags      *Flags
-	Stats      Stats
-	Quests     []*Quest
-	BiomeExits map[string]map[string]int
-	SecretExit map[string]float64
-}
-
-func (p *Profile) AddQuest(q *Quest) {
-	p.Quests = append(p.Quests, q)
-	if !q.Hidden {
-		// add to notifications
-	}
+	Gems           int
+	Flags          *Flags
+	Stats          Stats
+	Quests         []string
+	QuestsShown    []string
+	QuestsComplete []string
+	BiomeExits     map[string]map[string]int
 }
 
 type Flags struct {

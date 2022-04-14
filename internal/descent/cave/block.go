@@ -3,6 +3,7 @@ package cave
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/faiface/pixel"
 )
 
 type BlockType int
@@ -21,6 +22,7 @@ const (
 	Dig
 	Blast
 	Wall
+	Bridge
 )
 
 var toBlockTypeID = map[string]BlockType{
@@ -36,6 +38,7 @@ var toBlockTypeID = map[string]BlockType{
 	"SecretOpen": SecretOpen,
 	"Pillar":     Pillar,
 	"Growth":     Growth,
+	"Bridge":     Bridge,
 }
 
 func (t BlockType) String() string {
@@ -64,8 +67,23 @@ func (t BlockType) String() string {
 		return "Pillar"
 	case Growth:
 		return "Growth"
+	case Bridge:
+		return "Bridge"
 	default:
 		return "Unknown"
+	}
+}
+
+func (t BlockType) Rect() pixel.Rect {
+	switch t {
+	case Empty, Blank, Doorway, Tunnel, SecretDoor, SecretOpen, Pillar, Growth:
+		return pixel.Rect{}
+	case Collapse, Dig, Blast, Wall:
+		return pixel.R(-8., -8., 8., 8.)
+	case Bridge:
+		return pixel.R(0., 0., 8., -4.)
+	default:
+		return pixel.Rect{}
 	}
 }
 

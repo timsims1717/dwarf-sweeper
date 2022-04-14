@@ -89,6 +89,7 @@ func (t *Tree) Update() {
 						switch a.Finish {
 						case Loop:
 							a.Step = 0
+							trigger = 0
 						case Hold:
 							a.Step = len(a.S) - 1
 						case Tran:

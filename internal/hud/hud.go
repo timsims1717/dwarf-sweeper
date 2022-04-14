@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
@@ -138,6 +139,7 @@ func UpdateHUD() {
 		imd.Push(pixel.V(constants.ActualW*-0.5, 0.), pixel.V(constants.ActualW*0.5, 0.))
 		imd.Line(1.0)
 	}
+	menus.NotificationHandler.Update()
 }
 
 func DrawHUD(win *pixelgl.Window) {
@@ -156,4 +158,6 @@ func DrawHUD(win *pixelgl.Window) {
 		bombSpr.Draw(win, bombTransform.Mat)
 		bombCountText.Draw(win)
 	}
+
+	menus.NotificationHandler.Draw(win)
 }

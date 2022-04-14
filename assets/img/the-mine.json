@@ -357,6 +357,26 @@
    "key": "growth_single",
    "x": 80,
    "y": 112
+  },
+  {
+   "key": "bridge_br_left",
+   "x": 96,
+   "y": 112
+  },
+  {
+   "key": "bridge",
+   "x": 112,
+   "y": 112
+  },
+  {
+   "key": "bridge_br_right",
+   "x": 128,
+   "y": 112
+  },
+  {
+   "key": "bridge_br",
+   "x": 144,
+   "y": 112
   }
  ]
 }

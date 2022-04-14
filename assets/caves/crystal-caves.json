@@ -1,7 +1,7 @@
 [
   {
     "key": "testBlob",
-    "title": "Crystal Blobby",
+    "name": "Crystal Blobby",
     "biome": "crystal",
     "desc": "",
     "tracks": [

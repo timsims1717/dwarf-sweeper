@@ -50,8 +50,13 @@ func TransformSystem() {
 				tran.Mat = tran.Mat.Moved(tran.APos.Scaled(tran.UIZoom))
 				tran.Mat = tran.Mat.Moved(tran.UIPos)
 
-				dist := descent.Descent.GetClosestPlayer(tran.Pos).Transform.Pos.Sub(tran.Pos)
-				tran.Load = math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance
+				if descent.Descent != nil {
+					p := descent.Descent.GetClosestPlayer(tran.Pos)
+					if p != nil {
+						dist := p.Transform.Pos.Sub(tran.Pos)
+						tran.Load = math.Abs(dist.X) < constants.DrawDistance && math.Abs(dist.Y) < constants.DrawDistance
+					}
+				}
 			}
 		}
 	}

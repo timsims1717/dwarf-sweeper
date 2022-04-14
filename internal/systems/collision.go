@@ -65,8 +65,8 @@ func TileCollisionSystem() {
 					count++
 					debug.AddLine(col, imdraw.RoundEndShape, lastPos, next, 2.0)
 				}
-				loc := descent.Descent.GetCave().GetTile(next)
-				if loc != nil {
+				nTile := descent.Descent.GetCave().GetTile(next)
+				if nTile != nil {
 					// collision rays init
 					w := hb.W()
 					h := hb.H()
@@ -82,11 +82,10 @@ func TileCollisionSystem() {
 					ih := h - CollisionStep*2.
 
 					// collision rays up and down
-					var dwn, up, gr *cave.Tile
+					var dwn, up *cave.Tile
 					for i := 0; i < wcr; i++ {
 						dy := next.Y - h*0.51
 						uy := next.Y + h*0.51
-						gy := dy - NearGroundThresh
 						var x float64
 						if i == 0 {
 							x = next.X - iw*0.5
@@ -97,8 +96,7 @@ func TileCollisionSystem() {
 						}
 						d := descent.Descent.GetCave().GetTile(pixel.V(x, dy))
 						u := descent.Descent.GetCave().GetTile(pixel.V(x, uy))
-						g := descent.Descent.GetCave().GetTile(pixel.V(x, gy))
-						if d != nil && d.Solid() {
+						if d != nil && d.Solid() && d.Transform.Pos.Y + d.Type.Rect().Max.Y > dy {
 							if i == 0 {
 								coll.DL = true
 							} else if i == wcr-1 {
@@ -106,12 +104,16 @@ func TileCollisionSystem() {
 							}
 							dwn = d
 							if debug.Debug && coll.Debug {
-								debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
+								if d.Type == cave.Bridge {
+									debug.AddLine(colornames.Yellow, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
+								} else {
+									debug.AddLine(colornames.Green, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
+								}
 							}
 						} else if debug.Debug && coll.Debug {
 							debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(x, next.Y-ih*0.5), pixel.V(x, dy), 1.0)
 						}
-						if u != nil && u.Solid() {
+						if u != nil && u.Solid() && u.Type != cave.Bridge {
 							if i == 0 {
 								coll.UL = true
 							} else if i == wcr-1 {
@@ -125,18 +127,14 @@ func TileCollisionSystem() {
 						} else if debug.Debug && coll.Debug {
 							debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(x, next.Y+ih*0.5), pixel.V(x, uy), 1.0)
 						}
-						if g != nil && g.Solid() {
-							gr = g
-						}
 					}
 
 					// collision checks up and down
-					uY := loc.Transform.Pos.Y + (world.TileSize-h)*0.5
-					dY := loc.Transform.Pos.Y - (world.TileSize-h)*0.5
+					uY := nTile.Transform.Pos.Y + (world.TileSize-h)*0.5
 					if up != nil && up.Solid() {
-						if next.Y > uY {
-							next.Y = uY
-						}
+						//if next.Y > uY {
+						//	next.Y = uY
+						//}
 						next.Y = uY
 						coll.TopBound = true
 						if phys.Velocity.Y > 0 {
@@ -151,7 +149,8 @@ func TileCollisionSystem() {
 					} else {
 						coll.TopBound = false
 					}
-					if dwn != nil && dwn.Solid() {
+					if dwn != nil && dwn.Solid() && !(coll.Fallthrough && dwn.Type == cave.Bridge) {
+						dY := dwn.Transform.Pos.Y + dwn.Type.Rect().Max.Y + h*0.5
 						if next.Y < dY {
 							next.Y = dY
 						}
@@ -160,7 +159,7 @@ func TileCollisionSystem() {
 						wasRDX := phys.RagDollX
 						phys.RagDollX = false
 						if phys.Velocity.Y < 0 {
-							if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThresholdY / phys.Bounciness {
+							if phys.RagDollY && math.Abs(phys.Velocity.Y) > BounceThresholdY/phys.Bounciness {
 								phys.Velocity.Y *= -phys.Bounciness
 								phys.Grounded = false
 								coll.BottomBound = false
@@ -171,11 +170,12 @@ func TileCollisionSystem() {
 							}
 							stopped = true
 						}
+						phys.NearGround = next.Y - 4. < dY
 					} else {
 						phys.Grounded = false
 						coll.BottomBound = false
+						phys.NearGround = false
 					}
-					phys.NearGround = gr != nil && gr.Solid()
 
 					if !coll.ThroughWalls {
 						// collision rays left and right
@@ -193,7 +193,9 @@ func TileCollisionSystem() {
 							}
 							l := descent.Descent.GetCave().GetTile(pixel.V(lx, y))
 							r := descent.Descent.GetCave().GetTile(pixel.V(rx, y))
-							if l != nil && l.Solid() {
+							if l != nil && l.Solid() &&
+								l.Transform.Pos.Y + l.Type.Rect().Max.Y > y &&
+								l.Transform.Pos.Y + l.Type.Rect().Min.Y < y {
 								if i == 0 {
 									coll.LU = true
 								} else if i == hcr-1 {
@@ -207,7 +209,9 @@ func TileCollisionSystem() {
 							} else if debug.Debug && coll.Debug {
 								debug.AddLine(colornames.Red, imdraw.RoundEndShape, pixel.V(next.X-iw*0.5, y), pixel.V(lx, y), 1.0)
 							}
-							if r != nil && r.Solid() {
+							if r != nil && r.Solid() &&
+								r.Transform.Pos.Y + r.Type.Rect().Max.Y > y &&
+								r.Transform.Pos.Y + r.Type.Rect().Min.Y < y {
 								if i == 0 {
 									coll.RU = true
 								} else if i == hcr-1 {
@@ -223,8 +227,8 @@ func TileCollisionSystem() {
 						}
 
 						// collision checks left and right
-						rX := loc.Transform.Pos.X + (world.TileSize-w)*0.5
-						lX := loc.Transform.Pos.X - (world.TileSize-w)*0.5
+						rX := nTile.Transform.Pos.X + (world.TileSize-w)*0.5
+						lX := nTile.Transform.Pos.X - (world.TileSize-w)*0.5
 						if right != nil && right.Solid() {
 							if next.X > rX {
 								next.X = rX

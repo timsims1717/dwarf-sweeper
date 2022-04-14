@@ -46,7 +46,7 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 	grouped := 0
 	tile := GetRandomUngroupedTile(newCave)
 	for tile != nil && float64(grouped) / float64(count) < 0.95 {
-		coords := GroupTile(newCave, tile, group)
+		coords, _ := GroupTile(newCave, tile, group)
 		gc := len(coords)
 		//fmt.Printf("Group %d (%d,%d) has %d tiles in it\n", group, tile.RCoords.X, tile.RCoords.Y, gn)
 		if largestGroupCount < gc {
@@ -148,9 +148,6 @@ func BlobCave(newCave *cave.Cave, signal chan bool) {
 						return
 					}
 				}
-			} else {
-				// need to connect directly to large group
-
 			}
 		}
 	}
@@ -188,6 +185,7 @@ func CellAutoB678S345678(newCave *cave.Cave) {
 		if !tile.NeverChange && tile.Change {
 			if !tile.Diggable() {
 				structures.ToBlock(tile, false, false)
+				tile.IsChanged = false
 			} else {
 				tile.Type = cave.Blast
 			}
@@ -221,6 +219,7 @@ func RandomizeTiles(newCave *cave.Cave) {
 			r := random.CaveGen.Intn(9)
 			if r < 5-w {
 				structures.ToBlock(tile, false, false)
+				tile.IsChanged = false
 			}
 		}
 	})
@@ -250,28 +249,30 @@ func GetRandomUngroupedTile(newCave *cave.Cave) *cave.Tile {
 	return nil
 }
 
-func GroupTile(newCave *cave.Cave, tile *cave.Tile, group int) []world.Coords {
+func GroupTile(newCave *cave.Cave, tile *cave.Tile, group int) ([]world.Coords, []int) {
 	tile.Change = true
 	qu := []*cave.Tile{
 		tile,
 	}
 	var list []world.Coords
+	var packed []int
 	for len(qu) > 0 {
 		next := qu[0]
-		if next.Group != group {
-			list = append(list, next.RCoords)
-			next.Group = group
-			for i, n := range next.RCoords.Neighbors() {
-				if i % 2 == 0 {
-					t := newCave.GetTileInt(n.X, n.Y)
-					if t.Diggable() && !t.Change && t.Group != group {
-						t.Change = true
-						qu = append(qu, t)
-					}
+		if next.Group > 0 && next.Group != group && !util.Contains(next.Group, packed) {
+			packed = append(packed, next.Group)
+		}
+		list = append(list, next.RCoords)
+		next.Group = group
+		for i, n := range next.RCoords.Neighbors() {
+			if i % 2 == 0 {
+				t := newCave.GetTileInt(n.X, n.Y)
+				if t != nil && t.Diggable() && !t.Change {
+					t.Change = true
+					qu = append(qu, t)
 				}
 			}
 		}
 		qu = qu[1:]
 	}
-	return list
+	return list, packed
 }

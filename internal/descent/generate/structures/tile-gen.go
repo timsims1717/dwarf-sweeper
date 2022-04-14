@@ -12,9 +12,9 @@ func ToType(tile *cave.Tile, tt cave.BlockType, perm, override bool) {
 		tile.Type = tt
 		tile.IsChanged = true
 		tile.NeverChange = perm
-		if !tile.Solid() {
-			tile.Bomb = false
-		}
+		//if !tile.Solid() {
+		//	tile.Bomb = false
+		//}
 	}
 }
 
@@ -35,13 +35,13 @@ func BlockUp(tile *cave.Tile, tt cave.BlockType) {
 		t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
 		if t != nil && !t.NeverChange && !t.IsChanged && !t.Path {
 			if tt == cave.Unknown {
-				if tile.Perlin < 0 {
-					tile.Type = cave.Collapse
+				if t.Perlin < 0 {
+					t.Type = cave.Collapse
 				} else {
-					tile.Type = cave.Dig
+					t.Type = cave.Dig
 				}
 			} else {
-				tile.Type = tt
+				t.Type = tt
 			}
 		}
 	}

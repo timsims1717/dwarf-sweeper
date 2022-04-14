@@ -9,6 +9,7 @@ import (
 
 type SimpleHealth struct {
 	Dead   bool
+	DigMe  bool
 	Immune map[DamageType]Immunity
 }
 

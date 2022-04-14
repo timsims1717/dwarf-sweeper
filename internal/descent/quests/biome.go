@@ -3,6 +3,7 @@ package quests
 import (
 	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/util"
 )
 
@@ -16,8 +17,7 @@ var (
 		},
 		OnFinish: func(p *player.Profile) {
 			p.BiomeExits["mine"]["moss"] = 20
-			p.SecretExit["mine"] = 0.5
-			p.AddQuest(DiscoverCrystal)
+			profile.AddQuest(p, DiscoverCrystal)
 		},
 		Hidden: false,
 	}
@@ -30,9 +30,8 @@ var (
 		},
 		OnFinish: func(p *player.Profile) {
 			p.BiomeExits["moss"]["crystal"] = 20
-			p.SecretExit["moss"] = 0.5
-			p.AddQuest(CrystalToMine)
-			p.AddQuest(DiscoverDark)
+			profile.AddQuest(p, CrystalToMine)
+			profile.AddQuest(p, DiscoverDark)
 		},
 		Hidden: false,
 	}
@@ -68,7 +67,6 @@ var (
 		},
 		OnFinish: func(p *player.Profile) {
 			p.BiomeExits["crystal"]["dark"] = 20
-			p.SecretExit["crystal"] = 0.5
 		},
 		Hidden: false,
 	}

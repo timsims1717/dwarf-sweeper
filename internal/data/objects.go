@@ -9,6 +9,7 @@ type Collider struct {
 	Hitbox       pixel.Rect
 	GroundOnly   bool
 	ThroughWalls bool
+	Fallthrough  bool
 	CanPass      bool
 	Collided     bool
 	Damage       *Damage

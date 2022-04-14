@@ -10,6 +10,7 @@ import (
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
+	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/input"
@@ -114,11 +115,13 @@ func run() {
 			<-signal
 			theCave.Fog = false
 			theCave.LoadAll = true
+			systems.ClearSystem()
 		} else if theCave != nil {
 			theCave.UpdateBatch = true
 			theCave.Pivots = []pixel.Vec{camera.Cam.Pos}
 			theCave.Update()
 		}
+		systems.TransformSystem()
 		camera.Cam.Update(win)
 
 		win.Clear(color.RGBA{
@@ -133,6 +136,7 @@ func run() {
 		if theCave != nil {
 			theCave.Draw()
 		}
+		systems.DrawSystem()
 		img.Draw(win)
 		for _, m := range menuStack {
 			m.Draw(win)

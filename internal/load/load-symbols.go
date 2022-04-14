@@ -188,4 +188,7 @@ func Symbols() {
 	typeface.RegisterSymbol("mine", img.Batchers[constants.PuzzleKey].GetSprite("mine"), 1.)
 	typeface.RegisterSymbol("leave", img.Batchers[constants.PuzzleKey].GetSprite("leave"), 1.)
 	typeface.RegisterSymbol("help", img.Batchers[constants.PuzzleKey].GetSprite("help"), 1.)
+
+	// other
+	typeface.RegisterSymbol("checkmark", img.Batchers[constants.MenuSprites].GetSprite("checkmark"), 1.)
 }

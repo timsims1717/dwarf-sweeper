@@ -1,7 +1,7 @@
 [
   {
     "key": "testBlob",
-    "title": "Mine Blobby",
+    "name": "Mine Blobby",
     "biome": "mine",
     "desc": "",
     "tracks": [
@@ -52,7 +52,7 @@
   },
   {
     "key": "testBlob",
-    "title": "Dark Blobby",
+    "name": "Dark Blobby",
     "biome": "dark",
     "desc": "",
     "tracks": [
@@ -103,7 +103,7 @@
   },
   {
     "key": "testBlob",
-    "title": "Moss Blobby",
+    "name": "Moss Blobby",
     "biome": "moss",
     "desc": "",
     "tracks": [
@@ -154,7 +154,7 @@
   },
   {
     "key": "testBlob",
-    "title": "Crystal Blobby",
+    "name": "Crystal Blobby",
     "biome": "crystal",
     "desc": "",
     "tracks": [
