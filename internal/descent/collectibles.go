@@ -6,7 +6,6 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/internal/util"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
@@ -47,10 +46,10 @@ func CreateCollectible(pos pixel.Vec, fn func(pixel.Vec, *Dwarf) bool, spr *pixe
 		Timer:     timing.New(1.),
 		AutoCollect: true,
 	}
-	phys, trans := util.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)
+	phys, trans := data.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	coll.Debug = true
-	hp := &data.SimpleHealth{Immune: data.ItemImmunity}
+	hp := &data.SimpleHealth{Immune: data.ItemImmunity1}
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Physics, phys).
 		AddComponent(myecs.Collision, coll).

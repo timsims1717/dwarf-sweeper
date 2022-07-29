@@ -143,3 +143,23 @@ func RandomSample(k int, l []int, rando *rand.Rand) []int {
 	}
 	return res[:k]
 }
+
+func Cardinal(orig, tar pixel.Vec) pixel.Vec {
+	facing := pixel.ZV
+	angle := orig.Sub(tar).Angle()
+	if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
+		facing.X = 1
+	} else if angle < math.Pi*(3./8.) && angle > math.Pi*-(3./8.) {
+		facing.X = -1
+	} else {
+		facing.X = 0
+	}
+	if angle > math.Pi/8. && angle < math.Pi*(7./8.) {
+		facing.Y = -1
+	} else if angle < math.Pi/-8. && angle > math.Pi*-(7./8.) {
+		facing.Y = 1
+	} else {
+		facing.Y = 0
+	}
+	return facing
+}

@@ -56,6 +56,7 @@ type Cave struct {
 	BombPMin float64
 	BombPMax float64
 	GemRate  float64
+	Enemies  []string
 
 	BGBatch    *pixel.Batch
 	Background *pixel.Sprite

@@ -146,7 +146,7 @@ func (tile *Tile) Draw() {
 }
 
 func (tile *Tile) Destroy(p *player.Player, playSound bool) {
-	if tile != nil && !tile.Destroyed && !tile.destroying && (tile.Breakable() || (p == nil && tile.Type == SecretDoor)) {
+	if tile != nil && !tile.Destroyed && !tile.destroying && (tile.Breakable() || tile.Type == SecretDoor) {
 		tile.destroying = true
 		tile.destroyer = p
 		if playSound {
@@ -392,8 +392,8 @@ func (tile *Tile) UpdateSprites() {
 				var s string
 				above := tile.Chunk.Cave.GetTileInt(tile.RCoords.X, tile.RCoords.Y-1)
 				below := tile.Chunk.Cave.GetTileInt(tile.RCoords.X, tile.RCoords.Y+1)
-				aboveS := above.Solid() && !above.IsDeco()
-				belowS := below.Solid() && !below.IsDeco()
+				aboveS := above.Solid() && (!above.IsDeco() || tile.Type == Pillar)
+				belowS := below.Solid() && (!below.IsDeco() || tile.Type == Pillar)
 				aboveM := above.Type == tile.Type && above.Biome == tile.Biome
 				belowM := below.Type == tile.Type && below.Biome == tile.Biome
 				if aboveS && belowS {
@@ -552,7 +552,7 @@ func (tile *Tile) IsExit() bool {
 }
 
 func (tile *Tile) Breakable() bool {
-	return !(tile.Type == Wall || tile.Type == Empty || tile.Type == Blank || tile.IsDoor())
+	return !(tile.Type == Wall || tile.Type == Empty || tile.Type == Blank || (tile.IsDoor() && tile.Type != SecretDoor))
 }
 
 func (tile *Tile) Solid() bool {
@@ -560,7 +560,7 @@ func (tile *Tile) Solid() bool {
 }
 
 func (tile *Tile) Diggable() bool {
-	return tile.Type == Dig || tile.Type == Collapse
+	return tile != nil && (tile.Type == Dig || tile.Type == Collapse)
 }
 
 func (tile *Tile) IsDeco() bool {

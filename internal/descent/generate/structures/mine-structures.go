@@ -4,12 +4,13 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/critters"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 )
 
-func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
+func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction, enemies []string) {
 	layer := 1
 	layers := 3 + random.CaveGen.Intn(3)
 	layerWidth := 12 + random.CaveGen.Intn(int(c.FillVar*0.25))
@@ -41,6 +42,13 @@ func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
 					ToType(mainTile, cave.Pillar, false, false)
 					ToType(above1, cave.Pillar, false, false)
 				} else {
+					if random.CaveGen.Intn(20) == 0 {
+						if random.CaveGen.Intn(2) == 0 {
+							critters.AddRandomCritter(c, enemies, mainTile.Transform.Pos)
+						} else {
+							critters.AddRandomCritter(c, enemies, above1.Transform.Pos)
+						}
+					}
 					ToType(mainTile, cave.Empty, false, false)
 					ToType(above1, cave.Empty, false, false)
 					if !done && random.CaveGen.Intn(lastDown) > 5 {
@@ -83,7 +91,7 @@ func MineComplex(c *cave.Cave, include world.Coords, dir data.Direction) {
 	}
 }
 
-func MineLayer(c *cave.Cave, include world.Coords) {
+func MineLayer(c *cave.Cave, include world.Coords, enemies []string) {
 	totalWidth := 16 + random.CaveGen.Intn(int(c.FillVar*0.25))
 	offset := random.CaveGen.Intn(totalWidth)
 	currX := include.X
@@ -113,6 +121,13 @@ func MineLayer(c *cave.Cave, include world.Coords) {
 					ToType(mainTile, cave.Pillar, false,  false)
 					ToType(above1, cave.Pillar, false, false)
 				} else {
+					if random.CaveGen.Intn(20) == 0 {
+						if random.CaveGen.Intn(2) == 0 {
+							critters.AddRandomCritter(c, enemies, mainTile.Transform.Pos)
+						} else {
+							critters.AddRandomCritter(c, enemies, above1.Transform.Pos)
+						}
+					}
 					ToType(mainTile, cave.Empty, false, false)
 					ToType(above1, cave.Empty, false, false)
 				}

@@ -31,10 +31,10 @@ var (
 	PuzzleState  = &puzzleState{}
 	LoadingState = &loadingState{}
 	States       = map[string]*state.AbstractState{
-		MenuStateKey:    state.New(MenuState),
-		DescentStateKey: state.New(DescentState),
-		ScoreStateKey:   state.New(ScoreState),
-		PuzzleStateKey:  state.New(PuzzleState),
+		MenuStateKey:    state.New(MenuState, true),
+		DescentStateKey: state.New(DescentState, true),
+		ScoreStateKey:   state.New(ScoreState, false),
+		PuzzleStateKey:  state.New(PuzzleState, true),
 	}
 )
 
@@ -113,6 +113,7 @@ func Update(win *pixelgl.Window) {
 		case <-done:
 			loading = false
 			loadingDone = true
+			currState = nextState
 		default:
 			LoadingState.Update(win)
 		}
@@ -142,14 +143,16 @@ func Update(win *pixelgl.Window) {
 			debugInput.Get("debugMenu").Consume()
 			OpenMenu(DebugMenu)
 		}
-		if debugInput.Get("debugTest").JustPressed() {
+		if debugInput.Get("debugTest").JustPressed() && descent.Descent.Cave != nil {
 			//if len(descent.Descent.GetPlayers()) > 0 {
 			//	descent.CreateXRayItem(descent.Descent.GetPlayers()[0].Transform.Pos)
 			//}
 			//if len(descent.Descent.GetPlayers()) > 0 {
 			//	particles.CreateRandomStaticParticles(1, 1, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, descent.Descent.GetPlayers()[0].Transform.Pos, 10.0, 15.0, 0.5)
 			//}
-			menus.NotificationHandler.AddMessage("It's a message!")
+			//menus.NotificationHandler.AddMessage("It's a message!")
+			player := descent.Descent.GetPlayers()[0].Player
+			descent.CreateSlug(descent.Descent.Cave, descent.Descent.Cave.GetTile(player.CamPos.Sub(player.CanvasPos.Sub(debugInput.World))).Transform.Pos)
 		}
 		if debugInput.Get("debugSP").JustPressed() {
 			if currState == MenuStateKey {
@@ -207,14 +210,15 @@ func Update(win *pixelgl.Window) {
 
 func Draw(win *pixelgl.Window) {
 	img.Clear()
-	if loading {
+	cState, ok1 := States[currState]
+	nState, ok2 := States[nextState]
+	if !ok2 {
+		panic(fmt.Sprintf("state %s doesn't exist", nextState))
+	}
+	if loading && nState.ShowLoad || !ok1 {
 		LoadingState.Draw(win)
-	} else if !loadingDone {
-		if cState, ok := States[currState]; ok {
-			cState.Draw(win)
-		}
 	} else {
-		loadingDone = false
+		cState.Draw(win)
 	}
 }
 
@@ -227,12 +231,11 @@ func updateState() {
 			go cState.Unload()
 		}
 		// initialize
-		if cState, ok := States[nextState]; ok {
-			go cState.Load(done)
+		if nState, ok := States[nextState]; ok {
+			go nState.Load(done)
 			loading = true
 			loadingDone = false
 		}
-		currState = nextState
 		switchState = false
 	}
 }

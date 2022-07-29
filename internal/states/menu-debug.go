@@ -1,17 +1,13 @@
 package states
 
 import (
-	"dwarf-sweeper/internal/constants"
-	player2 "dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate/builder"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/sfx"
 	"fmt"
-	"github.com/faiface/pixel"
 )
 
 func InitDebugMenu() {
@@ -66,16 +62,7 @@ func InitDebugMenu() {
 	})
 	giveBombs.SetClickFn(func() {
 		if len(descent.Descent.GetPlayers()) > 0 {
-			descent.Descent.GetPlayers()[0].Player.Inventory.AddItem(&player2.InvItem{
-				Name:   "bomb",
-				Sprite: img.Batchers[constants.EntityKey].Sprites["bomb_item"],
-				OnUse: func(pos pixel.Vec) {
-					tPos := descent.Descent.Cave.GetTile(pos).Transform.Pos
-					descent.CreateBomb(tPos)
-				},
-				Count: 3,
-				Limit: 3,
-			})
+			descent.CreateInvItem(descent.Descent.GetPlayers()[0].Player.Inventory, "bomb_item", 5)
 		}
 		DebugMenu.Close()
 		sfx.SoundPlayer.PlaySound("click", 2.0)

@@ -21,18 +21,32 @@ func PhysicsSystem() {
 			}
 			tran.Pos.X += timing.DT * phys.Velocity.X
 			tran.Pos.Y += timing.DT * phys.Velocity.Y
-			if !phys.GravityOff && !phys.YJustSet && !phys.BottomBound && !phys.Grounded {
-				if phys.Velocity.Y > -phys.Terminal {
-					phys.Velocity.Y -= phys.Gravity * timing.DT
-				}
-				if phys.Velocity.Y <= -phys.Terminal {
-					phys.Velocity.Y = -phys.Terminal
+			if !phys.YJustSet && !phys.BottomBound && !phys.Grounded {
+				if !phys.GravityOff {
+					if phys.Velocity.Y > -phys.Terminal {
+						phys.Velocity.Y -= phys.Gravity * timing.DT
+					}
+					if phys.Velocity.Y <= -phys.Terminal {
+						phys.Velocity.Y = -phys.Terminal
+					}
+				} else if phys.UseWallFriction && phys.RightBound || phys.LeftBound {
+					if phys.Velocity.Y > 0. {
+						phys.Velocity.Y -= phys.WallFriction * timing.DT
+						if phys.Velocity.Y < 0. {
+							phys.Velocity.Y = 0
+						}
+					} else if phys.Velocity.Y < 0. {
+						phys.Velocity.Y += phys.WallFriction * timing.DT
+						if phys.Velocity.Y > 0. {
+							phys.Velocity.Y = 0
+						}
+					}
 				}
 			}
 			phys.YJustSet = false
 			if !phys.FrictionOff && !phys.XJustSet {
 				friction := phys.AirFriction
-				if phys.Grounded {
+				if phys.Grounded || phys.TopBound {
 					friction = phys.Friction
 				}
 				if phys.Velocity.X > 0. {

@@ -181,7 +181,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 		DazedTime:    1.5,
 		Immune:       data.FullImmunity,
 	}
-	coll := data.NewCollider(pixel.R(0., 0., 32., 32.), false, true)
+	coll := data.NewCollider(pixel.R(0., 0., 32., 32.), data.Critter)
 	coll.Debug = true
 	coll.ThroughWalls = true
 	gb := &GnomeBoss{

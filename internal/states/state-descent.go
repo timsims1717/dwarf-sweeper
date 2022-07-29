@@ -300,6 +300,8 @@ func (s *descentState) SetupPlayers() {
 		}
 		p := player.New(code, in)
 		d := descent.NewDwarf(p)
+		descent.CreateInvItem(d.Player.Inventory, "throw_shovel", 3)
+		descent.CreateInvItem(d.Player.Inventory, "bomb_item", 3)
 		descent.Descent.Dwarves = append(descent.Descent.Dwarves, d)
 		hud.HUDs = append(hud.HUDs, hud.New(d))
 		RegisterPlayerSymbols(in.Key, in)

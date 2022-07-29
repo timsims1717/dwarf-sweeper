@@ -204,7 +204,7 @@ func (p *Popper) Update() {
 							action = Pop
 							p.rootPos = p.target.Transform.Pos
 							p.poppedPos = empty.Transform.Pos
-							p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), true, true))
+							p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), data.Critter))
 							p.Health.Immune[data.Shovel] = data.Immunity{
 								KB:    false,
 								DMG:   false,
@@ -378,7 +378,7 @@ func (p *Popper) Update() {
 	} else if p.Health.Dazed && !p.Health.Dead {
 		p.action = Dazed
 		p.Physics.GravityOff = false
-		p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), true, true))
+		p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), data.Critter))
 		p.Health.Immune[data.Shovel] = data.Immunity{
 			KB:    false,
 			DMG:   false,
@@ -590,7 +590,7 @@ func (p *Popper) CreateProjectile(norm pixel.Vec) {
 	phys.RagDollX = true
 	phys.RagDollY = true
 	spr := img.Batchers[constants.ParticleKey].GetSprite("dirt_shot")
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), false, false)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	coll.Damage = &data.Damage{
 		SourceID:  p.Transform.ID,
 		Amount:    1,

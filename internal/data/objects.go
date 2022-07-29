@@ -5,13 +5,23 @@ import (
 	"github.com/faiface/pixel"
 )
 
+type CollisionClass int
+
+const (
+	Critter = iota
+	Player
+	Stacker
+	Item
+	GroundOnly
+)
+
 type Collider struct {
 	Hitbox       pixel.Rect
-	GroundOnly   bool
-	ThroughWalls bool
-	Fallthrough  bool
-	CanPass      bool
-	Collided     bool
+	Class        CollisionClass
+	NoClip       bool // ignores all tiles
+	ThroughWalls bool // ignores RightBound and LeftBound tile colliders
+	Fallthrough  bool // can fall through bridges
+	Collided     bool // encountered another collider this frame
 	Damage       *Damage
 
 	BottomBound bool
@@ -34,11 +44,10 @@ type Collider struct {
 	Debug bool
 }
 
-func NewCollider(hitbox pixel.Rect, groundOnly, canPass bool) *Collider {
+func NewCollider(hitbox pixel.Rect, class CollisionClass) *Collider {
 	return &Collider{
-		Hitbox:     hitbox,
-		GroundOnly: groundOnly,
-		CanPass:    canPass,
+		Hitbox: hitbox,
+		Class:  class,
 	}
 }
 

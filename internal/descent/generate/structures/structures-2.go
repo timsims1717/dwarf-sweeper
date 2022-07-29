@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/critters"
 	"dwarf-sweeper/internal/descent/generate/objects"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/util"
@@ -11,7 +12,7 @@ import (
 	"fmt"
 )
 
-func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
+func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction, enemies []string) {
 	t := start
 	dir := iDir
 	chance := random.CaveGen.Intn(40) + 40
@@ -27,6 +28,9 @@ func NoodleCave(c *cave.Cave, start world.Coords, iDir data.Direction) {
 					ToType(tile, cave.Growth, false, false)
 				} else {
 					ToType(tile, cave.Empty, false, false)
+					if random.CaveGen.Intn(20) == 0 {
+						critters.AddRandomCritter(c, enemies, tile.Transform.Pos)
+					}
 				}
 			} else {
 				ToBlock(tile, false, false)
@@ -141,7 +145,7 @@ func BombableNode(c *cave.Cave, radius int, variance float64, ignoreWalls bool, 
 	}
 }
 
-func Pocket(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center world.Coords) {
+func Pocket(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center world.Coords, enemies []string) {
 	cPos := c.GetTileInt(center.X, center.Y).Transform.Pos
 	fRad := float64(radius) * world.TileSize
 	for y := center.Y - radius; y < center.Y+radius; y++ {
@@ -158,29 +162,10 @@ func Pocket(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center
 			}
 		}
 	}
-	for x := center.X - radius; x < center.X+radius; x++ {
-		bg := random.CaveGen.Intn(2) == 0
-		for y := center.Y - radius; y < center.Y+radius; y++ {
-			tile := c.GetTileInt(x, y)
-			if tile != nil {
-				if random.CaveGen.Intn(4) == 0 {
-					above := c.GetTileInt(x, y-1)
-					below := c.GetTileInt(x, y+1)
-					if above != nil && below != nil {
-						if above.Solid() || below.Solid() || above.Type == cave.Growth || below.Type == cave.Growth {
-							ToType(tile, cave.Growth, false, true)
-							tile.BG = bg
-							continue
-						}
-					}
-				}
-			}
-			bg = random.CaveGen.Intn(2) == 0
-		}
-	}
+	GrowthOrEnemy(c, center, radius, enemies)
 }
 
-func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center world.Coords) {
+func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center world.Coords, enemies []string) {
 	cPos := c.GetTileInt(center.X, center.Y).Transform.Pos
 	fRad := float64(radius) * world.TileSize
 	inRad := fRad * 0.5
@@ -206,24 +191,29 @@ func Ring(c *cave.Cave, radius int, variance float64, ignoreWalls bool, center w
 			}
 		}
 	}
+	GrowthOrEnemy(c, center, radius, enemies)
+}
+
+func GrowthOrEnemy(c *cave.Cave, center world.Coords, radius int, enemies []string) {
 	for x := center.X - radius; x < center.X+radius; x++ {
 		bg := random.CaveGen.Intn(2) == 0
 		for y := center.Y - radius; y < center.Y+radius; y++ {
 			tile := c.GetTileInt(x, y)
-			if tile != nil {
-				if random.CaveGen.Intn(4) == 0 {
-					above := c.GetTileInt(x, y-1)
-					below := c.GetTileInt(x, y+1)
-					if above != nil && below != nil {
-						if above.Solid() || below.Solid() || above.Type == cave.Growth || below.Type == cave.Growth {
-							ToType(tile, cave.Growth, false, true)
-							tile.BG = bg
-							continue
+			if tile != nil && !tile.Solid() {
+				above := c.GetTileInt(x, y-1)
+				below := c.GetTileInt(x, y+1)
+				if above != nil && below != nil {
+					if random.CaveGen.Intn(4) == 0 && (above.Solid() || below.Solid() || above.Type == cave.Growth || below.Type == cave.Growth) {
+						ToType(tile, cave.Growth, false, true)
+						tile.BG = bg
+					} else {
+						bg = random.CaveGen.Intn(2) == 0
+						if random.CaveGen.Intn(20) == 0 {
+							critters.AddRandomCritter(c, enemies, tile.Transform.Pos)
 						}
 					}
 				}
 			}
-			bg = random.CaveGen.Intn(2) == 0
 		}
 	}
 }

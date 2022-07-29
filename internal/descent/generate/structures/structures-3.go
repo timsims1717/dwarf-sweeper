@@ -4,11 +4,12 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/critters"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/world"
 )
 
-func Cavern(c *cave.Cave, include world.Coords, dir data.Direction) {
+func Cavern(c *cave.Cave, include world.Coords, dir data.Direction, enemies []string) {
 	h := random.CaveGen.Intn(2)+1
 	offset := random.CaveGen.Intn(3)-1
 	//b := random.CaveGen.Intn(6)-3
@@ -41,6 +42,9 @@ func Cavern(c *cave.Cave, include world.Coords, dir data.Direction) {
 						tile.BG = stmBG
 					} else {
 						ToType(tile, cave.Empty, false, false)
+						if random.CaveGen.Intn(20) == 0 {
+							critters.AddRandomCritter(c, enemies, tile.Transform.Pos)
+						}
 					}
 				}
 			}
@@ -66,7 +70,7 @@ func Cavern(c *cave.Cave, include world.Coords, dir data.Direction) {
 	}
 }
 
-func BridgeCavern(c *cave.Cave, include world.Coords, dir data.Direction) {
+func BridgeCavern(c *cave.Cave, include world.Coords, dir data.Direction, enemies []string) {
 	h := random.CaveGen.Intn(2)+1
 	offset := random.CaveGen.Intn(3)-1
 	bY := random.CaveGen.Intn(6)-3
@@ -93,9 +97,12 @@ func BridgeCavern(c *cave.Cave, include world.Coords, dir data.Direction) {
 				if tile.RCoords.Y == include.Y+bY {
 					ToType(tile, cave.Bridge, false, false)
 					bAdd = true
-					above := c.GetTileInt(currX, y+1)
+					above := c.GetTileInt(currX, y-1)
 					if above != nil && above.Solid() {
 						ToType(above, cave.Empty, false, true)
+						if random.CaveGen.Intn(20) == 0 {
+							critters.AddRandomCritter(c, enemies, tile.Transform.Pos)
+						}
 					}
 				} else if tile.RCoords.Y > include.Y+bY && bAdd && tile.RCoords.X%4 == include.X%4 {
 					ToType(tile, cave.Pillar, false, false)
@@ -110,6 +117,9 @@ func BridgeCavern(c *cave.Cave, include world.Coords, dir data.Direction) {
 							tile.BG = stmBG
 						} else {
 							ToType(tile, cave.Empty, false, false)
+							if random.CaveGen.Intn(20) == 0 {
+								critters.AddRandomCritter(c, enemies, tile.Transform.Pos)
+							}
 						}
 					}
 				}

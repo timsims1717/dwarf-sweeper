@@ -78,6 +78,7 @@ func run() {
 	load.SFX()
 	load.Symbols()
 	load.Music()
+	load.Descent()
 
 	particles.Initialize()
 

@@ -29,13 +29,14 @@ func NewAsyncCave(build *builder.CaveBuilder, level int, signal chan bool) *cave
 	}
 	c := cave.NewCave(build.Biome, build.Type)
 	c.Level = level
+	c.Enemies = build.Enemies
 	left := 0
 	right := util.Max(build.Width - 1, 2)
 	bottom := util.Max(build.Height - 1, 2)
 	c.SetSize(left, right, bottom)
 	c.BombPMin, c.BombPMax = BombLevel(level)
 	structures.CreateChunks(c, cave.Blast)
-	go newCave(build, c, signal)
+	go buildCave(build, c, signal)
 	return c
 }
 
@@ -47,17 +48,18 @@ func NewCave(build *builder.CaveBuilder, level int) *cave.Cave {
 	}
 	c := cave.NewCave(build.Biome, build.Type)
 	c.Level = level
+	c.Enemies = build.Enemies
 	left := 0
 	right := util.Max(build.Width - 1, 2)
 	bottom := util.Max(build.Height - 1, 2)
 	c.SetSize(left, right, bottom)
 	c.BombPMin, c.BombPMax = BombLevel(level)
 	structures.CreateChunks(c, cave.Blast)
-	newCave(build, c, nil)
+	buildCave(build, c, nil)
 	return c
 }
 
-func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
+func buildCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 	fmt.Printf("Name: %s\n", build.Name)
 	fmt.Printf("Biome: %s\n", c.Biome)
 	switch build.Base {
@@ -112,6 +114,10 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 		}
 	}
 	for _, s := range build.Structures {
+		enemies := c.Enemies
+		if len(s.Enemies) > 0 {
+			enemies = s.Enemies
+		}
 		s.Defaults()
 		r := s.Maximum - s.Minimum
 		count := s.Minimum
@@ -152,15 +158,15 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 					structures.SecretExit(c, tile.RCoords, i+1, biome)
 					fmt.Printf("Secret Exit: (%d,%d)\n", tile.RCoords.X, tile.RCoords.Y)
 				case "pocket":
-					structures.Pocket(c, random.CaveGen.Intn(4)+2, 1.5, false, tile.RCoords)
+					structures.Pocket(c, random.CaveGen.Intn(4)+2, 1.5, false, tile.RCoords, enemies)
 				case "ring":
-					structures.Ring(c, random.CaveGen.Intn(5)+3, 3., false, tile.RCoords)
+					structures.Ring(c, random.CaveGen.Intn(5)+3, 3., false, tile.RCoords, enemies)
 				case "noodleCave":
 					dir := structures.RandomDirection()
 					for dir == data.Down {
 						dir = structures.RandomDirection()
 					}
-					structures.NoodleCave(c, tile.RCoords, dir)
+					structures.NoodleCave(c, tile.RCoords, dir, enemies)
 				case "treasure":
 					if random.CaveGen.Intn(3) == 0 {
 						// big
@@ -172,18 +178,18 @@ func newCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 				case "bombable":
 					structures.BombableNode(c, random.CaveGen.Intn(4)+2, 2., true, tile.RCoords)
 				case "mineLayer":
-					structures.MineLayer(c, tile.RCoords)
+					structures.MineLayer(c, tile.RCoords, enemies)
 				case "mineComplex":
-					structures.MineComplex(c, tile.RCoords, data.Direction(xDir))
+					structures.MineComplex(c, tile.RCoords, data.Direction(xDir), enemies)
 				case "stairs":
 					structures.Stairs(c, tile.RCoords, random.CaveGen.Intn(2) == 0, random.CaveGen.Intn(2) == 0, 0, 0)
 				case "bigBomb":
 					descent.Descent.CoordsMap["big-bomb"] = tile.RCoords
 					structures.BombRoom(c, 4, 7, 7, 11, 3, c.Level, tile.RCoords)
 				case "bridge":
-					structures.BridgeCavern(c, tile.RCoords, data.Direction(xDir))
+					structures.BridgeCavern(c, tile.RCoords, data.Direction(xDir), enemies)
 				case "cavern":
-					structures.Cavern(c, tile.RCoords, data.Direction(xDir))
+					structures.Cavern(c, tile.RCoords, data.Direction(xDir), enemies)
 				case "smallCamp":
 					structures.SmallCamp(c, tile.RCoords, data.Direction(xDir))
 				}
@@ -215,22 +221,19 @@ func PickTileDist(c *cave.Cave, marginL, marginR, marginT, marginB int, mainGrou
 	var tile *cave.Tile = nil
 	tryCount := 0
 	var min, max int
-	mult := util.Max(c.Bottom, c.Right - c.Left)
+	mult := util.Max(c.Bottom, c.Right - c.Left) + 1
 	switch digDist {
 	case builder.Close:
-		min = 10
-		max = constants.ChunkSize * mult / 4 * 3
+		min = constants.ChunkSize
+		max = constants.ChunkSize * mult
 	case builder.Medium:
 		min = constants.ChunkSize
-		max = constants.ChunkSize * mult / 2 * 3
+		max = constants.ChunkSize * mult * 2
 	case builder.Far:
-		min = constants.ChunkSize * mult / 2 * 3
+		min = constants.ChunkSize * mult
 		max = -1
 	case builder.Farthest:
 		min = constants.ChunkSize * mult * 2
-		max = -1
-	case builder.Any:
-		min = 10
 		max = -1
 	}
 	for {
@@ -238,16 +241,19 @@ func PickTileDist(c *cave.Cave, marginL, marginR, marginT, marginB int, mainGrou
 		tY = marginT + random.CaveGen.Intn((c.Bottom+1) * constants.ChunkSize - (marginT + marginB))
 		tile = c.GetTileInt(tX, tY)
 		if tile != nil && tile.Type != cave.Wall && (tile.Group == c.MainGroup || !mainGroup) && !tile.IsChanged && !tile.NeverChange {
+			if digDist == builder.Any {
+				return tile
+			}
 			cave.Origin = c.StartC
-			cave.NeighborsFn = pathfinding.DigNeighbors
-			cave.CostFn = pathfinding.DigCost
+			cave.NeighborsFn = pathfinding.CaveGenNeighbors
+			cave.CostFn = pathfinding.CaveGenCost
 			_, dist, found := astar.Path(c.GetTileInt(c.StartC.X, c.StartC.Y), tile)
 			if found && int(dist) >= min && (max == -1 || int(dist) <= max) {
 				return tile
 			}
 		}
 		tryCount++
-		if tryCount > 8 {
+		if tryCount > 4 {
 			return nil
 		}
 	}

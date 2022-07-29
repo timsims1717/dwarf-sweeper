@@ -2,6 +2,7 @@ package states
 
 import (
 	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/hud"
 	"dwarf-sweeper/internal/systems"
@@ -11,7 +12,9 @@ import (
 	"dwarf-sweeper/pkg/state"
 	"dwarf-sweeper/pkg/timing"
 	"fmt"
+	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"image/color"
 )
 
 var (
@@ -51,14 +54,31 @@ func (s *scoreState) Load(done chan struct{}) {
 	s.ScoreTimer = timing.New(5.)
 	OpenMenu(PostMenu)
 	sfx.MusicPlayer.PlayMusic("pause")
+	descent.Descent.DisableInput = true
+	descent.Descent.Cave.UpdateBatch = true
 	done <- struct{}{}
 }
 
 func (s *scoreState) Update(win *pixelgl.Window) {
 	reanimator.Update()
+	systems.TemporarySystem()
+	descent.UpdatePlayers()
+	systems.EntitySystem()
+	systems.UpdateSystem()
+	systems.FunctionSystem()
+	systems.PhysicsSystem()
+	systems.TileCollisionSystem()
+	systems.CollisionSystem()
+	systems.CollisionBoundSystem()
+	systems.ParentSystem()
+	systems.TransformSystem()
+	systems.AreaDamageSystem()
+	systems.DamageSystem()
 	systems.VFXSystem()
+	systems.AnimationSystem()
 	descent.Update()
 	hud.UpdateHUD()
+	descent.UpdateViews()
 	UpdateMenus(win)
 	if MenuClosed() {
 		SwitchState(MenuStateKey)
@@ -66,10 +86,22 @@ func (s *scoreState) Update(win *pixelgl.Window) {
 }
 
 func (s *scoreState) Draw(win *pixelgl.Window) {
-	descent.Descent.GetCave().Draw()
-	//descent.Descent.GetPlayer().Draw(win, data.GameInput)
+	if descent.Descent.Cave != nil {
+		descent.Descent.GetCave().Draw()
+	}
 	systems.DrawSystem()
-	img.Draw(win)
+	for _, d := range descent.Descent.Dwarves {
+		d.Player.Canvas.Clear(color.RGBA{})
+		descent.Descent.GetCave().DrawBG(d.Player)
+		img.Draw(d.Player.Canvas)
+		debug.DrawLines(d.Player.Canvas)
+		mat := pixel.IM
+		mat = mat.Moved(camPos).Moved(d.Player.CanvasPos)
+		d.Player.Canvas.Draw(win, mat)
+	}
+	for _, h := range hud.HUDs {
+		h.Draw(win)
+	}
 	hud.DrawHUD(win)
 	s.ScoreTimer.Update()
 	since := s.ScoreTimer.Elapsed()

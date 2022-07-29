@@ -104,13 +104,25 @@ var (
 			Dazed: true,
 		},
 	}
-	ItemImmunity = map[DamageType]Immunity{
+	ItemImmunity1 = map[DamageType]Immunity{
 		Enemy: {
 			KB:    true,
 			DMG:   true,
 			Dazed: true,
 		},
 		Shovel: {
+			DMG:   true,
+			Dazed: true,
+		},
+	}
+	ItemImmunity2 = map[DamageType]Immunity{
+		Enemy: {
+			KB:    true,
+			DMG:   true,
+			Dazed: true,
+		},
+		Shovel: {
+			KB:    true,
 			DMG:   true,
 			Dazed: true,
 		},

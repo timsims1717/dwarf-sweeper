@@ -151,6 +151,7 @@ func (cb *CaveBuilder) Copy() CaveBuilder {
 		Base:       cb.Base,
 		DoorType:   cb.DoorType,
 		Structures: cb.Structures,
+		Enemies:    cb.Enemies,
 	}
 	return newCB
 }

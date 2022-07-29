@@ -5,7 +5,6 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/internal/util"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
@@ -32,7 +31,7 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 	c := random.Effects.Intn(max-min+1) + min
 	for i := 0; i < c; i++ {
 		tran := transform.New()
-		tran.Pos = util.RandomPosition(orig, variance, variance, random.Effects)
+		tran.Pos = data.RandomPosition(orig, variance, variance, random.Effects)
 		if random.Effects.Intn(2) == 0 {
 			tran.Flip = true
 		}
@@ -58,7 +57,7 @@ func CreateRandomParticles(min, max int, keys []string, orig pixel.Vec, varX, va
 }
 
 func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, force, forceVar, dur, durVar float64, collide bool) {
-	phys, tran := util.RandomPosAndVel(orig, varX, varY, angle, angleVar, force, forceVar, random.Effects)
+	phys, tran := data.RandomPosAndVel(orig, varX, varY, angle, angleVar, force, forceVar, random.Effects)
 	if random.Effects.Intn(2) == 0 {
 		tran.Flip = true
 	}
@@ -74,7 +73,7 @@ func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, for
 		AddComponent(myecs.Batch, constants.ParticleKey).
 		AddComponent(myecs.Temp, timing.New(nDur))
 	if collide {
-		coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, true)
+		coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.GroundOnly)
 		e.AddComponent(myecs.Collision, coll)
 	}
 }

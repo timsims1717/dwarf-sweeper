@@ -86,9 +86,10 @@ func CreateBomb(pos pixel.Vec) {
 				return 1
 			}
 		}), "bomb_fuse")
+	collider := data.NewCollider(pixel.R(0., 0., 16., 16.), data.GroundOnly)
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Physics, phys).
-		AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), true, false)).
+		AddComponent(myecs.Collision, collider).
 		AddComponent(myecs.Health, &data.SimpleHealth{
 			Immune: BombImmunity,
 		}).
@@ -159,9 +160,10 @@ func CreateHighYieldBomb(pos pixel.Vec) {
 				return 1
 			}
 		}), "bomb_fuse")
+	collider := data.NewCollider(pixel.R(0., 0., 16., 16.), data.GroundOnly)
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Physics, phys).
-		AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), true, false)).
+		AddComponent(myecs.Collision, collider).
 		AddComponent(myecs.Health, &data.SimpleHealth{
 			Immune: BombImmunity,
 		}).

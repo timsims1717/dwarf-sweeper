@@ -52,7 +52,7 @@ func UpdatePlayer(d *Dwarf) {
 		} else {
 			d.Update(d.Player.Input)
 		}
-		d.Player.Inventory.Update()
+		UpdateInventory(d.Player.Inventory)
 	}
 }
 

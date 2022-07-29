@@ -45,7 +45,7 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	tt.Y = 22
 	trans := transform.New()
 	trans.Pos = c.GetTileInt(tt.X, tt.Y).Transform.Pos
-	coll := data.NewCollider(pixel.R(0., 0., world.TileSize*70., world.TileSize*3.), true, true)
+	coll := data.NewCollider(pixel.R(0., 0., world.TileSize*70., world.TileSize*3.), data.GroundOnly)
 	coll.Debug = true
 
 	gnome := descent.CreateGnomeBoss(5 + level/4)

@@ -30,7 +30,7 @@ func TileCollisionSystem() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		coll, okC := result.Components[myecs.Collision].(*data.Collider)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
-		if okT && okC && okP && tran.Load {
+		if okT && okC && okP && tran.Load && !coll.NoClip {
 			coll.Collided = false
 			stopped := false
 			var hb pixel.Rect
@@ -44,7 +44,7 @@ func TileCollisionSystem() {
 			done := false
 			var next pixel.Vec
 			count := 0
-			stepSize := CollisionStep
+			stepSize := math.Min(CollisionStep, math.Min(hb.H(), hb.W()) * 0.5)
 			for !done {
 				posChange := tran.Pos.Sub(lastPos)
 				mag := util.Magnitude(posChange)
@@ -70,14 +70,17 @@ func TileCollisionSystem() {
 					// collision rays init
 					w := hb.W()
 					h := hb.H()
-					wcr := int(w) / int(world.TileSize*0.5)
-					hcr := int(h) / int(world.TileSize*0.5)
-					if wcr < 2 {
-						wcr = 2
+					wcrf := w / (world.TileSize*0.5)
+					hcrf := h / (world.TileSize*0.5)
+					wcr := int(math.Round(wcrf))
+					hcr := int(math.Round(hcrf))
+					if wcr < 1 {
+						wcr = 1
 					}
-					if hcr < 2 {
-						hcr = 2
+					if hcr < 1 {
+						hcr = 1
 					}
+
 					iw := w - CollisionStep*2.
 					ih := h - CollisionStep*2.
 
@@ -88,7 +91,11 @@ func TileCollisionSystem() {
 						uy := next.Y + h*0.51
 						var x float64
 						if i == 0 {
-							x = next.X - iw*0.5
+							if wcr == 1 {
+								x = next.X
+							} else {
+								x = next.X - iw*0.5
+							}
 						} else if i == wcr-1 {
 							x = next.X + iw*0.5
 						} else {
@@ -185,7 +192,11 @@ func TileCollisionSystem() {
 							rx := next.X + w*0.51
 							var y float64
 							if i == 0 {
-								y = next.Y + ih*0.5
+								if hcr == 1 {
+									y = next.Y
+								} else {
+									y = next.Y + ih*0.5
+								}
 							} else if i == hcr-1 {
 								y = next.Y - ih*0.5
 							} else {
@@ -263,7 +274,7 @@ func TileCollisionSystem() {
 						} else {
 							coll.LeftBound = false
 						}
-						phys.CanClimb = coll.LeftBound || coll.RightBound
+						phys.WallBound = coll.LeftBound || coll.RightBound
 					}
 
 					// corner collision check

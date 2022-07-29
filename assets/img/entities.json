@@ -148,6 +148,42 @@
    "y": 128
   },
   {
+   "key": "bat_daze_air",
+   "anim": true,
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "bat_daze_ground",
+   "anim": true,
+   "x": 64,
+   "y": 128
+  },
+  {
+   "key": "bat_daze_ground",
+   "anim": true,
+   "x": 80,
+   "y": 128
+  },
+  {
+   "key": "evil_bat_fly",
+   "anim": true,
+   "x": 96,
+   "y": 128
+  },
+  {
+   "key": "evil_bat_fly",
+   "anim": true,
+   "x": 112,
+   "y": 128
+  },
+  {
+   "key": "evil_bat_fly",
+   "anim": true,
+   "x": 128,
+   "y": 128
+  },
+  {
    "key": "slug_corner",
    "anim": true,
    "x": 0,
@@ -349,6 +385,34 @@
    "x": 82,
    "y": 48,
    "h": 16,
+   "w": 12
+  },
+  {
+   "key": "throwing_shovel_item",
+   "x": 98,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "throwing_shovel",
+   "x": 115,
+   "y": 51,
+   "h": 10,
+   "w": 10
+  },
+  {
+   "key": "pickaxe",
+   "x": 129,
+   "y": 49,
+   "h": 14,
+   "w": 14
+  },
+  {
+   "key": "detector",
+   "x": 2,
+   "y": 33,
+   "h": 14,
    "w": 12
   },
   {

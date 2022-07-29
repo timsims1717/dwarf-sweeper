@@ -1,6 +1,7 @@
 package timing
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -97,4 +98,16 @@ func (f *Timer) Perc() float64 {
 func (f *Timer) Reset() {
 	f.start = time.Now()
 	f.elapsed = 0.
+}
+
+func MarkTime(mark time.Time, msg string) {
+	var timeStr string
+	sec := time.Since(mark).Seconds()
+	mills := time.Since(mark).Milliseconds()
+	if sec > 1. {
+		timeStr = fmt.Sprintf("%f seconds", sec)
+	} else {
+		timeStr = fmt.Sprintf("%d millis", mills)
+	}
+	fmt.Printf("Time to %s: %s\n", msg, timeStr)
 }

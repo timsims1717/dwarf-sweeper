@@ -24,18 +24,37 @@ import (
 	"math"
 )
 
-func AddObject(tile *cave.Tile, key string, digMe bool) {
+type FlipOpt int
+
+const (
+	Normal = iota
+	Flip
+	Random
+)
+
+func AddObject(tile *cave.Tile, key string, digMe bool, flipOpt FlipOpt) {
 	spr := img.Batchers[constants.TileEntityKey].Sprites[key]
 	hp := &data.SimpleHealth{
 		Immune: data.EnemyImmunity,
 		DigMe:  digMe,
 	}
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)
+	if !digMe {
+		hp.Immune = data.ItemImmunity2
+	}
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	phys := physics.New()
 	trans := transform.New()
 	trans.Pos = tile.Transform.Pos
-	xDiff := (world.TileSize - spr.Frame().H()) * 0.5
-	trans.Pos.X += float64(random.Effects.Intn(int(xDiff))) - xDiff
+	switch flipOpt {
+	case Flip:
+		trans.Flip = true
+	case Random:
+		trans.Flip = random.CaveGen.Intn(2) == 0
+	}
+	xDiff := (world.TileSize - spr.Frame().W()) * 0.5
+	if xDiff > 2. {
+		trans.Pos.X += float64(random.Effects.Intn(int(xDiff))) - xDiff
+	}
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Health, hp).
@@ -67,17 +86,18 @@ func AddChest(tile *cave.Tile) {
 				for i := 0; i < gemCount; i++ {
 					descent.CreateGem(pos)
 				}
+				descent.CreateItemPickUp(pos, "throw_shovel", 1)
 				switch random.CaveGen.Intn(5) {
 				case 0:
-					descent.CreateBombItem(pos)
+					descent.CreateItemPickUp(pos, "bomb_item", 3)
 				case 1:
 					descent.CreateApple(pos)
 				case 2:
-					descent.CreateBeerItem(pos)
+					descent.CreateItemPickUp(pos, "beer", 1)
 				case 3:
-					descent.CreateBubbleItem(pos)
+					descent.CreateItemPickUp(pos, "xray", 1)
 				case 4:
-					descent.CreateXRayItem(pos)
+					descent.CreateItemPickUp(pos, "throw_shovel", 1)
 				}
 				e.AddComponent(myecs.Drawable, img.Batchers[constants.TileEntityKey].Sprites["chest_opened"])
 				e.RemoveComponent(myecs.Interact)

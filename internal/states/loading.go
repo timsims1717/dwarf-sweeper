@@ -31,10 +31,10 @@ func (s *loadingState) Load() {
 }
 
 func (s *loadingState) Update(_ *pixelgl.Window) {
-	if currState == LoadingStateKey {
+	if nextState == LoadingStateKey {
 		SwitchState(MenuStateKey)
 	}
-	s.CurrPerc = States[currState].LoadPrc
+	s.CurrPerc = States[nextState].LoadPrc
 	s.Trans.UIZoom = camera.Cam.GetZoomScale()
 	s.Trans.UIPos = camera.Cam.APos
 	s.Trans.Update()

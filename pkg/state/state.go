@@ -14,12 +14,14 @@ type State interface {
 
 type AbstractState struct {
 	State
-	LoadPrc float64
+	LoadPrc  float64
+	ShowLoad bool
 }
 
-func New(state State) *AbstractState {
+func New(state State, showLoad bool) *AbstractState {
 	aState := &AbstractState{
-		State:   state,
+		State:    state,
+		ShowLoad: showLoad,
 	}
 	state.SetAbstract(aState)
 	return aState

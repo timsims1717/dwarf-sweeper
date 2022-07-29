@@ -30,7 +30,7 @@ func AddTent(tile *cave.Tile, right bool) {
 			},
 		},
 	}
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	phys := physics.New()
 	trans := transform.New()
 	trans.Pos = tile.Transform.Pos
@@ -69,11 +69,12 @@ func AddGemPile(tile *cave.Tile) {
 		Immune: data.EnemyImmunity,
 		DigMe:  true,
 	}
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), true, false)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	phys := physics.New()
 	trans := transform.New()
 	trans.Pos = tile.Transform.Pos
-	xDiff := (world.TileSize - spr.Frame().H()) * 0.5
+	trans.Flip = random.CaveGen.Intn(2) == 0
+	xDiff := (world.TileSize - spr.Frame().W()) * 0.5
 	trans.Pos.X += float64(random.Effects.Intn(int(xDiff))) - xDiff
 	e := myecs.Manager.NewEntity()
 	e.AddComponent(myecs.Transform, trans).
@@ -94,40 +95,4 @@ func AddGemPile(tile *cave.Tile) {
 			}
 			return false
 		}))
-}
-
-func AddSeat(tile *cave.Tile) {
-	AddObject(tile, "seat", false)
-}
-
-func AddArt(tile *cave.Tile) {
-	AddObject(tile, "art", false)
-}
-
-func AddBarrel(tile *cave.Tile) {
-	AddObject(tile, "barrel", false)
-}
-
-func AddBedroll(tile *cave.Tile) {
-	AddObject(tile, "bedroll", false)
-}
-
-func AddRefuse(tile *cave.Tile) {
-	if random.CaveGen.Intn(2) == 0 {
-		AddObject(tile, "refuse_sm", false)
-	} else {
-		AddObject(tile, "refuse_lg", false)
-	}
-}
-
-func AddCookfire(tile *cave.Tile) {
-	AddObject(tile, "cookfire", false)
-}
-
-func AddTools(tile *cave.Tile) {
-	AddObject(tile, "tools", false)
-}
-
-func AddWoodpile(tile *cave.Tile) {
-	AddObject(tile, "woodpile", false)
 }

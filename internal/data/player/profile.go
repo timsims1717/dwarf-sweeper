@@ -1,13 +1,18 @@
 package player
 
 type Profile struct {
-	Gems           int
-	Flags          *Flags
-	Stats          Stats
+	Gems  int
+	Flags Flags
+	Stats Stats
+
 	Quests         []string
 	QuestsShown    []string
 	QuestsComplete []string
-	BiomeExits     map[string]map[string]int
+
+	BiomeExits map[string]map[string]int
+
+	ItemLimits   ItemLimits
+	StartingAttr StartingAttr
 }
 
 type Flags struct {
@@ -42,4 +47,14 @@ func AddStats(s1, s2 Stats) Stats {
 		BombsBlown:       s1.BombsBlown + s2.BombsBlown,
 		BigBombsDisarmed: s1.BigBombsDisarmed + s2.BigBombsDisarmed,
 	}
+}
+
+type StartingAttr struct {
+	MaxHealth int
+}
+
+type ItemLimits struct {
+	Hold map[string]int
+	Uses map[string]int
+	Secs map[string]float64
 }

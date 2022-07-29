@@ -10,35 +10,41 @@ type Physics struct {
 
 	XJustSet    bool
 	YJustSet    bool
-	FrictionOff bool
-	GravityOff  bool
 	RagDollX    bool
 	RagDollY    bool
 	NearGround  bool
 	Grounded    bool
-	CanClimb    bool
 	TopBound    bool
 	BottomBound bool
 	RightBound  bool
 	LeftBound   bool
+	WallBound   bool
 
 	// the "Constants"
-	Gravity     float64
-	Terminal    float64
-	Friction    float64
-	AirFriction float64
-	Bounciness  float64
-	Mass        float64
+	Gravity      float64
+	Terminal     float64
+	Friction     float64
+	AirFriction  float64
+	Bounciness   float64
+	Mass         float64
+	WallFriction float64
+
+	// the "settings"
+
+	FrictionOff     bool
+	GravityOff      bool
+	UseWallFriction bool
 }
 
 func New() *Physics {
 	return &Physics{
-		Gravity:     750.,
-		Terminal:    500.,
-		Friction:    400.,
-		AirFriction: 25.,
-		Bounciness:  0.6,
-		Mass:        1.0,
+		Gravity:      750.,
+		Terminal:     500.,
+		Friction:     400.,
+		WallFriction: 400.,
+		AirFriction:  25.,
+		Bounciness:   0.6,
+		Mass:         1.0,
 	}
 }
 

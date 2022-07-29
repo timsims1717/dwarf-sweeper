@@ -15,6 +15,7 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
+	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/bytearena/ecs"
@@ -69,6 +70,7 @@ func DefaultStats() DwarfStats {
 type Dwarf struct {
 	DwarfStats
 	Player     *player.Player
+	Health     *data.Health
 	Physics    *physics.Physics
 	Transform  *transform.Transform
 	Collider   *data.Collider
@@ -111,28 +113,27 @@ type Dwarf struct {
 	airDig    int
 	digHold   bool
 	flagHold  bool
+	dropTimer *timing.Timer
+	stopDrop  bool
 
-	Health   *data.Health
 	DeadStop bool
-
-	Bubble *Bubble
 }
 
 func NewDwarf(p *player.Player) *Dwarf {
 	tran := transform.New()
 	d := &Dwarf{
 		DwarfStats: DefaultStats(),
-		Physics:    physics.New(),
-		Transform:  tran,
-		Health: &data.Health{
-			Max:        3,
-			Curr:       3,
+		Health:     &data.Health{
+			Max:        profile.CurrentProfile.StartingAttr.MaxHealth,
+			Curr:       profile.CurrentProfile.StartingAttr.MaxHealth,
 			TempInvSec: 3.,
 			DazedTime:  10.,
 			Immune:     data.ShovelImmunity,
 		},
-		Player: p,
-		relative: pixel.V(world.TileSize, 0.),
+		Physics:   physics.New(),
+		Transform: tran,
+		Player:    p,
+		relative:  pixel.V(world.TileSize, 0.),
 	}
 	batcher := img.Batchers[constants.DwarfKey]
 	climbAnim := batcher.GetAnimation("climb")
@@ -214,11 +215,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 			}).
 			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
 				if d.digTile != nil && d.digTile.Solid() && !d.digTile.IsDeco() {
-					if d.digTile.Diggable() {
-						profile.CurrentProfile.Stats.BlocksDug++
-						d.Player.Stats.BlocksDug++
-						d.digTile.Destroy(d.Player, true)
-					}
+					Dig(d.digTile, d.Player)
 					d.digTile = nil
 				} else {
 					sub := d.attackPoint.Sub(d.Transform.Pos)
@@ -266,7 +263,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 						}
 					})).
 				SetChooseFn(func() int {
-					if d.Physics.IsMovingX() || (d.Bubble != nil && d.Bubble.Physics.IsMovingX()) {
+					if d.Physics.IsMovingX() {
 						return 0
 					} else {
 						return 1
@@ -289,16 +286,14 @@ func NewDwarf(p *player.Player) *Dwarf {
 				AddAnimation(reanimator.NewAnimFromSprites("jump", batcher.GetAnimation("jump").S, reanimator.Hold)). // jump
 				AddAnimation(reanimator.NewAnimFromSprite("fall", batcher.GetSprite("fall"), reanimator.Hold)).       // fall
 				SetChooseFn(func() int {
-					if d.Physics.Velocity.Y > 0. || d.jumping || d.toJump || d.jumpEnd ||
-						(d.Bubble != nil && d.Bubble.Physics.Velocity.Y > 0.) {
+					if d.Physics.Velocity.Y > 0. || d.jumping || d.toJump || d.jumpEnd {
 						return 0
 					} else {
 						return 1
 					}
 				})).
 			SetChooseFn(func() int {
-				if (d.Physics.Grounded && !d.jumping && !d.toJump && d.Bubble == nil) ||
-					(d.Bubble != nil && d.Bubble.Physics.Grounded) {
+				if d.Physics.Grounded && !d.jumping && !d.toJump {
 					return 0
 				} else if d.climbing {
 					return 1
@@ -321,11 +316,8 @@ func NewDwarf(p *player.Player) *Dwarf {
 				return 5
 			}
 		}), "idle")
-	d.Collider = &data.Collider{
-		Hitbox:  pixel.R(0., 0., 16., 16.),
-		CanPass: true,
-		Debug:   true,
-	}
+	d.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), data.Player)
+	d.Collider.Debug = true
 	d.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
 		AddComponent(myecs.Physics, d.Physics).
@@ -333,7 +325,8 @@ func NewDwarf(p *player.Player) *Dwarf {
 		AddComponent(myecs.Animation, d.Reanimator).
 		AddComponent(myecs.Drawable, d.Reanimator).
 		AddComponent(myecs.Batch, constants.DwarfKey).
-		AddComponent(myecs.Health, d.Health)
+		AddComponent(myecs.Health, d.Health).
+		AddComponent(myecs.Player, d.Player)
 	return d
 }
 
@@ -349,14 +342,12 @@ func (d *Dwarf) SetStart(pos pixel.Vec) {
 func (d *Dwarf) Update(in *input.Input) {
 	cameraMoveX := false
 	cameraMoveY := false
+	useItem := false
 	d.angleTimer.Update()
-	if d.Physics.Grounded || d.climbing || d.Bubble != nil {
+	if d.Physics.Grounded || d.climbing {
 		d.airDig = 0
 	}
 	if d.Health.Dazed || d.Health.Dead {
-		if d.Bubble != nil {
-			d.Bubble.Pop()
-		}
 		d.tileQueue = []struct {
 			a int
 			t *cave.Tile
@@ -447,26 +438,11 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 		if d.Hovered != nil && d.airDig < d.AirDigs && len(d.tileQueue) < 3 {
 			d.SelectLegal = math.Abs(d.Transform.Pos.X-d.Hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.Hovered.Transform.Pos.Y) < world.TileSize*DigRange
-			facing := pixel.ZV
 			if (in.Get("dig").JustPressed() && !in.DigOnRelease) || (in.Get("dig").JustReleased() && in.DigOnRelease) {
-				if !d.Physics.Grounded && d.airDig < d.AirDigs && d.Bubble == nil {
+				if !d.Physics.Grounded && d.airDig < d.AirDigs {
 					d.airDig++
 				}
-				angle := d.Transform.Pos.Sub(d.Hovered.Transform.Pos).Angle()
-				if angle > math.Pi*(5./8.) || angle < math.Pi*-(5./8.) {
-					facing.X = 1
-				} else if angle < math.Pi*(3./8.) && angle > math.Pi*-(3./8.) {
-					facing.X = -1
-				} else {
-					facing.X = 0
-				}
-				if angle > math.Pi/8. && angle < math.Pi*(7./8.) {
-					facing.Y = -1
-				} else if angle < math.Pi/-8. && angle > math.Pi*-(7./8.) {
-					facing.Y = 1
-				} else {
-					facing.Y = 0
-				}
+				facing := util.Cardinal(d.Transform.Pos, d.Hovered.Transform.Pos)
 				if d.Hovered.Solid() && d.SelectLegal {
 					d.tileQueue = append(d.tileQueue, struct {
 						a int
@@ -489,9 +465,10 @@ func (d *Dwarf) Update(in *input.Input) {
 					})
 				}
 			} else if ((in.Get("flag").JustPressed() && !in.DigOnRelease) || (in.Get("flag").JustReleased() && in.DigOnRelease)) && d.Hovered.Solid() && d.SelectLegal {
-				if !d.Physics.Grounded && d.airDig < d.AirDigs && d.Bubble == nil {
+				if !d.Physics.Grounded && d.airDig < d.AirDigs {
 					d.airDig++
 				}
+				facing := util.Cardinal(d.Transform.Pos, d.Hovered.Transform.Pos)
 				d.tileQueue = append(d.tileQueue, struct {
 					a int
 					t *cave.Tile
@@ -527,7 +504,7 @@ func (d *Dwarf) Update(in *input.Input) {
 			} else if next.a == 1 && next.t.Solid() && digLegal {
 				d.flagging = true
 				d.distFell = 0.
-				d.FlagTile(next.t)
+				FlagTile(d.Player, next.t)
 			} else {
 				var x, y float64
 				if d.facing.Y < 0 {
@@ -571,39 +548,6 @@ func (d *Dwarf) Update(in *input.Input) {
 		} else {
 			if d.digging || d.attacking || d.flagging {
 				d.Physics.CancelMovement()
-			} else if d.Bubble != nil {
-				if in.Get("left").Pressed() && !in.Get("right").Pressed() {
-					d.faceLeft = true
-					d.Bubble.Physics.SetVelX(-BubbleVel, BubbleAcc)
-					if !d.Physics.LeftBound {
-						d.Player.CamVel.X = math.Max(d.Player.CamVel.X-10., -100.)
-						cameraMoveX = true
-					}
-				} else if in.Get("right").Pressed() && !in.Get("left").Pressed() {
-					d.faceLeft = false
-					d.Bubble.Physics.SetVelX(BubbleVel, BubbleAcc)
-					if !d.Physics.RightBound {
-						d.Player.CamVel.X = math.Min(d.Player.CamVel.X+10., 100.)
-						cameraMoveX = true
-					}
-				}
-				if in.Get("up").Pressed() && !in.Get("down").Pressed() {
-					d.Bubble.Physics.SetVelY(BubbleVel, BubbleAcc)
-					if !d.Physics.TopBound {
-						d.Player.CamVel.Y = math.Min(d.Player.CamVel.Y+10., 100.)
-						cameraMoveY = true
-					}
-				} else if in.Get("down").Pressed() && !in.Get("up").Pressed() {
-					d.Bubble.Physics.SetVelY(-BubbleVel, BubbleAcc)
-					if !d.Physics.BottomBound {
-						d.Player.CamVel.Y = math.Max(d.Player.CamVel.Y-10., -100.)
-						cameraMoveY = true
-					}
-				}
-				d.walking = false
-				d.jumping = false
-				d.climbing = false
-				d.distFell = 0.
 			} else {
 				canJump := d.Physics.NearGround || d.Physics.Grounded
 
@@ -657,7 +601,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				} else if d.climbing {
 					if in.Get("jump").JustPressed() {
 						d.climbing = false
-					} else if d.Physics.CanClimb {
+					} else if d.Physics.WallBound {
 						d.distFell = 0.
 						if in.Get("up").Pressed() && !in.Get("down").Pressed() {
 							d.Physics.SetVelY(d.ClimbSpeed, 0.)
@@ -683,7 +627,7 @@ func (d *Dwarf) Update(in *input.Input) {
 					} else {
 						d.climbing = false
 					}
-				} else if d.Physics.CanClimb && !d.toJump && in.Get("up").Pressed() {
+				} else if d.Physics.WallBound && !d.toJump && in.Get("up").Pressed() {
 					d.climbing = true
 					d.walking = false
 					d.jumping = false
@@ -750,13 +694,23 @@ func (d *Dwarf) Update(in *input.Input) {
 			}
 			if in.Get("prev").JustPressed() {
 				in.Get("prev").Consume()
-				d.Player.Inventory.PrevItem()
+				PrevItem(d.Player.Inventory)
 			} else if in.Get("next").JustPressed() {
 				in.Get("next").Consume()
-				d.Player.Inventory.NextItem()
+				NextItem(d.Player.Inventory)
 			} else if in.Get("use").JustPressed() {
 				in.Get("use").Consume()
-				d.Player.Inventory.UseEquipped(d.Transform.Pos)
+				UseEquipped(d.Player, d.Entity, d.Transform.Pos, d.Hovered.Transform.Pos)
+				d.facing = util.Cardinal(d.Transform.Pos, d.Hovered.Transform.Pos)
+				useItem = true
+			} else if in.Get("interact").Pressed() {
+				if in.Get("interact").JustPressed() {
+					d.stopDrop = false
+					d.dropTimer = timing.New(0.25)
+				} else if in.Get("interact").Repeated() && d.dropTimer.UpdateDone() && !d.stopDrop {
+					d.stopDrop = DropEquipped(d.Player.Inventory, d.Transform.Pos)
+					d.dropTimer = timing.New(0.25)
+				}
 			}
 		}
 		d.Collider.Fallthrough = in.Get("down").Pressed() || d.climbing
@@ -768,9 +722,9 @@ func (d *Dwarf) Update(in *input.Input) {
 			d.facing.X = 1
 		}
 		d.facing.Y = 0
-	} else if d.facing.X < 0 && (d.digHold || d.flagHold || d.digging || d.flagging || d.attacking) {
+	} else if d.facing.X < 0 && (useItem || d.digHold || d.flagHold || d.digging || d.flagging || d.attacking) {
 		d.faceLeft = true
-	} else if d.facing.X > 0 && (d.digHold || d.flagHold || d.digging || d.flagging || d.attacking) {
+	} else if d.facing.X > 0 && (useItem || d.digHold || d.flagHold || d.digging || d.flagging || d.attacking) {
 		d.faceLeft = false
 	}
 	if !cameraMoveX {
@@ -806,13 +760,25 @@ func (d *Dwarf) Delete() {
 	myecs.Manager.DisposeEntity(d.Entity)
 }
 
-func (d *Dwarf) FlagTile(tile *cave.Tile) {
+func FlagTile(p *player.Player, tile *cave.Tile) {
 	if tile != nil && tile.Solid() && !tile.Destroyed && tile.Breakable() {
 		if !tile.Flagged {
 			tile.Flagged = true
-			CreateFlag(d.Player, tile)
+			CreateFlag(p, tile)
 		} else {
 			tile.Flagged = false
 		}
 	}
+}
+
+func Dig(tile *cave.Tile, p *player.Player) bool {
+	if tile.Diggable() {
+		if p != nil {
+			profile.CurrentProfile.Stats.BlocksDug++
+			p.Stats.BlocksDug++
+		}
+		tile.Destroy(p, true)
+		return true
+	}
+	return false
 }

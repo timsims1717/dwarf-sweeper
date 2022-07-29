@@ -79,7 +79,7 @@ type AnEntity interface {
 
 type ClearFlag bool
 
-func AddEffect(entity *ecs.Entity, effect interface{}) {
+func AddEffect(entity *ecs.Entity, effect data.Effect) {
 	if entity.HasComponent(VFX) {
 		if vfxC, ok := entity.GetComponentData(VFX); ok {
 			if vfx, ok := vfxC.(*data.VFX); ok {
@@ -87,6 +87,6 @@ func AddEffect(entity *ecs.Entity, effect interface{}) {
 			}
 		}
 	} else {
-		entity.AddComponent(VFX, &data.VFX{Effects: []interface{}{effect}})
+		entity.AddComponent(VFX, &data.VFX{Effects: []data.Effect{effect}})
 	}
 }

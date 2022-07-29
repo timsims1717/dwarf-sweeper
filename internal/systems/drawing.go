@@ -23,7 +23,7 @@ func DrawSystem() {
 		draw := result.Components[myecs.Drawable]
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		bkey, okB := result.Components[myecs.Batch].(string)
-		if okT && okB && tran.Load {
+		if okT && okB && tran.Load && !tran.Hide {
 			if batcher, ok := img.Batchers[bkey]; ok {
 				if sprStr, okSS := draw.(string); okSS {
 					batcher.DrawSpriteColor(sprStr, tran.Mat, tran.Mask)

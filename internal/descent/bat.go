@@ -9,12 +9,15 @@ import (
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
+	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
+	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
+	"time"
 )
 
 const (
@@ -22,29 +25,108 @@ const (
 	batAcc   = 10.
 )
 
+var lastSqueak time.Time
+
 type Bat struct {
 	Transform  *transform.Transform
 	Physics    *physics.Physics
 	Collider   *data.Collider
 	Reanimator *reanimator.Tree
 	Entity     *ecs.Entity
-	created    bool
 	Health     *data.Health
 	faceLeft   bool
 	roosting   bool
+	roosted1   bool
 	roost      *cave.Tile
 	flight     pixel.Vec
+	Evil       bool
 }
 
-func (b *Bat) Update() {
+func CreateBat(c *cave.Cave, pos pixel.Vec) *Bat {
+	b := &Bat{}
+	if random.CaveGen.Intn(100) < util.Min(c.Level - 5, 20) {
+		b.Evil = true
+	}
+	b.Transform = transform.New()
+	b.Transform.Pos = pos
+	tPos := pos
+	tPos.Y += world.TileSize
+	b.roost = c.GetTile(tPos)
+	b.Physics = physics.New()
+	b.Physics.GravityOff = true
+	b.Health = &data.Health{
+		Max:          2,
+		Curr:         2,
+		TempInvTimer: timing.New(0.5),
+		TempInvSec:   0.5,
+		Immune:       data.EnemyImmunity,
+	}
+	b.Reanimator = reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprites("bat_daze_air", img.Batchers[constants.EntityKey].GetAnimation("bat_daze_air").S, reanimator.Hold).
+			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+				PlayBatSqueak()
+			})).
+		AddAnimation(reanimator.NewAnimFromSprites("bat_daze_ground", img.Batchers[constants.EntityKey].GetAnimation("bat_daze_ground").S, reanimator.Hold).
+			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+				PlayBatSqueak()
+			})).
+		AddAnimation(reanimator.NewAnimFromSprites("bat_roost", img.Batchers[constants.EntityKey].GetAnimation("bat_roost").S, reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("bat_fly", img.Batchers[constants.EntityKey].GetAnimation("bat_fly").S, reanimator.Loop).
+			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+				if b.Transform.Load && b.roosted1 {
+					sfx.SoundPlayer.PlaySound("wingflap", 0.)
+				}
+			})).
+		AddAnimation(reanimator.NewAnimFromSprites("evil_bat_fly", img.Batchers[constants.EntityKey].GetAnimation("evil_bat_fly").S, reanimator.Loop).
+			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+				if b.Transform.Load && b.roosted1 {
+					sfx.SoundPlayer.PlaySound("wingflap", 0.)
+				}
+			})).
+		SetChooseFn(func() int {
+			if b.Health.Dazed || b.Health.Dead {
+				if b.Physics.Grounded {
+					return 1
+				} else {
+					return 0
+				}
+			} else if b.roosting {
+				return 2
+			} else if b.Evil {
+				return 4
+			} else {
+				return 3
+			}
+		}), "bat_roost")
+	b.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), data.Critter)
+	b.Collider.Debug = true
+	b.Entity = myecs.Manager.NewEntity().
+		AddComponent(myecs.Transform, b.Transform).
+		AddComponent(myecs.Physics, b.Physics).
+		AddComponent(myecs.Collision, b.Collider).
+		AddComponent(myecs.Health, b.Health).
+		AddComponent(myecs.Update, data.NewFrameFunc(b.Update)).
+		AddComponent(myecs.Animation, b.Reanimator).
+		AddComponent(myecs.Drawable, b.Reanimator).
+		AddComponent(myecs.Batch, constants.EntityKey).
+		AddComponent(myecs.Temp, myecs.ClearFlag(false))
+	return b
+}
+
+func (b *Bat) Update() bool {
 	if !b.Health.Dazed && !b.Health.Dead {
 		b.Physics.GravityOff = true
+		squeak := false
 		if b.roosting {
+			b.roosted1 = true
 			b.flight = pixel.ZV
 			if b.roost == nil || !b.roost.Solid() {
 				b.roosting = false
 			}
 			// todo: disturbances, bombs, etc
+			if random.Effects.Intn(100. * int(1 / timing.DT)) == 0 {
+				squeak = true
+			}
 		}
 		if !b.roosting {
 			if b.flight.X == 0. && b.flight.Y == 0. {
@@ -55,25 +137,23 @@ func (b *Bat) Update() {
 			if b.Physics.RightBound && b.Physics.LeftBound {
 				b.flight.X = 0.
 			} else if b.Physics.RightBound && b.flight.X > 0. {
-				b.flight.X -= batAcc * timing.DT
+				b.flight.X = 0.
 			} else if b.Physics.LeftBound && b.flight.X < 0. {
-				b.flight.X += batAcc * timing.DT
+				b.flight.X = 0.
 			}
 			if b.Physics.BottomBound && b.Physics.TopBound {
 				b.flight.Y = 0.
 			} else if b.Physics.BottomBound && b.flight.Y < 0. {
-				b.flight.Y += batAcc * timing.DT
+				b.flight.Y = 0.
 			} else if b.Physics.TopBound && b.flight.Y > 0. {
-				b.flight.Y -= batAcc * timing.DT
+				b.flight.Y = 0.
 			}
+			b.flight.Y += (random.Effects.Float64() - 0.5) * 2. * timing.DT
+			b.flight.X += (random.Effects.Float64() - 0.5) * 2. * timing.DT
 			b.flight = util.Normalize(b.flight)
 			b.Physics.SetVelX(b.flight.X*batSpeed, batAcc)
 			b.Physics.SetVelY(b.flight.Y*batSpeed, batAcc)
 			b.faceLeft = b.flight.X < 0.
-			// randomize a bit
-			b.flight.X += (random.Effects.Float64() - 0.5) * timing.DT
-			b.flight.Y += (random.Effects.Float64() - 0.5) * timing.DT
-			b.flight = util.Normalize(b.flight)
 			// check for roost
 			tPos := b.Transform.Pos
 			tPos.Y += world.TileSize * 0.51
@@ -85,59 +165,42 @@ func (b *Bat) Update() {
 				b.Transform.Pos.Y = Descent.Cave.GetTile(b.Transform.Pos).Transform.Pos.Y
 				b.Physics.CancelMovement()
 			}
+			if random.Effects.Intn(10. * int(1 / timing.DT)) == 0 {
+				squeak = true
+			}
+			if b.Evil {
+				myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+					SourceID:  b.Transform.ID,
+					Center:    b.Transform.Pos,
+					Radius:    4.,
+					Amount:    1,
+					Dazed:     1.,
+					Knockback: 8.,
+					Type:      data.Enemy,
+				})
+			}
 		}
 		b.Transform.Flip = b.faceLeft
+		if squeak && time.Since(lastSqueak) > 1. && b.Transform.Load {
+			PlayBatSqueak()
+			lastSqueak = time.Now()
+		}
 	} else {
 		b.Physics.GravityOff = false
 		b.roosting = false
 		b.flight = pixel.ZV
 	}
 	if b.Health.Dead {
-		b.Delete()
+		b.Entity.RemoveComponent(myecs.Update)
+		b.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
+			myecs.AddEffect(b.Entity, data.NewBlink(2.))
+			return true
+		}, 2.))
+		b.Entity.AddComponent(myecs.Temp, timing.New(4.))
 	}
+	return false
 }
 
-func (b *Bat) Create(pos pixel.Vec) {
-	b.Transform = transform.New()
-	b.Transform.Pos = pos
-	tPos := pos
-	tPos.Y += world.TileSize
-	b.roost = Descent.Cave.GetTile(tPos)
-	b.Physics = physics.New()
-	b.Physics.GravityOff = true
-	b.Health = &data.Health{
-		Max:          2,
-		Curr:         2,
-		TempInvTimer: timing.New(0.5),
-		TempInvSec:   0.5,
-		Immune:       data.EnemyImmunity,
-	}
-	b.created = true
-	b.Reanimator = reanimator.New(reanimator.NewSwitch().
-		AddAnimation(reanimator.NewAnimFromSprites("bat_fly", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetFrame("bat_fly", 0)}, reanimator.Loop)).
-		AddAnimation(reanimator.NewAnimFromSprites("bat_roost", img.Batchers[constants.EntityKey].GetAnimation("bat_roost").S, reanimator.Hold)).
-		AddAnimation(reanimator.NewAnimFromSprites("bat_fly", img.Batchers[constants.EntityKey].GetAnimation("bat_fly").S, reanimator.Loop)).
-		SetChooseFn(func() int {
-			if b.Health.Dazed {
-				return 0
-			} else if b.roosting {
-				return 1
-			} else {
-				return 2
-			}
-		}), "bat_roost")
-	b.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), true, false)
-	b.Entity = myecs.Manager.NewEntity().
-		AddComponent(myecs.Entity, b).
-		AddComponent(myecs.Transform, b.Transform).
-		AddComponent(myecs.Animation, b.Reanimator).
-		AddComponent(myecs.Drawable, b.Reanimator).
-		AddComponent(myecs.Physics, b.Physics).
-		AddComponent(myecs.Health, b.Health).
-		AddComponent(myecs.Collision, b.Collider).
-		AddComponent(myecs.Batch, constants.EntityKey)
-}
-
-func (b *Bat) Delete() {
-	myecs.Manager.DisposeEntity(b.Entity)
+func PlayBatSqueak() {
+	sfx.SoundPlayer.PlaySound(fmt.Sprintf("squeak%d", random.Effects.Intn(5)+1), 0.)
 }

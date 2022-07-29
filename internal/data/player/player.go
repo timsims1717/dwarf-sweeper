@@ -27,7 +27,7 @@ type Player struct {
 
 func New(code string, in *input.Input) *Player {
 	p := &Player{
-		Code:      code,
+		Code:   code,
 		Attr:      DefaultAttr(),
 		Canvas:    pixelgl.NewCanvas(pixel.R(0., 0., 10., 10.)),
 		Input:     in,

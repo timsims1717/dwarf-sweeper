@@ -9,7 +9,7 @@ import (
 
 var (
 	DefaultProfile = &player.Profile{
-		Flags:          &player.Flags{},
+		Flags:      player.Flags{},
 		BiomeExits: map[string]map[string]int{
 			"mine": {
 				"moss": 5,
@@ -22,6 +22,23 @@ var (
 				"dark": 1,
 			},
 			"dark": {},
+		},
+		ItemLimits: player.ItemLimits{
+			Hold: map[string]int{
+				"bomb_item": 8,
+				"beer": 3,
+				"throw_shovel": 5,
+			},
+			Uses: map[string]int{
+				"pickaxe": 8,
+				"detector": 4,
+			},
+			Secs: map[string]float64{
+				"xray": 16.,
+			},
+		},
+		StartingAttr: player.StartingAttr{
+			MaxHealth: 3,
 		},
 	}
 	CurrentProfile *player.Profile

@@ -4,6 +4,7 @@ import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
@@ -190,14 +191,21 @@ func (hud *HUD) Draw(target pixel.Target) {
 	inv := hud.Dwarf.Player.Inventory
 	if len(inv.Items) > 0 && inv.Index < len(inv.Items) {
 		item := inv.Items[inv.Index]
-		item.Sprite.Draw(target, hud.ItemTrans.Mat)
 		if item.Timer != nil {
 			i := 1
 			for float64(i)/16. < item.Timer.Perc() {
 				i++
 			}
 			img.Batchers[constants.MenuSprites].Sprites[fmt.Sprintf("item_timer_%d", i)].Draw(target, hud.ItemTrans.Mat)
+		} else if uses, ok := profile.CurrentProfile.ItemLimits.Uses[item.Key]; ok && item.Uses > 0 && uses - item.Uses > 0 {
+			perc := float64(item.Uses) / float64(uses)
+			i := 1
+			for float64(i)/16. < perc {
+				i++
+			}
+			img.Batchers[constants.MenuSprites].Sprites[fmt.Sprintf("item_timer_%d", i)].Draw(target, hud.ItemTrans.Mat)
 		}
+		item.Sprite.Draw(target, hud.ItemTrans.Mat)
 	}
 	hud.ItemText.Update()
 	hud.ItemText.Draw(target)
