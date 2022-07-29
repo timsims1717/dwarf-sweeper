@@ -1,5 +1,24 @@
 # DwarfSweeper Changelog
 
+## 0.4.20220729
+
+### Features
+
+* Improved Collision
+* Massively improved Cave generation time
+* Added ability to Drop Items (hold Interact button)
+* Added Slugs and Bats back in (w/improvements!)
+* Added Evil Bats
+* Added Throwing Shovel item
+* Added Pickaxe item
+* Added Metal Detector item
+
+### Bugfixes
+
+* Blinking now works
+* Fixed particles entering tiles and rapidly shooting off the top of the screen
+* Score screen now correctly displays the cave behind it
+
 ## 0.4.20220401
 
 ### Features

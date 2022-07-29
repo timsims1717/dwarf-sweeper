@@ -15,7 +15,7 @@ Space to Jump
 
 Use the mouse to select blocks to dig (left click) or mark (right click)
 
-Q to pick up items and interact
+Q to pick up and drop items and interact
 
 E to use equipped item
 
