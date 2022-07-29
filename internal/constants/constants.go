@@ -9,7 +9,7 @@ const (
 	Title   = "DwarfSweeper"
 	Release = 0
 	Version = 4
-	Build   = 20220405
+	Build   = 20220729
 	BaseW   = 320.
 	BaseH   = 240.
 
