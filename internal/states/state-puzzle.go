@@ -32,7 +32,7 @@ func (s *puzzleState) Load(done chan struct{}) {
 }
 
 func (s *puzzleState) Update(win *pixelgl.Window) {
-	data.GameInputP1.Update(win)
+	data.GameInputP1.Update(win, camera.Cam.Mat)
 	if s.minePuzzle != nil {
 		reanimator.Update()
 		s.minePuzzle.Update(data.GameInputP1)

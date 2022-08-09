@@ -16,7 +16,6 @@ import (
 	"dwarf-sweeper/internal/systems"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/state"
@@ -26,6 +25,7 @@ import (
 	"fmt"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	pxginput "github.com/timsims1717/pixel-go-input"
 	"image/color"
 )
 
@@ -75,7 +75,7 @@ func (s *descentState) Load(done chan struct{}) {
 
 func (s *descentState) Update(win *pixelgl.Window) {
 	for _, d := range descent.Descent.Dwarves {
-		d.Player.Input.Update(win)
+		d.Player.Input.Update(win, camera.Cam.Mat)
 	}
 	reanimator.Update()
 	UpdateMenus(win)
@@ -283,7 +283,7 @@ func (s *descentState) SetupPlayers() {
 	}
 	hud.HUDs = []*hud.HUD{}
 	for i := 0; i < s.numPlayers; i++ {
-		var in *input.Input
+		var in *pxginput.Input
 		var code string
 		if i == 1 {
 			in = data.GameInputP2

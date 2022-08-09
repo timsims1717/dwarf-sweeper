@@ -10,7 +10,6 @@ import (
 	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
@@ -20,6 +19,7 @@ import (
 	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
+	pxginput "github.com/timsims1717/pixel-go-input"
 	"math"
 )
 
@@ -339,7 +339,7 @@ func (d *Dwarf) SetStart(pos pixel.Vec) {
 	d.isRelative = true
 }
 
-func (d *Dwarf) Update(in *input.Input) {
+func (d *Dwarf) Update(in *pxginput.Input) {
 	cameraMoveX := false
 	cameraMoveY := false
 	useItem := false
@@ -374,8 +374,8 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 	}
 	if !d.Health.Dazed && !d.Health.Dead && in != nil {
-		if in.AimDedicated {
-			if in.Mode != input.KeyboardMouse &&
+		if in.OptFlags["AimDedicated"] {
+			if in.Mode != pxginput.KeyboardMouse &&
 				(in.Axes["targetX"].F > 0. || in.Axes["targetX"].F < 0. ||
 					in.Axes["targetY"].F > 0. || in.Axes["targetY"].F < 0.) {
 				x := in.Axes["targetX"].R
@@ -401,7 +401,7 @@ func (d *Dwarf) Update(in *input.Input) {
 				}
 				d.relative = pixel.V(x, y)
 				d.isRelative = true
-			} else if in.Mode != input.Gamepad {
+			} else if in.Mode != pxginput.Gamepad {
 				d.Hovered = Descent.GetCave().GetTile(d.Player.CamPos.Sub(d.Player.CanvasPos.Sub(in.World)))
 				d.facingTimer = nil
 				d.isRelative = false
@@ -438,7 +438,7 @@ func (d *Dwarf) Update(in *input.Input) {
 		}
 		if d.Hovered != nil && d.airDig < d.AirDigs && len(d.tileQueue) < 3 {
 			d.SelectLegal = math.Abs(d.Transform.Pos.X-d.Hovered.Transform.Pos.X) < world.TileSize*DigRange && math.Abs(d.Transform.Pos.Y-d.Hovered.Transform.Pos.Y) < world.TileSize*DigRange
-			if (in.Get("dig").JustPressed() && !in.DigOnRelease) || (in.Get("dig").JustReleased() && in.DigOnRelease) {
+			if (in.Get("dig").JustPressed() && !in.OptFlags["DigOnRelease"]) || (in.Get("dig").JustReleased() && in.OptFlags["DigOnRelease"]) {
 				if !d.Physics.Grounded && d.airDig < d.AirDigs {
 					d.airDig++
 				}
@@ -464,7 +464,7 @@ func (d *Dwarf) Update(in *input.Input) {
 						f: facing,
 					})
 				}
-			} else if ((in.Get("flag").JustPressed() && !in.DigOnRelease) || (in.Get("flag").JustReleased() && in.DigOnRelease)) && d.Hovered.Solid() && d.SelectLegal {
+			} else if ((in.Get("flag").JustPressed() && !in.OptFlags["DigOnRelease"]) || (in.Get("flag").JustReleased() && in.OptFlags["DigOnRelease"])) && d.Hovered.Solid() && d.SelectLegal {
 				if !d.Physics.Grounded && d.airDig < d.AirDigs {
 					d.airDig++
 				}
@@ -530,8 +530,8 @@ func (d *Dwarf) Update(in *input.Input) {
 				d.digTile = nil
 			}
 		}
-		d.digHold = in.DigOnRelease && in.Get("dig").Pressed() && !d.flagHold
-		d.flagHold = in.DigOnRelease && in.Get("flag").Pressed() && !d.digHold
+		d.digHold = in.OptFlags["DigOnRelease"] && in.Get("dig").Pressed() && !d.flagHold
+		d.flagHold = in.OptFlags["DigOnRelease"] && in.Get("flag").Pressed() && !d.digHold
 		if d.digHold || d.flagHold {
 			if d.climbing {
 				d.Physics.CancelMovement()

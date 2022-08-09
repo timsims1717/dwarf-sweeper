@@ -8,7 +8,6 @@ import (
 	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
@@ -18,6 +17,7 @@ import (
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	pxginput "github.com/timsims1717/pixel-go-input"
 	"math"
 )
 
@@ -139,7 +139,7 @@ func (mp *MinePuzzle) Close() {
 	mp.Box.Close()
 }
 
-func (mp *MinePuzzle) Update(in *input.Input) {
+func (mp *MinePuzzle) Update(in *pxginput.Input) {
 	mp.Box.Update()
 	if mp.Box.IsOpen() && !mp.start {
 		if mp.Player != nil && !profile.CurrentProfile.Flags.MinePuzzSeen {

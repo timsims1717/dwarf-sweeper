@@ -7,11 +7,11 @@ import (
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/state"
 	"dwarf-sweeper/pkg/timing"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/timsims1717/pixel-go-input"
 )
 
 const (
@@ -48,27 +48,27 @@ var (
 
 	debugPause     = false
 	menuStack      []*menus.DwarfMenu
-	debugInput     = &input.Input{
-		Buttons: map[string]*input.ButtonSet{
-			"debugConsole": input.NewJoyless(pixelgl.KeyGraveAccent),
-			"debug":        input.NewJoyless(pixelgl.KeyF3),
-			"debugText":    input.NewJoyless(pixelgl.KeyF4),
-			"debugMenu":    input.NewJoyless(pixelgl.KeyF7),
-			"debugTest":    input.NewJoyless(pixelgl.KeyF8),
-			"debugPause":   input.NewJoyless(pixelgl.KeyF9),
-			"debugResume":  input.NewJoyless(pixelgl.KeyF10),
-			"debugInv":     input.NewJoyless(pixelgl.KeyF11),
-			"debugSP":      input.NewJoyless(pixelgl.KeyKPAdd),
-			"debugSM":      input.NewJoyless(pixelgl.KeyKPSubtract),
-			"freeCamUp":    input.NewJoyless(pixelgl.KeyP),
-			"freeCamRight": input.NewJoyless(pixelgl.KeyApostrophe),
-			"freeCamDown":  input.NewJoyless(pixelgl.KeySemicolon),
-			"freeCamLeft":  input.NewJoyless(pixelgl.KeyL),
+	debugInput     = &pxginput.Input{
+		Buttons: map[string]*pxginput.ButtonSet{
+			"debugConsole": pxginput.NewJoyless(pixelgl.KeyGraveAccent),
+			"debug":        pxginput.NewJoyless(pixelgl.KeyF3),
+			"debugText":    pxginput.NewJoyless(pixelgl.KeyF4),
+			"debugMenu":    pxginput.NewJoyless(pixelgl.KeyF7),
+			"debugTest":    pxginput.NewJoyless(pixelgl.KeyF8),
+			"debugPause":   pxginput.NewJoyless(pixelgl.KeyF9),
+			"debugResume":  pxginput.NewJoyless(pixelgl.KeyF10),
+			"debugInv":     pxginput.NewJoyless(pixelgl.KeyF11),
+			"debugSP":      pxginput.NewJoyless(pixelgl.KeyKPAdd),
+			"debugSM":      pxginput.NewJoyless(pixelgl.KeyKPSubtract),
+			"freeCamUp":    pxginput.NewJoyless(pixelgl.KeyP),
+			"freeCamRight": pxginput.NewJoyless(pixelgl.KeyApostrophe),
+			"freeCamDown":  pxginput.NewJoyless(pixelgl.KeySemicolon),
+			"freeCamLeft":  pxginput.NewJoyless(pixelgl.KeyL),
 		},
-		Mode: input.KeyboardMouse,
+		Mode: pxginput.KeyboardMouse,
 	}
-	menuInput = &input.Input{
-		Buttons: map[string]*input.ButtonSet{
+	menuInput = &pxginput.Input{
+		Buttons: map[string]*pxginput.ButtonSet{
 			"menuUp": {
 				Keys:    []pixelgl.Button{pixelgl.KeyW, pixelgl.KeyUp, pixelgl.KeyKP8},
 				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonDpadUp},
@@ -89,24 +89,24 @@ var (
 				Keys:    []pixelgl.Button{pixelgl.KeySpace, pixelgl.KeyEnter, pixelgl.KeyKPEnter},
 				Buttons: []pixelgl.GamepadButton{pixelgl.ButtonA},
 			},
-			"menuBack":   input.New(pixelgl.KeyEscape, pixelgl.ButtonB),
-			"inputClear": input.New(pixelgl.KeyF1, pixelgl.ButtonBack),
-			"click":      input.NewJoyless(pixelgl.MouseButtonLeft),
+			"menuBack":   pxginput.New(pixelgl.KeyEscape, pixelgl.ButtonB),
+			"inputClear": pxginput.New(pixelgl.KeyF1, pixelgl.ButtonBack),
+			"click":      pxginput.NewJoyless(pixelgl.MouseButtonLeft),
 			"scrollUp": {
 				Scroll: 1,
 			},
 			"scrollDown": {
 				Scroll: -1,
 			},
-			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+			"pause": pxginput.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
-		Mode: input.Any,
+		Mode: pxginput.Any,
 	}
 )
 
 func Update(win *pixelgl.Window) {
-	debugInput.Update(win)
-	menuInput.Update(win)
+	debugInput.Update(win, camera.Cam.Mat)
+	menuInput.Update(win, camera.Cam.Mat)
 	updateState()
 	if loading {
 		select{

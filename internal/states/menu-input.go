@@ -5,10 +5,10 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
+	pxginput "github.com/timsims1717/pixel-go-input"
 )
 
 func InitInputMenu(win *pixelgl.Window) {
@@ -61,10 +61,10 @@ func InitInputMenu(win *pixelgl.Window) {
 	minePuzzSafeR := InputMenu.AddItem("mine_puzz_safe_r", "", true)
 	back := InputMenu.AddItem("back", "Back", false)
 
-	aimModeUpdate := func(in *input.Input) {
-		if in.AimDedicated {
+	aimModeUpdate := func(in *pxginput.Input) {
+		if in.OptFlags["AimDedicated"] {
 			aimModeR.SetText("Dedicated")
-			if in.Mode == input.KeyboardMouse {
+			if in.Mode == pxginput.KeyboardMouse {
 				aimMode.Hint = "Use the mouse to aim for digging, flagging, and attacking."
 			} else {
 				aimMode.Hint = "Use the right stick to aim for digging, flagging, and attacking."
@@ -75,8 +75,8 @@ func InitInputMenu(win *pixelgl.Window) {
 		}
 	}
 	aimModeUpdate(data.CurrInput)
-	deviceUpdate := func(in *input.Input) {
-		km := in.Mode == input.KeyboardMouse
+	deviceUpdate := func(in *pxginput.Input) {
+		km := in.Mode == pxginput.KeyboardMouse
 		if km {
 			device.Hint = ""
 			deviceR.SetText("KB&Mouse")
@@ -91,8 +91,8 @@ func InitInputMenu(win *pixelgl.Window) {
 		deadzoneR.Ignore = km
 	}
 	deviceUpdate(data.CurrInput)
-	digOnUpdate := func(in *input.Input) {
-		if in.DigOnRelease {
+	digOnUpdate := func(in *pxginput.Input) {
+		if in.OptFlags["DigOnRelease"] {
 			digOnR.SetText("On Release")
 			digOn.Hint = "Digging, Flagging, and Attacking happen when you release the button."
 		} else {
@@ -103,28 +103,28 @@ func InitInputMenu(win *pixelgl.Window) {
 	digOnUpdate(data.CurrInput)
 
 	inputTitle.NoHover = true
-	deviceSwitch := func(in *input.Input, prev bool) {
-		km := in.Mode == input.KeyboardMouse
+	deviceSwitch := func(in *pxginput.Input, prev bool) {
+		km := in.Mode == pxginput.KeyboardMouse
 		var js int
 		if prev {
 			if km {
-				js = input.PrevGamepad(win, -1)
+				js = pxginput.PrevGamepad(win, -1)
 			} else {
-				js = input.PrevGamepad(win, int(in.Joystick))
+				js = pxginput.PrevGamepad(win, int(in.Joystick))
 			}
 		} else {
 			if km {
-				js = input.NextGamepad(win, -1)
+				js = pxginput.NextGamepad(win, -1)
 			} else {
-				js = input.NextGamepad(win, int(in.Joystick))
+				js = pxginput.NextGamepad(win, int(in.Joystick))
 			}
 		}
 		if js != -1 {
 			in.Joystick = pixelgl.Joystick(js)
-			in.Mode = input.Gamepad
+			in.Mode = pxginput.Gamepad
 		} else {
 			in.Joystick = pixelgl.JoystickLast
-			in.Mode = input.KeyboardMouse
+			in.Mode = pxginput.KeyboardMouse
 		}
 		UpdateKeybindings(in)
 		sfx.SoundPlayer.PlaySound("click", 2.0)
@@ -142,7 +142,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	device.SetLeftFn(lfn1)
 	deviceR.NoHover = true
 	rfn2 := func() {
-		data.CurrInput.AimDedicated = !data.CurrInput.AimDedicated
+		data.CurrInput.OptFlags["AimDedicated"] = !data.CurrInput.OptFlags["AimDedicated"]
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		aimModeUpdate(data.CurrInput)
 	}
@@ -151,7 +151,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	aimMode.SetLeftFn(rfn2)
 	aimModeR.NoHover = true
 	fn3 := func() {
-		data.CurrInput.DigOnRelease = !data.CurrInput.DigOnRelease
+		data.CurrInput.OptFlags["DigOnRelease"] = !data.CurrInput.OptFlags["DigOnRelease"]
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		digOnUpdate(data.CurrInput)
 	}
@@ -241,7 +241,7 @@ func InitInputMenu(win *pixelgl.Window) {
 	minePuzzSafe.SetClickFn(keyFn(minePuzzSafe))
 	minePuzzSafeR.NoHover = true
 
-	setProfile := func(in *input.Input) {
+	setProfile := func(in *pxginput.Input) {
 		data.CurrInput = in
 		p := "?"
 		switch data.CurrInput.Key {

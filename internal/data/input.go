@@ -1,14 +1,14 @@
 package data
 
 import (
-	"dwarf-sweeper/pkg/input"
 	"github.com/faiface/pixel/pixelgl"
+	pxginput "github.com/timsims1717/pixel-go-input"
 )
 
 var (
-	GameInputP1 = &input.Input{
+	GameInputP1 = &pxginput.Input{
 		Key:  "p1",
-		Axes: map[string]*input.AxisSet{
+		Axes: map[string]*pxginput.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
 			},
@@ -16,13 +16,13 @@ var (
 				A: pixelgl.AxisRightY,
 			},
 		},
-		Buttons: map[string]*input.ButtonSet{
-			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+		Buttons: map[string]*pxginput.ButtonSet{
+			"pause": pxginput.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
 	}
-	GameInputP2 = &input.Input{
+	GameInputP2 = &pxginput.Input{
 		Key:  "p2",
-		Axes: map[string]*input.AxisSet{
+		Axes: map[string]*pxginput.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
 			},
@@ -30,13 +30,13 @@ var (
 				A: pixelgl.AxisRightY,
 			},
 		},
-		Buttons: map[string]*input.ButtonSet{
-			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+		Buttons: map[string]*pxginput.ButtonSet{
+			"pause": pxginput.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
 	}
-	GameInputP3 = &input.Input{
+	GameInputP3 = &pxginput.Input{
 		Key:  "p3",
-		Axes: map[string]*input.AxisSet{
+		Axes: map[string]*pxginput.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
 			},
@@ -44,13 +44,13 @@ var (
 				A: pixelgl.AxisRightY,
 			},
 		},
-		Buttons: map[string]*input.ButtonSet{
-			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+		Buttons: map[string]*pxginput.ButtonSet{
+			"pause": pxginput.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
 	}
-	GameInputP4 = &input.Input{
+	GameInputP4 = &pxginput.Input{
 		Key:  "p4",
-		Axes: map[string]*input.AxisSet{
+		Axes: map[string]*pxginput.AxisSet{
 			"targetX": {
 				A: pixelgl.AxisRightX,
 			},
@@ -58,8 +58,8 @@ var (
 				A: pixelgl.AxisRightY,
 			},
 		},
-		Buttons: map[string]*input.ButtonSet{
-			"pause": input.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
+		Buttons: map[string]*pxginput.ButtonSet{
+			"pause": pxginput.New(pixelgl.KeyEscape, pixelgl.ButtonStart),
 		},
 	}
 	CurrInput = GameInputP1

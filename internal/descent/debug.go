@@ -2,11 +2,11 @@ package descent
 
 import (
 	"dwarf-sweeper/internal/debug"
-	"dwarf-sweeper/pkg/input"
 	"fmt"
+	pxginput "github.com/timsims1717/pixel-go-input"
 )
 
-func Debug(in *input.Input) {
+func Debug(in *pxginput.Input) {
 	d := Descent.GetPlayers()[0]
 	if debug.Text {
 		debug.AddText(fmt.Sprintf("world coords: (%d,%d)", int(in.World.X), int(in.World.Y)))

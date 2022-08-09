@@ -5,13 +5,13 @@ import (
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
 	"fmt"
 	"github.com/faiface/pixel"
+	pxginput "github.com/timsims1717/pixel-go-input"
 	"math"
 )
 
@@ -50,7 +50,7 @@ type DwarfMenu struct {
 	backFn   func()
 	openFn   func()
 	closeFn  func()
-	updateFn func(*input.Input)
+	updateFn func(*pxginput.Input)
 
 	ArrowT *transform.Transform
 }
@@ -151,7 +151,7 @@ func (m *DwarfMenu) CloseInstant() {
 	}
 }
 
-func (m *DwarfMenu) Update(in *input.Input) {
+func (m *DwarfMenu) Update(in *pxginput.Input) {
 	if m.Box.IsOpen() && in != nil {
 		m.UpdateView(in)
 	}
@@ -163,7 +163,7 @@ func (m *DwarfMenu) Update(in *input.Input) {
 	}
 }
 
-func (m *DwarfMenu) UpdateView(in *input.Input) {
+func (m *DwarfMenu) UpdateView(in *pxginput.Input) {
 	if in.Get("scrollUp").JustPressed() {
 		m.menuUp()
 	}
@@ -311,7 +311,7 @@ func (m *DwarfMenu) UpdateTransforms() {
 	}
 }
 
-func (m *DwarfMenu) UpdateItems(in *input.Input) {
+func (m *DwarfMenu) UpdateItems(in *pxginput.Input) {
 	if in.Get("menuBack").JustPressed() {
 		m.Back()
 		in.Get("menuBack").Consume()
@@ -405,7 +405,7 @@ func (m *DwarfMenu) UnhoverAll() {
 	m.Hovered = -1
 }
 
-func (m *DwarfMenu) GetNextHover(dir, curr int, in *input.Input) {
+func (m *DwarfMenu) GetNextHover(dir, curr int, in *pxginput.Input) {
 	if curr == -1 {
 		m.setHover(-1)
 	}
@@ -420,7 +420,7 @@ func (m *DwarfMenu) GetNextHover(dir, curr int, in *input.Input) {
 	}
 }
 
-func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *input.Input) {
+func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *pxginput.Input) {
 	this := m.Items[curr]
 	nextI := -1
 	if dir == 2 && !this.Right && curr < len(m.Items)-1 {
@@ -441,7 +441,7 @@ func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *input.Input) {
 	}
 }
 
-func (m *DwarfMenu) GetNextHoverVert(dir, curr int, right bool, in *input.Input) {
+func (m *DwarfMenu) GetNextHoverVert(dir, curr int, right bool, in *pxginput.Input) {
 	nextI := curr
 	if dir == 0 {
 		nextI--

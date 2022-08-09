@@ -1,9 +1,9 @@
 package player
 
 import (
-	"dwarf-sweeper/pkg/input"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	pxginput "github.com/timsims1717/pixel-go-input"
 	"strings"
 )
 
@@ -18,14 +18,14 @@ type Player struct {
 	RelX      float64
 	CamTar    pixel.Vec
 	CamVel    pixel.Vec
-	Input     *input.Input
 	Inventory *Inventory
 	Puzzle    Puzzle
 	Messages  []*RawMessage
 	Message   *Message
+	Input     *pxginput.Input
 }
 
-func New(code string, in *input.Input) *Player {
+func New(code string, in *pxginput.Input) *Player {
 	p := &Player{
 		Code:   code,
 		Attr:      DefaultAttr(),

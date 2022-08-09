@@ -3,8 +3,8 @@ package states
 import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menus"
-	"dwarf-sweeper/pkg/input"
 	"github.com/faiface/pixel/pixelgl"
+	pxginput "github.com/timsims1717/pixel-go-input"
 )
 
 var (
@@ -66,11 +66,11 @@ func UpdateMenus(win *pixelgl.Window) {
 				}
 			} else if me.Key == "keybinding" && me.IsOpen() {
 				if menuInput.Get("inputClear").JustPressed() {
-					input.ClearInput(data.CurrInput, KeyString)
+					pxginput.ClearInput(data.CurrInput, KeyString)
 					menuInput.Get("inputClear").Consume()
 					me.Close()
 				} else {
-					if input.CheckAssign(win, data.CurrInput, KeyString) {
+					if pxginput.CheckAssign(win, data.CurrInput, KeyString) {
 						data.CurrInput.Buttons[KeyString].Consume()
 						me.Close()
 					}

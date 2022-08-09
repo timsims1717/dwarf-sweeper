@@ -1,9 +1,9 @@
 package player
 
 import (
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/faiface/pixel"
+	pxginput "github.com/timsims1717/pixel-go-input"
 )
 
 type Puzzle interface {
@@ -12,7 +12,7 @@ type Puzzle interface {
 	IsClosed() bool
 	Open(*Player, string)
 	Close()
-	Update(*input.Input)
+	Update(*pxginput.Input)
 	Draw(pixel.Target)
 	Solved() bool
 	Failed() bool

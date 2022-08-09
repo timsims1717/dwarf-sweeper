@@ -2,9 +2,9 @@ package config
 
 import (
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/pkg/input"
 	"fmt"
 	"github.com/faiface/pixel/pixelgl"
+	pxginput "github.com/timsims1717/pixel-go-input"
 )
 
 var (
@@ -14,43 +14,43 @@ var (
 		DigOnRelease: false,
 		Deadzone:     0.25,
 		LeftStick:    true,
-		Left:         input.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
-		Right:        input.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
-		Up:           input.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
-		Down:         input.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
-		Jump:         input.New(pixelgl.KeySpace, pixelgl.ButtonA),
-		Dig: &input.ButtonSet{
+		Left:         pxginput.New(pixelgl.KeyA, pixelgl.ButtonDpadLeft),
+		Right:        pxginput.New(pixelgl.KeyD, pixelgl.ButtonDpadRight),
+		Up:           pxginput.New(pixelgl.KeyW, pixelgl.ButtonDpadUp),
+		Down:         pxginput.New(pixelgl.KeyS, pixelgl.ButtonDpadDown),
+		Jump:         pxginput.New(pixelgl.KeySpace, pixelgl.ButtonA),
+		Dig: &pxginput.ButtonSet{
 			Keys:    []pixelgl.Button{pixelgl.MouseButtonLeft},
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonX},
 			Axis:    pixelgl.AxisRightTrigger,
 			AxisV:   1,
 		},
-		Flag: &input.ButtonSet{
+		Flag: &pxginput.ButtonSet{
 			Keys:  []pixelgl.Button{pixelgl.MouseButtonRight},
 			Axis:  pixelgl.AxisLeftTrigger,
 			AxisV: 1,
 		},
-		Use:      input.New(pixelgl.KeyE, pixelgl.ButtonB),
-		Interact: input.New(pixelgl.KeyQ, pixelgl.ButtonY),
-		Prev: &input.ButtonSet{
+		Use:      pxginput.New(pixelgl.KeyE, pixelgl.ButtonB),
+		Interact: pxginput.New(pixelgl.KeyQ, pixelgl.ButtonY),
+		Prev: &pxginput.ButtonSet{
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonLeftBumper},
 			Scroll:  -1,
 		},
-		Next: &input.ButtonSet{
+		Next: &pxginput.ButtonSet{
 			Buttons: []pixelgl.GamepadButton{pixelgl.ButtonRightBumper},
 			Scroll:  1,
 		},
-		PuzzLeave:    input.New(pixelgl.KeyE, pixelgl.ButtonB),
-		PuzzHelp:     input.New(pixelgl.KeyQ, pixelgl.ButtonY),
-		MinePuzzBomb: input.New(pixelgl.MouseButtonRight, pixelgl.ButtonA),
-		MinePuzzSafe: input.New(pixelgl.MouseButtonLeft, pixelgl.ButtonX),
+		PuzzLeave:    pxginput.New(pixelgl.KeyE, pixelgl.ButtonB),
+		PuzzHelp:     pxginput.New(pixelgl.KeyQ, pixelgl.ButtonY),
+		MinePuzzBomb: pxginput.New(pixelgl.MouseButtonRight, pixelgl.ButtonA),
+		MinePuzzSafe: pxginput.New(pixelgl.MouseButtonLeft, pixelgl.ButtonX),
 	}
 )
 
 //goland:noinspection GoNilness
 func loadInput(conf *config) {
 	for i := 0; i < 4; i++ {
-		var in *input.Input
+		var in *pxginput.Input
 		var cf inputs
 		switch i {
 		case 0:
@@ -67,13 +67,14 @@ func loadInput(conf *config) {
 			cf = conf.InputP4
 		}
 		if cf.Gamepad < 0 {
-			in.Mode = input.KeyboardMouse
+			in.Mode = pxginput.KeyboardMouse
 		} else {
-			in.Mode = input.Gamepad
+			in.Mode = pxginput.Gamepad
 			in.Joystick = pixelgl.Joystick(cf.Gamepad)
 		}
-		in.AimDedicated = cf.AimDedicated
-		in.DigOnRelease = cf.DigOnRelease
+		in.OptFlags = make(map[string]bool)
+		in.OptFlags["AimDedicated"] = cf.AimDedicated
+		in.OptFlags["DigOnRelease"] = cf.DigOnRelease
 		in.StickD = cf.LeftStick
 		in.Deadzone = cf.Deadzone
 		if cf.Left != nil {
@@ -158,7 +159,7 @@ func loadInput(conf *config) {
 //goland:noinspection GoNilness
 func saveInput(conf *config) {
 	for i := 0; i < 4; i++ {
-		var in *input.Input
+		var in *pxginput.Input
 		var cf inputs
 		switch i {
 		case 0:
@@ -171,13 +172,13 @@ func saveInput(conf *config) {
 			in = data.GameInputP4
 		}
 
-		if in.Mode == input.KeyboardMouse {
+		if in.Mode == pxginput.KeyboardMouse {
 			cf.Gamepad = -1
 		} else {
 			cf.Gamepad = int(in.Joystick)
 		}
-		cf.AimDedicated = in.AimDedicated
-		cf.DigOnRelease = in.DigOnRelease
+		cf.AimDedicated = in.OptFlags["AimDedicated"]
+		cf.DigOnRelease = in.OptFlags["DigOnRelease"]
 		cf.LeftStick = in.StickD
 		cf.Deadzone = in.Deadzone
 		cf.Left = in.Buttons["left"]

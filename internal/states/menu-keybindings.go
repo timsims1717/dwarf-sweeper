@@ -6,10 +6,10 @@ import (
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
-	"dwarf-sweeper/pkg/input"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/typeface"
 	"fmt"
+	pxginput "github.com/timsims1717/pixel-go-input"
 	"strings"
 )
 
@@ -33,7 +33,7 @@ func OpenKeybindingMenu(name, key string) {
 	sfx.SoundPlayer.PlaySound("click", 2.0)
 }
 
-func UpdateKeybindings(in *input.Input) {
+func UpdateKeybindings(in *pxginput.Input) {
 	UpdateKeybinding("left", in)
 	UpdateKeybinding("right", in)
 	UpdateKeybinding("up", in)
@@ -51,12 +51,12 @@ func UpdateKeybindings(in *input.Input) {
 	UpdateKeybinding("mine_puzz_safe", in)
 }
 
-func UpdateKeybinding(key string, in *input.Input) {
+func UpdateKeybinding(key string, in *pxginput.Input) {
 	r := InputMenu.ItemMap[fmt.Sprintf("%s_r", key)]
 	bs := in.Buttons[key]
 	builder := strings.Builder{}
 	first := true
-	if in.Mode != input.Gamepad {
+	if in.Mode != pxginput.Gamepad {
 		for _, k := range bs.Keys {
 			if first {
 				first = false
@@ -81,14 +81,14 @@ func UpdateKeybinding(key string, in *input.Input) {
 			builder.WriteString("{symbol:MouseScrollDown}")
 		}
 	}
-	if in.Mode != input.KeyboardMouse {
+	if in.Mode != pxginput.KeyboardMouse {
 		for _, b := range bs.Buttons {
 			if first {
 				first = false
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.GamepadString(b)))
+			builder.WriteString(fmt.Sprintf("{symbol:%s}", pxginput.GamepadString(b)))
 		}
 		if bs.AxisV != 0 {
 			if first {
@@ -96,13 +96,13 @@ func UpdateKeybinding(key string, in *input.Input) {
 			} else {
 				builder.WriteString(" ")
 			}
-			builder.WriteString(fmt.Sprintf("{symbol:%s}", input.AxisDirString(bs.Axis, bs.AxisV > 0)))
+			builder.WriteString(fmt.Sprintf("{symbol:%s}", pxginput.AxisDirString(bs.Axis, bs.AxisV > 0)))
 		}
 	}
 	r.SetText(builder.String())
 }
 
-func RegisterPlayerSymbols(pCode string, in *input.Input) {
+func RegisterPlayerSymbols(pCode string, in *pxginput.Input) {
 	RegisterPlayerSymbol("left", pCode, in)
 	RegisterPlayerSymbol("right", pCode, in)
 	RegisterPlayerSymbol("up", pCode, in)
@@ -120,10 +120,10 @@ func RegisterPlayerSymbols(pCode string, in *input.Input) {
 	RegisterPlayerSymbol("mine_puzz_safe", pCode, in)
 }
 
-func RegisterPlayerSymbol(key, pCode string, in *input.Input) {
+func RegisterPlayerSymbol(key, pCode string, in *pxginput.Input) {
 	fullKey := fmt.Sprintf("%s-%s", pCode, key)
 	bs := in.Buttons[key]
-	if in.Mode != input.Gamepad {
+	if in.Mode != pxginput.Gamepad {
 		for _, k := range bs.Keys {
 			typeface.RegisterSymbol(fullKey, img.Batchers[constants.MenuSprites].GetSprite(k.String()), 1.)
 			return
@@ -136,13 +136,13 @@ func RegisterPlayerSymbol(key, pCode string, in *input.Input) {
 			return
 		}
 	}
-	if in.Mode != input.KeyboardMouse {
+	if in.Mode != pxginput.KeyboardMouse {
 		for _, b := range bs.Buttons {
-			typeface.RegisterSymbol(fullKey, img.Batchers[constants.MenuSprites].GetSprite(input.GamepadString(b)), 1.)
+			typeface.RegisterSymbol(fullKey, img.Batchers[constants.MenuSprites].GetSprite(pxginput.GamepadString(b)), 1.)
 			return
 		}
 		if bs.AxisV != 0 {
-			typeface.RegisterSymbol(fullKey, img.Batchers[constants.MenuSprites].GetSprite(input.AxisDirString(bs.Axis, bs.AxisV > 0)), 1.)
+			typeface.RegisterSymbol(fullKey, img.Batchers[constants.MenuSprites].GetSprite(pxginput.AxisDirString(bs.Axis, bs.AxisV > 0)), 1.)
 			return
 		}
 	}
