@@ -45,7 +45,7 @@ package descent
 //			img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
 //			img.Batchers[constants.ParticleKey].GetSprite("bubble_pop"),
 //		}, reanimator.Tran).
-//			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+//			SetTrigger(2, func() {
 //				b.Delete()
 //			})).
 //		SetChooseFn(func() int {

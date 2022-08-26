@@ -1,5 +1,18 @@
 # DwarfSweeper Changelog
 
+## 0.4.20220930
+
+### Features
+
+* Added Mole Gnomes
+    * Critters that when out of the ground, chase and leap at the dwarf
+    * One point of health
+    * Will burrow into diggable blocks when unable to get to the dwarf
+    * Will then dig through blocks to find a spot to ambush the dwarf
+* Bats now start flying if a block is destroyed near them
+* New Zone: Glacier
+* Added a Biome selector on the main menu
+
 ## 0.4.20220729
 
 ### Features
@@ -63,7 +76,7 @@
 * Added a loading screen
 * Added short delay for collectibles before the Dwarf picks them up (Gems, Apples)
 
-### Bugs
+### Bugfixes
 
 * Fixed numbers' backgrounds
 * Entities could be stuck in "ricochet" mode

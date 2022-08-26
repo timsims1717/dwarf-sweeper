@@ -4,7 +4,6 @@ import (
 	"dwarf-sweeper/pkg/timing"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
-	"github.com/google/uuid"
 )
 
 type SimpleHealth struct {
@@ -43,7 +42,7 @@ const (
 )
 
 type Damage struct {
-	SourceID  uuid.UUID
+	SourceID  string
 	Amount    int
 	Dazed     float64
 	Knockback float64
@@ -53,7 +52,7 @@ type Damage struct {
 }
 
 type AreaDamage struct {
-	SourceID       uuid.UUID
+	SourceID       string
 	Amount         int
 	Dazed          float64
 	Knockback      float64
@@ -141,43 +140,18 @@ var (
 			Dazed: true,
 		},
 	}
-	BlastImmunity = map[DamageType]Immunity{
-		Blast: {
+	UndergroundImmunity = map[DamageType]Immunity{
+		Enemy: {
 			KB:    true,
 			DMG:   true,
 			Dazed: true,
 		},
-	}
-	KnockbackImmunity = map[DamageType]Immunity{
 		Blast: {
 			KB: true,
 		},
 		Shovel: {
-			KB: true,
-		},
-		Enemy: {
-			KB: true,
-		},
-	}
-	DamageImmunity = map[DamageType]Immunity{
-		Blast: {
-			DMG: true,
-		},
-		Shovel: {
-			DMG: true,
-		},
-		Enemy: {
-			DMG: true,
-		},
-	}
-	DazedImmunity = map[DamageType]Immunity{
-		Blast: {
-			Dazed: true,
-		},
-		Shovel: {
-			Dazed: true,
-		},
-		Enemy: {
+			KB:    true,
+			DMG:   true,
 			Dazed: true,
 		},
 	}

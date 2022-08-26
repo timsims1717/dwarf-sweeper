@@ -238,11 +238,32 @@ func NewAnimFromSheet(key string, spriteSheet *img.SpriteSheet, rs []int, f Fini
 	}
 }
 
-func (anim *Anim) SetTrigger(i int, fn func(*Anim, string, int)) *Anim {
+func (anim *Anim) SetTriggerC(i int, fn func(*Anim, string, int)) *Anim {
 	if anim.Triggers == nil {
 		anim.Triggers = map[int]func(*Anim, string, int){}
 	}
 	anim.Triggers[i] = fn
+	return anim
+}
+
+func (anim *Anim) SetTrigger(i int, fn func()) *Anim {
+	if anim.Triggers == nil {
+		anim.Triggers = map[int]func(*Anim, string, int){}
+	}
+	anim.Triggers[i] = func(*Anim, string, int) {
+		fn()
+	}
+	return anim
+}
+
+func (anim *Anim) SetTriggerAll(fn func()) *Anim {
+	if anim.Triggers == nil {
+		anim.Triggers = map[int]func(*Anim, string, int){}
+	}
+	for i := range anim.S {
+		anim.SetTrigger(i, fn)
+	}
+	anim.SetTrigger(len(anim.S), fn)
 	return anim
 }
 

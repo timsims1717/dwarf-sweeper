@@ -15,14 +15,13 @@ import (
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
-	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"golang.org/x/image/colornames"
 	"math"
 )
 
-type GnomeState int
+type GnomeBossState int
 
 const (
 	GBWaiting = iota
@@ -60,7 +59,7 @@ type GnomeBoss struct {
 	Health     *data.Health
 	Collider   *data.Collider
 
-	State    GnomeState
+	State    GnomeBossState
 	Charge   bool
 	faceLeft bool
 
@@ -208,7 +207,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 		tdr := Descent.Cave.GetTile(pixel.V(gb.Transform.Pos.X+half, gb.Transform.Pos.Y-half))
 		if tul.Solid() || tur.Solid() || tdl.Solid() || tdr.Solid() {
 			if gb.sfxTimer.Done() {
-				sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
+				PlayRocks(-1.0)
 				gb.sfxTimer = timing.New(0.25)
 			}
 			if tul.Solid() {
@@ -266,7 +265,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	}
 	fleeFxFn := func() {
 		if gb.sfxTimer.UpdateDone() {
-			sfx.SoundPlayer.PlaySound(fmt.Sprintf("rocks%d", random.Effects.Intn(5)+1), -1.0)
+			PlayRocks(-1.0)
 			gb.sfxTimer = timing.New(0.25)
 		}
 		particles.BiomeParticles(gb.Transform.Pos, Descent.Cave.Biome, 3, 5, 8., 8., math.Pi*0.5, 0.5, 80., 10., 0.75, 0.1, true)
@@ -274,20 +273,20 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	gb.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddNull().
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_emerge", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_emerge").S, reanimator.Tran).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(0, func() {
 				emergePartFn()
 				sfx.SoundPlayer.PlaySound("emerge", 0.)
 			}).
-			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(1, func() {
 				emergePartFn()
 			}).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(2, func() {
 				emergePartFn()
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(3, func() {
 				emergePartFn()
 			}).
-			SetTrigger(6, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(6, func() {
 				gb.State = GBIdle
 				gb.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 					gb.State = GBRoar
@@ -295,10 +294,10 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				}, 0.3))
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_roar", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_roar").S, reanimator.Hold).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(0, func() {
    				sfx.SoundPlayer.PlaySound("roar", 0.)
 			}).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(2, func() {
 				camera.Cam.ZoomShake(1.4, 30.)
 				gb.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 					if gb.Charge {
@@ -310,19 +309,19 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				}, 1.5))
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_run", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_run").S, reanimator.Loop).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(0, func() {
 				runFXFn()
 			}).
-			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(1, func() {
 				runFXFn()
 			}).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(2, func() {
 				runFXFn()
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(3, func() {
 				runFXFn()
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(4, func() {
 				runFXFn()
 				sfx.SoundPlayer.PlaySound("gnomestep", random.Effects.Float64()-1.)
 			})).
@@ -330,7 +329,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_hurt", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_hurt").S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_dig", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_dig").S, reanimator.Loop)).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_flee", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_dig").S, reanimator.Loop).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(0, func() {
 				fleeFxFn()
 				if !gb.fleeing {
 					myecs.AddEffect(gb.Entity, data.NewFadeBlack(colornames.White, 3.))
@@ -344,16 +343,16 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 					gb.fleeing = true
 				}
 			}).
-			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(1, func() {
 				fleeFxFn()
 			}).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(2, func() {
 				fleeFxFn()
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(3, func() {
 				fleeFxFn()
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(4, func() {
 				fleeFxFn()
 			})).
 		SetChooseFn(func() int {

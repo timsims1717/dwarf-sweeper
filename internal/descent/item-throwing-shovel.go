@@ -30,7 +30,7 @@ var throwShovelItem = &player.Item{
 			return false
 		}
 		ts := myecs.Manager.NewEntity()
-		trans := transform.New()
+		trans := transform.New().WithID("throwing-shovel")
 		trans.Pos = dT.Pos
 		facing := util.Cardinal(dPos, tPos)
 		sec := 0.5

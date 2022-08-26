@@ -28,7 +28,6 @@ const (
 	popperAcc   = 15.
 	seekDist    = 8.
 	runDist     = 2.
-	effectSec   = 0.5
 	fireSec     = 4.
 	fireVel     = 275.
 )
@@ -36,15 +35,15 @@ const (
 type PopperAction int
 
 const (
-	Wait = iota
-	Seek
-	Pop
-	Unpop
-	Aim
-	Fire
-	Dazed
-	Crawl
-	Dead
+	PopWait = iota
+	PopSeek
+	PopPop
+	PopUnpop
+	PopAim
+	PopFire
+	PopDazed
+	PopCrawl
+	PopDead
 )
 
 type Popper struct {
@@ -69,9 +68,9 @@ type Popper struct {
 
 func (p *Popper) Update() {
 	var relaventTile *cave.Tile
-	if p.action == Wait || p.action == Seek {
+	if p.action == PopWait || p.action == PopSeek {
 		relaventTile = Descent.GetCave().GetTile(p.Transform.Pos)
-	} else if p.action != Dazed {
+	} else if p.action != PopDazed {
 		relaventTile = Descent.GetCave().GetTile(p.rootPos)
 	}
 	if relaventTile != nil && !relaventTile.Solid() {
@@ -82,7 +81,7 @@ func (p *Popper) Update() {
 		d := Descent.GetClosestPlayer(p.Transform.Pos)
 		action := p.action
 		var distance float64
-		if p.action == Wait || p.action == Seek {
+		if p.action == PopWait || p.action == PopSeek {
 			distance = util.Magnitude(d.Transform.Pos.Sub(p.Transform.Pos))
 		} else {
 			distance = util.Magnitude(d.Transform.Pos.Sub(p.rootPos))
@@ -94,15 +93,15 @@ func (p *Popper) Update() {
 		wait := distance > world.TileSize*seekDist
 		run := distance < world.TileSize*runDist
 		switch p.action {
-		case Wait:
+		case PopWait:
 			p.Physics.SetVelX(0., popperAcc)
 			p.Physics.SetVelY(0., popperAcc)
 			if !wait {
-				action = Seek
+				action = PopSeek
 			}
-		case Seek:
+		case PopSeek:
 			if wait {
-				action = Wait
+				action = PopWait
 			} else {
 				if p.target == nil || len(p.path) == 0 || !p.target.Solid() || tarDist < world.TileSize*runDist || tarDist > world.TileSize*seekDist {
 					tries := 0
@@ -158,7 +157,7 @@ func (p *Popper) Update() {
 						p.target = target
 					}
 					if !targetFound {
-						action = Wait
+						action = PopWait
 						p.path = nil
 						p.target = nil
 					}
@@ -201,20 +200,11 @@ func (p *Popper) Update() {
 							}
 						}
 						if empty != nil {
-							action = Pop
+							action = PopPop
 							p.rootPos = p.target.Transform.Pos
 							p.poppedPos = empty.Transform.Pos
 							p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), data.Critter))
-							p.Health.Immune[data.Shovel] = data.Immunity{
-								KB:    false,
-								DMG:   false,
-								Dazed: false,
-							}
-							p.Health.Immune[data.Blast] = data.Immunity{
-								KB:    false,
-								DMG:   false,
-								Dazed: false,
-							}
+							p.Health.Immune = data.EnemyImmunity
 						}
 						p.Physics.CancelMovement()
 						p.path = nil
@@ -229,7 +219,7 @@ func (p *Popper) Update() {
 								AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite("dig_thru")).
 								AddComponent(myecs.Batch, constants.ParticleKey)
 							myecs.AddEffect(e, data.NewFadeOut(colornames.White, 1.5))
-							p.effectTimer = timing.New(effectSec)
+							p.effectTimer = timing.New(digTimer)
 						}
 						move := util.Normalize(next.Transform.Pos.Sub(p.Transform.Pos))
 						p.Physics.SetVelX(move.X*popperSpeed, popperAcc)
@@ -253,10 +243,10 @@ func (p *Popper) Update() {
 					}
 				}
 			}
-		case Pop:
+		case PopPop:
 			// if too far away, go to unpop
 			if wait || run {
-				action = Unpop
+				action = PopUnpop
 			} else {
 				p.Transform.Pos = p.poppedPos
 				if p.rootPos.X > p.poppedPos.X {
@@ -269,10 +259,10 @@ func (p *Popper) Update() {
 					p.Transform.Rot = 0.
 				}
 			}
-		case Unpop:
+		case PopUnpop:
 			// if close again, go to pop
 			if !wait && !run {
-				action = Pop
+				action = PopPop
 			} else {
 				p.Transform.Pos = p.poppedPos
 				if p.rootPos.X > p.poppedPos.X {
@@ -285,9 +275,9 @@ func (p *Popper) Update() {
 					p.Transform.Rot = 0.
 				}
 			}
-		case Aim:
+		case PopAim:
 			if wait || run {
-				action = Unpop
+				action = PopUnpop
 			} else {
 				shoot := true
 				pPos := d.Transform.Pos
@@ -324,10 +314,10 @@ func (p *Popper) Update() {
 				}
 				p.aimNorm = norm
 				if shoot && p.fireTimer.UpdateDone() {
-					action = Fire
+					action = PopFire
 				}
 			}
-		case Fire:
+		case PopFire:
 			pPos := d.Transform.Pos
 			ray := pPos.Sub(p.poppedPos)
 			ray.Y += math.Abs(ray.X) * 0.2
@@ -357,7 +347,7 @@ func (p *Popper) Update() {
 				debug.AddLine(colornames.Orange, imdraw.SharpEndShape, p.poppedPos, aimDir, 2.)
 			}
 			p.aimNorm = norm
-		case Dazed:
+		case PopDazed:
 			if p.Physics.Grounded {
 				p.Physics.GravityOff = true
 				pos := p.Transform.Pos
@@ -366,33 +356,24 @@ func (p *Popper) Update() {
 				if b.Solid() && b.Type != cave.Wall {
 					p.rootPos = b.Transform.Pos
 					p.poppedPos = p.Transform.Pos
-					action = Unpop
+					action = PopUnpop
 				} else {
-					action = Crawl
+					action = PopCrawl
 				}
 			}
-		case Crawl:
+		case PopCrawl:
 
 		}
 		p.action = action
 	} else if p.Health.Dazed && !p.Health.Dead {
-		p.action = Dazed
+		p.action = PopDazed
 		p.Physics.GravityOff = false
 		p.Entity.AddComponent(myecs.Collision, data.NewCollider(pixel.R(0., 0., 16., 16.), data.Critter))
-		p.Health.Immune[data.Shovel] = data.Immunity{
-			KB:    false,
-			DMG:   false,
-			Dazed: false,
-		}
-		p.Health.Immune[data.Blast] = data.Immunity{
-			KB:    false,
-			DMG:   false,
-			Dazed: false,
-		}
+		p.Health.Immune = data.EnemyImmunity
 		p.Transform.Rot = 0.
 	} else if p.Health.Dead {
-		if p.action != Dead {
-			p.action = Dead
+		if p.action != PopDead {
+			p.action = PopDead
 			p.Entity.AddComponent(myecs.Temp, timing.New(4.))
 			p.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 				myecs.AddEffect(p.Entity, data.NewBlink(2.))
@@ -402,9 +383,9 @@ func (p *Popper) Update() {
 		p.Physics.GravityOff = false
 		p.Transform.Rot = 0.
 	}
-	if p.action == Wait {
+	if p.action == PopWait {
 		debug.AddCircle(colornames.Gray, p.Transform.Pos, 4., 0.)
-	} else if p.action == Seek {
+	} else if p.action == PopSeek {
 		debug.AddCircle(colornames.Orange, p.Transform.Pos, 4., 0.)
 	}
 	if p.target != nil {
@@ -413,7 +394,7 @@ func (p *Popper) Update() {
 }
 
 func (p *Popper) Create(pos pixel.Vec) {
-	p.Transform = transform.New()
+	p.Transform = transform.New().WithID("popper")
 	p.Transform.Pos = pos
 	p.Physics = physics.New()
 	p.Physics.GravityOff = true
@@ -422,27 +403,13 @@ func (p *Popper) Create(pos pixel.Vec) {
 		Curr:         2,
 		TempInvTimer: timing.New(0.5),
 		TempInvSec:   0.5,
-		Immune: map[data.DamageType]data.Immunity{
-			data.Enemy: {
-				KB:    true,
-				DMG:   true,
-				Dazed: true,
-			},
-			data.Blast: {
-				KB: true,
-			},
-			data.Shovel: {
-				KB:    true,
-				DMG:   true,
-				Dazed: true,
-			},
-		},
+		Immune:       data.UndergroundImmunity,
 	}
 	p.created = true
 	p.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddNull().
 		AddAnimation(reanimator.NewAnimFromSprites("popper_out", img.Batchers[constants.EntityKey].GetAnimation("popper_out").S, reanimator.Tran).
-			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
+		SetTriggerC(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_in" {
 					a.Step = 4 - pFrame
 				} else {
@@ -468,83 +435,74 @@ func (p *Popper) Create(pos pixel.Vec) {
 					particles.BiomeParticles(exit, Descent.Cave.Biome, 4, 6, varX, varY, angle, 0.5, 100., 15., 0.75, 0.1, true)
 				}
 			}).
-			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
-				p.action = Aim
+		SetTrigger(5, func() {
+				p.action = PopAim
 				p.fireTimer = timing.New(2.)
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_in", img.Reverse(img.Batchers[constants.EntityKey].GetAnimation("popper_out").S), reanimator.Tran).
-			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
+			SetTriggerC(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_out" {
 					a.Step = 4 - pFrame
 				}
 			}).
-			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
-				p.action = Seek
+			SetTrigger(5, func() {
+				p.action = PopSeek
 				p.Transform.Pos = p.rootPos
 				p.Entity.RemoveComponent(myecs.Collision)
-				p.Health.Immune[data.Shovel] = data.Immunity{
-					KB:    true,
-					DMG:   true,
-					Dazed: true,
-				}
-				p.Health.Immune[data.Blast] = data.Immunity{
-					KB:    true,
-					DMG:   false,
-					Dazed: false,
-				}
+				p.Health.Immune = data.UndergroundImmunity
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_side", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetSprite("popper_side")}, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_diag", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetSprite("popper_diag")}, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_up", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetSprite("popper_up")}, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_side_fire", img.Batchers[constants.EntityKey].GetAnimation("popper_side_fire").S, reanimator.Tran).
-			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
+			SetTriggerC(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_diag_fire" || pKey == "popper_up_fire" {
 					a.Step = pFrame
 				}
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(3, func() {
 				p.CreateProjectile(p.aimNorm)
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(4, func() {
 				p.fireTimer = timing.New(fireSec)
-				p.action = Aim
+				p.action = PopAim
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_diag_fire", img.Batchers[constants.EntityKey].GetAnimation("popper_diag_fire").S, reanimator.Tran).
-			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
+			SetTriggerC(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_side_fire" || pKey == "popper_up_fire" {
 					a.Step = pFrame
 				}
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(3, func() {
 				p.CreateProjectile(p.aimNorm)
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(4, func() {
 				p.fireTimer = timing.New(fireSec)
-				p.action = Aim
+				p.action = PopAim
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("popper_up_fire", img.Batchers[constants.EntityKey].GetAnimation("popper_up_fire").S, reanimator.Tran).
-			SetTrigger(0, func(a *reanimator.Anim, pKey string, pFrame int) {
+			SetTriggerC(0, func(a *reanimator.Anim, pKey string, pFrame int) {
 				if pKey == "popper_side_fire" || pKey == "popper_diag_fire" {
 					a.Step = pFrame
 				}
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(3, func() {
 				p.CreateProjectile(p.aimNorm)
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(4, func() {
 				p.fireTimer = timing.New(fireSec)
-				p.action = Aim
+				p.action = PopAim
 			})).
 		SetChooseFn(func() int {
 			if p.Health.Dazed {
 				return 5
-			} else if p.action == Wait || p.action == Seek {
+			} else if p.action == PopWait || p.action == PopSeek {
 				return 0
-			} else if p.action == Pop {
+			} else if p.action == PopPop {
 				return 1
-			} else if p.action == Unpop {
+			} else if p.action == PopUnpop {
 				return 2
-			} else if p.action == Aim {
+			} else if p.action == PopAim {
 				if p.angle > math.Pi*0.8 || p.angle < math.Pi*0.2 {
 					return 3
 				} else if p.angle > math.Pi*0.6 || p.angle < math.Pi*0.4 {
@@ -552,7 +510,7 @@ func (p *Popper) Create(pos pixel.Vec) {
 				} else {
 					return 5
 				}
-			} else if p.action == Fire {
+			} else if p.action == PopFire {
 				if p.angle > math.Pi*0.8 || p.angle < math.Pi*0.2 {
 					return 6
 				} else if p.angle > math.Pi*0.6 || p.angle < math.Pi*0.4 {
@@ -580,7 +538,7 @@ func (p *Popper) Delete() {
 
 func (p *Popper) CreateProjectile(norm pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	trans := transform.New()
+	trans := transform.New().WithID("popper-shot")
 	trans.Pos = p.poppedPos
 	trans.Pos.X += norm.X * 8.
 	trans.Pos.Y += norm.Y * 8.

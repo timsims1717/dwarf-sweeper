@@ -14,7 +14,7 @@ func CollisionSystem() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		coll, okC := result.Components[myecs.Collision].(*data.Collider)
 		phys, okP := result.Components[myecs.Physics].(*physics.Physics)
-		if okT && okC && okP && tran.Load && coll.Class != data.GroundOnly {
+		if okT && okC && okP && tran.Load && coll.Class != data.GroundOnly && !coll.NoClip {
 			var hb pixel.Rect
 			if math.Abs(tran.Rot) == 0.5 {
 				hb = pixel.R(0., 0., coll.Hitbox.H()*collisionDistance, coll.Hitbox.W()*collisionDistance)

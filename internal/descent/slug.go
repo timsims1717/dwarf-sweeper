@@ -40,7 +40,7 @@ type Slug struct {
 
 func CreateSlug(c *cave.Cave, pos pixel.Vec) *Slug {
 	s := &Slug{}
-	s.Transform = transform.New()
+	s.Transform = transform.New().WithID("slug")
 	s.Transform.Pos = pos
 	s.Physics = physics.New()
 	s.Physics.UseWallFriction = true
@@ -57,28 +57,28 @@ func CreateSlug(c *cave.Cave, pos pixel.Vec) *Slug {
 	s.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("slug_move", []*pixel.Sprite{img.Batchers[constants.EntityKey].GetFrame("slug_move", 0)}, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("slug_corner", img.Batchers[constants.EntityKey].Animations["slug_corner"].S, reanimator.Tran).
-			SetTrigger(8, func(_ *reanimator.Anim, _ string, _ int) {
-				s.iCorner = false
-				switch s.floor {
-				case data.Up:
-					s.Transform.Pos.Y += 2.1
-				case data.Down:
-					s.Transform.Pos.Y -= 2.1
-				case data.Right:
-					s.Transform.Pos.X += 2.1
-				case data.Left:
-					s.Transform.Pos.X -= 2.1
-				}
-				s.Collider.Hitbox = pixel.R(0., 0., 16., 12.)
-			})).
+		SetTrigger(8, func() {
+			s.iCorner = false
+			switch s.floor {
+			case data.Up:
+				s.Transform.Pos.Y += 2.1
+			case data.Down:
+				s.Transform.Pos.Y -= 2.1
+			case data.Right:
+				s.Transform.Pos.X += 2.1
+			case data.Left:
+				s.Transform.Pos.X -= 2.1
+			}
+			s.Collider.Hitbox = pixel.R(0., 0., 16., 12.)
+		})).
 		AddAnimation(reanimator.NewAnimFromSprites("slug_move", img.Batchers[constants.EntityKey].Animations["slug_move"].S, reanimator.Loop).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(2, func() {
 				s.move = true
 				if s.Transform.Load {
 					sfx.SoundPlayer.PlaySound(fmt.Sprintf("sludge%d", random.Effects.Intn(4)+1), 3.)
 				}
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(4, func() {
 				s.move = false
 			})).
 		SetChooseFn(func() int {

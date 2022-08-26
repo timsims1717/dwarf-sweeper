@@ -179,6 +179,26 @@ type sprite struct {
 	Frames int     `json:"frames"`
 }
 
+func LoadSpriteImg(path, imgFile string) (*SpriteSheet, error) {
+	errMsg := "load sprite sheet"
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, errors.Wrap(err, errMsg)
+	}
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	var fileSheet spriteFile
+	err = decoder.Decode(&fileSheet)
+	if err != nil {
+		return nil, errors.Wrap(err, errMsg)
+	}
+	img, err := LoadImage(fmt.Sprintf("%s/%s", filepath.Dir(path), imgFile))
+	if err != nil {
+		return nil, errors.Wrap(err, errMsg)
+	}
+	return loadSpriteSheet(img, fileSheet), nil
+}
+
 func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 	errMsg := "load sprite sheet"
 	file, err := os.Open(path)
@@ -196,6 +216,10 @@ func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, errMsg)
 	}
+	return loadSpriteSheet(img, fileSheet), nil
+}
+
+func loadSpriteSheet(img pixel.Picture, fileSheet spriteFile) *SpriteSheet {
 	sheet := &SpriteSheet{
 		Img:       img,
 		Sprites:   make([]pixel.Rect, 0),
@@ -244,5 +268,5 @@ func LoadSpriteSheet(path string) (*SpriteSheet, error) {
 			}
 		}
 	}
-	return sheet, nil
+	return sheet
 }

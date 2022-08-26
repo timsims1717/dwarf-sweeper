@@ -79,7 +79,7 @@
     ],
     "enemies": [
       "slug",
-      "popper",
+      "gnome",
       "bat"
     ]
   },
@@ -156,7 +156,7 @@
     ],
     "enemies": [
       "slug",
-      "popper",
+      "gnome",
       "bat"
     ]
   },
@@ -233,7 +233,7 @@
     ],
     "enemies": [
       "slug",
-      "popper",
+      "gnome",
       "bat"
     ]
   },
@@ -315,7 +315,7 @@
     ],
     "enemies": [
       "slug",
-      "popper",
+      "gnome",
       "bat"
     ]
   }

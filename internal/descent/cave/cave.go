@@ -29,6 +29,7 @@ type Cave struct {
 	Level       int
 	TotalBombs  int
 	BombsLeft   int
+	Destroyed   []world.Coords
 
 	Left   int
 	Right  int
@@ -124,6 +125,7 @@ func (c *Cave) SetSize(left, right, bottom int) {
 }
 
 func (c *Cave) Update() {
+	c.Destroyed = []world.Coords{}
 	var all []world.Coords
 	for _, pivot := range c.Pivots {
 		p := WorldToChunk(pivot)
@@ -382,6 +384,77 @@ func WorldToTile(v pixel.Vec, left bool) world.Coords {
 
 func TileInTile(a, b pixel.Vec) bool {
 	return math.Abs(a.X-b.X) <= world.TileSize*0.5 && math.Abs(a.Y-b.Y) <= world.TileSize*0.5
+}
+
+func (c *Cave) DestroyedWithin(orig world.Coords, distX, distY int) bool {
+	for y := orig.Y - distY; y <= orig.Y +distY; y++ {
+		for x := orig.X - distX; x <= orig.X +distX; x++ {
+			if world.CoordsIn(world.Coords{ X: x, Y: y }, c.Destroyed) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (c *Cave) GetBlob(orig world.Coords, dist int) []world.Coords {
+	a := []world.Coords{orig}
+	ta := []world.Coords{orig}
+	for len(ta) > 0 {
+		t := ta[0]
+		if len(ta) > 1 {
+			ta = ta[1:]
+		} else {
+			ta = []world.Coords{}
+		}
+		for i, n := range t.Neighbors() {
+			if i % 2 == 0 {
+				tt := c.GetTileInt(t.X, t.Y)
+				nt := c.GetTileInt(n.X, n.Y)
+				if nt != nil && world.Distance(orig, n) < float64(dist) * world.TileSize &&
+					((!tt.Solid() && !nt.Solid()) || (tt.Type == nt.Type)) {
+					if !world.CoordsIn(n, a) {
+						a = append(a, n)
+						ta = append(ta, n)
+					}
+				}
+			}
+		}
+	}
+	return a
+}
+
+func (c *Cave) GetOutline(orig world.Coords, dist float64) []world.Coords {
+	var o []world.Coords
+	a := []world.Coords{orig}
+	ta := []world.Coords{orig}
+	for len(ta) > 0 {
+		t := ta[0]
+		if len(ta) > 1 {
+			ta = ta[1:]
+		} else {
+			ta = []world.Coords{}
+		}
+		for i, n := range t.Neighbors() {
+			if i % 2 == 0 {
+				tt := c.GetTileInt(t.X, t.Y)
+				nt := c.GetTileInt(n.X, n.Y)
+				if nt != nil && world.Distance(orig, n) < dist * world.TileSize {
+					if (!tt.Solid() && !nt.Solid()) || (tt.Type == nt.Type) {
+						if !world.CoordsIn(n, a) {
+							a = append(a, n)
+							ta = append(ta, n)
+						}
+					} else {
+						if !world.CoordsIn(n, o) {
+							o = append(o, n)
+						}
+					}
+				}
+			}
+		}
+	}
+	return o
 }
 
 func (c *Cave) MapFn(fn func(*Tile)) {

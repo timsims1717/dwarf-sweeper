@@ -1,13 +1,15 @@
 package transform
 
 import (
+	"fmt"
 	"github.com/faiface/pixel"
-	"github.com/google/uuid"
 	"golang.org/x/image/colornames"
 	"image/color"
 	"math"
 	"math/rand"
 )
+
+var objIndex = uint32(0)
 
 type Alignment int
 
@@ -25,7 +27,7 @@ type Anchor struct {
 }
 
 type Transform struct {
-	ID   uuid.UUID
+	ID   string
 	Hide bool
 	Dead bool
 	Load bool
@@ -53,7 +55,6 @@ type Transform struct {
 
 func New() *Transform {
 	return &Transform{
-		ID: uuid.New(),
 		Scalar: pixel.Vec{
 			X: 1.,
 			Y: 1.,
@@ -61,6 +62,12 @@ func New() *Transform {
 		UIZoom: 1.,
 		Mask:   colornames.White,
 	}
+}
+
+func (t *Transform) WithID(code string) *Transform {
+	t.ID = fmt.Sprintf("%s-%d", code, objIndex)
+	objIndex++
+	return t
 }
 
 func (t *Transform) Update() {

@@ -5,6 +5,8 @@ import (
 	"image/color"
 )
 
+type Biome int
+
 const (
 	Title   = "DwarfSweeper"
 	Release = 0
@@ -37,14 +39,24 @@ const (
 	PauseMusic = "pauseMusic"
 	MenuMusic  = "menuMusic"
 
-	// Config
-	LinuxDir = "/.local/share/DwarfSweeper"
-	WinDir   = "/Documents/My Games/DwarfSweeper"
-	MacDir   = "/Library/Application Support/DwarfSweeper"
+	// Directories
+	LinuxDir   = "/.local/share/DwarfSweeper"
+	WinDir     = "/Documents/My Games/DwarfSweeper"
+	MacDir     = "/Library/Application Support/DwarfSweeper"
+	ImgBiomeBG = "assets/img/biome-bg.json"
+	ImgBiomeFG = "assets/img/biome-fg.json"
+	ImgCave    = "the-%s.png"
 
 	// Descent Constants
 	ChunkSize = 16
 	ChunkArea = ChunkSize * ChunkSize
+
+	// Biomes
+	Mine = iota
+	Moss
+	Glacier
+	Crystal
+	Dark
 )
 
 var (
@@ -115,4 +127,45 @@ var (
 		B: 141,
 		A: 255,
 	}
+
+	// Biomes
+	Biomes = []Biome{
+		Mine,
+		Moss,
+		Glacier,
+		Crystal,
+		Dark,
+	}
 )
+
+func (b Biome) Key() string {
+	switch b {
+	case Mine:
+		return "mine"
+	case Moss:
+		return "moss"
+	case Glacier:
+		return "glacier"
+	case Crystal:
+		return "crystal"
+	case Dark:
+		return "dark"
+	}
+	return "error"
+}
+
+func (b Biome) String() string {
+	switch b {
+	case Mine:
+		return "Mine"
+	case Moss:
+		return "Moss"
+	case Glacier:
+		return "Glacier"
+	case Crystal:
+		return "Crystal"
+	case Dark:
+		return "Dark"
+	}
+	return "Unknown"
+}

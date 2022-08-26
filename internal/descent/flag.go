@@ -23,7 +23,7 @@ func CreateFlag(p *player.Player, tile *cave.Tile) {
 		p.Stats.WrongFlags++
 	}
 	e := myecs.Manager.NewEntity()
-	trans := transform.New()
+	trans := transform.New().WithID("flag")
 	trans.Pos = tile.Transform.Pos
 	anim := reanimator.NewSimple(reanimator.NewAnimFromSprites("flag_hang", img.Batchers[constants.ParticleKey].GetAnimation(fmt.Sprintf("flag_hang_%s", p.Code)).S, reanimator.Loop))
 	fn := data.NewFrameFunc(func() bool {

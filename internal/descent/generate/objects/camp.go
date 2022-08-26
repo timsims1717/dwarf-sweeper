@@ -32,7 +32,7 @@ func AddTent(tile *cave.Tile, right bool) {
 	}
 	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	phys := physics.New()
-	trans := transform.New()
+	trans := transform.New().WithID("tent")
 	trans.Pos = tile.Transform.Pos
 	if right {
 		trans.Pos.X -= world.TileSize * 0.5
@@ -71,7 +71,7 @@ func AddGemPile(tile *cave.Tile) {
 	}
 	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	phys := physics.New()
-	trans := transform.New()
+	trans := transform.New().WithID("gem-pile")
 	trans.Pos = tile.Transform.Pos
 	trans.Flip = random.CaveGen.Intn(2) == 0
 	xDiff := (world.TileSize - spr.Frame().W()) * 0.5

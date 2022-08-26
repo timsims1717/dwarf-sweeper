@@ -43,7 +43,7 @@ func AddObject(tile *cave.Tile, key string, digMe bool, flipOpt FlipOpt) {
 	}
 	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
 	phys := physics.New()
-	trans := transform.New()
+	trans := transform.New().WithID(key)
 	trans.Pos = tile.Transform.Pos
 	switch flipOpt {
 	case Flip:
@@ -114,7 +114,7 @@ func AddBigBomb(blTile *cave.Tile, level int) {
 	pos := blTile.Transform.Pos
 	pos.X += world.TileSize * 0.5
 	pos.Y += world.TileSize * 0.5
-	trans := transform.New()
+	trans := transform.New().WithID("big-bomb")
 	trans.Pos = pos
 	solved := false
 	failed := false
@@ -152,17 +152,17 @@ func AddBigBomb(blTile *cave.Tile, level int) {
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprite("big_bomb_idle", img.Batchers[constants.TileEntityKey].GetSprite("big_bomb_idle"), reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("big_bomb_defuse", img.Batchers[constants.TileEntityKey].GetAnimation("big_bomb_defuse").S, reanimator.Hold).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(0, func() {
 				sfx.SoundPlayer.PlaySound("bigbombdefuse", 1.0)
 			}).
-			SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(4, func() {
 				sfx.SoundPlayer.PlaySound("bigbombsmash", 1.0)
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("big_bomb_ignite", img.Batchers[constants.TileEntityKey].GetAnimation("big_bomb_ignite").S, reanimator.Hold).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(0, func() {
 				fuseSFX = sfx.SoundPlayer.PlaySound("fuselong", -0.5)
 			}).
-			SetTrigger(17, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(17, func() {
 				bigBombDestroy(trans)
 				bigBombDmg(trans)
 				particles.CreateHugeExplosion(trans.Pos)

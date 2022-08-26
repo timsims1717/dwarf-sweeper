@@ -8,26 +8,13 @@ import (
 
 func Sprites() {
 	// Cave Backgrounds
-	bgDarkSheet, err := img.LoadSpriteSheet("assets/img/the-dark-bg.json")
-	if err != nil {
-		panic(err)
+	for _, b := range constants.Biomes {
+		bgSheet, err := img.LoadSpriteImg(constants.ImgBiomeBG, fmt.Sprintf(constants.ImgCave, b.Key()))
+		if err != nil {
+			panic(err)
+		}
+		img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, b.Key()), bgSheet, true, false)
 	}
-	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "dark"), bgDarkSheet, true, false)
-	bgMineSheet, err := img.LoadSpriteSheet("assets/img/the-mine-bg.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "mine"), bgMineSheet, true, false)
-	bgMossSheet, err := img.LoadSpriteSheet("assets/img/the-moss-bg.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "moss"), bgMossSheet, true, false)
-	bgCrystalSheet, err := img.LoadSpriteSheet("assets/img/the-crystal-bg.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher(fmt.Sprintf(constants.CaveBGFMT, "crystal"), bgCrystalSheet, true, false)
 
 	// Entities
 	tileEntitySheet, err := img.LoadSpriteSheet("assets/img/tile_entities.json")
@@ -52,26 +39,13 @@ func Sprites() {
 	img.AddBatcher(constants.EntityKey, entitySheet, true, true)
 
 	// Cave Foregrounds
-	darkSheet, err := img.LoadSpriteSheet("assets/img/the-dark.json")
-	if err != nil {
-		panic(err)
+	for _, b := range constants.Biomes {
+		sheet, err := img.LoadSpriteImg(constants.ImgBiomeFG, fmt.Sprintf(constants.ImgCave, b.Key()))
+		if err != nil {
+			panic(err)
+		}
+		img.AddBatcher(b.Key(), sheet, true, false)
 	}
-	img.AddBatcher("dark", darkSheet, true, false)
-	mineSheet, err := img.LoadSpriteSheet("assets/img/the-mine.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher("mine", mineSheet, true, false)
-	mossSheet, err := img.LoadSpriteSheet("assets/img/the-moss.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher("moss", mossSheet, true, false)
-	crystalSheet, err := img.LoadSpriteSheet("assets/img/the-crystal.json")
-	if err != nil {
-		panic(err)
-	}
-	img.AddBatcher("crystal", crystalSheet, true, false)
 
 	// Particles/VFX
 	partSheet, err := img.LoadSpriteSheet("assets/img/particles.json")
