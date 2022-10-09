@@ -255,8 +255,7 @@ actionSwitch:
 	case GnomeSeek:
 		// pathfinding
 		if g.target == nil || g.path == nil || !g.target.Solid() {
-			cd := Descent.GetClosestPlayer(g.Transform.Pos)
-			dt := Descent.GetTile(cd.Transform.Pos)
+			dt := Descent.GetClosestPlayerTile(g.Transform.Pos)
 			outline := Descent.Cave.GetOutline(dt.RCoords, 5.5)
 			inline := Descent.Cave.GetOutline(dt.RCoords, 2.25)
 			candidates := world.NotIn(outline, inline)
@@ -565,7 +564,7 @@ func (g *Gnome) SwitchState() {
 					})
 				}
 				if g.timer.Done() {
-					d := Descent.GetClosestPlayer(g.Transform.Pos)
+					d := Descent.GetClosestPlayerTile(g.Transform.Pos)
 					dt := Descent.GetTile(d.Transform.Pos)
 					dist := util.Magnitude(g.Transform.Pos.Sub(d.Transform.Pos))
 					if g.State == GnomeWait {
@@ -591,8 +590,7 @@ func (g *Gnome) SwitchState() {
 			g.Physics.CancelMovement()
 			currT := Descent.GetTile(g.Transform.Pos)
 			if currT != nil {
-				d := Descent.GetClosestPlayer(g.Transform.Pos)
-				dt := Descent.GetTile(d.Transform.Pos)
+				dt := Descent.GetClosestPlayerTile(g.Transform.Pos)
 				blob := Descent.Cave.GetBlob(dt.RCoords, 6.)
 				above := Descent.Cave.GetTileInt(currT.RCoords.X, currT.RCoords.Y-1)
 				if !above.Solid() && world.CoordsIn(above.RCoords, blob) {

@@ -9,9 +9,9 @@ type CollisionClass int
 
 const (
 	Critter = iota
-	Player
+	PlayerC
 	Stacker
-	Item
+	ItemC
 	GroundOnly
 )
 
@@ -69,4 +69,12 @@ type FrameFunc struct {
 
 func NewFrameFunc(fn func() bool) *FrameFunc {
 	return &FrameFunc{Func: fn}
+}
+
+type TriggerFunc struct {
+	Func func(*Player) bool
+}
+
+func NewTriggerFunc(fn func(*Player) bool) *TriggerFunc {
+	return &TriggerFunc{Func: fn}
 }

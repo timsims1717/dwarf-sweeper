@@ -27,10 +27,11 @@ type Anchor struct {
 }
 
 type Transform struct {
-	ID   string
-	Hide bool
-	Dead bool
-	Load bool
+	ID         string
+	Hide       bool
+	Dispose    bool
+	Load       bool
+	KeepLoaded bool
 
 	Pos     pixel.Vec
 	Rect    pixel.Rect

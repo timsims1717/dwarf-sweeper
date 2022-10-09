@@ -3,6 +3,7 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
@@ -13,8 +14,8 @@ import (
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/transform"
-	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
+	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 	"golang.org/x/image/colornames"
@@ -69,6 +70,7 @@ type GnomeBoss struct {
 	onDamageFn  func()
 	onFleeFn    func()
 	fleeing     bool
+	tries       int
 }
 
 func (gnome *GnomeBoss) Update() bool {
@@ -84,6 +86,7 @@ func (gnome *GnomeBoss) Update() bool {
 		gnome.Health.Immune = data.FullImmunity
 		gnome.Collider.Damage = nil
 	} else {
+		debug.AddText(fmt.Sprintf("GnomeBoss Pos: (%d,%d)", int(gnome.Transform.Pos.X), int(gnome.Transform.Pos.Y)))
 		if gnome.State == GBCharge || gnome.State == GBEmerge || gnome.State == GBRoar || gnome.State == GBIdle {
 			gnome.Health.Immune = gbImmunity
 		} else {
@@ -98,18 +101,20 @@ func (gnome *GnomeBoss) Update() bool {
 			gnome.Collider.ThroughWalls = true
 		}
 		if gnome.State != GBCharge && gnome.State != GBSearching && gnome.State != GBWaiting {
-			ownCoords := Descent.GetCave().GetTile(gnome.Transform.Pos).RCoords
-			playerCoords := Descent.GetClosestPlayerTile(gnome.Transform.Pos).RCoords
-			if ownCoords.X > playerCoords.X {
+			p := Descent.GetClosestPlayer(gnome.Transform.Pos)
+			if gnome.Transform.Pos.X > p.Transform.Pos.X {
 				gnome.faceLeft = true
-			} else if ownCoords.X < playerCoords.X {
+			} else if gnome.Transform.Pos.X < p.Transform.Pos.X {
 				gnome.faceLeft = false
 			}
 		}
 		switch gnome.State {
 		case GBSearching:
 			if gnome.emergeTimer.UpdateDone() {
-				gnome.Emerge(true)
+				if res, found := gnome.EmergeCoords(); found {
+					gnome.Transform.Pos = res
+					gnome.State = GBEmerge
+				}
 			}
 		case GBCharge:
 			if gnome.faceLeft {
@@ -170,6 +175,8 @@ func (gnome *GnomeBoss) Update() bool {
 func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	e := myecs.Manager.NewEntity()
 	trans := transform.New()
+	trans.KeepLoaded = true
+	trans.Load = true
 	phys := physics.New()
 	phys.GravityOff = true
 	hp := &data.Health{
@@ -386,56 +393,43 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	return gb
 }
 
-func (gnome *GnomeBoss) Emerge(findCoords bool) {
-	// find emerge coords
-	found := true
-	if findCoords {
-		gnome.Transform.Pos, found = EmergeCoords()
-	}
-	if found {
-		gnome.State = GBEmerge
-	}
-}
-
-func EmergeCoords() (pixel.Vec, bool) {
-	x := Descent.GetRandomPlayerTile().RCoords.X
-	y := Descent.CoordsMap["current_layer"].Y
-	pCos := world.Coords{
-		X: x,
-		Y: y,
-	}
-	i := 5
-	for i < 10 && i > -10 {
-		next := pCos
-		next.X += i
-		next1x := next.X
-		if i > 0 {
-			next1x++
-		} else {
-			next1x--
-		}
-		nt := Descent.Cave.GetTileInt(next.X, next.Y)
-		nt1 := Descent.Cave.GetTileInt(next1x, next.Y)
-		bt := Descent.Cave.GetTileInt(next.X, next.Y+1)
-		bt1 := Descent.Cave.GetTileInt(next1x, next.Y+1)
-		ut := Descent.Cave.GetTileInt(next.X, next.Y-1)
-		ut1 := Descent.Cave.GetTileInt(next1x, next.Y-1)
-		if !nt.Solid() && !nt1.Solid() && !ut.Solid() && !ut1.Solid() && bt.Solid() && bt1.Solid() && random.CaveGen.Intn(10-util.Abs(i)) == 0 {
-			result := nt.Transform.Pos
-			if i > 0 {
-				result.X += world.TileSize * 0.5
+func (gnome *GnomeBoss) EmergeCoords() (pixel.Vec, bool) {
+	tries := 0
+	for tries < 5 {
+		dt := Descent.GetRandomPlayerTile()
+		outline := Descent.Cave.GetOutline(dt.RCoords, 7.5)
+		inline := Descent.Cave.GetOutline(dt.RCoords, 2.25)
+		candidates := world.NotIn(outline, inline)
+		if len(candidates) > 0 {
+			i := random.Effects.Intn(len(candidates))
+			tc := candidates[i]
+			tc1x := tc.X
+			if random.Effects.Intn(2) == 0 {
+				tc1x++
 			} else {
-				result.X -= world.TileSize * 0.5
+				tc1x--
 			}
-			result.Y += world.TileSize * 0.5
-			return result, true
+			bt := Descent.Cave.GetTileInt(tc.X, tc.Y)
+			bt1 := Descent.Cave.GetTileInt(tc1x, tc.Y)
+			nt := Descent.Cave.GetTileInt(tc.X, tc.Y-1)
+			nt1 := Descent.Cave.GetTileInt(tc1x, tc.Y-1)
+			ut := Descent.Cave.GetTileInt(tc.X, tc.Y-2)
+			ut1 := Descent.Cave.GetTileInt(tc1x, tc.Y-2)
+			if !nt.Solid() && !nt1.Solid() && !ut.Solid() && !ut1.Solid() && bt.Solid() && bt1.Solid() {
+				result := nt.Transform.Pos
+				if i > 0 {
+					result.X += world.TileSize * 0.5
+				} else {
+					result.X -= world.TileSize * 0.5
+				}
+				result.Y += world.TileSize * 0.5
+				return result, true
+			}
 		}
-		i *= -1
-		if i > 0 {
-			i++
-		}
+		tries++
 	}
-	return pixel.Vec{}, false
+	gnome.tries++
+	return pixel.ZV, false
 }
 
 func (gnome *GnomeBoss) SetOnDamageFn(fn func()) {

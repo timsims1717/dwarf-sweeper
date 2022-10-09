@@ -2,7 +2,7 @@ package cave
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/transform"
@@ -154,7 +154,7 @@ func (c *Cave) Update() {
 	}
 }
 
-func (c *Cave) DrawBG(p *player.Player) {
+func (c *Cave) DrawBG(p *data.Player) {
 	if c.Background != nil && c.BGBatch != nil {
 		w := c.Background.Frame().W()
 		h := c.Background.Frame().H()

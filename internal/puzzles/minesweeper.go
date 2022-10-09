@@ -2,7 +2,7 @@ package puzzles
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/internal/minesweeper"
 	"dwarf-sweeper/internal/profile"
@@ -39,7 +39,7 @@ type MinePuzzle struct {
 	miss1Trans *transform.Transform
 	miss2Trans *transform.Transform
 	miss3Trans *transform.Transform
-	Player     *player.Player
+	Player     *data.Player
 
 	CellTrans [][]*transform.Transform
 	solved    bool
@@ -117,7 +117,7 @@ func (mp *MinePuzzle) IsClosed() bool {
 	return mp.Box.IsClosed()
 }
 
-func (mp *MinePuzzle) Open(p *player.Player, pCode string) {
+func (mp *MinePuzzle) Open(p *data.Player, pCode string) {
 	if p != nil {
 		mp.Box.Parent = &p.CamPos
 		mp.InfoText.Parent = &p.CamPos

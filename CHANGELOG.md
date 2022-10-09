@@ -1,6 +1,6 @@
 # DwarfSweeper Changelog
 
-## 0.4.20220930
+## 0.5.20220930
 
 ### Features
 

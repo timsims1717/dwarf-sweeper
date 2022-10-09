@@ -12,7 +12,7 @@ import (
 func TransformSystem() {
 	for _, result := range myecs.Manager.Query(myecs.HasTransform) {
 		if tran, ok := result.Components[myecs.Transform].(*transform.Transform); ok {
-			if tran.Dead {
+			if tran.Dispose {
 				myecs.Manager.DisposeEntity(result)
 			} else {
 				tran.APos = tran.Pos.Add(tran.Offset)
@@ -50,7 +50,7 @@ func TransformSystem() {
 				tran.Mat = tran.Mat.Moved(tran.APos.Scaled(tran.UIZoom))
 				tran.Mat = tran.Mat.Moved(tran.UIPos)
 
-				if descent.Descent != nil {
+				if descent.Descent != nil && !tran.KeepLoaded {
 					p := descent.Descent.GetClosestPlayer(tran.Pos)
 					if p != nil {
 						dist := p.Transform.Pos.Sub(tran.Pos)
@@ -67,7 +67,7 @@ func ParentSystem() {
 		tran, okT := result.Components[myecs.Transform].(*transform.Transform)
 		parent, okP := result.Components[myecs.Parent].(*transform.Transform)
 		if okT && okP {
-			if parent.Dead {
+			if parent.Dispose {
 				myecs.Manager.DisposeEntity(result)
 			} else {
 				tran.Pos = parent.Pos

@@ -47,7 +47,7 @@ func CreateCollectible(pos pixel.Vec, fn func(pixel.Vec, *Dwarf) bool, spr *pixe
 		AutoCollect: true,
 	}
 	phys, trans := data.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.ItemC)
 	coll.Debug = true
 	hp := &data.SimpleHealth{Immune: data.ItemImmunity1}
 	e.AddComponent(myecs.Transform, trans).

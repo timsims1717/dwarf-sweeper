@@ -1,7 +1,7 @@
 package states
 
 import (
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/hud"
@@ -35,10 +35,10 @@ func (s *scoreState) Unload() {
 }
 
 func (s *scoreState) Load(done chan struct{}) {
-	scoreStats := player.Stats{}
+	scoreStats := data.Stats{}
 	allGems := 0
 	for _, d := range descent.Descent.GetPlayers() {
-		scoreStats = player.AddStats(d.Player.Stats, scoreStats)
+		scoreStats = data.AddStats(d.Player.Stats, scoreStats)
 		allGems += d.Player.Gems
 	}
 	score := 0

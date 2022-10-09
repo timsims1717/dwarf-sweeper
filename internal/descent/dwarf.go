@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -68,7 +67,7 @@ func DefaultStats() DwarfStats {
 
 type Dwarf struct {
 	DwarfStats
-	Player     *player.Player
+	Player     *data.Player
 	Health     *data.Health
 	Physics    *physics.Physics
 	Transform  *transform.Transform
@@ -118,7 +117,7 @@ type Dwarf struct {
 	DeadStop bool
 }
 
-func NewDwarf(p *player.Player) *Dwarf {
+func NewDwarf(p *data.Player) *Dwarf {
 	tran := transform.New().WithID(fmt.Sprintf("dwarf-%s", p.Code))
 	d := &Dwarf{
 		DwarfStats: DefaultStats(),
@@ -315,7 +314,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 				return 5
 			}
 		}), "idle")
-	d.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), data.Player)
+	d.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), data.PlayerC)
 	d.Collider.Debug = true
 	d.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
@@ -759,7 +758,7 @@ func (d *Dwarf) Delete() {
 	myecs.Manager.DisposeEntity(d.Entity)
 }
 
-func FlagTile(p *player.Player, tile *cave.Tile) {
+func FlagTile(p *data.Player, tile *cave.Tile) {
 	if tile != nil && tile.Solid() && !tile.Destroyed && tile.Breakable() {
 		if !tile.Flagged {
 			tile.Flagged = true
@@ -770,7 +769,7 @@ func FlagTile(p *player.Player, tile *cave.Tile) {
 	}
 }
 
-func Dig(tile *cave.Tile, p *player.Player) bool {
+func Dig(tile *cave.Tile, p *data.Player) bool {
 	if tile.Diggable() {
 		if p != nil {
 			profile.CurrentProfile.Stats.BlocksDug++

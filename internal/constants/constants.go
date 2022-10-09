@@ -10,8 +10,8 @@ type Biome int
 const (
 	Title   = "DwarfSweeper"
 	Release = 0
-	Version = 4
-	Build   = 20220729
+	Version = 5
+	Build   = 20220930
 	BaseW   = 320.
 	BaseH   = 240.
 

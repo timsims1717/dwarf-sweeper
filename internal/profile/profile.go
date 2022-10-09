@@ -1,15 +1,15 @@
 package profile
 
 import (
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/pkg/util"
 	"fmt"
 )
 
 var (
-	DefaultProfile = &player.Profile{
-		Flags:      player.Flags{},
+	DefaultProfile = &data.Profile{
+		Flags: data.Flags{},
 		BiomeExits: map[string]map[string]int{
 			"mine": {
 				"moss": 5,
@@ -23,7 +23,7 @@ var (
 			},
 			"dark": {},
 		},
-		ItemLimits: player.ItemLimits{
+		ItemLimits: data.ItemLimits{
 			Hold: map[string]int{
 				"bomb_item": 8,
 				"beer": 3,
@@ -37,14 +37,14 @@ var (
 				"xray": 16.,
 			},
 		},
-		StartingAttr: player.StartingAttr{
+		StartingAttr: data.StartingAttr{
 			MaxHealth: 3,
 		},
 	}
-	CurrentProfile *player.Profile
+	CurrentProfile *data.Profile
 )
 
-func AddQuest(p *player.Profile, q *player.Quest) {
+func AddQuest(p *data.Profile, q *data.Quest) {
 	if !util.ContainsStr(q.Key, p.Quests) {
 		p.Quests = append(p.Quests, q.Key)
 		if !q.Hidden {
@@ -54,9 +54,9 @@ func AddQuest(p *player.Profile, q *player.Quest) {
 	}
 }
 
-func UpdateQuests(p *player.Profile) {
+func UpdateQuests(p *data.Profile) {
 	for _, key := range p.Quests {
-		q := player.Quests[key]
+		q := data.Quests[key]
 		if !util.ContainsStr(key, p.QuestsComplete) && q.Check(p) {
 			p.QuestsComplete = append(p.QuestsComplete, key)
 			menus.NotificationHandler.AddMessage(fmt.Sprintf("Quest: %s {symbol:checkmark}", q.Name))

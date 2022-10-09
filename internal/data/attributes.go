@@ -1,4 +1,4 @@
-package player
+package data
 
 const (
 	GemRate = 1.0

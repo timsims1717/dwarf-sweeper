@@ -51,7 +51,7 @@ func CollisionSystem() {
 							overlapX := -(math.Abs(pX) - (hb.W()+hb1.W())*0.5)
 							overlapY := -(math.Abs(pY) - (hb.H()+hb1.H())*0.5)
 							// if coll can't pass, then it will be stopped/bounced by the otherwise it just is 'pushed'
-							if (overlapX >= 0. && overlapX < overlapY) || (coll.Class == data.Player || coll1.Class == data.Player) {
+							if (overlapX >= 0. && overlapX < overlapY) || (coll.Class == data.PlayerC || coll1.Class == data.PlayerC) {
 								if coll.Class == data.Stacker && coll1.Class == data.Stacker {
 									if pX < 0. {
 										// if tran is left of tran1
@@ -156,12 +156,12 @@ func CollsMatter(cl, cl1 data.CollisionClass) bool {
 	if cl1 == data.GroundOnly {
 		return false
 	}
-	if (cl == data.Item && cl1 == data.Item) || (cl == data.Critter && cl1 == data.Critter) {
+	if (cl == data.ItemC && cl1 == data.ItemC) || (cl == data.Critter && cl1 == data.Critter) {
 		return false
 	}
 	return true
 }
 
 func CollsClash(cl, cl1 data.CollisionClass) bool {
-	return !(cl == data.Item || cl1 == data.Item || cl == data.Critter || cl1 == data.Critter)
+	return !(cl == data.ItemC || cl1 == data.ItemC || cl == data.Critter || cl1 == data.Critter)
 }

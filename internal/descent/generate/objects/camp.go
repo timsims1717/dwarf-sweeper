@@ -30,7 +30,7 @@ func AddTent(tile *cave.Tile, right bool) {
 			},
 		},
 	}
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.ItemC)
 	phys := physics.New()
 	trans := transform.New().WithID("tent")
 	trans.Pos = tile.Transform.Pos
@@ -69,7 +69,7 @@ func AddGemPile(tile *cave.Tile) {
 		Immune: data.EnemyImmunity,
 		DigMe:  true,
 	}
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.ItemC)
 	phys := physics.New()
 	trans := transform.New().WithID("gem-pile")
 	trans.Pos = tile.Transform.Pos

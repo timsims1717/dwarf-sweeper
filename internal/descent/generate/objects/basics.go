@@ -41,7 +41,7 @@ func AddObject(tile *cave.Tile, key string, digMe bool, flipOpt FlipOpt) {
 	if !digMe {
 		hp.Immune = data.ItemImmunity2
 	}
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.ItemC)
 	phys := physics.New()
 	trans := transform.New().WithID(key)
 	trans.Pos = tile.Transform.Pos

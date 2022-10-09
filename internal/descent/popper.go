@@ -548,7 +548,7 @@ func (p *Popper) CreateProjectile(norm pixel.Vec) {
 	phys.RagDollX = true
 	phys.RagDollY = true
 	spr := img.Batchers[constants.ParticleKey].GetSprite("dirt_shot")
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.ItemC)
 	coll.Damage = &data.Damage{
 		SourceID:  p.Transform.ID,
 		Amount:    1,

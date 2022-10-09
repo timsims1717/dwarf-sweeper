@@ -2,7 +2,7 @@ package descent
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
@@ -19,7 +19,7 @@ func UpdatePlayer(d *Dwarf) {
 			if len(d.Player.Messages) > 1 {
 				d.Player.Messages = d.Player.Messages[1:]
 			} else {
-				d.Player.Messages = []*player.RawMessage{}
+				d.Player.Messages = []*data.RawMessage{}
 			}
 			d.Player.Message.Text.SetText(m.Raw)
 			d.Player.Message.OnClose = m.OnClose

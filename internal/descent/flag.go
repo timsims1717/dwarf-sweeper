@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/profile"
@@ -13,7 +12,7 @@ import (
 	"fmt"
 )
 
-func CreateFlag(p *player.Player, tile *cave.Tile) {
+func CreateFlag(p *data.Player, tile *cave.Tile) {
 	correct := tile.Bomb
 	if correct {
 		profile.CurrentProfile.Stats.CorrectFlags++

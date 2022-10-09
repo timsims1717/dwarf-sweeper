@@ -3,7 +3,7 @@ package cave
 import (
 	"bytes"
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
@@ -55,7 +55,7 @@ type Tile struct {
 	revealT    *timing.Timer
 	revealing  bool
 	destroying bool
-	destroyer  *player.Player
+	destroyer  *data.Player
 	reload     bool
 	Flagged    bool
 	Exit       bool
@@ -74,7 +74,7 @@ type Tile struct {
 	XPerlin     float64
 	YPerlin     float64
 
-	DestroyTrigger func(*player.Player, *Tile)
+	DestroyTrigger func(*data.Player, *Tile)
 	GemRate        float64
 }
 
@@ -145,7 +145,7 @@ func (tile *Tile) Draw() {
 	}
 }
 
-func (tile *Tile) Destroy(p *player.Player, playSound bool) {
+func (tile *Tile) Destroy(p *data.Player, playSound bool) {
 	if tile != nil && !tile.Destroyed && !tile.destroying && (tile.Breakable() || tile.Type == SecretDoor) {
 		tile.destroying = true
 		tile.destroyer = p

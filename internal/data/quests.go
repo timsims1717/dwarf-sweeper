@@ -1,4 +1,4 @@
-package player
+package data
 
 var Quests map[string]*Quest
 

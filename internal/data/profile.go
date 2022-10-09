@@ -1,4 +1,4 @@
-package player
+package data
 
 type Profile struct {
 	Gems  int
