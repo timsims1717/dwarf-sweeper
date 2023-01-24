@@ -23,7 +23,6 @@ var (
 	arrow *pixel.Sprite
 )
 
-
 func Initialize() {
 	DefaultDist = world.TileSize * 4.
 	arrow = img.Batchers[constants.MenuSprites].Sprites["menu_arrow"]
@@ -91,7 +90,7 @@ func (m *DwarfMenu) InsertItem(key, raw, after string, right bool) *Item {
 	i := 0
 	for j, itemAfter := range m.Items {
 		if itemAfter.Key == after {
-			i = j+1
+			i = j + 1
 			break
 		}
 	}
@@ -186,16 +185,13 @@ func (m *DwarfMenu) UpdateView(in *pxginput.Input) {
 		for i, item := range m.Items {
 			if !item.Hovered && !item.Disabled && !item.NoHover && !item.noShowT {
 				b := item.Text.Text.BoundsOf(item.Raw)
-				if !m.HideArrow {
-					b.Min.X -= 30. / constants.ActualMenuSize
-				}
 				point := in.World
 				if item.Right {
-					point.X += 15.
+					point.X += b.W() * 0.5 * constants.ActualMenuSize
 				} else {
 					point.X -= b.W() * 0.5 * constants.ActualMenuSize
 				}
-				point.Y -= b.H() * 1.45 * constants.ActualMenuSize
+				point.Y -= b.H() * 1.75 * constants.ActualMenuSize
 				if util.PointInside(point, b, item.Text.Transform.Mat) {
 					m.setHover(i)
 				}
@@ -257,9 +253,9 @@ func (m *DwarfMenu) UpdateSize() {
 	for i, item := range m.Items {
 		if !item.noShowT {
 			if item.Right {
-				item.Text.SetPos(pixel.V(minWidth*0.5 - 10., minHeight*0.5 - float64(line+1)*item.Text.Text.LineHeight * constants.ActualMenuSize))
+				item.Text.SetPos(pixel.V(minWidth*0.5-10., minHeight*0.5-float64(line+1)*item.Text.Text.LineHeight*constants.ActualMenuSize))
 			} else {
-				nextY := minHeight*0.5 - float64(line+1)*item.Text.Text.LineHeight * constants.ActualMenuSize
+				nextY := minHeight*0.5 - float64(line+1)*item.Text.Text.LineHeight*constants.ActualMenuSize
 				var nextX float64
 				if !m.HideArrow {
 					nextX = minWidth*-0.5 + 20.
@@ -295,7 +291,7 @@ func (m *DwarfMenu) UpdateTransforms() {
 		m.ArrowT.Update()
 		if hovered.Hint != "" && m.Box.IsOpen() {
 			m.Hint.SetText(hovered.Hint)
-			m.Hint.Tran.Pos.X = m.Box.STR.Pos.X + m.Hint.Box.Rect.W() * 0.5
+			m.Hint.Tran.Pos.X = m.Box.STR.Pos.X + m.Hint.Box.Rect.W()*0.5
 			m.Hint.Tran.Pos.Y = m.ArrowT.Pos.Y
 			m.Hint.Update()
 			m.Hint.Display = true
@@ -421,22 +417,31 @@ func (m *DwarfMenu) GetNextHover(dir, curr int, in *pxginput.Input) {
 }
 
 func (m *DwarfMenu) GetNextHoverHor(dir, curr int, in *pxginput.Input) {
-	this := m.Items[curr]
-	nextI := -1
-	if dir == 2 && !this.Right && curr < len(m.Items)-1 {
-		nextI = curr + 1
-	} else if dir == 3 && this.Right && curr > 0 {
-		nextI = curr - 1
-	}
-	if nextI != -1 {
-		next := m.Items[nextI]
-		if next.Right != this.Right && !next.Disabled && !next.NoHover && !next.noShowT {
-			m.setHover(nextI)
-			if dir == 2 {
-				in.Get("menuRight").Consume()
-			} else {
-				in.Get("menuLeft").Consume()
+	if curr != -1 {
+		this := m.Items[curr]
+		nextI := -1
+		if dir == 2 && !this.Right && curr < len(m.Items)-1 {
+			nextI = curr + 1
+		} else if dir == 3 && this.Right && curr > 0 {
+			nextI = curr - 1
+		}
+		if nextI != -1 {
+			next := m.Items[nextI]
+			if next.Right != this.Right && !next.Disabled && !next.NoHover && !next.noShowT {
+				m.setHover(nextI)
+				if dir == 2 {
+					in.Get("menuRight").Consume()
+				} else {
+					in.Get("menuLeft").Consume()
+				}
 			}
+		}
+	} else {
+		m.setHover(-1)
+		if dir == 2 {
+			in.Get("menuRight").Consume()
+		} else {
+			in.Get("menuLeft").Consume()
 		}
 	}
 }

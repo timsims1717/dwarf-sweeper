@@ -68,7 +68,7 @@ func (m *MadMonk) Update() {
 
 func (m *MadMonk) Create(pos pixel.Vec) {
 	m.AtkTimer = timing.New(mmAtkWait)
-	m.Transform = transform.New()
+	m.Transform = transform.New().WithID("mad-monk")
 	m.Transform.Pos = pos
 	m.Physics = physics.New()
 	m.Physics.Terminal = 100.
@@ -84,7 +84,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 	m.created = true
 	m.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("mm_attack", img.Batchers[constants.EntityKey].Animations["mm_attack"].S, reanimator.Tran).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(3, func() {
 				m.AtkTimer = timing.New(mmAtkWait)
 				atkPos := m.Transform.Pos
 				if m.faceLeft {
@@ -103,7 +103,7 @@ func (m *MadMonk) Create(pos pixel.Vec) {
 					Type:      data.Enemy,
 				})
 			}).
-			SetTrigger(5, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(5, func() {
 				m.Attack = false
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("mm_fall", img.Batchers[constants.EntityKey].Animations["mm_fall"].S, reanimator.Loop)).

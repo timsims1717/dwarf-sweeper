@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/timing"
@@ -13,7 +12,7 @@ import (
 	"github.com/faiface/pixel"
 )
 
-var xrayItem = &player.Item{
+var xrayItem = &data.Item{
 	Key:     "xray",
 	Name:    "XRay",
 	Temp:    true,

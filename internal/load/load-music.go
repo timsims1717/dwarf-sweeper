@@ -15,6 +15,7 @@ func Music() {
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/The Hero Approaches.wav", "hero")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Twin Turbo.wav", "turbo")
 	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Voyage.wav", "voyage")
+	sfx.MusicPlayer.RegisterMusicTrack("assets/music/Ascension II.wav", "ascension2")
 
 	sfx.MusicPlayer.SetTracks("menu", []string{"crab"})
 	sfx.MusicPlayer.SetTracks("pause", []string{"sable"})

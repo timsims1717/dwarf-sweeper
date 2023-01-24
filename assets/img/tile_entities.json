@@ -414,6 +414,38 @@
       "w": 32
     },
     {
+      "key": "bomb_dispenser",
+      "anim": true,
+      "x": 160,
+      "y": 96,
+      "h": 16,
+      "w": 16
+    },
+    {
+      "key": "bomb_dispenser",
+      "anim": true,
+      "x": 176,
+      "y": 96,
+      "h": 16,
+      "w": 16
+    },
+    {
+      "key": "bomb_dispenser",
+      "anim": true,
+      "x": 192,
+      "y": 96,
+      "h": 16,
+      "w": 16
+    },
+    {
+      "key": "bomb_dispenser",
+      "anim": true,
+      "x": 208,
+      "y": 96,
+      "h": 16,
+      "w": 16
+    },
+    {
       "key": "tent",
       "x": 0,
       "y": 128,

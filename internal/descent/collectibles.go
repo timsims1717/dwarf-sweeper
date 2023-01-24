@@ -32,7 +32,7 @@ func CreateGem(pos pixel.Vec) {
 	spr := img.Batchers[constants.EntityKey].Sprites["gem_diamond"]
 	fn := func(pos pixel.Vec, d *Dwarf) bool {
 		d.Player.Gems++
-		particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, pos, 10.0, 1.0, 0.5)
+		particles.CreateRandomStaticParticles(2, 4, []string{"sparkle_plus_0", "sparkle_plus_1", "sparkle_plus_2", "sparkle_x_0", "sparkle_x_1", "sparkle_x_2"}, pos, 10.0, 1.0, 0.5, false)
 		sfx.SoundPlayer.PlaySound("clink", 1.0)
 		return true
 	}
@@ -47,7 +47,7 @@ func CreateCollectible(pos pixel.Vec, fn func(pixel.Vec, *Dwarf) bool, spr *pixe
 		AutoCollect: true,
 	}
 	phys, trans := data.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)
-	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., spr.Frame().W(), spr.Frame().H()), data.ItemC)
 	coll.Debug = true
 	hp := &data.SimpleHealth{Immune: data.ItemImmunity1}
 	e.AddComponent(myecs.Transform, trans).

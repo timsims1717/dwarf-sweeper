@@ -1,0 +1,381 @@
+{
+ "height": 16,
+ "width": 16,
+ "sprites": [
+  {
+   "key": "blank",
+   "x": 176,
+   "y": 32
+  },
+  {
+   "key": "block_1",
+   "x": 0,
+   "y": 48
+  },
+  {
+   "key": "block_2",
+   "x": 16,
+   "y": 48
+  },
+  {
+   "key": "block_3",
+   "x": 32,
+   "y": 48
+  },
+  {
+   "key": "block_4",
+   "x": 48,
+   "y": 48
+  },
+  {
+   "key": "block_5",
+   "x": 64,
+   "y": 48
+  },
+  {
+   "key": "block_6",
+   "x": 80,
+   "y": 48
+  },
+  {
+   "key": "block_7",
+   "x": 96,
+   "y": 48
+  },
+  {
+   "key": "block_8",
+   "x": 112,
+   "y": 48
+  },
+  {
+   "key": "block_9",
+   "x": 128,
+   "y": 48
+  },
+  {
+   "key": "block_10",
+   "x": 144,
+   "y": 48
+  },
+  {
+   "key": "block_11",
+   "x": 160,
+   "y": 48
+  },
+  {
+   "key": "block_12",
+   "x": 176,
+   "y": 48
+  },
+  {
+   "key": "block_13",
+   "x": 192,
+   "y": 48
+  },
+  {
+   "key": "blockb_1",
+   "x": 0,
+   "y": 16
+  },
+  {
+   "key": "blockb_2",
+   "x": 16,
+   "y": 16
+  },
+  {
+   "key": "blockb_3",
+   "x": 32,
+   "y": 16
+  },
+  {
+   "key": "blockb_4",
+   "x": 48,
+   "y": 16
+  },
+  {
+   "key": "blockb_5",
+   "x": 64,
+   "y": 16
+  },
+  {
+   "key": "blockb_6",
+   "x": 80,
+   "y": 16
+  },
+  {
+   "key": "blockb_7",
+   "x": 96,
+   "y": 16
+  },
+  {
+   "key": "blockb_8",
+   "x": 112,
+   "y": 16
+  },
+  {
+   "key": "blockb_9",
+   "x": 128,
+   "y": 16
+  },
+  {
+   "key": "blockb_10",
+   "x": 144,
+   "y": 16
+  },
+  {
+   "key": "blockb_11",
+   "x": 160,
+   "y": 16
+  },
+  {
+   "key": "blockb_12",
+   "x": 176,
+   "y": 16
+  },
+  {
+   "key": "blockb_13",
+   "x": 192,
+   "y": 16
+  },
+  {
+   "key": "blockc_1",
+   "x": 0,
+   "y": 64
+  },
+  {
+   "key": "blockc_2",
+   "x": 16,
+   "y": 64
+  },
+  {
+   "key": "blockc_3",
+   "x": 32,
+   "y": 64
+  },
+  {
+   "key": "blockc_4",
+   "x": 48,
+   "y": 64
+  },
+  {
+   "key": "blockc_5",
+   "x": 64,
+   "y": 64
+  },
+  {
+   "key": "blockc_6",
+   "x": 80,
+   "y": 64
+  },
+  {
+   "key": "blockc_7",
+   "x": 96,
+   "y": 64
+  },
+  {
+   "key": "blockc_8",
+   "x": 112,
+   "y": 64
+  },
+  {
+   "key": "blockc_9",
+   "x": 128,
+   "y": 64
+  },
+  {
+   "key": "blockc_10",
+   "x": 144,
+   "y": 64
+  },
+  {
+   "key": "blockc_11",
+   "x": 160,
+   "y": 64
+  },
+  {
+   "key": "blockc_12",
+   "x": 176,
+   "y": 64
+  },
+  {
+   "key": "blockc_13",
+   "x": 192,
+   "y": 64
+  },
+  {
+   "key": "wall_1",
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "wall_2",
+   "x": 16,
+   "y": 0
+  },
+  {
+   "key": "wall_3",
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "wall_4",
+   "x": 48,
+   "y": 0
+  },
+  {
+   "key": "wall_5",
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "wall_6",
+   "x": 80,
+   "y": 0
+  },
+  {
+   "key": "wall_7",
+   "x": 96,
+   "y": 0
+  },
+  {
+   "key": "wall_8",
+   "x": 112,
+   "y": 0
+  },
+  {
+   "key": "wall_9",
+   "x": 128,
+   "y": 0
+  },
+  {
+   "key": "wall_10",
+   "x": 144,
+   "y": 0
+  },
+  {
+   "key": "wall_11",
+   "x": 160,
+   "y": 0
+  },
+  {
+   "key": "wall_12",
+   "x": 176,
+   "y": 0
+  },
+  {
+   "key": "wall_13",
+   "x": 192,
+   "y": 0
+  },
+  {
+   "key": "pillar_top",
+   "x": 0,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid",
+   "x": 0,
+   "y": 128
+  },
+  {
+   "key": "pillar_bottom",
+   "x": 0,
+   "y": 112
+  },
+  {
+   "key": "pillar_top_br",
+   "x": 16,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid_br",
+   "x": 16,
+   "y": 128
+  },
+  {
+   "key": "pillar_bottom_br",
+   "x": 16,
+   "y": 112
+  },
+  {
+   "key": "pillar_mid_br_up",
+   "x": 32,
+   "y": 144
+  },
+  {
+   "key": "pillar_mid_br_dwn",
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "pillar_single",
+   "x": 32,
+   "y": 112
+  },
+  {
+   "key": "growth_top",
+   "x": 48,
+   "y": 144
+  },
+  {
+   "key": "growth_mid",
+   "x": 48,
+   "y": 128
+  },
+  {
+   "key": "growth_bottom",
+   "x": 48,
+   "y": 112
+  },
+  {
+   "key": "growth_top_br",
+   "x": 64,
+   "y": 144
+  },
+  {
+   "key": "growth_mid_br",
+   "x": 64,
+   "y": 128
+  },
+  {
+   "key": "growth_bottom_br",
+   "x": 64,
+   "y": 112
+  },
+  {
+   "key": "growth_mid_br_up",
+   "x": 80,
+   "y": 144
+  },
+  {
+   "key": "growth_mid_br_dwn",
+   "x": 80,
+   "y": 128
+  },
+  {
+   "key": "growth_single",
+   "x": 80,
+   "y": 112
+  },
+  {
+   "key": "bridge_br_left",
+   "x": 96,
+   "y": 112
+  },
+  {
+   "key": "bridge",
+   "x": 112,
+   "y": 112
+  },
+  {
+   "key": "bridge_br_right",
+   "x": 128,
+   "y": 112
+  },
+  {
+   "key": "bridge_br",
+   "x": 144,
+   "y": 112
+  }
+ ]
+}

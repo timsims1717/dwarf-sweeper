@@ -20,16 +20,16 @@ const (
 
 func CreateMine(pos pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	trans := transform.New()
+	trans := transform.New().WithID("mine")
 	trans.Pos = pos
 	fuse := timing.New(MineFuse)
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(0, func() {
 				sfx.SoundPlayer.PlaySound("doubleblast", -1.0)
 			}).
-			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(1, func() {
 				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
 					Descent.Cave.BombsLeft--
 					tile := Descent.GetCave().GetTile(trans.Pos)
@@ -115,7 +115,7 @@ func CreateMine(pos pixel.Vec) {
 //	m.Reanimator = reanimator.New(reanimator.NewSwitch().
 //		AddAnimation(reanimator.NewAnimFromSprites("mine_1", img.Batchers[constants.EntityKey].Animations["mine_1"].S, reanimator.Hold)).
 //		AddAnimation(reanimator.NewAnimFromSprites("mine_2", img.Batchers[constants.EntityKey].Animations["mine_2"].S, reanimator.Tran).
-//			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+//			SetTrigger(2, func() {
 //				m.explode = true
 //			}),
 //		).

@@ -14,18 +14,14 @@ import (
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/util"
 	"dwarf-sweeper/pkg/world"
-	"fmt"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
-	"time"
 )
 
 const (
 	batSpeed = 50.
 	batAcc   = 10.
 )
-
-var lastSqueak time.Time
 
 type Bat struct {
 	Transform  *transform.Transform
@@ -47,7 +43,7 @@ func CreateBat(c *cave.Cave, pos pixel.Vec) *Bat {
 	if random.CaveGen.Intn(100) < util.Min(c.Level - 5, 20) {
 		b.Evil = true
 	}
-	b.Transform = transform.New()
+	b.Transform = transform.New().WithID("bat")
 	b.Transform.Pos = pos
 	tPos := pos
 	tPos.Y += world.TileSize
@@ -63,22 +59,22 @@ func CreateBat(c *cave.Cave, pos pixel.Vec) *Bat {
 	}
 	b.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("bat_daze_air", img.Batchers[constants.EntityKey].GetAnimation("bat_daze_air").S, reanimator.Hold).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
-				PlayBatSqueak()
+			SetTrigger(0, func() {
+				PlaySqueak()
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("bat_daze_ground", img.Batchers[constants.EntityKey].GetAnimation("bat_daze_ground").S, reanimator.Hold).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
-				PlayBatSqueak()
+			SetTrigger(0, func() {
+				PlaySqueak()
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("bat_roost", img.Batchers[constants.EntityKey].GetAnimation("bat_roost").S, reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("bat_fly", img.Batchers[constants.EntityKey].GetAnimation("bat_fly").S, reanimator.Loop).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(0, func() {
 				if b.Transform.Load && b.roosted1 {
 					sfx.SoundPlayer.PlaySound("wingflap", 0.)
 				}
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("evil_bat_fly", img.Batchers[constants.EntityKey].GetAnimation("evil_bat_fly").S, reanimator.Loop).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(0, func() {
 				if b.Transform.Load && b.roosted1 {
 					sfx.SoundPlayer.PlaySound("wingflap", 0.)
 				}
@@ -123,7 +119,9 @@ func (b *Bat) Update() bool {
 			if b.roost == nil || !b.roost.Solid() {
 				b.roosting = false
 			}
-			// todo: disturbances, bombs, etc
+			if Descent.Cave.DestroyedWithin(b.roost.RCoords, 2, 1) {
+				b.roosting = false
+			}
 			if random.Effects.Intn(100. * int(1 / timing.DT)) == 0 {
 				squeak = true
 			}
@@ -181,9 +179,8 @@ func (b *Bat) Update() bool {
 			}
 		}
 		b.Transform.Flip = b.faceLeft
-		if squeak && time.Since(lastSqueak) > 1. && b.Transform.Load {
-			PlayBatSqueak()
-			lastSqueak = time.Now()
+		if squeak && b.Transform.Load {
+			PlaySqueak()
 		}
 	} else {
 		b.Physics.GravityOff = false
@@ -199,8 +196,4 @@ func (b *Bat) Update() bool {
 		b.Entity.AddComponent(myecs.Temp, timing.New(4.))
 	}
 	return false
-}
-
-func PlayBatSqueak() {
-	sfx.SoundPlayer.PlaySound(fmt.Sprintf("squeak%d", random.Effects.Intn(5)+1), 0.)
 }

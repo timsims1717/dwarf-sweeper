@@ -40,7 +40,7 @@ var BombImmunity = map[data.DamageType]data.Immunity{
 
 func CreateBomb(pos pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	trans := transform.New()
+	trans := transform.New().WithID("bomb")
 	trans.Pos = pos
 	phys := physics.New()
 	phys.GravityOff = true
@@ -52,33 +52,33 @@ func CreateBomb(pos pixel.Vec) {
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[constants.EntityKey].Animations["bomb_fuse"].S, reanimator.Loop)).
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(2, func() {
 				sfx.SoundPlayer.PlaySound("doubleblast", 0.0)
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
-				sfx.SoundPlayer.KillSound(fuseSFX)
-				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					Descent.GetCave().BombsLeft--
-					tile := Descent.GetCave().GetTile(trans.Pos)
-					for _, n := range tile.RCoords.Neighbors() {
-						t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
-						t.Destroy(nil, false)
-					}
-					myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
-						SourceID:       trans.ID,
-						Center:         trans.Pos,
-						Radius:         MineBaseRadius * world.TileSize,
-						Amount:         1,
-						Dazed:          3.,
-						Knockback:      MineBaseKnockback,
-						KnockbackDecay: true,
-					})
-					particles.CreateSmallExplosion(trans.Pos)
-					//camera.Cam.Shake(0.5, 10.)
-					myecs.Manager.DisposeEntity(e)
-					return false
-				}))
-			})).
+		SetTrigger(3, func() {
+			sfx.SoundPlayer.KillSound(fuseSFX)
+			e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
+				Descent.GetCave().BombsLeft--
+				tile := Descent.GetCave().GetTile(trans.Pos)
+				for _, n := range tile.RCoords.Neighbors() {
+					t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
+					t.Destroy(nil, false)
+				}
+				myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+					SourceID:       trans.ID,
+					Center:         trans.Pos,
+					Radius:         MineBaseRadius * world.TileSize,
+					Amount:         1,
+					Dazed:          3.,
+					Knockback:      MineBaseKnockback,
+					KnockbackDecay: true,
+				})
+				particles.CreateSmallExplosion(trans.Pos)
+				//camera.Cam.Shake(0.5, 10.)
+				myecs.Manager.DisposeEntity(e)
+				return false
+			}))
+		})).
 		SetChooseFn(func() int {
 			if BombFuse-fuse.Elapsed() > 0.3 {
 				return 0
@@ -107,7 +107,7 @@ func CreateBomb(pos pixel.Vec) {
 func CreateHighYieldBomb(pos pixel.Vec) {
 	e := myecs.Manager.NewEntity()
 	hy := myecs.Manager.NewEntity()
-	trans := transform.New()
+	trans := transform.New().WithID("hy-bomb")
 	trans.Pos = pos
 	phys := physics.New()
 	phys.GravityOff = true
@@ -119,40 +119,40 @@ func CreateHighYieldBomb(pos pixel.Vec) {
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_fuse", img.Batchers[constants.EntityKey].Animations["bomb_fuse"].S, reanimator.Loop)).
 		AddAnimation(reanimator.NewAnimFromSprites("bomb_blow", img.Batchers[constants.EntityKey].Animations["bomb_blow"].S, reanimator.Tran).
-			SetTrigger(2, func(_ *reanimator.Anim, _ string, _ int) {
+		SetTrigger(2, func() {
 				sfx.SoundPlayer.PlaySound("doubleblast", -1.0)
 				hy.AddComponent(myecs.Drawable, img.Batchers[constants.EntityKey].GetSprite("bomb_high_yield_burst"))
 			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
-				sfx.SoundPlayer.KillSound(fuseSFX)
-				e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
-					Descent.GetCave().BombsLeft--
-					tile := Descent.GetCave().GetTile(trans.Pos)
-					for _, n := range tile.RCoords.Neighbors() {
-						t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
-						for i, sn := range t.RCoords.Neighbors() {
-							if i % 2 == 0 {
-								tile.Chunk.Cave.GetTileInt(sn.X, sn.Y).Destroy(nil, false)
-							}
+		SetTrigger(3, func() {
+			sfx.SoundPlayer.KillSound(fuseSFX)
+			e.AddComponent(myecs.Func, data.NewFrameFunc(func() bool {
+				Descent.GetCave().BombsLeft--
+				tile := Descent.GetCave().GetTile(trans.Pos)
+				for _, n := range tile.RCoords.Neighbors() {
+					t := tile.Chunk.Cave.GetTileInt(n.X, n.Y)
+					for i, sn := range t.RCoords.Neighbors() {
+						if i % 2 == 0 {
+							tile.Chunk.Cave.GetTileInt(sn.X, sn.Y).Destroy(nil, false)
 						}
-						t.Destroy(nil, false)
 					}
-					myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
-						SourceID:       trans.ID,
-						Center:         trans.Pos,
-						Radius:         HighYieldRadius * world.TileSize,
-						Amount:         1,
-						Dazed:          3.,
-						Knockback:      MineBaseKnockback,
-						KnockbackDecay: true,
-					})
-					particles.CreateBigExplosion(trans.Pos)
-					//camera.Cam.Shake(0.5, 10.)
-					myecs.Manager.DisposeEntity(e)
-					myecs.Manager.DisposeEntity(hy)
-					return false
-				}))
-			})).
+					t.Destroy(nil, false)
+				}
+				myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
+					SourceID:       trans.ID,
+					Center:         trans.Pos,
+					Radius:         HighYieldRadius * world.TileSize,
+					Amount:         1,
+					Dazed:          3.,
+					Knockback:      MineBaseKnockback,
+					KnockbackDecay: true,
+				})
+				particles.CreateBigExplosion(trans.Pos)
+				//camera.Cam.Shake(0.5, 10.)
+				myecs.Manager.DisposeEntity(e)
+				myecs.Manager.DisposeEntity(hy)
+				return false
+			}))
+		})).
 		SetChooseFn(func() int {
 			if BombFuse-fuse.Elapsed() > 0.3 {
 				return 0

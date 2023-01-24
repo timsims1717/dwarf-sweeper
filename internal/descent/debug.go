@@ -3,7 +3,9 @@ package descent
 import (
 	"dwarf-sweeper/internal/debug"
 	"fmt"
+	"github.com/faiface/pixel/imdraw"
 	pxginput "github.com/timsims1717/pixel-go-input"
+	"golang.org/x/image/colornames"
 )
 
 func Debug(in *pxginput.Input) {
@@ -41,5 +43,13 @@ func Debug(in *pxginput.Input) {
 		debug.AddText(fmt.Sprintf("cave depth: %d", Descent.CurrDepth))
 		debug.AddText(fmt.Sprintf("descent depth: %d", Descent.Depth))
 		debug.AddText(fmt.Sprintf("bombs in cave: %d", Descent.GetCave().BombsLeft))
+	}
+	if debug.Debug {
+		t := Descent.Cave.GetTile(d.Transform.Pos)
+		blob := Descent.Cave.GetOutline(t.RCoords, 5)
+		for _, c := range blob {
+			ct := Descent.Cave.GetTileInt(c.X, c.Y)
+			debug.AddLine(colornames.Orange, imdraw.RoundEndShape, ct.Transform.Pos, ct.Transform.Pos, 3.)
+		}
 	}
 }

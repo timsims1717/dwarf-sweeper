@@ -3,7 +3,7 @@ package cave
 import (
 	"bytes"
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/random"
@@ -55,7 +55,7 @@ type Tile struct {
 	revealT    *timing.Timer
 	revealing  bool
 	destroying bool
-	destroyer  *player.Player
+	destroyer  *data.Player
 	reload     bool
 	Flagged    bool
 	Exit       bool
@@ -74,7 +74,7 @@ type Tile struct {
 	XPerlin     float64
 	YPerlin     float64
 
-	DestroyTrigger func(*player.Player, *Tile)
+	DestroyTrigger func(*data.Player, *Tile)
 	GemRate        float64
 }
 
@@ -145,7 +145,7 @@ func (tile *Tile) Draw() {
 	}
 }
 
-func (tile *Tile) Destroy(p *player.Player, playSound bool) {
+func (tile *Tile) Destroy(p *data.Player, playSound bool) {
 	if tile != nil && !tile.Destroyed && !tile.destroying && (tile.Breakable() || tile.Type == SecretDoor) {
 		tile.destroying = true
 		tile.destroyer = p
@@ -211,6 +211,7 @@ func (tile *Tile) destroy() {
 				}
 			}
 		}
+		tile.Chunk.Cave.Destroyed = append(tile.Chunk.Cave.Destroyed, tile.RCoords)
 	}
 }
 
@@ -350,8 +351,10 @@ func (tile *Tile) UpdateSprites() {
 			var fogMat pixel.Matrix
 			if tile.Surrounded && !tile.DSurrounded && tile.Chunk.Cave.Fog {
 				fogSpr, fogMat = SmartTileFade(tile.FogSmartStr)
-				tile.FogSpriteS = fogSpr
-				tile.AddSprite(fogSpr, fogMat, constants.FogKey, false)
+				if fogSpr != "" {
+					tile.FogSpriteS = fogSpr
+					tile.AddSprite(fogSpr, fogMat, constants.FogKey, false)
+				}
 			} else if tile.Surrounded && tile.DSurrounded && tile.Chunk.Cave.Fog {
 				tile.AddSprite("empty", pixel.IM, constants.FogKey, false)
 			}
@@ -517,6 +520,9 @@ func (tile *Tile) AddSprite(key string, mat pixel.Matrix, biome string, bg bool)
 		batch = img.Batchers[fmt.Sprintf(constants.CaveBGFMT, biome)]
 	} else {
 		batch = img.Batchers[biome]
+	}
+	if batch == nil {
+		fmt.Println("biome", biome, "does not have a batch. BG:", bg)
 	}
 	tile.Sprites = append(tile.Sprites, img.Sprite{
 		K: key,

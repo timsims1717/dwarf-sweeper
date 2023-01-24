@@ -14,13 +14,13 @@ func TemporarySystem() {
 			if timer, ok := temp.(*timing.Timer); ok {
 				if timer.UpdateDone() {
 					trans.Hide = true
-					trans.Dead = true
+					trans.Dispose = true
 					myecs.Manager.DisposeEntity(result.Entity)
 				}
 			} else if check, ok := temp.(myecs.ClearFlag); ok {
 				if check {
 					trans.Hide = true
-					trans.Dead = true
+					trans.Dispose = true
 					myecs.Manager.DisposeEntity(result.Entity)
 				}
 			}
@@ -33,7 +33,7 @@ func ClearSystem() {
 		trans, ok := result.Components[myecs.Transform].(*transform.Transform)
 		if ok {
 			trans.Hide = true
-			trans.Dead = true
+			trans.Dispose = true
 		}
 		myecs.Manager.DisposeEntity(result.Entity)
 	}

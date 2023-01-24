@@ -3,12 +3,10 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/profile"
-	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -69,7 +67,7 @@ func DefaultStats() DwarfStats {
 
 type Dwarf struct {
 	DwarfStats
-	Player     *player.Player
+	Player     *data.Player
 	Health     *data.Health
 	Physics    *physics.Physics
 	Transform  *transform.Transform
@@ -119,8 +117,8 @@ type Dwarf struct {
 	DeadStop bool
 }
 
-func NewDwarf(p *player.Player) *Dwarf {
-	tran := transform.New()
+func NewDwarf(p *data.Player) *Dwarf {
+	tran := transform.New().WithID(fmt.Sprintf("dwarf-%s", p.Code))
 	d := &Dwarf{
 		DwarfStats: DefaultStats(),
 		Health:     &data.Health{
@@ -168,90 +166,90 @@ func NewDwarf(p *player.Player) *Dwarf {
 		AddAnimation(reanimator.NewAnimFromSprite("dig_hold", batcher.GetSprite("dig"), reanimator.Hold)).   // dig hold
 		AddAnimation(reanimator.NewAnimFromSprite("flag_hold", batcher.GetSprite("flag"), reanimator.Hold)). // flag hold
 		AddAnimation(reanimator.NewAnimFromSprites("dig", batcher.GetAnimation("dig").S, reanimator.Tran).
-			SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
-				if d.digTile == nil || !d.digTile.Solid() || d.digTile.IsDeco() {
-					trans := transform.New()
-					trans.Pos = d.attackPoint
-					trans.Flip = d.faceLeft
-					key := "shovel_swipe"
-					if d.facing.X == 0. {
-						if d.faceLeft {
-							if d.facing.Y > 0. {
-								trans.Rot = -0.5
-							} else {
-								trans.Rot = 0.5
-							}
+		SetTrigger(0, func() {
+			if d.digTile == nil || !d.digTile.Solid() || d.digTile.IsDeco() {
+				trans := transform.New()
+				trans.Pos = d.attackPoint
+				trans.Flip = d.faceLeft
+				key := "shovel_swipe"
+				if d.facing.X == 0. {
+					if d.faceLeft {
+						if d.facing.Y > 0. {
+							trans.Rot = -0.5
 						} else {
-							if d.facing.Y > 0. {
-								trans.Rot = 0.5
-							} else {
-								trans.Rot = -0.5
-							}
+							trans.Rot = 0.5
 						}
-					} else if d.facing.Y != 0. && d.facing.X != 0. {
-						key = "shovel_swipe_diag"
-						if d.facing.Y < 0. {
-							if d.faceLeft {
-								trans.Rot = 0.5
-							} else {
-								trans.Rot = -0.5
-							}
+					} else {
+						if d.facing.Y > 0. {
+							trans.Rot = 0.5
+						} else {
+							trans.Rot = -0.5
 						}
 					}
-					anim := img.Batchers[constants.ParticleKey].GetAnimation(key).S
-					e := myecs.Manager.NewEntity()
-					tree := reanimator.NewSimple(
-						reanimator.NewAnimFromSprites("swipe", anim, reanimator.Done).
-							SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
-								myecs.Manager.DisposeEntity(e)
-							}),
-					)
-					e.AddComponent(myecs.Animation, tree).
-						AddComponent(myecs.Drawable, tree).
-						AddComponent(myecs.Transform, trans).
-						AddComponent(myecs.Batch, constants.ParticleKey).
-						AddComponent(myecs.Temp, myecs.ClearFlag(false))
+				} else if d.facing.Y != 0. && d.facing.X != 0. {
+					key = "shovel_swipe_diag"
+					if d.facing.Y < 0. {
+						if d.faceLeft {
+							trans.Rot = 0.5
+						} else {
+							trans.Rot = -0.5
+						}
+					}
 				}
-			}).
-			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
-				if d.digTile != nil && d.digTile.Solid() && !d.digTile.IsDeco() {
-					Dig(d.digTile, d.Player)
-					d.digTile = nil
-				} else {
-					sub := d.attackPoint.Sub(d.Transform.Pos)
-					sub.Y += world.TileSize * 0.5
-					angle := sub.Angle()
-					myecs.Manager.NewEntity().
-						AddComponent(myecs.AreaDmg, &data.AreaDamage{
-							SourceID:  d.Transform.ID,
-							Center:    d.attackPoint,
-							Radius:    world.TileSize * 1.2,
-							Amount:    d.ShovelDamage,
-							Dazed:     d.ShovelDazed,
-							Knockback: d.ShovelKnockback,
-							Angle:     &angle,
-							Type:      data.Shovel,
-						})
-				}
-				sfx.SoundPlayer.PlaySound("shovel", 1.0)
-			}).
-			SetTrigger(3, func(_ *reanimator.Anim, _ string, _ int) {
-				d.digging = false
-				d.attacking = false
-			})). // digging
+				anim := img.Batchers[constants.ParticleKey].GetAnimation(key).S
+				e := myecs.Manager.NewEntity()
+				tree := reanimator.NewSimple(
+					reanimator.NewAnimFromSprites("swipe", anim, reanimator.Done).
+						SetTrigger(3, func() {
+							myecs.Manager.DisposeEntity(e)
+						}),
+				)
+				e.AddComponent(myecs.Animation, tree).
+					AddComponent(myecs.Drawable, tree).
+					AddComponent(myecs.Transform, trans).
+					AddComponent(myecs.Batch, constants.ParticleKey).
+					AddComponent(myecs.Temp, myecs.ClearFlag(false))
+			}
+		}).
+		SetTrigger(1, func() {
+			if d.digTile != nil && d.digTile.Solid() && !d.digTile.IsDeco() {
+				Dig(d.digTile, d.Player)
+				d.digTile = nil
+			} else {
+				sub := d.attackPoint.Sub(d.Transform.Pos)
+				sub.Y += world.TileSize * 0.5
+				angle := sub.Angle()
+				myecs.Manager.NewEntity().
+					AddComponent(myecs.AreaDmg, &data.AreaDamage{
+						SourceID:  d.Transform.ID,
+						Center:    d.attackPoint,
+						Radius:    world.TileSize * 1.2,
+						Amount:    d.ShovelDamage,
+						Dazed:     d.ShovelDazed,
+						Knockback: d.ShovelKnockback,
+						Angle:     &angle,
+						Type:      data.Shovel,
+					})
+			}
+			sfx.SoundPlayer.PlaySound("shovel", 1.0)
+		}).
+		SetTrigger(3, func() {
+			d.digging = false
+			d.attacking = false
+		})). // digging
 		AddAnimation(reanimator.NewAnimFromSprite("flag", batcher.GetSprite("flag"), reanimator.Tran).
-			SetTrigger(1, func(_ *reanimator.Anim, _ string, _ int) {
+			SetTrigger(1, func() {
 				d.flagging = false
 			})). // flagging
 		AddSubSwitch(reanimator.NewSwitch().
 			AddSubSwitch(reanimator.NewSwitch().
 				AddAnimation(reanimator.NewAnimFromSprites("run", batcher.GetAnimation("run").S, reanimator.Loop).
-					SetTrigger(0, func(_ *reanimator.Anim, _ string, _ int) {
-						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
-					}).
-					SetTrigger(4, func(_ *reanimator.Anim, _ string, _ int) {
-						sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
-					})). // run
+			SetTrigger(0, func() {
+					PlayStep(0.)
+				}).
+			SetTrigger(4, func() {
+					PlayStep(0.)
+				})). // run
 				AddSubSwitch(reanimator.NewSwitch().
 					AddAnimation(reanimator.NewAnimFromSprite("flat", batcher.GetSprite("flat"), reanimator.Hold)).       // flat
 					AddAnimation(reanimator.NewAnimFromSprites("idle", batcher.GetAnimation("idle").S, reanimator.Loop)). // idle
@@ -316,7 +314,7 @@ func NewDwarf(p *player.Player) *Dwarf {
 				return 5
 			}
 		}), "idle")
-	d.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), data.Player)
+	d.Collider = data.NewCollider(pixel.R(0., 0., 16., 16.), data.PlayerC)
 	d.Collider.Debug = true
 	d.Entity = myecs.Manager.NewEntity().
 		AddComponent(myecs.Transform, tran).
@@ -595,7 +593,7 @@ func (d *Dwarf) Update(in *pxginput.Input) {
 					d.walking = false
 					d.jumping = true
 					d.jumpOrigY = d.Transform.Pos.Y
-					sfx.SoundPlayer.PlaySound(fmt.Sprintf("step%d", random.Effects.Intn(4)+1), 0.)
+					PlayStep(0.)
 					d.distFell = 0.
 					d.Physics.SetVelY(JumpVel, 0.)
 				} else if d.climbing {
@@ -760,7 +758,7 @@ func (d *Dwarf) Delete() {
 	myecs.Manager.DisposeEntity(d.Entity)
 }
 
-func FlagTile(p *player.Player, tile *cave.Tile) {
+func FlagTile(p *data.Player, tile *cave.Tile) {
 	if tile != nil && tile.Solid() && !tile.Destroyed && tile.Breakable() {
 		if !tile.Flagged {
 			tile.Flagged = true
@@ -771,7 +769,7 @@ func FlagTile(p *player.Player, tile *cave.Tile) {
 	}
 }
 
-func Dig(tile *cave.Tile, p *player.Player) bool {
+func Dig(tile *cave.Tile, p *data.Player) bool {
 	if tile.Diggable() {
 		if p != nil {
 			profile.CurrentProfile.Stats.BlocksDug++

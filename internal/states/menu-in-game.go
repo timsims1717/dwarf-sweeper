@@ -2,7 +2,7 @@ package states
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/profile"
@@ -137,14 +137,14 @@ func InitQuestMenu() {
 		}
 		for _, key := range profile.CurrentProfile.Quests {
 			if !util.ContainsStr(key, profile.CurrentProfile.QuestsComplete) && util.ContainsStr(key, profile.CurrentProfile.QuestsShown) {
-				q := player.Quests[key]
+				q := data.Quests[key]
 				qi := QuestMenu.InsertItem(fmt.Sprintf("quest_%s", key), fmt.Sprintf(" %s", q.Name), "title", false)
 				qi.Hint = q.Desc
 			}
 		}
 		for _, key := range profile.CurrentProfile.Quests {
 			if util.ContainsStr(key, profile.CurrentProfile.QuestsComplete) {
-				q := player.Quests[key]
+				q := data.Quests[key]
 				qci := QuestMenu.InsertItem(fmt.Sprintf("quest_c_%s", key), fmt.Sprintf(" %s", q.Name), "completed", false)
 				qci.Hint = q.Desc
 				completed.Ignore = false

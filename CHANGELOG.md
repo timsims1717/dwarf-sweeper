@@ -1,5 +1,35 @@
 # DwarfSweeper Changelog
 
+## 0.5.20230127
+
+### Features
+
+* Added Mole Gnomes
+    * Critters that when out of the ground, chase and leap at the dwarf
+    * One point of health
+    * Will burrow into diggable blocks when unable to get to the dwarf
+    * Will then dig through blocks to find a spot to ambush the dwarf
+* Bats now start flying if a block is destroyed near them
+* New Zone: Glacier
+* Added a Biome selector on the main menu
+* Added a new object, a bomb dispenser: stand close to get a new bomb
+    * Used for bosses to keep the game from softlocking
+    * Has a five second timer between dropping bombs
+* Added shaky cam back in
+
+### Bugfixes
+
+* Fixed a whole bunch of small issues with the Gnome Boss
+    * The Boss would freeze randomly
+    * Widened the bottom of the stairs
+    * Fixed camera movement during "cutscene"
+    * Made the boss be farther away from the player at the start
+    * Gave the players more time to dodge the first charge
+    * Fixed the exit not showing up correctly
+    * The music now fades out when the boss is defeated
+    * Added new emerge detection for the boss
+    * Fixed sounds
+
 ## 0.4.20220729
 
 ### Features
@@ -63,7 +93,7 @@
 * Added a loading screen
 * Added short delay for collectibles before the Dwarf picks them up (Gems, Apples)
 
-### Bugs
+### Bugfixes
 
 * Fixed numbers' backgrounds
 * Entities could be stuck in "ricochet" mode

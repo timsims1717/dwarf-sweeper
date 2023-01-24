@@ -1,8 +1,384 @@
-{
+ {
  "img": "entities.png",
  "height": 16,
  "width": 16,
  "sprites": [
+  {
+   "key": "mm_idle",
+   "anim": true,
+   "x": 0,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 0,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 16,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 32,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 48,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 64,
+   "y": 16
+  },
+  {
+   "key": "mm_walk",
+   "anim": true,
+   "x": 80,
+   "y": 16
+  },
+  {
+   "key": "mm_fall",
+   "anim": true,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "key": "mm_fall",
+   "anim": true,
+   "x": 16,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 32,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 48,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 64,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 80,
+   "y": 0
+  },
+  {
+   "key": "mm_attack",
+   "anim": true,
+   "x": 96,
+   "y": 0
+  },
+  {
+   "key": "gem_diamond",
+   "x": 1,
+   "y": 51,
+   "h": 10,
+   "w": 14
+  },
+  {
+   "key": "bubble_item",
+   "x": 18,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "apple",
+   "x": 34,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "beer",
+   "x": 50,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "x-ray-helmet",
+   "x": 66,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "bomb_item",
+   "x": 82,
+   "y": 48,
+   "h": 16,
+   "w": 12
+  },
+  {
+   "key": "throwing_shovel_item",
+   "x": 98,
+   "y": 50,
+   "h": 12,
+   "w": 12
+  },
+  {
+   "key": "throwing_shovel",
+   "x": 115,
+   "y": 51,
+   "h": 10,
+   "w": 10
+  },
+  {
+   "key": "pickaxe",
+   "x": 129,
+   "y": 49,
+   "h": 14,
+   "w": 14
+  },
+  {
+   "key": "detector",
+   "x": 2,
+   "y": 33,
+   "h": 14,
+   "w": 12
+  },
+  {
+   "key": "bomb_unlit",
+   "anim": true,
+   "x": 0,
+   "y": 64
+  },
+  {
+   "key": "bomb_fuse",
+   "anim": true,
+   "x": 16,
+   "y": 64
+  },
+  {
+   "key": "bomb_fuse",
+   "anim": true,
+   "x": 32,
+   "y": 64
+  },
+  {
+   "key": "bomb_blow",
+   "anim": true,
+   "x": 48,
+   "y": 64
+  },
+  {
+   "key": "bomb_blow",
+   "anim": true,
+   "x": 64,
+   "y": 64
+  },
+  {
+   "key": "bomb_blow",
+   "anim": true,
+   "x": 80,
+   "y": 64
+  },
+  {
+   "key": "mine_1",
+   "anim": true,
+   "x": 96,
+   "y": 64
+  },
+  {
+   "key": "mine_2",
+   "anim": true,
+   "x": 112,
+   "y": 64
+  },
+  {
+   "key": "bomb_high_yield",
+   "x": 0,
+   "y": 80
+  },
+  {
+   "key": "bomb_high_yield_burst",
+   "x": 16,
+   "y": 80
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 0,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 16,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 32,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 48,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 64,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 80,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 96,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_move",
+   "anim": true,
+   "x": 112,
+   "y": 96,
+   "h": 12
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 0,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 16,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 32,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 48,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 64,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 80,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 96,
+   "y": 112
+  },
+  {
+   "key": "slug_corner",
+   "anim": true,
+   "x": 112,
+   "y": 112
+  },
+  {
+   "key": "bat_roost",
+   "anim": true,
+   "x": 0,
+   "y": 128
+  },
+  {
+   "key": "bat_fly",
+   "anim": true,
+   "x": 16,
+   "y": 128
+  },
+  {
+   "key": "bat_fly",
+   "anim": true,
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "bat_fly",
+   "anim": true,
+   "x": 48,
+   "y": 128
+  },
+  {
+   "key": "bat_daze_air",
+   "anim": true,
+   "x": 32,
+   "y": 128
+  },
+  {
+   "key": "bat_daze_ground",
+   "anim": true,
+   "x": 64,
+   "y": 128
+  },
+  {
+   "key": "bat_daze_ground",
+   "anim": true,
+   "x": 80,
+   "y": 128
+  },
+  {
+   "key": "evil_bat_fly",
+   "anim": true,
+   "x": 96,
+   "y": 128
+  },
+  {
+   "key": "evil_bat_fly",
+   "anim": true,
+   "x": 112,
+   "y": 128
+  },
+  {
+   "key": "evil_bat_fly",
+   "anim": true,
+   "x": 128,
+   "y": 128
+  } ,
   {
    "key": "popper_out",
    "anim": true,
@@ -124,380 +500,197 @@
    "y": 176
   },
   {
-   "key": "bat_roost",
+   "key": "gnome_idle",
    "anim": true,
    "x": 0,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "bat_fly",
+   "key": "gnome_idle_hat",
    "anim": true,
    "x": 16,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "bat_fly",
+   "key": "gnome_idle_foot",
    "anim": true,
    "x": 32,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "bat_fly",
+   "key": "gnome_idle_nose",
    "anim": true,
    "x": 48,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "bat_daze_air",
-   "anim": true,
-   "x": 32,
-   "y": 128
-  },
-  {
-   "key": "bat_daze_ground",
+   "key": "gnome_dazed",
    "anim": true,
    "x": 64,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "bat_daze_ground",
+   "key": "gnome_dead",
    "anim": true,
    "x": 80,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "evil_bat_fly",
+   "key": "gnome_dead",
    "anim": true,
    "x": 96,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "evil_bat_fly",
+   "key": "gnome_dead",
    "anim": true,
    "x": 112,
-   "y": 128
+   "y": 192
   },
   {
-   "key": "evil_bat_fly",
+   "key": "gnome_leap",
    "anim": true,
-   "x": 128,
-   "y": 128
-  },
-  {
-   "key": "slug_corner",
-   "anim": true,
+   "frames": 4,
    "x": 0,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_run",
    "anim": true,
    "x": 16,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_run",
    "anim": true,
    "x": 32,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_run",
    "anim": true,
    "x": 48,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_run",
    "anim": true,
    "x": 64,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_run",
    "anim": true,
    "x": 80,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_emerge_top",
    "anim": true,
    "x": 96,
-   "y": 112
+   "y": 208
   },
   {
-   "key": "slug_corner",
+   "key": "gnome_emerge_top",
+   "anim": true,
+   "x": 112 ,
+   "y": 208
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 0,
+   "y": 224
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 16,
+   "y": 224
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 32,
+   "y": 224
+  },
+  {
+   "key": "gnome_dig",
+   "anim": true,
+   "x": 48,
+   "y": 224
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 64,
+   "y": 224
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 80,
+   "y": 224
+  },
+  {
+   "key": "gnome_emerge",
+   "anim": true,
+   "x": 96,
+   "y": 224
+  },
+  {
+   "key": "gnome_emerge",
    "anim": true,
    "x": 112,
-   "y": 112
+   "y": 224
   },
   {
-   "key": "slug_move",
+   "key": "gnome_dig_side",
    "anim": true,
    "x": 0,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_dig_side",
    "anim": true,
    "x": 16,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_dig_side",
    "anim": true,
    "x": 32,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_dig_side",
    "anim": true,
    "x": 48,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_emerge_side",
    "anim": true,
    "x": 64,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_emerge_side",
    "anim": true,
    "x": 80,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_emerge_side",
    "anim": true,
    "x": 96,
-   "y": 96,
-   "h": 12
+   "y": 240
   },
   {
-   "key": "slug_move",
+   "key": "gnome_emerge_side",
    "anim": true,
-   "x": 112,
-   "y": 96,
-   "h": 12
-  },
-  {
-   "key": "bomb_unlit",
-   "anim": true,
-   "x": 0,
-   "y": 64
-  },
-  {
-   "key": "bomb_fuse",
-   "anim": true,
-   "x": 16,
-   "y": 64
-  },
-  {
-   "key": "bomb_fuse",
-   "anim": true,
-   "x": 32,
-   "y": 64
-  },
-  {
-   "key": "bomb_blow",
-   "anim": true,
-   "x": 48,
-   "y": 64
-  },
-  {
-   "key": "bomb_blow",
-   "anim": true,
-   "x": 64,
-   "y": 64
-  },
-  {
-   "key": "bomb_blow",
-   "anim": true,
-   "x": 80,
-   "y": 64
-  },
-  {
-   "key": "mine_1",
-   "anim": true,
-   "x": 96,
-   "y": 64
-  },
-  {
-   "key": "mine_2",
-   "anim": true,
-   "x": 112,
-   "y": 64
-  },
-  {
-   "key": "bomb_high_yield",
-   "x": 0,
-   "y": 80
-  },
-  {
-   "key": "bomb_high_yield_burst",
-   "x": 16,
-   "y": 80
-  },
-  {
-   "key": "gem_diamond",
-   "x": 1,
-   "y": 51,
-   "h": 10,
-   "w": 14
-  },
-  {
-   "key": "bubble_item",
-   "x": 18,
-   "y": 50,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "apple",
-   "x": 34,
-   "y": 50,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "beer",
-   "x": 50,
-   "y": 50,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "x-ray-helmet",
-   "x": 66,
-   "y": 50,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "bomb_item",
-   "x": 82,
-   "y": 48,
-   "h": 16,
-   "w": 12
-  },
-  {
-   "key": "throwing_shovel_item",
-   "x": 98,
-   "y": 50,
-   "h": 12,
-   "w": 12
-  },
-  {
-   "key": "throwing_shovel",
-   "x": 115,
-   "y": 51,
-   "h": 10,
-   "w": 10
-  },
-  {
-   "key": "pickaxe",
-   "x": 129,
-   "y": 49,
-   "h": 14,
-   "w": 14
-  },
-  {
-   "key": "detector",
-   "x": 2,
-   "y": 33,
-   "h": 14,
-   "w": 12
-  },
-  {
-   "key": "mm_idle",
-   "anim": true,
-   "x": 0,
-   "y": 16
-  },
-  {
-   "key": "mm_walk",
-   "anim": true,
-   "x": 0,
-   "y": 16
-  },
-  {
-   "key": "mm_walk",
-   "anim": true,
-   "x": 16,
-   "y": 16
-  },
-  {
-   "key": "mm_walk",
-   "anim": true,
-   "x": 32,
-   "y": 16
-  },
-  {
-   "key": "mm_walk",
-   "anim": true,
-   "x": 48,
-   "y": 16
-  },
-  {
-   "key": "mm_walk",
-   "anim": true,
-   "x": 64,
-   "y": 16
-  },
-  {
-   "key": "mm_walk",
-   "anim": true,
-   "x": 80,
-   "y": 16
-  },
-  {
-   "key": "mm_fall",
-   "anim": true,
-   "x": 0,
-   "y": 0
-  },
-  {
-   "key": "mm_fall",
-   "anim": true,
-   "x": 16,
-   "y": 0
-  },
-  {
-   "key": "mm_attack",
-   "anim": true,
-   "x": 32,
-   "y": 0
-  },
-  {
-   "key": "mm_attack",
-   "anim": true,
-   "x": 48,
-   "y": 0
-  },
-  {
-   "key": "mm_attack",
-   "anim": true,
-   "x": 64,
-   "y": 0
-  },
-  {
-   "key": "mm_attack",
-   "anim": true,
-   "x": 80,
-   "y": 0
-  },
-  {
-   "key": "mm_attack",
-   "anim": true,
-   "x": 96,
-   "y": 0
+   "x": 112 ,
+   "y": 240
   }
  ]
 }

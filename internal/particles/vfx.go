@@ -27,7 +27,7 @@ func Initialize() {
 
 func CreateSmallExplosion(vec pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	anim := reanimator.NewSimple(explosion.Copy().SetTrigger(6, func(_ *reanimator.Anim, _ string, _ int) {
+	anim := reanimator.NewSimple(explosion.Copy().SetTrigger(6, func() {
 		myecs.Manager.DisposeEntity(e)
 	}))
 	trans := transform.New()
@@ -41,7 +41,7 @@ func CreateSmallExplosion(vec pixel.Vec) {
 
 func CreateBigExplosion(vec pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	anim := reanimator.NewSimple(bigExplosion.Copy().SetTrigger(9, func(_ *reanimator.Anim, _ string, _ int) {
+	anim := reanimator.NewSimple(bigExplosion.Copy().SetTrigger(9, func() {
 		myecs.Manager.DisposeEntity(e)
 	}))
 	trans := transform.New()
@@ -55,7 +55,7 @@ func CreateBigExplosion(vec pixel.Vec) {
 
 func CreateHugeExplosion(vec pixel.Vec) {
 	e := myecs.Manager.NewEntity()
-	anim := reanimator.NewSimple(hugeExplosion.Copy().SetTrigger(22, func(_ *reanimator.Anim, _ string, _ int) {
+	anim := reanimator.NewSimple(hugeExplosion.Copy().SetTrigger(22, func() {
 		myecs.Manager.DisposeEntity(e)
 	}))
 	trans := transform.New()

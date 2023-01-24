@@ -1,6 +1,7 @@
 package states
 
 import (
+	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/credits"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
@@ -45,6 +46,8 @@ func InitStartMenu() {
 	//infinite := StartMenu.AddItem("infinite", "Infinite Cave")
 	numPlayers := StartMenu.AddItem("numPlayers", "# of Players", false)
 	numPlayersR := StartMenu.AddItem("numPlayers-r", strconv.Itoa(NumPlayers), true)
+	biome := StartMenu.AddItem("biome", "Starting Cave", false)
+	biomeR := StartMenu.AddItem("biome-r", constants.Biomes[BiomeIndex].String(), true)
 	difficulty := StartMenu.AddItem("difficulty", "Difficulty", false)
 	difficultyR := StartMenu.AddItem("difficulty-r", strconv.Itoa(descent.Difficulty), true)
 	back := StartMenu.AddItem("back", "Back", false)
@@ -54,7 +57,7 @@ func InitStartMenu() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Descent.Type = cave.Normal
 		DescentState.start = true
-		DescentState.CurrBiome = "mine"
+		DescentState.CurrBiome = constants.Biomes[BiomeIndex].Key()
 		descent.New()
 		DescentState.numPlayers = NumPlayers
 		SwitchState(DescentStateKey)
@@ -84,6 +87,23 @@ func InitStartMenu() {
 		numPlayersR.SetText(strconv.Itoa(NumPlayers))
 	})
 	numPlayersR.NoHover = true
+	biome.SetRightFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		BiomeIndex++
+		if BiomeIndex > len(constants.Biomes)-1 {
+			BiomeIndex = 0
+		}
+		biomeR.SetText(constants.Biomes[BiomeIndex].String())
+	})
+	biome.SetLeftFn(func() {
+		sfx.SoundPlayer.PlaySound("click", 2.0)
+		BiomeIndex--
+		if BiomeIndex < 0 {
+			BiomeIndex = len(constants.Biomes)-1
+		}
+		biomeR.SetText(constants.Biomes[BiomeIndex].String())
+	})
+	biomeR.NoHover = true
 	difficulty.SetRightFn(func() {
 		sfx.SoundPlayer.PlaySound("click", 2.0)
 		descent.Difficulty++

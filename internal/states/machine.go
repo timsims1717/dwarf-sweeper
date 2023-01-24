@@ -152,7 +152,7 @@ func Update(win *pixelgl.Window) {
 			//}
 			//menus.NotificationHandler.AddMessage("It's a message!")
 			player := descent.Descent.GetPlayers()[0].Player
-			descent.CreateSlug(descent.Descent.Cave, descent.Descent.Cave.GetTile(player.CamPos.Sub(player.CanvasPos.Sub(debugInput.World))).Transform.Pos)
+			descent.CreateGnome(descent.Descent.Cave, descent.Descent.Cave.GetTile(player.CamPos.Sub(player.CanvasPos.Sub(debugInput.World))).Transform.Pos)
 		}
 		if debugInput.Get("debugSP").JustPressed() {
 			if currState == MenuStateKey {

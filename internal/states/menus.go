@@ -22,6 +22,7 @@ var (
 	DebugMenu      *menus.DwarfMenu
 	KeyString      string
 	NumPlayers     = 1
+	BiomeIndex     = 0
 	focused        bool
 )
 

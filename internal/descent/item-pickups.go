@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/menus"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/profile"
@@ -29,7 +28,7 @@ func InitItems() {
 
 var (
 	throwShovelSpr *pixel.Sprite
-	items = map[string]*player.Item{
+	items = map[string]*data.Item{
 		"bomb_item":    bombItem,
 		"beer":         beerItem,
 		"xray":         xrayItem,
@@ -37,7 +36,7 @@ var (
 		"pickaxe":      pickaxeItem,
 		"detector":     detectorItem,
 	}
-	bombItem = &player.Item{
+	bombItem = &data.Item{
 		Key:     "bomb_item",
 		Name:    "Bomb",
 		Temp:    true,
@@ -48,7 +47,7 @@ var (
 			return true
 		},
 	}
-	beerItem = &player.Item{
+	beerItem = &data.Item{
 		Key:     "beer",
 		Name:    "Beer",
 		Temp:    true,
@@ -59,7 +58,7 @@ var (
 			return true
 		},
 	}
-	pickaxeItem = &player.Item{
+	pickaxeItem = &data.Item{
 		Key:  "pickaxe",
 		Name: "Pickaxe",
 		Temp: true,
@@ -69,9 +68,9 @@ var (
 				digLegal := math.Abs(dPos.X-tTile.Transform.Pos.X) < world.TileSize*DigRange &&
 					math.Abs(dPos.Y-tTile.Transform.Pos.Y) < world.TileSize*DigRange
 				if digLegal && tTile.Solid() {
-					var p *player.Player
+					var p *data.Player
 					if pl, ok := e.GetComponentData(myecs.Player); ok {
-						p, _ = pl.(*player.Player)
+						p, _ = pl.(*data.Player)
 					}
 					if p != nil {
 						profile.CurrentProfile.Stats.BlocksDug++
@@ -84,7 +83,7 @@ var (
 			return false
 		},
 	}
-	detectorItem = &player.Item{
+	detectorItem = &data.Item{
 		Key:     "detector",
 		Name:    "Metal Detector",
 		Temp:    true,
@@ -94,9 +93,9 @@ var (
 				digLegal := math.Abs(dPos.X-tTile.Transform.Pos.X) < world.TileSize*DigRange &&
 					math.Abs(dPos.Y-tTile.Transform.Pos.Y) < world.TileSize*DigRange
 				if digLegal && tTile.Solid() {
-					var p *player.Player
+					var p *data.Player
 					if pl, ok := e.GetComponentData(myecs.Player); ok {
-						p, _ = pl.(*player.Player)
+						p, _ = pl.(*data.Player)
 					}
 					if p != nil && tTile.Bomb {
 						FlagTile(p, tTile)
@@ -109,7 +108,7 @@ var (
 	}
 )
 
-func CreateInvItem(inv *player.Inventory, key string, count int) {
+func CreateInvItem(inv *data.Inventory, key string, count int) {
 	_, ok := items[key]
 	if !ok {
 		fmt.Printf("error: no item key named '%s'\n", key)
@@ -135,7 +134,7 @@ func CreateItemPickUp(pos pixel.Vec, key string, count int) {
 	popUp := menus.NewPopUp("{symbol:player-interact}:pick up")
 	popUp.Dist = item.Sprite.Frame().W()
 	phys, trans := data.RandomPosAndVel(pos, 0., 0., math.Pi*0.5, math.Pi*0.25, 125., 10., random.Effects)
-	coll := data.NewCollider(pixel.R(0., 0., item.Sprite.Frame().W(), item.Sprite.Frame().H()), data.Item)
+	coll := data.NewCollider(pixel.R(0., 0., item.Sprite.Frame().W(), item.Sprite.Frame().H()), data.ItemC)
 	hp := &data.SimpleHealth{Immune: data.ItemImmunity1}
 	e.AddComponent(myecs.Transform, trans).
 		AddComponent(myecs.Physics, phys).

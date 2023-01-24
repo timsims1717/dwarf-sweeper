@@ -1,0 +1,13 @@
+[
+  {
+    "key": "minesweeper",
+    "name": "Glacier Minesweeper",
+    "biome": "glacier",
+    "desc": "",
+    "tracks": [
+      "ascension2"
+    ],
+    "type": "Minesweeper",
+    "base": "Custom"
+  }
+]

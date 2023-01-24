@@ -3,7 +3,6 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/descent/cave"
 	"dwarf-sweeper/internal/myecs"
 	"dwarf-sweeper/internal/physics"
@@ -18,7 +17,7 @@ import (
 	"github.com/faiface/pixel"
 )
 
-var throwShovelItem = &player.Item{
+var throwShovelItem = &data.Item{
 	Key:     "throw_shovel",
 	Name:    "Throwing Shovel",
 	Temp:    true,
@@ -30,7 +29,7 @@ var throwShovelItem = &player.Item{
 			return false
 		}
 		ts := myecs.Manager.NewEntity()
-		trans := transform.New()
+		trans := transform.New().WithID("throwing-shovel")
 		trans.Pos = dT.Pos
 		facing := util.Cardinal(dPos, tPos)
 		sec := 0.5
@@ -57,7 +56,7 @@ var throwShovelItem = &player.Item{
 		phys.SetVelY(facing.Y * 200., 0.)
 		accel := true
 		moving := true
-		coll := data.NewCollider(pixel.R(0., 0., throwShovelSpr.Frame().W()-2., throwShovelSpr.Frame().H()-2.), data.Item)
+		coll := data.NewCollider(pixel.R(0., 0., throwShovelSpr.Frame().W()-2., throwShovelSpr.Frame().H()-2.), data.ItemC)
 		coll.Damage = &data.Damage{
 			SourceID:  dT.ID,
 			Dazed:     2.,
@@ -93,9 +92,9 @@ var throwShovelItem = &player.Item{
 							return true
 						}, 2.))
 						ts.AddComponent(myecs.Temp, timing.New(4.))
-						var p *player.Player
+						var p *data.Player
 						if pl, ok := e.GetComponentData(myecs.Player); ok {
-							p, _ = pl.(*player.Player)
+							p, _ = pl.(*data.Player)
 						}
 						if phys.RightBound {
 							t = DigRight(trans.Pos, p)
@@ -141,7 +140,7 @@ var throwShovelItem = &player.Item{
 	},
 }
 
-func DigRight(pos pixel.Vec, p *player.Player) *cave.Tile {
+func DigRight(pos pixel.Vec, p *data.Player) *cave.Tile {
 	rP := pos
 	rP.X += world.TileSize
 	t1 := Descent.GetTile(rP)
@@ -180,7 +179,7 @@ func DigRight(pos pixel.Vec, p *player.Player) *cave.Tile {
 	return nil
 }
 
-func DigLeft(pos pixel.Vec, p *player.Player) *cave.Tile {
+func DigLeft(pos pixel.Vec, p *data.Player) *cave.Tile {
 	lP := pos
 	lP.X -= world.TileSize
 	t1 := Descent.GetTile(lP)
@@ -219,7 +218,7 @@ func DigLeft(pos pixel.Vec, p *player.Player) *cave.Tile {
 	return nil
 }
 
-func DigUp(pos pixel.Vec, p *player.Player) *cave.Tile {
+func DigUp(pos pixel.Vec, p *data.Player) *cave.Tile {
 	uP := pos
 	uP.Y += world.TileSize
 	t1 := Descent.GetTile(uP)
@@ -258,7 +257,7 @@ func DigUp(pos pixel.Vec, p *player.Player) *cave.Tile {
 	return nil
 }
 
-func DigDown(pos pixel.Vec, p *player.Player) *cave.Tile {
+func DigDown(pos pixel.Vec, p *data.Player) *cave.Tile {
 	uP := pos
 	uP.Y -= world.TileSize
 	t1 := Descent.GetTile(uP)

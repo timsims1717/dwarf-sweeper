@@ -2,7 +2,7 @@ package menus
 
 import (
 	"dwarf-sweeper/internal/constants"
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/menubox"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/typeface"
@@ -35,10 +35,10 @@ type PopUp struct {
 	Display3 bool
 	Display4 bool
 
-	Player1 *player.Player
-	Player2 *player.Player
-	Player3 *player.Player
-	Player4 *player.Player
+	Player1 *data.Player
+	Player2 *data.Player
+	Player3 *data.Player
+	Player4 *data.Player
 }
 
 func NewPopUp(raw string) *PopUp {

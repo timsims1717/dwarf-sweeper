@@ -3,7 +3,6 @@ package states
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
-	"dwarf-sweeper/internal/data/player"
 	"dwarf-sweeper/internal/debug"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/generate"
@@ -39,7 +38,7 @@ type descentState struct {
 	gameOver    bool
 	deathTimer  *timing.Timer
 	start       bool
-	PausePlayer *player.Player
+	PausePlayer *data.Player
 	CurrBiome   string
 }
 
@@ -248,7 +247,7 @@ func (s *descentState) Generate() {
 }
 
 func (s *descentState) Descend() {
-	profile.CurrentProfile.Stats = player.Stats{}
+	profile.CurrentProfile.Stats = data.Stats{}
 	if s.start {
 		hud.InitHUD()
 		s.start = false
@@ -298,9 +297,9 @@ func (s *descentState) SetupPlayers() {
 			in = data.GameInputP1
 			code = "p1"
 		}
-		p := player.New(code, in)
+		p := data.New(code, in)
 		d := descent.NewDwarf(p)
-		descent.CreateInvItem(d.Player.Inventory, "throw_shovel", 3)
+		//descent.CreateInvItem(d.Player.Inventory, "throw_shovel", 3)
 		descent.CreateInvItem(d.Player.Inventory, "bomb_item", 3)
 		descent.Descent.Dwarves = append(descent.Descent.Dwarves, d)
 		hud.HUDs = append(hud.HUDs, hud.New(d))

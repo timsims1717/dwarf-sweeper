@@ -29,25 +29,25 @@ func GnomeMineLayer(c *cave.Cave, includeL, includeR world.Coords) []*cave.Tile 
 			below3 := c.GetTileInt(curr.X, curr.Y+3)
 			below4 := c.GetTileInt(curr.X, curr.Y+4)
 			if count < 2 || count > totalWidth-3 {
-				ToType(main1, cave.Dig, true, true)
-				ToType(main2, cave.Dig, true, true)
+				ToType(main1, cave.Dig, false, true)
+				ToType(main2, cave.Dig, false, true)
 			} else if pillarX%6 == curr.X%6 {
 				main1.BG = bg
 				main2.BG = bg
 				bg = !bg
-				ToType(main1, cave.Pillar, true, true)
-				ToType(main2, cave.Pillar, true, true)
+				ToType(main1, cave.Pillar, false, true)
+				ToType(main2, cave.Pillar, false, true)
 			} else {
-				ToType(main1, cave.Empty, true, true)
-				ToType(main2, cave.Empty, true, true)
+				ToType(main1, cave.Empty, false, true)
+				ToType(main2, cave.Empty, false, true)
 			}
-			ToType(above1, cave.Dig, true, true)
-			ToType(above2, cave.Blast, true, true)
-			ToType(above3, cave.Blast, true, true)
-			ToType(below1, cave.Dig, true, true)
-			ToType(below2, cave.Dig, true, true)
-			ToType(below3, cave.Blast, true, true)
-			ToType(below4, cave.Blast, true, true)
+			ToType(above1, cave.Dig, false, true)
+			ToType(above2, cave.Blast, false, true)
+			ToType(above3, cave.Blast, false, true)
+			ToType(below1, cave.Dig, false, true)
+			ToType(below2, cave.Dig, false, true)
+			ToType(below3, cave.Blast, false, true)
+			ToType(below4, cave.Blast, false, true)
 			updated = append(updated, []*cave.Tile{
 				main1, main2, above1, above2, above3, below1, below2, below3, below4,
 			}...)

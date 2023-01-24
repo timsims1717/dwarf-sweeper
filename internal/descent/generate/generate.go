@@ -145,7 +145,12 @@ func buildCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 					for _, w := range profile.CurrentProfile.BiomeExits[c.Biome] {
 						tw += w
 					}
-					rw := random.CaveGen.Intn(tw)
+					var rw int
+					if tw > 0 {
+						rw = random.CaveGen.Intn(tw)
+					} else {
+						rw = 0
+					}
 					tw = 0
 					for b, w := range profile.CurrentProfile.BiomeExits[c.Biome] {
 						tw += w
@@ -154,6 +159,9 @@ func buildCave(build *builder.CaveBuilder, c *cave.Cave, signal chan bool) {
 							descent.Descent.Exits = append(descent.Descent.Exits, b)
 							break
 						}
+					}
+					if biome == "" {
+						biome = c.Biome
 					}
 					structures.SecretExit(c, tile.RCoords, i+1, biome)
 					fmt.Printf("Secret Exit: (%d,%d)\n", tile.RCoords.X, tile.RCoords.Y)

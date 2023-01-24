@@ -10,6 +10,7 @@ import (
 	"dwarf-sweeper/pkg/transform"
 	"fmt"
 	"github.com/faiface/pixel"
+	"golang.org/x/image/colornames"
 	"math"
 )
 
@@ -27,7 +28,7 @@ func BiomeParticles(orig pixel.Vec, biome string, min, max int, varX, varY, angl
 	}
 }
 
-func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64) {
+func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, variance, dur, durVar float64, fade bool) {
 	c := random.Effects.Intn(max-min+1) + min
 	for i := 0; i < c; i++ {
 		tran := transform.New()
@@ -38,13 +39,52 @@ func CreateRandomStaticParticles(min, max int, keys []string, orig pixel.Vec, va
 		if random.Effects.Intn(2) == 0 {
 			tran.Flop = true
 		}
+		switch random.Effects.Intn(4) {
+		case 0:
+			tran.Rot = math.Pi
+		case 1:
+			tran.Rot = math.Pi * 0.5
+		case 2:
+			tran.Rot = math.Pi * -0.5
+		}
 		nDur := dur + (random.Effects.Float64()-0.5)*durVar
 		key := keys[random.Effects.Intn(len(keys))]
-		myecs.Manager.NewEntity().
+		e := myecs.Manager.NewEntity().
 			AddComponent(myecs.Transform, tran).
 			AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite(key)).
 			AddComponent(myecs.Batch, constants.ParticleKey).
 			AddComponent(myecs.Temp, timing.New(nDur))
+		if fade {
+			myecs.AddEffect(e, data.NewFadeOut(colornames.White, nDur))
+		}
+	}
+}
+
+func CreateStaticParticle(key string, orig pixel.Vec, variance, dur, durVar float64, fade bool) {
+	tran := transform.New()
+	tran.Pos = data.RandomPosition(orig, variance, variance, random.Effects)
+	if random.Effects.Intn(2) == 0 {
+		tran.Flip = true
+	}
+	if random.Effects.Intn(2) == 0 {
+		tran.Flop = true
+	}
+	switch random.Effects.Intn(4) {
+	case 0:
+		tran.Rot = math.Pi
+	case 1:
+		tran.Rot = math.Pi * 0.5
+	case 2:
+		tran.Rot = math.Pi * -0.5
+	}
+	nDur := dur + (random.Effects.Float64()-0.5)*durVar
+	e := myecs.Manager.NewEntity().
+		AddComponent(myecs.Transform, tran).
+		AddComponent(myecs.Drawable, img.Batchers[constants.ParticleKey].GetSprite(key)).
+		AddComponent(myecs.Batch, constants.ParticleKey).
+		AddComponent(myecs.Temp, timing.New(nDur))
+	if fade {
+		myecs.AddEffect(e, data.NewFadeOut(colornames.White, nDur))
 	}
 }
 
@@ -63,6 +103,14 @@ func CreateParticle(key string, orig pixel.Vec, varX, varY, angle, angleVar, for
 	}
 	if random.Effects.Intn(2) == 0 {
 		tran.Flop = true
+	}
+	switch random.Effects.Intn(4) {
+	case 0:
+		tran.Rot = math.Pi
+	case 1:
+		tran.Rot = math.Pi * 0.5
+	case 2:
+		tran.Rot = math.Pi * -0.5
 	}
 	nDur := dur + (random.Effects.Float64()-0.5)*durVar
 	spr := img.Batchers[constants.ParticleKey].GetSprite(key)

@@ -1,14 +1,14 @@
 package descent
 
 import (
-	"dwarf-sweeper/internal/data/player"
+	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/profile"
 	"dwarf-sweeper/pkg/timing"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 )
 
-func UpdateInventory(i *player.Inventory) {
+func UpdateInventory(i *data.Inventory) {
 	for _, item := range i.Items {
 		if item.Using {
 			if item.Timer == nil || item.Timer.UpdateDone() {
@@ -24,7 +24,7 @@ func UpdateInventory(i *player.Inventory) {
 						if len(i.Items) > 1 {
 							i.Items = append(i.Items[:i.Index], i.Items[i.Index+1:]...)
 						} else {
-							i.Items = []*player.Item{}
+							i.Items = []*data.Item{}
 						}
 						PrevItem(i)
 					}
@@ -34,7 +34,7 @@ func UpdateInventory(i *player.Inventory) {
 	}
 }
 
-func AddItem(i *player.Inventory, newItem *player.Item) int {
+func AddItem(i *data.Inventory, newItem *data.Item) int {
 	found := false
 	limit, ok := profile.CurrentProfile.ItemLimits.Hold[newItem.Key]
 	if !ok {
@@ -68,7 +68,7 @@ func AddItem(i *player.Inventory, newItem *player.Item) int {
 	return 0
 }
 
-func UseEquipped(p *player.Player, e *ecs.Entity, dPos, tPos pixel.Vec) {
+func UseEquipped(p *data.Player, e *ecs.Entity, dPos, tPos pixel.Vec) {
 	i := p.Inventory
 	if len(i.Items) > 0 && i.Index < len(i.Items) {
 		item := i.Items[i.Index]
@@ -90,7 +90,7 @@ func UseEquipped(p *player.Player, e *ecs.Entity, dPos, tPos pixel.Vec) {
 	}
 }
 
-func DropEquipped(i *player.Inventory, pos pixel.Vec) bool {
+func DropEquipped(i *data.Inventory, pos pixel.Vec) bool {
 	if len(i.Items) > 0 && i.Index < len(i.Items) {
 		item := i.Items[i.Index]
 		if !item.Using || item.Timer == nil {
@@ -100,7 +100,7 @@ func DropEquipped(i *player.Inventory, pos pixel.Vec) bool {
 				if len(i.Items) > 1 {
 					i.Items = append(i.Items[:i.Index], i.Items[i.Index+1:]...)
 				} else {
-					i.Items = []*player.Item{}
+					i.Items = []*data.Item{}
 				}
 				PrevItem(i)
 				return true
@@ -112,7 +112,7 @@ func DropEquipped(i *player.Inventory, pos pixel.Vec) bool {
 	return true
 }
 
-func PrevItem(i *player.Inventory) {
+func PrevItem(i *data.Inventory) {
 	if len(i.Items) > 0 {
 		newInv := i.Index - 1
 		if newInv < 0 {
@@ -124,7 +124,7 @@ func PrevItem(i *player.Inventory) {
 	}
 }
 
-func NextItem(i *player.Inventory) {
+func NextItem(i *data.Inventory) {
 	if len(i.Items) > 0 {
 		i.Index = (i.Index + 1) % len(i.Items)
 	} else {
