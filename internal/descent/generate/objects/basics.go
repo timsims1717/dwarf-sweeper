@@ -106,6 +106,59 @@ func AddChest(tile *cave.Tile) {
 			}, world.TileSize, false))
 }
 
+func AddBombDispenser(tile *cave.Tile) {
+	teatime := 5.
+	opening := false
+	closing := false
+	timer := timing.New(teatime)
+	anim := reanimator.New(reanimator.NewSwitch().
+		AddAnimation(reanimator.NewAnimFromSprite("bomb_dispense_idle", img.Batchers[constants.TileEntityKey].GetSprite("bomb_dispenser"), reanimator.Hold)).
+		AddAnimation(reanimator.NewAnimFromSprites("bomb_dispense_open", img.Batchers[constants.TileEntityKey].GetAnimation("bomb_dispenser").S, reanimator.Hold).
+			SetTrigger(3, func() {
+				descent.CreateItemPickUp(tile.Transform.Pos, "bomb_item", 1)
+				t := myecs.Manager.NewEntity()
+				t.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
+					opening = false
+					closing = true
+					myecs.Manager.DisposeEntity(t)
+					return true
+				}, 0.2))
+			})).
+		AddAnimation(reanimator.NewAnimFromSprites("bomb_dispense_close", img.Reverse(img.Batchers[constants.TileEntityKey].GetAnimation("bomb_dispenser").S), reanimator.Hold).
+			SetTrigger(4, func() {
+				timer = timing.New(teatime)
+				opening = false
+				closing = false
+			})).
+		SetChooseFn(func() int {
+			if closing {
+				return 2
+			} else if opening {
+				return 1
+			} else {
+				return 0
+			}
+		}), "bomb_dispense_idle")
+	e := myecs.Manager.NewEntity()
+	e.AddComponent(myecs.Transform, tile.Transform).
+		AddComponent(myecs.Animation, anim).
+		AddComponent(myecs.Drawable, anim).
+		AddComponent(myecs.Batch, constants.TileEntityKey).
+		AddComponent(myecs.Temp, myecs.ClearFlag(false)).
+		AddComponent(myecs.Update, data.NewFrameFunc(func() bool {
+			if !opening && !closing {
+				if timer.UpdateDone() {
+					d := descent.Descent.GetClosestPlayer(tile.Transform.Pos)
+					if world.DistanceWorld(d.Transform.Pos, tile.Transform.Pos) < world.TileSize*1.5 {
+						opening = true
+						closing = false
+					}
+				}
+			}
+			return false
+		}))
+}
+
 func AddBigBomb(blTile *cave.Tile, level int) {
 	e := myecs.Manager.NewEntity()
 	pe := myecs.Manager.NewEntity()
@@ -136,7 +189,7 @@ func AddBigBomb(blTile *cave.Tile, level int) {
 			descent.CreateGem(pos)
 		}
 	})
-	interact := descent.NewInteract(nil, world.TileSize * 1.5, false)
+	interact := descent.NewInteract(nil, world.TileSize*1.5, false)
 	interact.OnInteract = func(pos pixel.Vec, d *descent.Dwarf) bool {
 		if !interact.Interacted || timer == nil {
 			timer = timing.New(60.)
@@ -152,10 +205,10 @@ func AddBigBomb(blTile *cave.Tile, level int) {
 	anim := reanimator.New(reanimator.NewSwitch().
 		AddAnimation(reanimator.NewAnimFromSprite("big_bomb_idle", img.Batchers[constants.TileEntityKey].GetSprite("big_bomb_idle"), reanimator.Hold)).
 		AddAnimation(reanimator.NewAnimFromSprites("big_bomb_defuse", img.Batchers[constants.TileEntityKey].GetAnimation("big_bomb_defuse").S, reanimator.Hold).
-		SetTrigger(0, func() {
+			SetTrigger(0, func() {
 				sfx.SoundPlayer.PlaySound("bigbombdefuse", 1.0)
 			}).
-		SetTrigger(4, func() {
+			SetTrigger(4, func() {
 				sfx.SoundPlayer.PlaySound("bigbombsmash", 1.0)
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("big_bomb_ignite", img.Batchers[constants.TileEntityKey].GetAnimation("big_bomb_ignite").S, reanimator.Hold).
@@ -292,7 +345,7 @@ func bigBombDmg(trans *transform.Transform) {
 	myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
 		SourceID:       trans.ID,
 		Center:         pos1,
-		Rect:           pixel.R(0., 0., world.TileSize * 10., world.TileSize * 5.),
+		Rect:           pixel.R(0., 0., world.TileSize*10., world.TileSize*5.),
 		Amount:         3,
 		Dazed:          3.,
 		Knockback:      25.,
@@ -303,7 +356,7 @@ func bigBombDmg(trans *transform.Transform) {
 	myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
 		SourceID:       trans.ID,
 		Center:         pos2,
-		Rect:           pixel.R(0., 0., world.TileSize * 16., world.TileSize),
+		Rect:           pixel.R(0., 0., world.TileSize*16., world.TileSize),
 		Amount:         3,
 		Dazed:          3.,
 		Knockback:      25.,
@@ -314,7 +367,7 @@ func bigBombDmg(trans *transform.Transform) {
 	myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
 		SourceID:       trans.ID,
 		Center:         pos3,
-		Rect:           pixel.R(0., 0., world.TileSize * 6., world.TileSize * 7.),
+		Rect:           pixel.R(0., 0., world.TileSize*6., world.TileSize*7.),
 		Amount:         3,
 		Dazed:          3.,
 		Knockback:      25.,
@@ -325,7 +378,7 @@ func bigBombDmg(trans *transform.Transform) {
 	myecs.Manager.NewEntity().AddComponent(myecs.AreaDmg, &data.AreaDamage{
 		SourceID:       trans.ID,
 		Center:         pos4,
-		Rect:           pixel.R(0., 0., world.TileSize * 2., world.TileSize * 9.),
+		Rect:           pixel.R(0., 0., world.TileSize*2., world.TileSize*9.),
 		Amount:         3,
 		Dazed:          3.,
 		Knockback:      25.,

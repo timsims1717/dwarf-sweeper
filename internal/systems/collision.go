@@ -282,6 +282,9 @@ func TileCollisionSystem() {
 								coll.LeftBound = false
 							}
 							phys.WallBound = coll.LeftBound || coll.RightBound
+						} else {
+							coll.LeftBound = false
+							coll.RightBound = false
 						}
 
 						// corner collision check

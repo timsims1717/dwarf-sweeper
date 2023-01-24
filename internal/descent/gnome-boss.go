@@ -8,7 +8,6 @@ import (
 	"dwarf-sweeper/internal/particles"
 	"dwarf-sweeper/internal/physics"
 	"dwarf-sweeper/internal/random"
-	"dwarf-sweeper/pkg/camera"
 	"dwarf-sweeper/pkg/img"
 	"dwarf-sweeper/pkg/reanimator"
 	"dwarf-sweeper/pkg/sfx"
@@ -74,13 +73,8 @@ type GnomeBoss struct {
 }
 
 func (gnome *GnomeBoss) Update() bool {
-	if gnome.Health.Dead {
-		gnome.Collider.ThroughWalls = false
-		gnome.Physics.GravityOff = false
-		gnome.State = GBFlee
-		gnome.Health.Immune = data.FullImmunity
-		gnome.Collider.Damage = nil
-	} else if gnome.Health.Dazed {
+	gnome.sfxTimer.Update()
+	if gnome.Health.Dazed {
 		gnome.Collider.ThroughWalls = false
 		gnome.Physics.GravityOff = false
 		gnome.Health.Immune = data.FullImmunity
@@ -93,7 +87,7 @@ func (gnome *GnomeBoss) Update() bool {
 			gnome.Health.Immune = data.FullImmunity
 		}
 		gnome.Collider.Damage = nil
-		if gnome.State != GBDig && gnome.Health.Curr != gnome.currLayer && gnome.onDamageFn != nil {
+		if gnome.State != GBDig && gnome.Health.Curr < gnome.currLayer && gnome.onDamageFn != nil {
 			gnome.onDamageFn()
 		}
 		if gnome.State != GBWaiting {
@@ -174,11 +168,12 @@ func (gnome *GnomeBoss) Update() bool {
 
 func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	e := myecs.Manager.NewEntity()
-	trans := transform.New()
+	trans := transform.New().WithID("gnome-boss")
 	trans.KeepLoaded = true
 	trans.Load = true
 	phys := physics.New()
 	phys.GravityOff = true
+	phys.Bounciness = 0.
 	hp := &data.Health{
 		Max:          maxHP,
 		Curr:         maxHP,
@@ -205,7 +200,6 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 		particles.BiomeParticles(exit, Descent.Cave.Biome, 10, 16, 12., 0., math.Pi*0.5, 0.5, 130., 15., 0.75, 0.1, true)
 	}
 	runFXFn := func() {
-		gb.sfxTimer.Update()
 		// check if inside any blocks
 		half := world.TileSize * 0.501
 		tul := Descent.Cave.GetTile(pixel.V(gb.Transform.Pos.X-half, gb.Transform.Pos.Y+half))
@@ -226,7 +220,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				if gb.faceLeft && !tur.Solid() {
 					orig := tul.Transform.Pos
 					orig.X += half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, 0., 0.5, 80., 10., 0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 8, 9, 0., half, 0., 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 			if tur.Solid() {
@@ -238,7 +232,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				if !gb.faceLeft && !tul.Solid() {
 					orig := tur.Transform.Pos
 					orig.X -= half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, math.Pi, 0.5, 80., 10., 0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 8, 9, 0., half, math.Pi, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 			if tdl.Solid() {
@@ -250,7 +244,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				if gb.faceLeft && !tdr.Solid() {
 					orig := tdl.Transform.Pos
 					orig.X += half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, 0., 0.5, 80., 10., 0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 8, 9, 0., half, 0., 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 			if tdr.Solid() {
@@ -262,7 +256,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 				if !gb.faceLeft && !tdl.Solid() {
 					orig := tdr.Transform.Pos
 					orig.X -= half
-					particles.BiomeParticles(orig, Descent.Cave.Biome, 5, 7, 0., half, math.Pi, 0.5, 80., 10., 0.75, 0.1, true)
+					particles.BiomeParticles(orig, Descent.Cave.Biome, 8, 9, 0., half, math.Pi, 0.5, 80., 10., 0.75, 0.1, true)
 				}
 			}
 		}
@@ -271,7 +265,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 		// blast a set of particles out of it
 	}
 	fleeFxFn := func() {
-		if gb.sfxTimer.UpdateDone() {
+		if gb.sfxTimer.Done() {
 			PlayRocks(-1.0)
 			gb.sfxTimer = timing.New(0.25)
 		}
@@ -280,20 +274,20 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 	gb.Reanimator = reanimator.New(reanimator.NewSwitch().
 		AddNull().
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_emerge", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_emerge").S, reanimator.Tran).
-		SetTrigger(0, func() {
+			SetTrigger(0, func() {
 				emergePartFn()
 				sfx.SoundPlayer.PlaySound("emerge", 0.)
 			}).
-		SetTrigger(1, func() {
+			SetTrigger(1, func() {
 				emergePartFn()
 			}).
-		SetTrigger(2, func() {
+			SetTrigger(2, func() {
 				emergePartFn()
 			}).
-		SetTrigger(3, func() {
+			SetTrigger(3, func() {
 				emergePartFn()
 			}).
-		SetTrigger(6, func() {
+			SetTrigger(6, func() {
 				gb.State = GBIdle
 				gb.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 					gb.State = GBRoar
@@ -302,10 +296,12 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_roar", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_roar").S, reanimator.Hold).
 			SetTrigger(0, func() {
-   				sfx.SoundPlayer.PlaySound("roar", 0.)
+				sfx.SoundPlayer.PlaySound("roar", 0.)
 			}).
 			SetTrigger(2, func() {
-				camera.Cam.ZoomShake(1.4, 30.)
+				for _, d := range Descent.GetPlayers() {
+					ShakeCam(d, 2.5, random.Effects.Float64()*4.+8.)
+				}
 				gb.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 					if gb.Charge {
 						gb.State = GBCharge
@@ -327,9 +323,6 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 			}).
 			SetTrigger(3, func() {
 				runFXFn()
-			}).
-			SetTrigger(4, func() {
-				runFXFn()
 				sfx.SoundPlayer.PlaySound("gnomestep", random.Effects.Float64()-1.)
 			})).
 		AddAnimation(reanimator.NewAnimFromSprites("gnome_idle", img.Batchers[constants.BigEntityKey].GetAnimation("gnome_idle").S, reanimator.Loop)).
@@ -339,14 +332,14 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 			SetTrigger(0, func() {
 				fleeFxFn()
 				if !gb.fleeing {
-					myecs.AddEffect(gb.Entity, data.NewFadeBlack(colornames.White, 3.))
+					myecs.AddEffect(gb.Entity, data.NewFadeBlack(colornames.White, 2.0))
 					gb.Entity.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 						if gb.onFleeFn != nil {
 							gb.onFleeFn()
 						}
-						gb.Entity.AddComponent(myecs.Temp, myecs.ClearFlag(true))
+						myecs.Manager.DisposeEntity(gb.Entity)
 						return true
-					}, 2.5))
+					}, 2.0))
 					gb.fleeing = true
 				}
 			}).
@@ -376,6 +369,7 @@ func CreateGnomeBoss(maxHP int) *GnomeBoss {
 			} else if gb.State == GBDig {
 				return 6
 			} else if gb.State == GBFlee {
+				gb.Health.Immune = data.FullImmunity
 				return 7
 			} else {
 				return 4
@@ -398,32 +392,34 @@ func (gnome *GnomeBoss) EmergeCoords() (pixel.Vec, bool) {
 	for tries < 5 {
 		dt := Descent.GetRandomPlayerTile()
 		outline := Descent.Cave.GetOutline(dt.RCoords, 7.5)
-		inline := Descent.Cave.GetOutline(dt.RCoords, 2.25)
+		inline := Descent.Cave.GetOutline(dt.RCoords, 5.25)
 		candidates := world.NotIn(outline, inline)
 		if len(candidates) > 0 {
 			i := random.Effects.Intn(len(candidates))
 			tc := candidates[i]
-			tc1x := tc.X
-			if random.Effects.Intn(2) == 0 {
-				tc1x++
-			} else {
-				tc1x--
-			}
-			bt := Descent.Cave.GetTileInt(tc.X, tc.Y)
-			bt1 := Descent.Cave.GetTileInt(tc1x, tc.Y)
-			nt := Descent.Cave.GetTileInt(tc.X, tc.Y-1)
-			nt1 := Descent.Cave.GetTileInt(tc1x, tc.Y-1)
-			ut := Descent.Cave.GetTileInt(tc.X, tc.Y-2)
-			ut1 := Descent.Cave.GetTileInt(tc1x, tc.Y-2)
-			if !nt.Solid() && !nt1.Solid() && !ut.Solid() && !ut1.Solid() && bt.Solid() && bt1.Solid() {
-				result := nt.Transform.Pos
-				if i > 0 {
-					result.X += world.TileSize * 0.5
+			if tc.Y >= Descent.CoordsMap["current_layer"].Y {
+				tc1x := tc.X
+				if random.Effects.Intn(2) == 0 {
+					tc1x++
 				} else {
-					result.X -= world.TileSize * 0.5
+					tc1x--
 				}
-				result.Y += world.TileSize * 0.5
-				return result, true
+				bt := Descent.Cave.GetTileInt(tc.X, tc.Y)
+				bt1 := Descent.Cave.GetTileInt(tc1x, tc.Y)
+				nt := Descent.Cave.GetTileInt(tc.X, tc.Y-1)
+				nt1 := Descent.Cave.GetTileInt(tc1x, tc.Y-1)
+				ut := Descent.Cave.GetTileInt(tc.X, tc.Y-2)
+				ut1 := Descent.Cave.GetTileInt(tc1x, tc.Y-2)
+				if !nt.Solid() && !nt1.Solid() && !ut.Solid() && !ut1.Solid() && bt.Solid() && bt1.Solid() {
+					result := nt.Transform.Pos
+					if i > 0 {
+						result.X += world.TileSize * 0.5
+					} else {
+						result.X -= world.TileSize * 0.5
+					}
+					result.Y += world.TileSize * 0.5
+					return result, true
+				}
 			}
 		}
 		tries++

@@ -44,6 +44,7 @@ func InitDebugMenu() {
 		descent.New()
 		descent.Descent.Depth = 1
 		DescentState.start = true
+		DescentState.numPlayers = NumPlayers
 		caveBuilders, err := builder.LoadBuilder(fmt.Sprint("assets/bosses.json"))
 		if err != nil {
 			panic(err)

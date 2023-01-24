@@ -3,7 +3,10 @@ package descent
 import (
 	"dwarf-sweeper/internal/constants"
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/camera"
+	gween "dwarf-sweeper/pkg/gween64"
+	"dwarf-sweeper/pkg/gween64/ease"
 	"dwarf-sweeper/pkg/timing"
 	"dwarf-sweeper/pkg/world"
 	"github.com/faiface/pixel"
@@ -57,10 +60,10 @@ func UpdatePlayer(d *Dwarf) {
 }
 
 func UpdateView(d *Dwarf, i, l int) {
-	wH := constants.ActualW*0.5*camera.Cam.GetZoomScale()
-	wQ := constants.ActualW*0.25*camera.Cam.GetZoomScale()
-	hH := constants.BaseH*0.5*camera.Cam.GetZoomScale()
-	hQ := constants.BaseH*0.25*camera.Cam.GetZoomScale()
+	wH := constants.ActualW * 0.5 * camera.Cam.GetZoomScale()
+	wQ := constants.ActualW * 0.25 * camera.Cam.GetZoomScale()
+	hH := constants.BaseH * 0.5 * camera.Cam.GetZoomScale()
+	hQ := constants.BaseH * 0.25 * camera.Cam.GetZoomScale()
 	var canvasWidth, canvasHeight float64
 	var distX, distY float64
 	if l == 1 {
@@ -101,28 +104,47 @@ func UpdateView(d *Dwarf, i, l int) {
 		}
 	}
 	if !Descent.FreeCam {
-		//d.Player.CamPos = d.Transform.Pos
+		// Tween if up
+		if d.Player.InterX != nil {
+			x, finX := d.Player.InterX.Update(timing.DT)
+			d.Player.CamPos.X = x
+			if finX {
+				d.Player.InterX = nil
+			}
+		}
+		if d.Player.InterY != nil {
+			y, finY := d.Player.InterY.Update(timing.DT)
+			d.Player.CamPos.Y = y
+			if finY {
+				d.Player.InterY = nil
+			}
+		}
+
+		// Cam Position
 		d.Player.CamPos.X += timing.DT * d.Player.CamVel.X
 		d.Player.CamPos.Y += timing.DT * d.Player.CamVel.Y
 
 		// make sure it still stays with the Dwarf
-		distX *= world.TileSize
-		distY *= world.TileSize
-		dPos := d.Transform.Pos
-		if d.Player.CamPos.X >= dPos.X + distX {
-			d.Player.CamPos.X = dPos.X + distX
-		} else if d.Player.CamPos.X <= dPos.X - distX {
-			d.Player.CamPos.X = dPos.X - distX
+		if !d.Player.Lock {
+			distX *= world.TileSize
+			distY *= world.TileSize
+			dPos := d.Transform.Pos
+			if d.Player.CamPos.X >= dPos.X+distX {
+				d.Player.CamPos.X = dPos.X + distX
+			} else if d.Player.CamPos.X <= dPos.X-distX {
+				d.Player.CamPos.X = dPos.X - distX
+			}
+			if d.Player.CamPos.Y >= dPos.Y+distY {
+				d.Player.CamPos.Y = dPos.Y + distY
+			} else if d.Player.CamPos.Y <= dPos.Y-distY {
+				d.Player.CamPos.Y = dPos.Y - distY
+			}
 		}
-		if d.Player.CamPos.Y >= dPos.Y + distY {
-			d.Player.CamPos.Y = dPos.Y + distY
-		} else if d.Player.CamPos.Y <= dPos.Y - distY {
-			d.Player.CamPos.Y = dPos.Y - distY
-		}
+		// make sure it doesn't move outside the map
 		bl, tr := Descent.GetCave().CurrentBoundaries()
 		bl.X += d.Player.Canvas.Bounds().W() * 0.5
 		bl.Y += d.Player.Canvas.Bounds().H() * 0.5
-		tr.X -= d.Player.Canvas.Bounds().W() * 0.5 + world.TileSize
+		tr.X -= d.Player.Canvas.Bounds().W()*0.5 + world.TileSize
 		tr.Y -= d.Player.Canvas.Bounds().H() * 0.5
 		if bl.X <= tr.X {
 			if bl.X > d.Player.CamPos.X {
@@ -138,11 +160,31 @@ func UpdateView(d *Dwarf, i, l int) {
 				d.Player.CamPos.Y = tr.Y
 			}
 		}
+		// Shake
+		d.Player.PostCamPos.X = d.Player.CamPos.X
+		d.Player.PostCamPos.Y = d.Player.CamPos.Y
+		if d.Player.ShakeX != nil {
+			x, finSX := d.Player.ShakeX.Update(timing.DT)
+			d.Player.PostCamPos.X += x
+			if finSX {
+				d.Player.ShakeX = nil
+			}
+		}
+		if d.Player.ShakeY != nil {
+			y, finSY := d.Player.ShakeY.Update(timing.DT)
+			d.Player.PostCamPos.Y += y
+			if finSY {
+				d.Player.ShakeY = nil
+			}
+		}
+		// lock to integer
 		d.Player.CamPos.X = math.Round(d.Player.CamPos.X)
 		d.Player.CamPos.Y = math.Round(d.Player.CamPos.Y)
+		d.Player.PostCamPos.X = math.Round(d.Player.PostCamPos.X)
+		d.Player.PostCamPos.Y = math.Round(d.Player.PostCamPos.Y)
 	}
 
-	r := pixel.R(math.Round(d.Player.CamPos.X - canvasWidth), math.Round(d.Player.CamPos.Y - canvasHeight), math.Round(d.Player.CamPos.X + canvasWidth), math.Round(d.Player.CamPos.Y + canvasHeight))
+	r := pixel.R(math.Round(d.Player.PostCamPos.X-canvasWidth), math.Round(d.Player.PostCamPos.Y-canvasHeight), math.Round(d.Player.PostCamPos.X+canvasWidth), math.Round(d.Player.PostCamPos.Y+canvasHeight))
 	d.Player.Canvas.SetBounds(r)
 	var y, x float64
 	if l == 1 {
@@ -191,7 +233,7 @@ func UpdateView(d *Dwarf, i, l int) {
 			}
 		}
 	} else if l == 4 {
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			x = -wQ
 		} else {
 			x = wQ
@@ -203,4 +245,20 @@ func UpdateView(d *Dwarf, i, l int) {
 		}
 	}
 	d.Player.CanvasPos = pixel.V(x, y)
+}
+
+func MoveCam(d *Dwarf, pos pixel.Vec, dur float64) {
+	d.Player.InterX = gween.New(d.Player.CamPos.X, pos.X, dur, ease.InOutQuad)
+	d.Player.InterY = gween.New(d.Player.CamPos.Y, pos.Y, dur, ease.InOutQuad)
+}
+
+func ShakeCam(d *Dwarf, dur, freq float64) {
+	d.Player.ShakeX = gween.New((random.Effects.Float64()-0.5)*8., 0., dur, SetSine(freq))
+	d.Player.ShakeY = gween.New((random.Effects.Float64()-0.5)*8., 0., dur, SetSine(freq))
+}
+
+func SetSine(freq float64) func(float64, float64, float64, float64) float64 {
+	return func(t, b, c, d float64) float64 {
+		return b * math.Pow(math.E, -math.Abs(c)*t) * math.Sin(freq*math.Pi*t)
+	}
 }

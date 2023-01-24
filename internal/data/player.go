@@ -1,6 +1,7 @@
 package data
 
 import (
+	gween "dwarf-sweeper/pkg/gween64"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	pxginput "github.com/timsims1717/pixel-go-input"
@@ -8,16 +9,24 @@ import (
 )
 
 type Player struct {
-	Code      string
-	Attr      Attributes
-	Stats     Stats
-	Gems      int
-	Canvas    *pixelgl.Canvas
-	CanvasPos pixel.Vec
-	CamPos    pixel.Vec
-	RelX      float64
-	CamTar    pixel.Vec
-	CamVel    pixel.Vec
+	Code  string
+	Attr  Attributes
+	Stats Stats
+	Gems  int
+
+	Canvas     *pixelgl.Canvas
+	CanvasPos  pixel.Vec
+	CamPos     pixel.Vec
+	PostCamPos pixel.Vec
+	RelX       float64
+	CamTar     pixel.Vec
+	CamVel     pixel.Vec
+	InterX     *gween.Tween
+	InterY     *gween.Tween
+	ShakeX     *gween.Tween
+	ShakeY     *gween.Tween
+	Lock       bool
+
 	Inventory *Inventory
 	Puzzle    Puzzle
 	Messages  []*RawMessage

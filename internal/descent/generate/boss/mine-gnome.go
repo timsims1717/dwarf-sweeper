@@ -5,8 +5,10 @@ import (
 	"dwarf-sweeper/internal/data"
 	"dwarf-sweeper/internal/descent"
 	"dwarf-sweeper/internal/descent/cave"
+	"dwarf-sweeper/internal/descent/generate/objects"
 	"dwarf-sweeper/internal/descent/generate/structures"
 	"dwarf-sweeper/internal/myecs"
+	"dwarf-sweeper/internal/random"
 	"dwarf-sweeper/pkg/sfx"
 	"dwarf-sweeper/pkg/transform"
 	"dwarf-sweeper/pkg/world"
@@ -20,21 +22,34 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	c.BombPMax = 0.3
 	chunk0 := cave.NewChunk(world.Coords{X: 0, Y: 0}, c, cave.Wall)
 
-	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 0}, c, cave.Wall)
-	chunkr2 := cave.NewChunk(world.Coords{X: 1, Y: 1}, c, cave.Wall)
-	chunkr3 := cave.NewChunk(world.Coords{X: 0, Y: 1}, c, cave.Wall)
-	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 0}, c, cave.Wall)
-	chunkl2 := cave.NewChunk(world.Coords{X: -1, Y: 1}, c, cave.Wall)
+	chunkr0 := cave.NewChunk(world.Coords{X: 1, Y: 0}, c, cave.Wall)
+	chunkr1 := cave.NewChunk(world.Coords{X: 1, Y: 1}, c, cave.Wall)
+	chunk1 := cave.NewChunk(world.Coords{X: 0, Y: 1}, c, cave.Wall)
+	chunkl0 := cave.NewChunk(world.Coords{X: -1, Y: 0}, c, cave.Wall)
+	chunkl1 := cave.NewChunk(world.Coords{X: -1, Y: 1}, c, cave.Wall)
+	chunkr2 := cave.NewChunk(world.Coords{X: 2, Y: 0}, c, cave.Wall)
+	chunkr3 := cave.NewChunk(world.Coords{X: 2, Y: 1}, c, cave.Wall)
 
 	c.Chunks[chunk0.Coords] = chunk0
+	c.Chunks[chunkr0.Coords] = chunkr0
 	c.Chunks[chunkr1.Coords] = chunkr1
+	c.Chunks[chunk1.Coords] = chunk1
+	c.Chunks[chunkl0.Coords] = chunkl0
+	c.Chunks[chunkl1.Coords] = chunkl1
 	c.Chunks[chunkr2.Coords] = chunkr2
 	c.Chunks[chunkr3.Coords] = chunkr3
-	c.Chunks[chunkl1.Coords] = chunkl1
-	c.Chunks[chunkl2.Coords] = chunkl2
 	structures.Entrance(c, c.StartC, 9, 5, 3, cave.Doorway)
-	structures.Stairs(c, world.Coords{X: 11, Y: 10}, true, true, 12, 6)
-	structures.Stairs(c, world.Coords{X: 21, Y: 10}, false, true, 12, 6)
+	structures.Stairs(c, world.Coords{X: 11, Y: 10}, true, true, 13, 6)
+	structures.Stairs(c, world.Coords{X: 21, Y: 10}, false, true, 13, 6)
+	if random.CaveGen.Intn(2) == 0 {
+		structures.RectRoom(c, world.Coords{X: 2, Y: 15}, 3, 2, 0, cave.Empty)
+		objects.AddBombDispenser(c.GetTileInt(3, 16))
+		// 3,16
+	} else {
+		structures.RectRoom(c, world.Coords{X: 28, Y: 15}, 3, 2, 0, cave.Empty)
+		objects.AddBombDispenser(c.GetTileInt(29, 16))
+		// 29,16
+	}
 	structures.GnomeMineLayer(c, world.Coords{X: 11, Y: 23}, world.Coords{X: 21, Y: 23})
 
 	cl := c.StartC
@@ -47,7 +62,7 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 	coll := data.NewCollider(pixel.R(0., 0., world.TileSize*70., world.TileSize*3.), data.GroundOnly)
 	coll.Debug = true
 
-	gnome := descent.CreateGnomeBoss(5 + level/4)
+	gnome := descent.CreateGnomeBoss(6 + level/4)
 	gnome.Charge = false
 	gnome.SetOnDamageFn(func() {
 		nextLayer(gnome)
@@ -67,7 +82,7 @@ func GnomeBoss(c *cave.Cave, level int) *cave.Cave {
 }
 
 func nextLayer(gnome *descent.GnomeBoss) {
-	if gnome.State != descent.GBDig {
+	if gnome.State != descent.GBDig && gnome.Health.Curr > 1 {
 		cl := descent.Descent.CoordsMap["current_layer"]
 		lp := gnome.Transform.Pos
 		lp.X -= world.TileSize * 3.
@@ -83,6 +98,8 @@ func nextLayer(gnome *descent.GnomeBoss) {
 		gnome.State = descent.GBDig
 		updated := structures.GnomeMineLayer(descent.Descent.Cave, lc, rc)
 		structures.UpdateTiles(updated)
+	} else if gnome.Health.Curr == 1 {
+		gnome.State = descent.GBFlee
 	}
 }
 
@@ -90,6 +107,7 @@ func revealExit(gnome *descent.GnomeBoss) {
 	c := descent.Descent.Cave
 	exitC := c.GetTile(gnome.Transform.Pos).RCoords
 	structures.ExitDoor(c, exitC, 0, cave.SecretOpen)
+	sfx.MusicPlayer.Stop(constants.GameMusic)
 	c.UpdateBatch = true
 }
 
@@ -106,25 +124,30 @@ func TriggerGnome(gnome *descent.GnomeBoss, p *data.Player, trans *transform.Tra
 		startRumble(gnome)
 		myecs.Manager.DisposeEntity(e)
 		return false
-	}, 1.25)).
+	}, 0.5)).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false))
 }
 
 func startRumble(gnome *descent.GnomeBoss) {
+	for _, d := range descent.Descent.GetPlayers() {
+		descent.MoveCam(d, gnome.Transform.Pos, 0.5)
+		d.Player.Lock = true
+	}
 	shake := myecs.Manager.NewEntity()
 	sfx.SoundPlayer.PlaySound("rockslide", 0.)
-	//shake.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
-	//	camera.Cam.Shake(0.3, 8.)
-	//	return false
-	//}, 0.2)).
-	//	AddComponent(myecs.Temp, myecs.ClearFlag(false))
+	shake.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
+		for _, d := range descent.Descent.GetPlayers() {
+			descent.ShakeCam(d, 0.3, 8.)
+		}
+		return false
+	}, 0.2)).
+		AddComponent(myecs.Temp, myecs.ClearFlag(false))
 	stopShake := myecs.Manager.NewEntity()
 	stopShake.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 		myecs.Manager.DisposeEntity(shake)
 		myecs.Manager.DisposeEntity(stopShake)
-		// todo: pan camera
 		return false
-	}, 1.5)).
+	}, 2.25)).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false))
 	gnomeFn := myecs.Manager.NewEntity()
 	gnomeFn.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
@@ -136,10 +159,22 @@ func startRumble(gnome *descent.GnomeBoss) {
 	stop := myecs.Manager.NewEntity()
 	stop.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
 		descent.Descent.DisableInput = false
-		gnome.Charge = true
-		gnome.State = descent.GBCharge
+		for _, d := range descent.Descent.GetPlayers() {
+			descent.MoveCam(d, d.Transform.Pos, 0.5)
+		}
 		myecs.Manager.DisposeEntity(stop)
 		sfx.MusicPlayer.PlayTrack(constants.GameMusic, "hero")
+		return false
+	}, 9.0)).
+		AddComponent(myecs.Temp, myecs.ClearFlag(false))
+	startGnome := myecs.Manager.NewEntity()
+	startGnome.AddComponent(myecs.Func, data.NewTimerFunc(func() bool {
+		for _, d := range descent.Descent.GetPlayers() {
+			d.Player.Lock = false
+		}
+		gnome.Charge = true
+		gnome.State = descent.GBCharge
+		myecs.Manager.DisposeEntity(startGnome)
 		return false
 	}, 9.5)).
 		AddComponent(myecs.Temp, myecs.ClearFlag(false))

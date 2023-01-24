@@ -1,6 +1,6 @@
 # DwarfSweeper Changelog
 
-## 0.5.20220930
+## 0.5.20230127
 
 ### Features
 
@@ -12,6 +12,23 @@
 * Bats now start flying if a block is destroyed near them
 * New Zone: Glacier
 * Added a Biome selector on the main menu
+* Added a new object, a bomb dispenser: stand close to get a new bomb
+    * Used for bosses to keep the game from softlocking
+    * Has a five second timer between dropping bombs
+* Added shaky cam back in
+
+### Bugfixes
+
+* Fixed a whole bunch of small issues with the Gnome Boss
+    * The Boss would freeze randomly
+    * Widened the bottom of the stairs
+    * Fixed camera movement during "cutscene"
+    * Made the boss be farther away from the player at the start
+    * Gave the players more time to dodge the first charge
+    * Fixed the exit not showing up correctly
+    * The music now fades out when the boss is defeated
+    * Added new emerge detection for the boss
+    * Fixed sounds
 
 ## 0.4.20220729
 
