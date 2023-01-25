@@ -11,7 +11,7 @@ const (
 	Title   = "DwarfSweeper"
 	Release = 0
 	Version = 5
-	Build   = 20220930
+	Build   = 20230224
 	BaseW   = 320.
 	BaseH   = 240.
 
@@ -105,7 +105,7 @@ var (
 	ActualOneSize   = 10 / TypeFaceSize
 
 	// Gameplay
-	ScreenShake = true
+	ScreenShake  = true
 	SplitScreenV = true
 
 	// Menus

@@ -2,12 +2,15 @@ package myecs
 
 import (
 	"dwarf-sweeper/internal/data"
+	"dwarf-sweeper/pkg/transform"
 	"github.com/bytearena/ecs"
 	"github.com/faiface/pixel"
 )
 
 var (
-	Count = 0
+	FullCount   = 0
+	IDCount     = 0
+	LoadedCount = 0
 )
 
 var (
@@ -63,10 +66,18 @@ var (
 )
 
 func UpdateManager() {
-	Count = 0
-	for _, result := range Manager.Query(IsEntity) {
-		if _, ok := result.Components[Entity].(AnEntity); ok {
-			Count++
+	LoadedCount = 0
+	IDCount = 0
+	FullCount = 0
+	for _, result := range Manager.Query(HasTransform) {
+		if t, ok := result.Components[Transform].(*transform.Transform); ok {
+			FullCount++
+			if t.ID != "" {
+				IDCount++
+				if t.Load {
+					LoadedCount++
+				}
+			}
 		}
 	}
 }

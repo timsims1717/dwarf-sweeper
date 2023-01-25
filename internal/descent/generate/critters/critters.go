@@ -18,7 +18,7 @@ func AddCritter(c *cave.Cave, key string, pos pixel.Vec) {
 	case "bat":
 		descent.CreateBat(c, pos)
 	case "slug":
-		descent.CreateSlug(c, pos)
+		//descent.CreateSlug(c, pos)
 	case "gnome":
 		descent.CreateGnome(c, pos)
 	}

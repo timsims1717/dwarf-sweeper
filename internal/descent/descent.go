@@ -92,6 +92,14 @@ func Update() {
 		default:
 			Descent.canExit = true
 		}
+		for _, c := range Descent.Cave.AllRevealed() {
+			below := Descent.Cave.GetTileInt(c.X, c.Y+1)
+			if below != nil && below.Type == cave.Empty {
+				if random.Effects.Intn(3) == 0 {
+					CreateFallingBlock(Descent.Cave, c)
+				}
+			}
+		}
 		for i, exit := range Descent.Cave.Exits {
 			exitTile := Descent.Cave.GetTileInt(exit.Coords.X, exit.Coords.Y)
 			if exit.PopUp == nil {

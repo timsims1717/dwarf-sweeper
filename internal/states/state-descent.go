@@ -197,7 +197,9 @@ func (s *descentState) Draw(win *pixelgl.Window) {
 	}
 	//debug.AddText(fmt.Sprintf("camera pos: (%f,%f)", camera.Cam.APos.X, camera.Cam.APos.Y))
 	//debug.AddText(fmt.Sprintf("camera zoom: %f", camera.Cam.Zoom))
-	debug.AddText(fmt.Sprintf("entity count: %d", myecs.Count))
+	debug.AddText(fmt.Sprintf("ID'd Entity Count: %d", myecs.IDCount))
+	debug.AddText(fmt.Sprintf("Loaded Entity Count: %d", myecs.LoadedCount))
+	debug.AddText(fmt.Sprintf("Full Entity Count: %d", myecs.FullCount))
 }
 
 func (s *descentState) SetAbstract(aState *state.AbstractState) {
@@ -261,7 +263,7 @@ func (s *descentState) Descend() {
 
 	for i, d := range descent.Descent.Dwarves {
 		pos := descent.Descent.GetCave().GetStart().Transform.Pos
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			pos.X -= world.TileSize * float64(i/2)
 		} else {
 			pos.X += world.TileSize * float64((i+1)/2)

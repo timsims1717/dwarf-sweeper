@@ -30,6 +30,7 @@ type Cave struct {
 	TotalBombs  int
 	BombsLeft   int
 	Destroyed   []world.Coords
+	Revealed    []world.Coords
 
 	Left   int
 	Right  int
@@ -40,7 +41,7 @@ type Cave struct {
 	tr     pixel.Vec
 	StartC world.Coords
 	DoorI  int
-	Exits  []struct{
+	Exits  []struct {
 		Coords world.Coords
 		PopUp  *menus.PopUp
 		ExitI  int
@@ -126,6 +127,7 @@ func (c *Cave) SetSize(left, right, bottom int) {
 
 func (c *Cave) Update() {
 	c.Destroyed = []world.Coords{}
+	c.Revealed = []world.Coords{}
 	var all []world.Coords
 	for _, pivot := range c.Pivots {
 		p := WorldToChunk(pivot)
@@ -171,8 +173,8 @@ func (c *Cave) DrawBG(p *data.Player) {
 		}
 		offset.X *= -1.
 		offset.Y *= -1.
-		offset.X += w*0.5
-		offset.Y += h*0.5
+		offset.X += w * 0.5
+		offset.Y += h * 0.5
 		offset.X = math.Round(offset.X)
 		offset.Y = math.Round(offset.Y)
 		c.BGTC.Pos = offset
@@ -239,7 +241,7 @@ func (c *Cave) CenterCoords() (int, int) {
 	if c.Type == Infinite {
 		return -1, -1
 	} else {
-		return c.Width / 2 - 1, c.Height / 2 - 1
+		return c.Width/2 - 1, c.Height/2 - 1
 	}
 }
 
@@ -363,9 +365,9 @@ func (c *Cave) MarkAsNotChanged() {
 
 func WorldToChunk(v pixel.Vec) world.Coords {
 	if v.X >= 0-world.TileSize*0.5 {
-		return world.Coords{X: int((v.X+world.TileSize*0.5) / constants.ChunkSize / world.TileSize), Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
+		return world.Coords{X: int((v.X + world.TileSize*0.5) / constants.ChunkSize / world.TileSize), Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
 	} else {
-		return world.Coords{X: int((v.X+world.TileSize*0.5) / constants.ChunkSize / world.TileSize) - 1, Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
+		return world.Coords{X: int((v.X+world.TileSize*0.5)/constants.ChunkSize/world.TileSize) - 1, Y: int(-(v.Y - world.TileSize*0.5) / constants.ChunkSize / world.TileSize)}
 	}
 }
 
@@ -387,14 +389,18 @@ func TileInTile(a, b pixel.Vec) bool {
 }
 
 func (c *Cave) DestroyedWithin(orig world.Coords, distX, distY int) bool {
-	for y := orig.Y - distY; y <= orig.Y +distY; y++ {
-		for x := orig.X - distX; x <= orig.X +distX; x++ {
-			if world.CoordsIn(world.Coords{ X: x, Y: y }, c.Destroyed) {
+	for y := orig.Y - distY; y <= orig.Y+distY; y++ {
+		for x := orig.X - distX; x <= orig.X+distX; x++ {
+			if world.CoordsIn(world.Coords{X: x, Y: y}, c.Destroyed) {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+func (c *Cave) AllRevealed() []world.Coords {
+	return c.Revealed
 }
 
 func (c *Cave) GetBlob(orig world.Coords, dist int) []world.Coords {
@@ -408,10 +414,10 @@ func (c *Cave) GetBlob(orig world.Coords, dist int) []world.Coords {
 			ta = []world.Coords{}
 		}
 		for i, n := range t.Neighbors() {
-			if i % 2 == 0 {
+			if i%2 == 0 {
 				tt := c.GetTileInt(t.X, t.Y)
 				nt := c.GetTileInt(n.X, n.Y)
-				if nt != nil && world.Distance(orig, n) < float64(dist) * world.TileSize &&
+				if nt != nil && world.Distance(orig, n) < float64(dist)*world.TileSize &&
 					((!tt.Solid() && !nt.Solid()) || (tt.Type == nt.Type)) {
 					if !world.CoordsIn(n, a) {
 						a = append(a, n)
@@ -436,10 +442,10 @@ func (c *Cave) GetOutline(orig world.Coords, dist float64) []world.Coords {
 			ta = []world.Coords{}
 		}
 		for i, n := range t.Neighbors() {
-			if i % 2 == 0 {
+			if i%2 == 0 {
 				tt := c.GetTileInt(t.X, t.Y)
 				nt := c.GetTileInt(n.X, n.Y)
-				if nt != nil && world.Distance(orig, n) < dist * world.TileSize {
+				if nt != nil && world.Distance(orig, n) < dist*world.TileSize {
 					if (!tt.Solid() && !nt.Solid()) || (tt.Type == nt.Type) {
 						if !world.CoordsIn(n, a) {
 							a = append(a, n)

@@ -777,6 +777,41 @@
    "y": 112,
    "h": 12,
    "w": 12
+  },
+  {
+   "key": "falling_block_mine",
+   "x": 0,
+   "y": 128,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "falling_block_moss",
+   "x": 16,
+   "y": 128,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "falling_block_crystal",
+   "x": 32,
+   "y": 128,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "falling_block_dark",
+   "x": 48,
+   "y": 128,
+   "h": 16,
+   "w": 16
+  },
+  {
+   "key": "falling_block_glacier",
+   "x": 64,
+   "y": 128,
+   "h": 16,
+   "w": 16
   }
  ]
 }

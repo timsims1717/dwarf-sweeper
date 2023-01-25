@@ -1,5 +1,9 @@
 # DwarfSweeper Changelog
 
+## 0.5.20230224
+
+### Features
+
 ## 0.5.20230127
 
 ### Features

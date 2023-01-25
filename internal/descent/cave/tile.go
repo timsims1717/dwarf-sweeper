@@ -226,7 +226,6 @@ func (tile *Tile) Reveal(instant bool) {
 	if tile != nil && !tile.Bomb && tile.Solid() && tile.Breakable() && tile.Type == Collapse {
 		tile.Chunk.Cave.UpdateBatch = true
 		tile.revealing = false
-		wasType := tile.Type
 		tile.Type = Empty
 		ns := tile.RCoords.Neighbors()
 		c := 0
@@ -241,18 +240,17 @@ func (tile *Tile) Reveal(instant bool) {
 		tile.Destroyed = true
 		if c == 0 {
 			for _, n := range ns {
-				if wasType == Collapse {
-					if instant {
-						tile.Chunk.Cave.GetTileInt(n.X, n.Y).Reveal(true)
-					} else {
-						tile.Chunk.Cave.GetTileInt(n.X, n.Y).ToReveal()
-					}
+				if instant {
+					tile.Chunk.Cave.GetTileInt(n.X, n.Y).Reveal(true)
+				} else {
+					tile.Chunk.Cave.GetTileInt(n.X, n.Y).ToReveal()
 				}
 			}
 		}
 		if !instant {
 			particles.BlockParticles(tile.Transform.Pos, tile.Biome)
 		}
+		tile.Chunk.Cave.Revealed = append(tile.Chunk.Cave.Revealed, tile.RCoords)
 	}
 }
 
