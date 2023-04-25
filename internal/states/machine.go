@@ -41,14 +41,14 @@ var (
 var (
 	switchState = true
 	currState   = "unknown"
-	nextState   = "menu_state"
+	nextState   = MenuStateKey
 	loading     = false
 	loadingDone = false
 	done        = make(chan struct{})
 
-	debugPause     = false
-	menuStack      []*menus.DwarfMenu
-	debugInput     = &pxginput.Input{
+	debugPause = false
+	menuStack  []*menus.DwarfMenu
+	debugInput = &pxginput.Input{
 		Buttons: map[string]*pxginput.ButtonSet{
 			"debugConsole": pxginput.NewJoyless(pixelgl.KeyGraveAccent),
 			"debug":        pxginput.NewJoyless(pixelgl.KeyF3),
@@ -109,7 +109,7 @@ func Update(win *pixelgl.Window) {
 	menuInput.Update(win, camera.Cam.Mat)
 	updateState()
 	if loading {
-		select{
+		select {
 		case <-done:
 			loading = false
 			loadingDone = true

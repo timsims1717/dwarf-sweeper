@@ -18,8 +18,6 @@ type Player struct {
 	CanvasPos  pixel.Vec
 	CamPos     pixel.Vec
 	PostCamPos pixel.Vec
-	RelX       float64
-	CamTar     pixel.Vec
 	CamVel     pixel.Vec
 	InterX     *gween.Tween
 	InterY     *gween.Tween
